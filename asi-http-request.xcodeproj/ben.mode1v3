@@ -197,48 +197,7 @@
 	<key>Notifications</key>
 	<array/>
 	<key>OpenEditors</key>
-	<array>
-		<dict>
-			<key>Content</key>
-			<dict>
-				<key>PBXProjectModuleGUID</key>
-				<string>B513D4520E2BE8A9000A50C6</string>
-				<key>PBXProjectModuleLabel</key>
-				<string>ASIHTTPRequest.m</string>
-				<key>PBXSplitModuleInNavigatorKey</key>
-				<dict>
-					<key>Split0</key>
-					<dict>
-						<key>PBXProjectModuleGUID</key>
-						<string>B513D4530E2BE8A9000A50C6</string>
-						<key>PBXProjectModuleLabel</key>
-						<string>ASIHTTPRequest.m</string>
-						<key>_historyCapacity</key>
-						<integer>0</integer>
-						<key>bookmark</key>
-						<string>B513D49B0E2BF854000A50C6</string>
-						<key>history</key>
-						<array>
-							<string>B513D4110E2BE42A000A50C6</string>
-						</array>
-					</dict>
-					<key>SplitCount</key>
-					<string>1</string>
-				</dict>
-				<key>StatusBarVisibility</key>
-				<true/>
-			</dict>
-			<key>Geometry</key>
-			<dict>
-				<key>Frame</key>
-				<string>{{0, 20}, {1475, 777}}</string>
-				<key>PBXModuleWindowStatusBarHidden2</key>
-				<false/>
-				<key>RubberWindowFrame</key>
-				<string>190 -332 1475 818 0 0 1440 878 </string>
-			</dict>
-		</dict>
-	</array>
+	<array/>
 	<key>PerspectiveWidths</key>
 	<array>
 		<integer>-1</integer>
@@ -272,6 +231,8 @@
 			<key>Layout</key>
 			<array>
 				<dict>
+					<key>BecomeActive</key>
+					<true/>
 					<key>ContentConfiguration</key>
 					<dict>
 						<key>PBXBottomSmartGroupGIDs</key>
@@ -315,7 +276,7 @@
 							<key>PBXSmartGroupTreeModuleOutlineStateSelectionKey</key>
 							<array>
 								<array>
-									<integer>5</integer>
+									<integer>3</integer>
 									<integer>1</integer>
 									<integer>0</integer>
 								</array>
@@ -351,14 +312,12 @@
 					<key>Dock</key>
 					<array>
 						<dict>
-							<key>BecomeActive</key>
-							<true/>
 							<key>ContentConfiguration</key>
 							<dict>
 								<key>PBXProjectModuleGUID</key>
 								<string>1CE0B20306471E060097A5F4</string>
 								<key>PBXProjectModuleLabel</key>
-								<string>ASIHTTPRequest.m</string>
+								<string>AppDelegate.m</string>
 								<key>PBXSplitModuleInNavigatorKey</key>
 								<dict>
 									<key>Split0</key>
@@ -366,20 +325,20 @@
 										<key>PBXProjectModuleGUID</key>
 										<string>1CE0B20406471E060097A5F4</string>
 										<key>PBXProjectModuleLabel</key>
-										<string>ASIHTTPRequest.m</string>
+										<string>AppDelegate.m</string>
 										<key>_historyCapacity</key>
 										<integer>0</integer>
 										<key>bookmark</key>
-										<string>B513D49A0E2BF854000A50C6</string>
+										<string>B513D4D10E2C02B0000A50C6</string>
 										<key>history</key>
 										<array>
 											<string>B513D3E90E2BD48A000A50C6</string>
 											<string>B513D3EA0E2BD48A000A50C6</string>
 											<string>B513D4170E2BE8A9000A50C6</string>
 											<string>B513D41B0E2BE8A9000A50C6</string>
+											<string>B513D4CD0E2C02B0000A50C6</string>
+											<string>B513D4CE0E2C02B0000A50C6</string>
 											<string>B513D4930E2BF854000A50C6</string>
-											<string>B513D4940E2BF854000A50C6</string>
-											<string>B513D4950E2BF854000A50C6</string>
 										</array>
 										<key>prevStack</key>
 										<array>
@@ -560,6 +519,8 @@
 											<string>B513D4970E2BF854000A50C6</string>
 											<string>B513D4980E2BF854000A50C6</string>
 											<string>B513D4990E2BF854000A50C6</string>
+											<string>B513D4CF0E2C02B0000A50C6</string>
+											<string>B513D4D00E2C02B0000A50C6</string>
 										</array>
 									</dict>
 									<key>SplitCount</key>
@@ -753,11 +714,11 @@
 	<integer>5</integer>
 	<key>WindowOrderList</key>
 	<array>
+		<string>B513D4520E2BE8A9000A50C6</string>
 		<string>1C530D57069F1CE1000CFCEE</string>
 		<string>B513D2650E2B507F000A50C6</string>
 		<string>B513D2660E2B507F000A50C6</string>
 		<string>B5ABC8410E24CDE70072F422</string>
-		<string>B513D4520E2BE8A9000A50C6</string>
 		<string>1C78EAAD065D492600B07095</string>
 		<string>1CD10A99069EF8BA00B06720</string>
 		<string>/Users/ben/asi-http-request/asi-http-request.xcodeproj</string>

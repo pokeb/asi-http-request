@@ -1,0 +1,26 @@
+ASIHTTPRequest is an easy to use wrapper around the CFNetwork API that makes some of the more tedious aspects of communicating with web servers easier.
+
+It is suitable for when you want to submit data to an existing web form, or don't want to mess around with SOAP or XML-RPC.
+
+It provides:
+
+*	Ability for setting up progress delegates (e.g. NSProgressIndicators) to show information about download AND upload progress
+
+*	An easy interface for adding POST data to requests
+
+*	The ability to submit files on local drives as part of POST data, analogous to the HTML file input mechanism
+
+*	Basic authentication (username and password) support
+
+*	Integrated Keychain support
+
+*	Based on NSOperation to make queuing requests and background operation easy
+
+
+ASIHTTPRequest comes as part of a simple application that demonstrates many of the features above, just look at AppDelegate.m for good pointers on basic usage, or read the comments in ASIHTTPRequest.h for more detail.
+
+ASIHTTPRequest is partly based on code from Apple's ImageClient code samples, so if it doesn't meet your needs, take a look at their CFNetwork examples for more.
+ASIHTTPRequest is my first open source Objective-C code. I hope to expand the class and example application further (unit tests, maybe even iphone examples...) in the coming months. If you find it helpful, please do get in touch!
+
+See also: 
+http://allseeing-i.com/ASIHTTPRequest-CFNetwork-wrapper-for-HTTP-requests
