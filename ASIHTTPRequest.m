@@ -437,6 +437,7 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 	} else if (uploadProgressDelegate) {
 		CFNumberRef byteCount = (CFNumberRef)CFReadStreamCopyProperty (readStream, kCFStreamPropertyHTTPRequestBytesWrittenCount);
 		[uploadProgressDelegate setDoubleValue:[(NSNumber *)byteCount doubleValue]/PROGRESS_INDICATOR_CHUNK_SIZE];
+		CFRelease(byteCount);
 	} 
 }
 
