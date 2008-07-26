@@ -8,12 +8,8 @@
 //  See: http://developer.apple.com/samplecode/ImageClient/listing37.html
 
 #import "ASIHTTPRequest.h"
-#import "AppDelegate.h"
 
-const NSTimeInterval PROGRESS_INDICATOR_TIMER_INTERVAL = 0.05; // seconds between progress updates
-const double PROGRESS_INDICATOR_CHUNK_SIZE = 1024; //Each progress step will be 1KB
-
-static NSString *NetworkRequestErrorDomain = @"com.All-SeeingInteractive.MemexTrails.NetworkError.";
+static NSString *NetworkRequestErrorDomain = @"com.Your-Company.Your-Product.NetworkError.";
 
 static const CFOptionFlags kNetworkEvents = kCFStreamEventOpenCompleted |
                                             kCFStreamEventHasBytesAvailable |
@@ -37,6 +33,11 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 {
 	[super init];
 	url = [newURL retain];
+	return self;
+}
+
+- (id)init {
+	[super init];
 	postData = nil;
 	fileData = nil;
 	username = nil;
@@ -48,8 +49,9 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 	credentials = NULL;
 	request = NULL;
 	usesKeychain = NO;
-	
-	return self;
+	didFinishSelector = @selector(requestFinished:);
+	didFailSelector = @selector(requestFailed:);
+	return self;	
 }
 
 - (void)dealloc
@@ -166,6 +168,10 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 }
 
 
+
+
+#pragma mark get information about this request
+
 - (NSString *)authenticationRealm
 {
 	return authenticationRealm;
@@ -181,17 +187,45 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 	return error;
 }
 
+- (void)setError:(NSError *)newError
+{
+	[error release];
+	error = [newError retain];
+}
+
+
+
+- (BOOL)complete
+{
+	return complete;
+}
+
 - (BOOL)isFinished 
 {
 	return complete;
 }
 
+- (double)totalBytesRead
+{
+	return totalBytesRead;
+}
+
+// Call this method to get the recieved data as an NSString. Don't use for Binary data!
+- (NSString *)dataString
+{
+	if (!receivedData) {
+		return nil;
+	}
+	NSString *theData = [[[NSString alloc] initWithBytes:[(NSData *)receivedData bytes] length:[(NSData *)receivedData length] encoding:NSUTF8StringEncoding] autorelease];
+	return theData;
+}
+
 
 #pragma mark request logic
 
+// Create the request
 - (void)main
 {
-
 	complete = NO;
 
 	// We'll make a post request only if the user specified post data
@@ -203,7 +237,7 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
     // Create a new HTTP request.
 	request = CFHTTPMessageCreateRequest(kCFAllocatorDefault, (CFStringRef)method, (CFURLRef)url, kCFHTTPVersion1_1);
     if (!request) {
-		[self failWithProblem:@"Unable to create request"];
+		[self failWithProblem:[NSString stringWithFormat:@"Unable to create request for: %@",url]];
 		return;
     }
 
@@ -211,7 +245,7 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 		CFHTTPMessageApplyCredentialDictionary(request, sharedAuthentication, sharedCredentials, NULL);
 	}
 
-	
+	//Set your own boundary string only if really obsessive. We don't bother to check if post data contains the boundary, since it's pretty unlikely that it does.
 	NSString *stringBoundary = @"0xKhTmLbOuNdArY";
 	
 	//Add custom headers
@@ -221,9 +255,8 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 	}
 	CFHTTPMessageSetHeaderFieldValue(request, (CFStringRef)@"Content-Type", (CFStringRef)[NSString stringWithFormat:@"multipart/form-data; boundary=%@",stringBoundary]);
 		
-
-	if ([postData count] > 0) {
-
+	
+	if ([postData count] > 0 || [fileData count] > 0) {
 		
 		NSMutableData *postBody = [NSMutableData data];
 		[postBody appendData:[[NSString stringWithFormat:@"--%@\r\n",stringBoundary] dataUsingEncoding:NSUTF8StringEncoding]];
@@ -261,64 +294,17 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 
 }
 
-- (BOOL)complete
-{
-	return complete;
-}
 
-- (NSString *)dataString
-{
-	if (!receivedData) {
-		return nil;
-	}
-	NSString *theData = [[[NSString alloc] initWithBytes:[(NSData *)receivedData bytes] length:[(NSData *)receivedData length] encoding:NSUTF8StringEncoding] autorelease];
-	return theData;
-}
-
-//Subclasses can override this method to process the result in the same thread
-//If not overidden, it will call the didFinishSelector on the delegate, if one has been setup
-- (void)requestFinished
-{
-	if (didFinishSelector) {
-		if ([delegate respondsToSelector:didFinishSelector]) {
-			[delegate performSelectorOnMainThread:didFinishSelector withObject:self waitUntilDone:YES];
-		}		
-	}
-}
-
-//Subclasses can override this method to perform error handling in the same thread
-//If not overidden, it will call the didFailSelector on the delegate, if one has been setup
-- (void)failWithProblem:(NSString *)problem
-{
-	complete = YES;
-	error =[[NSError errorWithDomain:NetworkRequestErrorDomain 
-								code:1 
-							userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"An error occurred",@"Title",
-									  problem,@"Description",nil]] retain];
-	NSLog(problem);
-	
-	if (didFailSelector) {
-		if ([delegate respondsToSelector:didFailSelector]) {
-			[delegate performSelectorOnMainThread:didFailSelector withObject:self waitUntilDone:YES];
-		}		
-	}
-}
-
-//Called by delegate to resume loading once authentication info has been populated
-- (void)retryWithAuthentication
-{
-	[authenticationLock lockWhenCondition:1];
-	[authenticationLock unlockWithCondition:2];
-}
-
+// Start the request
 - (void)loadRequest
 {
-	//Callled twice during authentication test - fix this
 	[authenticationLock release];
 	authenticationLock = [[NSConditionLock alloc] initWithCondition:1];
 	
 	complete = NO;
 	totalBytesRead = 0;
+	lastBytesRead = 0;
+	lastBytesSent = 0;
 	contentLength = 0;
 	haveExaminedHeaders = NO;
     receivedData = CFDataCreateMutable(NULL, 0);
@@ -355,9 +341,7 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 	
 	if (uploadProgressDelegate) {
 		[self performSelectorOnMainThread:@selector(resetUploadProgress:) withObject:[NSNumber numberWithDouble:postLength] waitUntilDone:YES];
-	}	
-
-	[self performSelectorOnMainThread:@selector(setupProgressTimer) withObject:nil waitUntilDone:YES];
+	}
 
 	
 	// Wait for the request to finish
@@ -371,11 +355,12 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 			complete = YES;
 			break;
 		}
+		[self updateProgressIndicators];
 		[[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:endDate];
 	}
 }
 
-
+// Cancel loading and clean up
 - (void)cancelLoad
 {
     if (readStream) {
@@ -400,18 +385,8 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 }
 
 
-#pragma mark upload/download progress
 
-- (void)setupProgressTimer
-{
-	progressTimer = [NSTimer  
-					  timerWithTimeInterval:PROGRESS_INDICATOR_TIMER_INTERVAL
-					  target:self
-					  selector:@selector(updateProgressIndicators)
-					  userInfo:nil
-					  repeats:YES];
-	[[NSRunLoop currentRunLoop] addTimer:progressTimer forMode:NSDefaultRunLoopMode];
-}
+#pragma mark upload/download progress
 
 
 - (void)updateProgressIndicators
@@ -421,47 +396,76 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 
 }
 
+// Rather than reset the value to 0, it simply adds the size of the upload to the max.
+// This allows multiple requests to use the same progress indicator, but you'll need to remember to set the indicator's value to 0 before you start!
+// Alternatively, change or overidde this method to set the progress to 0 if you're only ever tracking the progress of a single request at a time
 - (void)resetUploadProgress:(NSNumber *)max
 {
-	[uploadProgressDelegate setMaxValue:[max doubleValue]/PROGRESS_INDICATOR_CHUNK_SIZE];
-	[uploadProgressDelegate setDoubleValue:0];
+	[uploadProgressDelegate setMaxValue:[uploadProgressDelegate maxValue]+[max doubleValue]];
 }		
 
 - (void)updateUploadProgress
 {
-	if (complete) {
-		[progressTimer invalidate];	
-		progressTimer = nil;
-		[uploadProgressDelegate setDoubleValue:postLength];
-		
-	} else if (uploadProgressDelegate) {
-		CFNumberRef byteCount = (CFNumberRef)CFReadStreamCopyProperty (readStream, kCFStreamPropertyHTTPRequestBytesWrittenCount);
-		[uploadProgressDelegate setDoubleValue:[(NSNumber *)byteCount doubleValue]/PROGRESS_INDICATOR_CHUNK_SIZE];
-		CFRelease(byteCount);
+	if (uploadProgressDelegate) {
+		double byteCount = [[(NSNumber *)CFReadStreamCopyProperty (readStream, kCFStreamPropertyHTTPRequestBytesWrittenCount) autorelease] doubleValue];
+		[uploadProgressDelegate incrementBy:byteCount-lastBytesSent];
+		lastBytesSent = byteCount;
 	} 
 }
+
+
+// Will only be called if we get a content-length header.
+// Rather than reset the value to 0, it simply adds the size of the download to the max.
+// This allows multiple requests to use the same progress indicator, but you'll need to remember to set the indicator's value to 0 before you start!
+// Alternatively, change or overidde this method to set the progress to 0 if you're only ever tracking the progress of a single request at a time
+- (void)resetDownloadProgress:(NSNumber *)max
+{
+	[downloadProgressDelegate setMaxValue:[downloadProgressDelegate maxValue]+[max doubleValue]];
+}	
 
 - (void)updateDownloadProgress
 {
-	if (complete) {
-		[progressTimer invalidate];	
-		progressTimer = nil;
-		[downloadProgressDelegate setDoubleValue:contentLength];
-		
-	} else if (downloadProgressDelegate) {
-		[downloadProgressDelegate setDoubleValue:totalBytesRead/PROGRESS_INDICATOR_CHUNK_SIZE];
+	if (downloadProgressDelegate) {
+		[downloadProgressDelegate incrementBy:totalBytesRead-lastBytesRead];
+		lastBytesRead = totalBytesRead;
 	} 
 }
 
+#pragma mark handling request complete / failure
 
-- (void)resetDownloadProgress:(NSNumber *)max
+
+// Subclasses can override this method to process the result in the same thread
+// If not overidden, it will call the didFinishSelector on the delegate, if one has been setup
+- (void)requestFinished
 {
-	[downloadProgressDelegate setMaxValue:[max doubleValue]/PROGRESS_INDICATOR_CHUNK_SIZE];
-	[downloadProgressDelegate setDoubleValue:0];
-}	
+	if (didFinishSelector && ![self isCancelled] && [delegate respondsToSelector:didFinishSelector]) {
+		[delegate performSelectorOnMainThread:didFinishSelector withObject:self waitUntilDone:YES];		
+	}
+}
+
+
+
+// Subclasses can override this method to perform error handling in the same thread
+// If not overidden, it will call the didFailSelector on the delegate (by default requestFailed:)`
+- (void)failWithProblem:(NSString *)problem
+{
+	complete = YES;
+	if (!error) {
+		error = [[NSError errorWithDomain:NetworkRequestErrorDomain 
+									 code:1 
+								 userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"An error occurred",@"Title",
+										   problem,@"Description",nil]] retain];
+		NSLog(problem);
+		
+		if (didFailSelector && ![self isCancelled] && [delegate respondsToSelector:didFailSelector]) {
+			[delegate performSelectorOnMainThread:didFailSelector withObject:self waitUntilDone:YES];		
+		}
+	}
+}
 
 
 #pragma mark http authentication
+
 
 // Parse the response headers to get the content-length, and check to see if we need to authenticate
 - (BOOL)isAuthorizationFailure
@@ -470,26 +474,38 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 	BOOL isAuthenticationChallenge = NO;
     if (responseHeaders) {
 		if (CFHTTPMessageIsHeaderComplete(responseHeaders)) {
-			CFStringRef cLength = CFHTTPMessageCopyHeaderFieldValue(responseHeaders,CFSTR("Content-Length"));
-			if (cLength) {
-				contentLength = CFStringGetDoubleValue(cLength);
-				if (downloadProgressDelegate) {
-					[self performSelectorOnMainThread:@selector(resetDownloadProgress:) withObject:[NSNumber numberWithDouble:contentLength] waitUntilDone:YES];
-				}
-				CFRelease(cLength);
-			}
-	
+			
 			// Is the server response a challenge for credentials?
 			isAuthenticationChallenge = (CFHTTPMessageGetResponseStatusCode(responseHeaders) == 401);
+			
+			if (!isAuthenticationChallenge) {
+				
+				//See if we got a Content-length header
+				CFStringRef cLength = CFHTTPMessageCopyHeaderFieldValue(responseHeaders,CFSTR("Content-Length"));
+				if (cLength) {
+					contentLength = CFStringGetDoubleValue(cLength);
+					if (downloadProgressDelegate) {
+						[self performSelectorOnMainThread:@selector(resetDownloadProgress:) withObject:[NSNumber numberWithDouble:contentLength] waitUntilDone:YES];
+					}
+					CFRelease(cLength);
+				}
+			}
+
 		}
         CFRelease(responseHeaders);
 
-    }
-	
-
-	
+    }	
 	return isAuthenticationChallenge;
 }
+
+// Called by delegate to resume loading once authentication info has been populated
+- (void)retryWithAuthentication
+{
+	[authenticationLock lockWhenCondition:1];
+	[authenticationLock unlockWithCondition:2];
+}
+
+
 
 - (void)applyCredentialsAndResume {
     // Apply whatever credentials we've built up to the old request
@@ -550,13 +566,9 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 				[self applyCredentialsLoad];
 				return;
 			}
-			[self failWithProblem:@"Waiting for authentication"];
-			complete = YES;
-			return;
-		} else {
-			[self failWithProblem:@"An authentication problem occurred"];
-			return;
 		}
+		[self setError:[self authenticationError]];
+		complete = YES;
 		
 		
 	} else {
@@ -594,8 +606,7 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 			
 			//Ok, that didn't work, let's try the keychain
 			if ((!user || !pass) && usesKeychain) {
-
-				NSURLCredential *authenticationCredentials = [ASIHTTPRequest savedCredentialsForHost:[url host] port:[[url port] intValue] protocol:[url scheme] realm:authenticationRealm];
+				NSURLCredential *authenticationCredentials = [ASIHTTPRequest savedCredentialsForHost:[url host] port:443 protocol:[url scheme] realm:authenticationRealm];
 				if (authenticationCredentials) {
 					user = (CFStringRef)[authenticationCredentials user];
 					pass = (CFStringRef)[authenticationCredentials password];
@@ -625,7 +636,7 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 				[self applyCredentialsLoad];
 				return;
 			}
-			[self failWithProblem:@"Waiting for authentication"];
+			[self setError:[self authenticationError]];
 			complete = YES;
 			return;
 			
@@ -635,6 +646,15 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 			[self applyCredentialsAndResume];
 		}
 	}	
+}
+
+- (NSError *)authenticationError
+{
+	return [NSError errorWithDomain:NetworkRequestErrorDomain 
+							   code:2 
+						   userInfo:[NSDictionary dictionaryWithObjectsAndKeys: @"Permission Denied",@"Title",
+									 @"Your username and password were incorrect.",@"Description",nil]];
+	
 }
 
 
@@ -736,8 +756,6 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 	if (!error) { //We may already have handled this error
 		[self failWithProblem:[NSString stringWithFormat: @"An error occurred: %@",[err localizedDescription]]];
 	}
-
-	
 }
 
 
@@ -769,7 +787,19 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 	return [storage defaultCredentialForProtectionSpace:protectionSpace];
 }
 
-
++ (void)removeCredentialsForHost:(NSString *)host port:(int)port protocol:(NSString *)protocol realm:(NSString *)realm
+{
+	NSURLProtectionSpace *protectionSpace = [[[NSURLProtectionSpace alloc] initWithHost:host
+																				   port:port
+																			   protocol:protocol
+																				  realm:realm
+																   authenticationMethod:NSURLAuthenticationMethodDefault] autorelease];
+	
+	
+	NSURLCredentialStorage *storage = [NSURLCredentialStorage sharedCredentialStorage];
+	[storage removeCredential:[storage defaultCredentialForProtectionSpace:protectionSpace] forProtectionSpace:protectionSpace];
+	
+}
 
 
 

@@ -27,6 +27,10 @@
 - (IBAction)simpleURLFetch:(id)sender
 {
 	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]] autorelease];
+	
+	//Customise our user agent, for no real reason
+	[request addRequestHeader:@"User-Agent" value:@"ASIHTTPRequest"];
+	
 	[request start];
 	if ([request dataString]) {
 		[htmlSource setString:[request dataString]];

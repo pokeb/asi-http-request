@@ -13,4 +13,5 @@
 - (void)setDoubleValue:(double)newValue;
 - (void)incrementBy:(double)amount;
 - (void)setMaxValue:(double)newMax;
+- (double)maxValue;
 @end
