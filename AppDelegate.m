@@ -131,7 +131,7 @@
 - (void)authorizationNeededForRequest:(ASIHTTPRequest *)request
 {
 	[realm setStringValue:[request authenticationRealm]];
-	[host setStringValue:[request host]];
+	[host setStringValue:[[request url] host]];
 
 	[NSApp beginSheet: loginWindow
 		modalForWindow: window

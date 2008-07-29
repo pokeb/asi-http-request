@@ -25,7 +25,11 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 }
 
 
+
+
 @implementation ASIHTTPRequest
+
+
 
 #pragma mark init / dealloc
 
@@ -51,6 +55,7 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 	usesKeychain = NO;
 	didFinishSelector = @selector(requestFinished:);
 	didFailSelector = @selector(requestFailed:);
+	delegate = nil;
 	return self;	
 }
 
@@ -67,9 +72,6 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 	}
 	[self cancelLoad];
 	[error release];
-	[delegate release];
-	[uploadProgressDelegate release];
-	[downloadProgressDelegate release];
 	[postData release];
 	[fileData release];
 	[requestHeaders release];
@@ -81,26 +83,6 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 	[url release];
 	[authenticationLock release];
 	[super dealloc];
-}
-
-#pragma mark delegate configuration
-
-- (void)setDelegate:(id)newDelegate
-{
-	[delegate release];
-	delegate = [newDelegate retain];
-}
-
-- (void)setUploadProgressDelegate:(id)newDelegate
-{
-	[uploadProgressDelegate release];
-	uploadProgressDelegate = [newDelegate retain];
-}
-
-- (void)setDownloadProgressDelegate:(id)newDelegate
-{
-	[downloadProgressDelegate release];
-	downloadProgressDelegate = [newDelegate retain];
 }
 
 
@@ -139,66 +121,9 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 	password = [newPassword retain];
 }
 
-- (void)setUsesKeychain:(BOOL)shouldUseKeychain
-{
-	usesKeychain = shouldUseKeychain;
-}
-
-
-- (void)setDownloadDestinationPath:(NSString *)newDestinationPath
-{
-	[downloadDestinationPath release];
-	downloadDestinationPath = [newDestinationPath retain];
-}
-
-
-- (NSString *)downloadDestinationPath
-{
-	return downloadDestinationPath;
-}
-
-- (void)setDidFinishSelector:(SEL)selector
-{
-	didFinishSelector = selector;
-}
-
-- (void)setDidFailSelector:(SEL)selector
-{
-	didFinishSelector = selector;
-}
-
-
 
 
 #pragma mark get information about this request
-
-- (NSString *)authenticationRealm
-{
-	return authenticationRealm;
-}
-
-- (NSString *)host
-{
-	return [url host];
-}
-
-- (NSError *)error
-{
-	return error;
-}
-
-- (void)setError:(NSError *)newError
-{
-	[error release];
-	error = [newError retain];
-}
-
-
-
-- (BOOL)complete
-{
-	return complete;
-}
 
 - (BOOL)isFinished 
 {
@@ -216,8 +141,7 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 	if (!receivedData) {
 		return nil;
 	}
-	NSString *theData = [[[NSString alloc] initWithBytes:[(NSData *)receivedData bytes] length:[(NSData *)receivedData length] encoding:NSUTF8StringEncoding] autorelease];
-	return theData;
+	return [[[NSString alloc] initWithBytes:[(NSData *)receivedData bytes] length:[(NSData *)receivedData length] encoding:NSUTF8StringEncoding] autorelease];
 }
 
 
@@ -451,10 +375,10 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 {
 	complete = YES;
 	if (!error) {
-		error = [[NSError errorWithDomain:NetworkRequestErrorDomain 
+		[self setError:[NSError errorWithDomain:NetworkRequestErrorDomain 
 									 code:1 
 								 userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"An error occurred",@"Title",
-										   problem,@"Description",nil]] retain];
+										   problem,@"Description",nil]]];
 		NSLog(problem);
 		
 		if (didFailSelector && ![self isCancelled] && [delegate respondsToSelector:didFailSelector]) {
@@ -801,6 +725,16 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 	
 }
 
-
+@synthesize url;
+@synthesize delegate;
+@synthesize uploadProgressDelegate;
+@synthesize downloadProgressDelegate;
+@synthesize usesKeychain;
+@synthesize downloadDestinationPath;
+@synthesize didFinishSelector;
+@synthesize didFailSelector;
+@synthesize authenticationRealm;
+@synthesize error;
+@synthesize complete;
 
 @end

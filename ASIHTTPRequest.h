@@ -109,14 +109,6 @@
 
 #pragma mark delegate configuration
 
-// Delegate will get messages when the request completes, fails or when authentication is required
-- (void)setDelegate:(id)newDelegate;
-
-// upload progress delegate (usually an NSProgressIndicator) is sent information on upload progress
-- (void)setUploadProgressDelegate:(id)newDelegate;
-
-// download progress delegate (usually an NSProgressIndicator) is sent information on download progress
-- (void)setDownloadProgressDelegate:(id)newDelegate;
 
 #pragma mark setup request
 
@@ -132,32 +124,8 @@
 // When set, username and password will be presented for HTTP authentication
 - (void)setUsername:(NSString *)newUsername andPassword:(NSString *)newPassword;
 
-// When true, authentication information will automatically be stored in (and re-used from) the keychain
-- (void)setUsesKeychain:(BOOL)shouldUseKeychain;
-
-//the results of this request will be saved to downloadDestinationPath, if it is set
-- (void)setDownloadDestinationPath:(NSString *)newDestinationPath;
-
-- (NSString *)downloadDestinationPath;
-
-// This selector will be called on the delegate when the request completes successfully
-- (void)setDidFinishSelector:(SEL)selector;
-
-//  This selector will be called on the delegate when the request fails
-- (void)setDidFailSelector:(SEL)selector;
-
 #pragma mark get information about this request
 
-// Accessors for getting information about the request (useful for auth dialogs) 
-- (NSString *)authenticationRealm;
-- (NSString *)host;
-
-// Contains a description of the error that occurred if the request failed
-- (NSError *)error;
-- (void)setError:(NSError *)newError;
-
-// Will be true when the request is complete (success or failure)
-- (BOOL)complete;
 - (BOOL)isFinished; //Same thing, for NSOperationQueues to read
 
 // Get total amount of data received so far for this request
@@ -230,12 +198,17 @@
 + (void)removeCredentialsForHost:(NSString *)host port:(int)port protocol:(NSString *)protocol realm:(NSString *)realm;
 
 
-
-
-
-
-
-
+@property (retain,readonly) NSURL *url;
+@property (assign) id delegate;
+@property (assign) NSObject *uploadProgressDelegate;
+@property (assign) NSObject *downloadProgressDelegate;
+@property (assign) BOOL usesKeychain;
+@property (retain) NSString *downloadDestinationPath;
+@property (assign) SEL didFinishSelector;
+@property (assign) SEL didFailSelector;
+@property (retain,readonly) NSString *authenticationRealm;
+@property (retain) NSError *error;
+@property (assign,readonly) BOOL complete;
 
 
 @end
