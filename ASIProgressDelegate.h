@@ -9,8 +9,8 @@
 
 @protocol ASIProgressDelegate
 
-- (void)incrementProgress;
 - (void)setDoubleValue:(double)newValue;
+- (double)doubleValue;
 - (void)incrementBy:(double)amount;
 - (void)setMaxValue:(double)newMax;
 - (double)maxValue;

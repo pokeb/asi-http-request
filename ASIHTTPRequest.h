@@ -29,8 +29,11 @@
 	//Dictionary for custom request headers
 	NSMutableDictionary *requestHeaders;
 	
-	//If usesKeychain is true, network requests will attempt to read credentials from the keychain, and will save them in the keychain when they are successfully presented
-	BOOL usesKeychain;
+	//If useKeychainPersistance is true, network requests will attempt to read credentials from the keychain, and will save them in the keychain when they are successfully presented
+	BOOL useKeychainPersistance;
+	
+	//If useSessionPersistance is true, network requests will save credentials and reuse for the duration of the session (until clearSession is called)
+	BOOL useSessionPersistance;
 	
 	//When downloadDestinationPath is set, the result of this request will be downloaded to the file at this location
 	//If downloadDestinationPath is not set, download data will be stored in memory
@@ -72,7 +75,7 @@
     CFHTTPAuthenticationRef authentication;  
 	
 	// Credentials associated with the authentication (reused until server says no)
-	CFMutableDictionaryRef credentials; 
+	//CFMutableDictionaryRef credentials; 
 
 	//Size of the response
 	double contentLength;
@@ -99,6 +102,9 @@
 	
 	//Called on the delegate when the request fails
 	SEL didFailSelector;
+	
+	NSDictionary *responseHeaders;
+	NSMutableDictionary *requestCredentials;
 	
 }
 
@@ -162,17 +168,14 @@
 #pragma mark http authentication stuff
 
 // Reads the response headers to find the content length, and returns true if the request needs a username and password (or if those supplied were incorrect)
-- (BOOL)isAuthorizationFailure;
+- (BOOL)readResponseHeadersReturningAuthenticationFailure;
 
 // Unlock (unpause) the request thread so it can resume the request
 // Should be called by delegates when they have populated the authentication information after an authentication challenge
 - (void)retryWithAuthentication;
 
 // Apply authentication information and resume the request after an authentication challenge
-- (void)applyCredentialsAndResume;
-
-// Look for somewhere we can get authentication information from
-- (void)applyCredentialsLoad;
+- (void)attemptToApplyCredentialsAndResume;
 
 // Customise or overidde this to have a generic error for authentication failure
 - (NSError *)authenticationError;
@@ -202,13 +205,19 @@
 @property (assign) id delegate;
 @property (assign) NSObject *uploadProgressDelegate;
 @property (assign) NSObject *downloadProgressDelegate;
-@property (assign) BOOL usesKeychain;
+@property (assign) BOOL useKeychainPersistance;
+@property (assign) BOOL useSessionPersistance;
 @property (retain) NSString *downloadDestinationPath;
 @property (assign) SEL didFinishSelector;
 @property (assign) SEL didFailSelector;
 @property (retain,readonly) NSString *authenticationRealm;
 @property (retain) NSError *error;
 @property (assign,readonly) BOOL complete;
+@property (retain) NSDictionary *responseHeaders;
+@property (retain) NSDictionary *requestCredentials;
+
+- (void)saveCredentialsToKeychain:(NSMutableDictionary *)newCredentials;
+- (BOOL)applyCredentials:(NSMutableDictionary *)newCredentials;
 
 
 @end

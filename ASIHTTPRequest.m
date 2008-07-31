@@ -16,15 +16,13 @@ static const CFOptionFlags kNetworkEvents = kCFStreamEventOpenCompleted |
                                             kCFStreamEventEndEncountered |
                                             kCFStreamEventErrorOccurred;
 
+static CFHTTPAuthenticationRef sessionAuthentication = NULL;
+static NSMutableDictionary *sessionCredentials = nil;
 
-static CFMutableDictionaryRef sharedCredentials = NULL;
-static CFHTTPAuthenticationRef sharedAuthentication = NULL;
 
 static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventType type, void *clientCallBackInfo) {
     [((ASIHTTPRequest*)clientCallBackInfo) handleNetworkEvent: type];
 }
-
-
 
 
 @implementation ASIHTTPRequest
@@ -35,13 +33,14 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 
 - (id)initWithURL:(NSURL *)newURL
 {
-	[super init];
+	[self init];
 	url = [newURL retain];
 	return self;
 }
 
 - (id)init {
 	[super init];
+	lastBytesSent = 0;
 	postData = nil;
 	fileData = nil;
 	username = nil;
@@ -50,9 +49,11 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 	authenticationRealm = nil;
 	outputStream = nil;
 	authentication = NULL;
-	credentials = NULL;
+	//credentials = NULL;
 	request = NULL;
-	usesKeychain = NO;
+	responseHeaders = nil;
+	[self setUseKeychainPersistance:YES];
+	[self setUseSessionPersistance:YES];
 	didFinishSelector = @selector(requestFinished:);
 	didFailSelector = @selector(requestFailed:);
 	delegate = nil;
@@ -64,13 +65,11 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 	if (authentication) {
 		CFRelease(authentication);
 	}
-	if (credentials) {
-		CFRelease(credentials);
-	}
 	if (request) {
 		CFRelease(request);
 	}
 	[self cancelLoad];
+	[requestCredentials release];
 	[error release];
 	[postData release];
 	[fileData release];
@@ -147,6 +146,12 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 
 #pragma mark request logic
 
++ (void)setSessionCredentials:(NSMutableDictionary *)newCredentials
+{
+	[sessionCredentials release];
+	sessionCredentials = [newCredentials retain];
+}
+
 // Create the request
 - (void)main
 {
@@ -164,9 +169,14 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 		[self failWithProblem:[NSString stringWithFormat:@"Unable to create request for: %@",url]];
 		return;
     }
-
-	if (sharedAuthentication && sharedCredentials) {
-		CFHTTPMessageApplyCredentialDictionary(request, sharedAuthentication, sharedCredentials, NULL);
+	
+	//If we've already talked to this server and have valid credentials, let's apply them to the request
+	if (useSessionPersistance && sessionCredentials && sessionAuthentication) {
+		if (!CFHTTPMessageApplyCredentialDictionary(request, sessionAuthentication, (CFMutableDictionaryRef)sessionCredentials, NULL)) {
+			CFRelease(sessionAuthentication);
+			sessionAuthentication = NULL;
+			[ASIHTTPRequest setSessionCredentials:nil];
+		}
 	}
 
 	//Set your own boundary string only if really obsessive. We don't bother to check if post data contains the boundary, since it's pretty unlikely that it does.
@@ -222,15 +232,23 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 // Start the request
 - (void)loadRequest
 {
+	
 	[authenticationLock release];
 	authenticationLock = [[NSConditionLock alloc] initWithCondition:1];
 	
 	complete = NO;
 	totalBytesRead = 0;
 	lastBytesRead = 0;
+	
+	//If we're retrying a request after an authentication failure, let's remove any progress we made
+	if (lastBytesSent > 0 && uploadProgressDelegate) {
+		[uploadProgressDelegate setDoubleValue:[uploadProgressDelegate doubleValue]-lastBytesSent];
+		[uploadProgressDelegate setMaxValue:[uploadProgressDelegate maxValue]-lastBytesSent];
+	}
+	
 	lastBytesSent = 0;
 	contentLength = 0;
-	haveExaminedHeaders = NO;
+	[self setResponseHeaders:nil];
     receivedData = CFDataCreateMutable(NULL, 0);
     
     // Create the stream for the request.
@@ -305,7 +323,7 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 		[[NSFileManager defaultManager] removeFileAtPath:downloadDestinationPath handler:nil];
 	}
 	
-	haveExaminedHeaders = NO;
+	[self setResponseHeaders:nil];
 }
 
 
@@ -330,11 +348,11 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 
 - (void)updateUploadProgress
 {
+	double byteCount = [[(NSNumber *)CFReadStreamCopyProperty (readStream, kCFStreamPropertyHTTPRequestBytesWrittenCount) autorelease] doubleValue];
 	if (uploadProgressDelegate) {
-		double byteCount = [[(NSNumber *)CFReadStreamCopyProperty (readStream, kCFStreamPropertyHTTPRequestBytesWrittenCount) autorelease] doubleValue];
 		[uploadProgressDelegate incrementBy:byteCount-lastBytesSent];
-		lastBytesSent = byteCount;
-	} 
+	}
+	lastBytesSent = byteCount;
 }
 
 
@@ -349,7 +367,8 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 
 - (void)updateDownloadProgress
 {
-	if (downloadProgressDelegate) {
+	//We won't update downlaod progress until we've examined the headers, since we might need to authenticate
+	if (downloadProgressDelegate && responseHeaders) {
 		[downloadProgressDelegate incrementBy:totalBytesRead-lastBytesRead];
 		lastBytesRead = totalBytesRead;
 	} 
@@ -390,37 +409,34 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 
 #pragma mark http authentication
 
-
-// Parse the response headers to get the content-length, and check to see if we need to authenticate
-- (BOOL)isAuthorizationFailure
- {
-    CFHTTPMessageRef responseHeaders = (CFHTTPMessageRef)CFReadStreamCopyProperty(readStream, kCFStreamPropertyHTTPResponseHeader);
+- (BOOL)readResponseHeadersReturningAuthenticationFailure
+{
 	BOOL isAuthenticationChallenge = NO;
-    if (responseHeaders) {
-		if (CFHTTPMessageIsHeaderComplete(responseHeaders)) {
-			
-			// Is the server response a challenge for credentials?
-			isAuthenticationChallenge = (CFHTTPMessageGetResponseStatusCode(responseHeaders) == 401);
-			
-			if (!isAuthenticationChallenge) {
-				
-				//See if we got a Content-length header
-				CFStringRef cLength = CFHTTPMessageCopyHeaderFieldValue(responseHeaders,CFSTR("Content-Length"));
-				if (cLength) {
-					contentLength = CFStringGetDoubleValue(cLength);
-					if (downloadProgressDelegate) {
-						[self performSelectorOnMainThread:@selector(resetDownloadProgress:) withObject:[NSNumber numberWithDouble:contentLength] waitUntilDone:YES];
-					}
-					CFRelease(cLength);
+	CFHTTPMessageRef headers = (CFHTTPMessageRef)CFReadStreamCopyProperty(readStream, kCFStreamPropertyHTTPResponseHeader);
+	if (CFHTTPMessageIsHeaderComplete(headers)) {
+		responseHeaders = (NSDictionary *)CFHTTPMessageCopyAllHeaderFields(headers);
+	
+		// Is the server response a challenge for credentials?
+		isAuthenticationChallenge = (CFHTTPMessageGetResponseStatusCode(headers) == 401);
+		
+		//We won't reset the download progress delegate if we got an authentication challenge
+		if (!isAuthenticationChallenge) {
+
+			//See if we got a Content-length header
+			NSString *cLength = [responseHeaders valueForKey:@"Content-Length"];
+			if (cLength) {
+				contentLength = CFStringGetDoubleValue((CFStringRef)cLength);
+				if (downloadProgressDelegate) {
+					[self performSelectorOnMainThread:@selector(resetDownloadProgress:) withObject:[NSNumber numberWithDouble:contentLength] waitUntilDone:YES];
 				}
 			}
-
 		}
-        CFRelease(responseHeaders);
-
-    }	
+		
+	}
+	CFRelease(headers);
 	return isAuthenticationChallenge;
 }
+
 
 // Called by delegate to resume loading once authentication info has been populated
 - (void)retryWithAuthentication
@@ -429,147 +445,164 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 	[authenticationLock unlockWithCondition:2];
 }
 
-
-
-- (void)applyCredentialsAndResume {
-    // Apply whatever credentials we've built up to the old request
-    if (!CFHTTPMessageApplyCredentialDictionary(request, authentication, credentials, NULL)) {
-        [self failWithProblem:@"Failed to apply credentials to request"];
-    } else {
-		
-		//If we have credentials and they're ok, let's save them to the keychain
-		if (usesKeychain) {
-			NSURLCredential *authenticationCredentials = [NSURLCredential credentialWithUser:(NSString *)CFDictionaryGetValue(credentials, kCFHTTPAuthenticationUsername)
-																		  password:(NSString *)CFDictionaryGetValue(credentials, kCFHTTPAuthenticationPassword)
-																		  persistence:NSURLCredentialPersistencePermanent];
-		
-			if (authenticationCredentials) {
-				[ASIHTTPRequest saveCredentials:authenticationCredentials forHost:[url host] port:[[url port] intValue] protocol:[url scheme] realm:authenticationRealm];
-			}
-		}
-		
-        // Now that we've updated our request, retry the load
-		[self loadRequest];
-    }
+- (void)saveCredentialsToKeychain:(NSMutableDictionary *)newCredentials
+{
+	NSURLCredential *authenticationCredentials = [NSURLCredential credentialWithUser:[newCredentials objectForKey:(NSString *)kCFHTTPAuthenticationUsername]
+																			password:[newCredentials objectForKey:(NSString *)kCFHTTPAuthenticationPassword]																		 persistence:NSURLCredentialPersistencePermanent];
+	
+	if (authenticationCredentials) {
+		[ASIHTTPRequest saveCredentials:authenticationCredentials forHost:[url host] port:[[url port] intValue] protocol:[url scheme] realm:authenticationRealm];
+	}	
 }
 
-
-- (void)applyCredentialsLoad
+- (BOOL)applyCredentials:(NSMutableDictionary *)newCredentials
 {
-	// Get the authentication information
+	
+	if (newCredentials && authentication && request) {
+		// Apply whatever credentials we've built up to the old request
+		if (CFHTTPMessageApplyCredentialDictionary(request, authentication, (CFMutableDictionaryRef)newCredentials, NULL)) {
+			//If we have credentials and they're ok, let's save them to the keychain
+			if (useKeychainPersistance) {
+				[self saveCredentialsToKeychain:newCredentials];
+			}
+			if (useSessionPersistance) {
+				if (sessionAuthentication) {
+					CFRelease(sessionAuthentication);
+				}
+				sessionAuthentication = authentication;
+				CFRetain(sessionAuthentication);
+				
+				[ASIHTTPRequest setSessionCredentials:newCredentials];
+			}
+			[self setRequestCredentials:newCredentials];
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+
+- (NSMutableDictionary *)getCredentials
+{
+	NSMutableDictionary *newCredentials = [[[NSMutableDictionary alloc] init] autorelease];
+	
+	// Get the authentication realm
+	[authenticationRealm release];
+	authenticationRealm = nil;
+	if (!CFHTTPAuthenticationRequiresAccountDomain(authentication)) {
+		authenticationRealm = (NSString *)CFHTTPAuthenticationCopyRealm(authentication);
+	}
+	
+	//First, let's look at the url to see if the username and password were included
+	NSString *user = [url user];
+	NSString *pass = [url password];
+	
+	//If the username and password weren't in the url, let's try to use the ones set in this object
+	if ((!user || !pass) && username && password) {
+		user = username;
+		pass = password;
+	}
+	
+	//Ok, that didn't work, let's try the keychain
+	if ((!user || !pass) && useKeychainPersistance) {
+		NSURLCredential *authenticationCredentials = [ASIHTTPRequest savedCredentialsForHost:[url host] port:443 protocol:[url scheme] realm:authenticationRealm];
+		if (authenticationCredentials) {
+			user = [authenticationCredentials user];
+			pass = [authenticationCredentials password];
+		}
+		
+	}
+	
+	//If we have a  username and password, let's apply them to the request and continue
+	if (user && pass) {
+		
+		[newCredentials setObject:user forKey:(NSString *)kCFHTTPAuthenticationUsername];
+		[newCredentials setObject:pass forKey:(NSString *)kCFHTTPAuthenticationPassword];
+		return newCredentials;
+	}
+	return NULL;
+}
+
+- (void)attemptToApplyCredentialsAndResume
+{
+
+	//Read authentication data
 	if (!authentication) {
 		CFHTTPMessageRef responseHeader = (CFHTTPMessageRef) CFReadStreamCopyProperty(readStream,kCFStreamPropertyHTTPResponseHeader);
 		authentication = CFHTTPAuthenticationCreateFromResponse(NULL, responseHeader);
 		CFRelease(responseHeader);
 	}	
-	CFStreamError err;
+
 	if (!authentication) {
-		// the newly created authentication object is bad, must return
 		[self failWithProblem:@"Failed to get authentication object from response headers"];
 		return;
+	}
 	
+	//See if authentication is valid
+	CFStreamError err;		
+	if (!CFHTTPAuthenticationIsValid(authentication, &err)) {
 		
-	//Authentication is not valid, we need to get new ones
-	} else if (!CFHTTPAuthenticationIsValid(authentication, &err)) {
-		
-		// destroy authentication and credentials
-		if (credentials) {
-			CFRelease(credentials);
-			credentials = NULL;
-		}
 		CFRelease(authentication);
 		authentication = NULL;
 		
-		// check for bad credentials (to be treated separately)
+		// check for bad credentials, so we can give the delegate a chance to replace them
 		if (err.domain == kCFStreamErrorDomainHTTP && (err.error == kCFStreamErrorHTTPAuthenticationBadUserName || err.error == kCFStreamErrorHTTPAuthenticationBadPassword)) {
 			ignoreError = YES;	
 			if ([delegate respondsToSelector:@selector(authorizationNeededForRequest:)]) {
 				[delegate performSelectorOnMainThread:@selector(authorizationNeededForRequest:) withObject:self waitUntilDone:YES];
 				[authenticationLock lockWhenCondition:2];
 				[authenticationLock unlock];
-				[self applyCredentialsLoad];
+				
+				//Hopefully, the delegate gave us some credentials, let's apply them and reload
+				[self attemptToApplyCredentialsAndResume];
 				return;
 			}
 		}
 		[self setError:[self authenticationError]];
 		complete = YES;
+		return;
+	}
 		
-		
-	} else {
-		
-		[self cancelLoad];
-		
-		if (credentials) {
-			[self applyCredentialsAndResume];
-		
-		// are a user name & password needed?
-		}  else if (CFHTTPAuthenticationRequiresUserNameAndPassword(authentication)) {
-
-
-			// Build the credentials dictionary
-			credentials = CFDictionaryCreateMutable(NULL, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
-			
-			
-            [authenticationRealm release];
-			authenticationRealm = nil;
-            
-            // Get the authentication realm
-            if (!CFHTTPAuthenticationRequiresAccountDomain(authentication)) {
-                authenticationRealm = (NSString *)CFHTTPAuthenticationCopyRealm(authentication);
-            }
-			
-			//First, let's look at the url to see if the username and password were included
-			CFStringRef user = (CFStringRef)[url user];
-			CFStringRef pass = (CFStringRef)[url password];
-			
-			//If the username and password weren't in the url, let's try to use the ones set in this object
-			if ((!user || !pass) && username && password) {
-				user = (CFStringRef)username;
-				pass = (CFStringRef)password;
-			}
-			
-			//Ok, that didn't work, let's try the keychain
-			if ((!user || !pass) && usesKeychain) {
-				NSURLCredential *authenticationCredentials = [ASIHTTPRequest savedCredentialsForHost:[url host] port:443 protocol:[url scheme] realm:authenticationRealm];
-				if (authenticationCredentials) {
-					user = (CFStringRef)[authenticationCredentials user];
-					pass = (CFStringRef)[authenticationCredentials password];
-				}
-				
-			}
-			
-			//If we have a  username and password, let's apply them to the request and continue
-			if (user && pass) {
-				
-				CFDictionarySetValue(credentials, kCFHTTPAuthenticationUsername, user);
-				CFDictionarySetValue(credentials, kCFHTTPAuthenticationPassword, pass);	
-				
-				[self applyCredentialsAndResume];
-				return;
-			}
-			if (credentials) {
-				CFRelease(credentials);
-				credentials = NULL;
-			}
-			//We've got no credentials, let's ask the delegate to sort this out
-			ignoreError = YES;	
-			if ([delegate respondsToSelector:@selector(authorizationNeededForRequest:)]) {
-				[delegate performSelectorOnMainThread:@selector(authorizationNeededForRequest:) withObject:self waitUntilDone:YES];
-				[authenticationLock lockWhenCondition:2];
-				[authenticationLock unlock];
-				[self applyCredentialsLoad];
-				return;
-			}
-			[self setError:[self authenticationError]];
-			complete = YES;
-			return;
-			
-
-		//We don't need a username or password, let's carry on
+	[self cancelLoad];
+	
+	if (requestCredentials) {
+		if ([self applyCredentials:requestCredentials]) {
+			[self loadRequest];
 		} else {
-			[self applyCredentialsAndResume];
+			[self failWithProblem:@"Failed to apply credentials to request"];
 		}
-	}	
+	
+	// are a user name & password needed?
+	}  else if (CFHTTPAuthenticationRequiresUserNameAndPassword(authentication)) {
+
+		NSMutableDictionary *newCredentials = [self getCredentials];
+		
+		//If we have some credentials to use let's apply them to the request and continue
+		if (newCredentials) {
+			
+			if ([self applyCredentials:newCredentials]) {
+				[self loadRequest];
+			} else {
+				[self failWithProblem:@"Failed to apply credentials to request"];
+			}
+			return;
+		}
+
+		//We've got no credentials, let's ask the delegate to sort this out
+		ignoreError = YES;	
+		if ([delegate respondsToSelector:@selector(authorizationNeededForRequest:)]) {
+			[delegate performSelectorOnMainThread:@selector(authorizationNeededForRequest:) withObject:self waitUntilDone:YES];
+			[authenticationLock lockWhenCondition:2];
+			[authenticationLock unlock];
+			[self attemptToApplyCredentialsAndResume];
+			return;
+		}
+		
+		//The delegate isn't interested, we'll have to give up
+		[self setError:[self authenticationError]];
+		complete = YES;
+		return;
+	}
+	
 }
 
 - (NSError *)authenticationError
@@ -611,10 +644,9 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 - (void)handleBytesAvailable
 {
 
-	if (!haveExaminedHeaders) {
-		haveExaminedHeaders = YES;
-		if ([self isAuthorizationFailure]) {
-			[self applyCredentialsLoad];
+	if (!responseHeaders) {
+		if ([self readResponseHeadersReturningAuthenticationFailure]) {
+			[self attemptToApplyCredentialsAndResume];
 			return;
 		}
 	}
@@ -725,16 +757,21 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 	
 }
 
+
+
+
 @synthesize url;
 @synthesize delegate;
 @synthesize uploadProgressDelegate;
 @synthesize downloadProgressDelegate;
-@synthesize usesKeychain;
+@synthesize useKeychainPersistance;
+@synthesize useSessionPersistance;
 @synthesize downloadDestinationPath;
 @synthesize didFinishSelector;
 @synthesize didFailSelector;
 @synthesize authenticationRealm;
 @synthesize error;
 @synthesize complete;
-
+@synthesize responseHeaders;
+@synthesize requestCredentials;
 @end
