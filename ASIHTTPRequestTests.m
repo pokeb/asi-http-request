@@ -62,15 +62,15 @@ More tests needed for:
 	NSOperationQueue *queue = [[[NSOperationQueue alloc] init] autorelease];
 
 	NSURL *url;	
-	url = [[[NSURL alloc] initWithString:@"http://asi/asi-http-request-tests/first"] autorelease];
+	url = [[[NSURL alloc] initWithString:@"http:/allseeing-i.com/asi-http-request-tests/first"] autorelease];
 	ASIHTTPRequest *request1 = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[queue addOperation:request1];
 
-	url = [[[NSURL alloc] initWithString:@"http://asi/asi-http-request-tests/second"] autorelease];
+	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/asi-http-request-tests/second"] autorelease];
 	ASIHTTPRequest *request2 = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[queue addOperation:request2];
 
-	url = [[[NSURL alloc] initWithString:@"http://asi/asi-http-request-tests/third"] autorelease];
+	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/asi-http-request-tests/third"] autorelease];
 	ASIHTTPRequest *request3 = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[queue addOperation:request3];
 	
@@ -78,7 +78,7 @@ More tests needed for:
 	ASIHTTPRequest *request4 = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[queue addOperation:request4];
 	
-	url = [[[NSURL alloc] initWithString:@"http://asi/asi-http-request-tests/broken"] autorelease];
+	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/asi-http-request-tests/broken"] autorelease];
 	ASIHTTPRequest *request5 = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[queue addOperation:request5];
 

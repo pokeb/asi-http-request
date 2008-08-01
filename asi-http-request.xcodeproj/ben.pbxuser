@@ -377,6 +377,9 @@
 			B5731E460E4344F90008024F /* PBXTextBookmark */ = B5731E460E4344F90008024F /* PBXTextBookmark */;
 			B5731E490E4344F90008024F /* PBXTextBookmark */ = B5731E490E4344F90008024F /* PBXTextBookmark */;
 			B5731E4C0E4344F90008024F /* PBXTextBookmark */ = B5731E4C0E4344F90008024F /* PBXTextBookmark */;
+			B5731E510E43487E0008024F /* PBXTextBookmark */ = B5731E510E43487E0008024F /* PBXTextBookmark */;
+			B5731E520E43487E0008024F /* PBXTextBookmark */ = B5731E520E43487E0008024F /* PBXTextBookmark */;
+			B5731E530E43487E0008024F /* PBXTextBookmark */ = B5731E530E43487E0008024F /* PBXTextBookmark */;
 			B5ABC8250E24CDE70072F422 = B5ABC8250E24CDE70072F422 /* PBXTextBookmark */;
 			B5ABC8260E24CDE70072F422 = B5ABC8260E24CDE70072F422 /* PBXTextBookmark */;
 			B5ABC8280E24CDE70072F422 = B5ABC8280E24CDE70072F422 /* PBXTextBookmark */;
@@ -476,8 +479,8 @@
 	B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */ = {
 		uiCtxt = {
 			sepNavIntBoundsRect = "{{0, 0}, {947, 1666}}";
-			sepNavSelRange = "{289, 0}";
-			sepNavVisRange = "{0, 1392}";
+			sepNavSelRange = "{3082, 0}";
+			sepNavVisRange = "{1092, 2215}";
 		};
 	};
 	B5731B320E430D310008024F /* PBXTextBookmark */ = {
@@ -2175,7 +2178,7 @@
 		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
 		name = "ASIHTTPRequestTests.m: 46";
 		rLen = 0;
-		rLoc = 4393;
+		rLoc = 4440;
 		rType = 0;
 		vrLen = 1846;
 		vrLoc = 3;
@@ -2205,7 +2208,7 @@
 		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
 		name = "ASIHTTPRequestTests.m: 86";
 		rLen = 0;
-		rLoc = 4393;
+		rLoc = 4440;
 		rType = 0;
 		vrLen = 1333;
 		vrLoc = 1718;
@@ -2215,7 +2218,7 @@
 		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
 		name = "ASIHTTPRequestTests.m: 73";
 		rLen = 0;
-		rLoc = 4393;
+		rLoc = 4440;
 		rType = 0;
 		vrLen = 1852;
 		vrLoc = 926;
@@ -2235,7 +2238,7 @@
 		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
 		name = "ASIHTTPRequestTests.m: 73";
 		rLen = 0;
-		rLoc = 4393;
+		rLoc = 4440;
 		rType = 0;
 		vrLen = 1904;
 		vrLoc = 874;
@@ -2255,7 +2258,7 @@
 		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
 		name = "ASIHTTPRequestTests.m: 73";
 		rLen = 0;
-		rLoc = 4393;
+		rLoc = 4440;
 		rType = 0;
 		vrLen = 1852;
 		vrLoc = 926;
@@ -2275,7 +2278,7 @@
 		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
 		name = "ASIHTTPRequestTests.m: 73";
 		rLen = 0;
-		rLoc = 4393;
+		rLoc = 4440;
 		rType = 0;
 		vrLen = 1904;
 		vrLoc = 874;
@@ -2295,7 +2298,7 @@
 		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
 		name = "ASIHTTPRequestTests.m: 86";
 		rLen = 0;
-		rLoc = 4393;
+		rLoc = 4440;
 		rType = 0;
 		vrLen = 1315;
 		vrLoc = 1736;
@@ -2315,7 +2318,7 @@
 		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
 		name = "ASIHTTPRequestTests.m: 85";
 		rLen = 0;
-		rLoc = 4389;
+		rLoc = 4436;
 		rType = 0;
 		vrLen = 1664;
 		vrLoc = 1871;
@@ -2325,7 +2328,7 @@
 		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
 		name = "ASIHTTPRequestTests.m: 85";
 		rLen = 0;
-		rLoc = 4389;
+		rLoc = 4436;
 		rType = 0;
 		vrLen = 1664;
 		vrLoc = 1871;
@@ -2395,7 +2398,7 @@
 		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
 		name = "ASIHTTPRequestTests.m: 80";
 		rLen = 0;
-		rLoc = 4393;
+		rLoc = 4440;
 		rType = 0;
 		vrLen = 1971;
 		vrLoc = 1228;
@@ -2435,7 +2438,7 @@
 		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
 		name = "ASIHTTPRequestTests.m: 80";
 		rLen = 0;
-		rLoc = 4393;
+		rLoc = 4440;
 		rType = 0;
 		vrLen = 1971;
 		vrLoc = 1228;
@@ -2465,7 +2468,7 @@
 		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
 		name = "ASIHTTPRequestTests.m: 83";
 		rLen = 0;
-		rLoc = 3865;
+		rLoc = 3912;
 		rType = 0;
 		vrLen = 1592;
 		vrLoc = 1843;
@@ -2475,7 +2478,7 @@
 		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
 		name = "ASIHTTPRequestTests.m: 58";
 		rLen = 0;
-		rLoc = 2488;
+		rLoc = 2511;
 		rType = 0;
 		vrLen = 1681;
 		vrLoc = 1736;
@@ -2485,7 +2488,7 @@
 		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
 		name = "ASIHTTPRequestTests.m: 58";
 		rLen = 0;
-		rLoc = 2488;
+		rLoc = 2511;
 		rType = 0;
 		vrLen = 1681;
 		vrLoc = 1736;
@@ -2495,7 +2498,7 @@
 		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
 		name = "ASIHTTPRequestTests.m: 58";
 		rLen = 0;
-		rLoc = 2488;
+		rLoc = 2511;
 		rType = 0;
 		vrLen = 1681;
 		vrLoc = 1736;
@@ -2533,7 +2536,7 @@
 		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
 		name = "ASIHTTPRequestTests.m: 75";
 		rLen = 0;
-		rLoc = 3547;
+		rLoc = 3594;
 		rType = 0;
 		vrLen = 1501;
 		vrLoc = 1771;
@@ -2543,7 +2546,7 @@
 		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
 		name = "ASIHTTPRequestTests.m: 75";
 		rLen = 0;
-		rLoc = 3547;
+		rLoc = 3594;
 		rType = 0;
 		vrLen = 1705;
 		vrLoc = 1736;
@@ -2563,7 +2566,7 @@
 		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
 		name = "ASIHTTPRequestTests.m: 75";
 		rLen = 0;
-		rLoc = 3547;
+		rLoc = 3594;
 		rType = 0;
 		vrLen = 1432;
 		vrLoc = 1841;
@@ -2572,7 +2575,7 @@
 		isa = PBXTextBookmark;
 		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
 		name = "ASIHTTPRequestTests.m: 53";
-		rLen = 39;
+		rLen = 50;
 		rLoc = 2168;
 		rType = 0;
 		vrLen = 1500;
@@ -2583,7 +2586,7 @@
 		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
 		name = "ASIHTTPRequestTests.m: 81";
 		rLen = 0;
-		rLoc = 3823;
+		rLoc = 3870;
 		rType = 0;
 		vrLen = 1650;
 		vrLoc = 1736;
@@ -2593,7 +2596,7 @@
 		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
 		name = "ASIHTTPRequestTests.m: 84";
 		rLen = 0;
-		rLoc = 3970;
+		rLoc = 4017;
 		rType = 0;
 		vrLen = 1725;
 		vrLoc = 1736;
@@ -2603,7 +2606,7 @@
 		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
 		name = "ASIHTTPRequestTests.m: 84";
 		rLen = 0;
-		rLoc = 3970;
+		rLoc = 4017;
 		rType = 0;
 		vrLen = 1736;
 		vrLoc = 1736;
@@ -2613,7 +2616,7 @@
 		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
 		name = "ASIHTTPRequestTests.m: 102";
 		rLen = 0;
-		rLoc = 4384;
+		rLoc = 4431;
 		rType = 0;
 		vrLen = 1839;
 		vrLoc = 2389;
@@ -2701,7 +2704,7 @@
 		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
 		name = "ASIHTTPRequestTests.m: 102";
 		rLen = 0;
-		rLoc = 4384;
+		rLoc = 4431;
 		rType = 0;
 		vrLen = 1841;
 		vrLoc = 0;
@@ -2721,7 +2724,7 @@
 		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
 		name = "ASIHTTPRequestTests.m: 102";
 		rLen = 0;
-		rLoc = 4384;
+		rLoc = 4431;
 		rType = 0;
 		vrLen = 1664;
 		vrLoc = 2569;
@@ -2896,6 +2899,36 @@
 		vrLen = 1083;
 		vrLoc = 0;
 	};
+	B5731E510E43487E0008024F /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
+		name = "ASIHTTPRequestTests.m: 16";
+		rLen = 0;
+		rLoc = 289;
+		rType = 0;
+		vrLen = 1408;
+		vrLoc = 0;
+	};
+	B5731E520E43487E0008024F /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
+		name = "ASIHTTPRequestTests.m: 81";
+		rLen = 0;
+		rLoc = 3082;
+		rType = 0;
+		vrLen = 2215;
+		vrLoc = 1092;
+	};
+	B5731E530E43487E0008024F /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = B5ABC80D0E24CB100072F422 /* AppDelegate.h */;
+		name = "AppDelegate.h: 4";
+		rLen = 0;
+		rLoc = 42;
+		rType = 0;
+		vrLen = 1083;
+		vrLoc = 0;
+	};
 	B5AAC50B0E3F1CC300064080 /* AppDelegate.m:22 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
@@ -2910,7 +2943,7 @@
 		ignoreCount = 0;
 		lineNumber = 22;
 		location = "asi-http-request";
-		modificationTime = 239289590.084248;
+		modificationTime = 239289630.281187;
 		state = 1;
 	};
 	B5ABC7A70E24C5280072F422 /* asi-http-request */ = {
@@ -2996,7 +3029,7 @@
 		uiCtxt = {
 			sepNavIntBoundsRect = "{{0, 0}, {1416, 3276}}";
 			sepNavSelRange = "{2879, 0}";
-			sepNavVisRange = "{2838, 1511}";
+			sepNavVisRange = "{0, 1943}";
 			sepNavWindowFrame = "{{19, 304}, {1475, 874}}";
 		};
 	};
@@ -3009,7 +3042,7 @@
 	};
 	B5ABC80D0E24CB100072F422 /* AppDelegate.h */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {1416, 723}}";
+			sepNavIntBoundsRect = "{{0, 0}, {1416, 746}}";
 			sepNavSelRange = "{42, 0}";
 			sepNavVisRange = "{0, 1083}";
 			sepNavWindowFrame = "{{15, -1}, {1475, 874}}";

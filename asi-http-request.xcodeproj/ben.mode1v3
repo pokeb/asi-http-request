@@ -202,46 +202,6 @@
 			<key>Content</key>
 			<dict>
 				<key>PBXProjectModuleGUID</key>
-				<string>B5731E470E4344F90008024F</string>
-				<key>PBXProjectModuleLabel</key>
-				<string>ASIHTTPRequest.h</string>
-				<key>PBXSplitModuleInNavigatorKey</key>
-				<dict>
-					<key>Split0</key>
-					<dict>
-						<key>PBXProjectModuleGUID</key>
-						<string>B5731E480E4344F90008024F</string>
-						<key>PBXProjectModuleLabel</key>
-						<string>ASIHTTPRequest.h</string>
-						<key>_historyCapacity</key>
-						<integer>0</integer>
-						<key>bookmark</key>
-						<string>B5731E490E4344F90008024F</string>
-						<key>history</key>
-						<array>
-							<string>B5731E2C0E43448A0008024F</string>
-						</array>
-					</dict>
-					<key>SplitCount</key>
-					<string>1</string>
-				</dict>
-				<key>StatusBarVisibility</key>
-				<true/>
-			</dict>
-			<key>Geometry</key>
-			<dict>
-				<key>Frame</key>
-				<string>{{0, 20}, {1475, 777}}</string>
-				<key>PBXModuleWindowStatusBarHidden2</key>
-				<false/>
-				<key>RubberWindowFrame</key>
-				<string>19 360 1475 818 0 0 1920 1178 </string>
-			</dict>
-		</dict>
-		<dict>
-			<key>Content</key>
-			<dict>
-				<key>PBXProjectModuleGUID</key>
 				<string>B5731E4A0E4344F90008024F</string>
 				<key>PBXProjectModuleLabel</key>
 				<string>AppDelegate.h</string>
@@ -256,7 +216,7 @@
 						<key>_historyCapacity</key>
 						<integer>0</integer>
 						<key>bookmark</key>
-						<string>B5731E4C0E4344F90008024F</string>
+						<string>B5731E530E43487E0008024F</string>
 						<key>history</key>
 						<array>
 							<string>B5731E2A0E43441F0008024F</string>
@@ -418,7 +378,7 @@
 										<key>_historyCapacity</key>
 										<integer>0</integer>
 										<key>bookmark</key>
-										<string>B5731E460E4344F90008024F</string>
+										<string>B5731E520E43487E0008024F</string>
 										<key>history</key>
 										<array>
 											<string>B5731B8B0E4310180008024F</string>
@@ -433,7 +393,7 @@
 											<string>B5731E310E4344F90008024F</string>
 											<string>B5731E320E4344F90008024F</string>
 											<string>B5731E330E4344F90008024F</string>
-											<string>B5731E340E4344F90008024F</string>
+											<string>B5731E510E43487E0008024F</string>
 										</array>
 										<key>prevStack</key>
 										<array>
@@ -718,14 +678,13 @@
 	<integer>5</integer>
 	<key>WindowOrderList</key>
 	<array>
-		<string>B5731E4D0E4344F90008024F</string>
+		<string>B5731E470E4344F90008024F</string>
 		<string>B5731C3B0E431B3F0008024F</string>
 		<string>B5731C3C0E431B3F0008024F</string>
 		<string>1CD10A99069EF8BA00B06720</string>
 		<string>1C78EAAD065D492600B07095</string>
 		<string>B5ABC8410E24CDE70072F422</string>
 		<string>B5731E4A0E4344F90008024F</string>
-		<string>B5731E470E4344F90008024F</string>
 		<string>/Users/ben/asi-http-request/asi-http-request.xcodeproj</string>
 	</array>
 	<key>WindowString</key>
