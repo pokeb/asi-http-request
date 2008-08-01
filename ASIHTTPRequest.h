@@ -4,6 +4,9 @@
 //  Created by Ben Copsey on 04/10/2007.
 //  Copyright 2007-2008 All-Seeing Interactive. All rights reserved.
 //
+//  A guide to the main features is available at:
+//  http://allseeing-i.com/asi-http-request
+//
 //  Portions are based on the ImageClient example from Apple:
 //  See: http://developer.apple.com/samplecode/ImageClient/listing37.html
 
@@ -68,7 +71,7 @@
     BOOL haveExaminedHeaders;
 	
 	//Data we receive will be stored here
-	CFMutableDataRef receivedData;
+	NSMutableData *receivedData;
 	
 	//Used for sending and receiving data
     CFHTTPMessageRef request;	
@@ -228,6 +231,6 @@
 @property (retain) NSDictionary *responseHeaders;
 @property (retain) NSDictionary *requestCredentials;
 @property (assign) int responseStatusCode;
-
+@property (retain) NSMutableData *receivedData;
 
 @end

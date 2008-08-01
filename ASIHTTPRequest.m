@@ -4,6 +4,9 @@
 //  Created by Ben Copsey on 04/10/2007.
 //  Copyright 2007-2008 All-Seeing Interactive. All rights reserved.
 //
+//  A guide to the main features is available at:
+//  http://allseeing-i.com/asi-http-request
+//
 //  Portions are based on the ImageClient example from Apple:
 //  See: http://developer.apple.com/samplecode/ImageClient/listing37.html
 
@@ -46,7 +49,7 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 	//credentials = NULL;
 	request = NULL;
 	responseHeaders = nil;
-	[self setUseKeychainPersistance:YES];
+	[self setUseKeychainPersistance:NO];
 	[self setUseSessionPersistance:YES];
 	didFinishSelector = @selector(requestFinished:);
 	didFailSelector = @selector(requestFailed:);
@@ -135,7 +138,7 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 	if (!receivedData) {
 		return nil;
 	}
-	return [[[NSString alloc] initWithBytes:[(NSData *)receivedData bytes] length:[(NSData *)receivedData length] encoding:NSUTF8StringEncoding] autorelease];
+	return [[[NSString alloc] initWithBytes:[receivedData bytes] length:[receivedData length] encoding:NSUTF8StringEncoding] autorelease];
 }
 
 
@@ -237,7 +240,7 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 	lastBytesSent = 0;
 	contentLength = 0;
 	[self setResponseHeaders:nil];
-    receivedData = CFDataCreateMutable(NULL, 0);
+    [self setReceivedData:[[[NSMutableData alloc] init] autorelease]];
     
     // Create the stream for the request.
     readStream = CFReadStreamCreateForStreamedHTTPRequest(kCFAllocatorDefault, request,readStream);
@@ -302,8 +305,7 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
     }
 	
     if (receivedData) {
-        CFRelease(receivedData);
-        receivedData = NULL;
+		[self setReceivedData:nil];
 		
 		//If we were downloading to a file, let's remove it
 	} else if (downloadDestinationPath) {
@@ -659,7 +661,7 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 			
 		//Otherwise, let's add the data to our in-memory store
 		} else {
-			CFDataAppendBytes(receivedData, buffer, bytesRead);
+			[receivedData appendBytes:buffer length:bytesRead];
 		}
     }
 }
@@ -778,4 +780,5 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 @synthesize responseHeaders;
 @synthesize requestCredentials;
 @synthesize responseStatusCode;
+@synthesize receivedData;
 @end
