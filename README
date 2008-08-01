@@ -1,26 +1,28 @@
+[NEW!] Documentation is available at: http://allseeing-i.com/asi-http-request
+
 ASIHTTPRequest is an easy to use wrapper around the CFNetwork API that makes some of the more tedious aspects of communicating with web servers easier.
 
 It is suitable for when you want to submit data to an existing web form, or don't want to mess around with SOAP or XML-RPC.
 
 It provides:
 
-*	Ability for setting up progress delegates (e.g. NSProgressIndicators) to show information about download AND upload progress
+* A straightforward interface for submitting data to (GET & POST) and fetching data from webservers
 
-*	An easy interface for adding POST data to requests
+* The ability to submit files on local drives as part of POST data, compatible with the HTML file input mechanism
 
-*	The ability to submit files on local drives as part of POST data, analogous to the HTML file input mechanism
+* Easy access to request and response HTTP headers
 
-*	Basic authentication (username and password) support
+* Ability for setting up progress delegates (e.g. NSProgressIndicators) to show information about download AND upload progress
 
-*	Integrated Keychain support
+* Basic authentication (username and password) support, credentials are automatically for the duration of a session, and can be stored for later in the Keychain.
 
-*	Based on NSOperation to make queuing requests and background operation easy
+* Based on NSOperation to make queuing requests and background operation easy
 
+* Basic unit tests (more to come!)
 
 ASIHTTPRequest comes as part of a simple application that demonstrates many of the features above, just look at AppDelegate.m for good pointers on basic usage, or read the comments in ASIHTTPRequest.h for more detail.
 
 ASIHTTPRequest is partly based on code from Apple's ImageClient code samples, so if it doesn't meet your needs, take a look at their CFNetwork examples for more.
+
 ASIHTTPRequest is my first open source Objective-C code. I hope to expand the class and example application further (unit tests, maybe even iphone examples...) in the coming months. If you find it helpful, please do get in touch!
 
-See also: 
-http://allseeing-i.com/ASIHTTPRequest-CFNetwork-wrapper-for-HTTP-requests
