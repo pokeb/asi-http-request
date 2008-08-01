@@ -13,5 +13,6 @@
 }
 
 - (void)testBasicDownload;
+- (void)testOperationQueue;
 
 @end

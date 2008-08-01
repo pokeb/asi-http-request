@@ -334,7 +334,7 @@
 				);
 				PREBINDING = NO;
 				PRODUCT_NAME = Tests;
-				TEST_HOST = "asi-http-request.app/Contents/MacOS/asi-http-request";
+				TEST_HOST = "";
 				WRAPPER_EXTENSION = octest;
 			};
 			name = Debug;
@@ -361,7 +361,7 @@
 				);
 				PREBINDING = NO;
 				PRODUCT_NAME = Tests;
-				TEST_HOST = "asi-http-request.app/Contents/MacOS/asi-http-request";
+				TEST_HOST = "";
 				WRAPPER_EXTENSION = octest;
 				ZERO_LINK = NO;
 			};

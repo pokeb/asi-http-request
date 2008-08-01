@@ -77,9 +77,6 @@
 	// Authentication currently being used for prompting and resuming
     CFHTTPAuthenticationRef requestAuthentication; 
 	NSMutableDictionary *requestCredentials;
-	
-	// Credentials associated with the authentication (reused until server says no)
-	//CFMutableDictionaryRef credentials; 
 
 	// HTTP status code, eg: 200 = OK, 404 = Not found etc
 	int responseStatusCode;
