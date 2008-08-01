@@ -26,8 +26,11 @@
 	//Files that will be POSTed to the url
 	NSMutableDictionary *fileData;
 	
-	//Dictionary for custom request headers
+	//Dictionary for custom HTTP request headers
 	NSMutableDictionary *requestHeaders;
+	
+	//Will be populate with HTTP response headers from the server
+	NSDictionary *responseHeaders;
 	
 	//If useKeychainPersistance is true, network requests will attempt to read credentials from the keychain, and will save them in the keychain when they are successfully presented
 	BOOL useKeychainPersistance;
@@ -72,11 +75,15 @@
 	CFReadStreamRef readStream;
 	
 	// Authentication currently being used for prompting and resuming
-    CFHTTPAuthenticationRef authentication;  
+    CFHTTPAuthenticationRef requestAuthentication; 
+	NSMutableDictionary *requestCredentials;
 	
 	// Credentials associated with the authentication (reused until server says no)
 	//CFMutableDictionaryRef credentials; 
 
+	// HTTP status code, eg: 200 = OK, 404 = Not found etc
+	int responseStatusCode;
+	
 	//Size of the response
 	double contentLength;
 
@@ -103,8 +110,6 @@
 	//Called on the delegate when the request fails
 	SEL didFailSelector;
 	
-	NSDictionary *responseHeaders;
-	NSMutableDictionary *requestCredentials;
 	
 }
 
@@ -112,9 +117,6 @@
 
 // Should be an HTTP or HTTPS url, may include username and password if appropriate
 - (id)initWithURL:(NSURL *)newURL;
-
-#pragma mark delegate configuration
-
 
 #pragma mark setup request
 
@@ -159,16 +161,22 @@
 
 #pragma mark handling request complete / failure
 
-//Called when a request completes successfully - defaults to: @selector(requestFinished:)
+// Called when a request completes successfully - defaults to: @selector(requestFinished:)
 - (void)requestFinished;
 
-//Called when a request fails - defaults to: @selector(requestFailed:)
+// Called when a request fails - defaults to: @selector(requestFailed:)
 - (void)failWithProblem:(NSString *)problem;
 
 #pragma mark http authentication stuff
 
 // Reads the response headers to find the content length, and returns true if the request needs a username and password (or if those supplied were incorrect)
 - (BOOL)readResponseHeadersReturningAuthenticationFailure;
+
+// Apply credentials to this request
+- (BOOL)applyCredentials:(NSMutableDictionary *)newCredentials;
+
+// Attempt to obtain credentials for this request from the URL, username and password or keychain
+- (NSMutableDictionary *)findCredentials;
 
 // Unlock (unpause) the request thread so it can resume the request
 // Should be called by delegates when they have populated the authentication information after an authentication challenge
@@ -188,16 +196,23 @@
 - (void)handleStreamComplete;
 - (void)handleStreamError;
 
+#pragma mark managing the session
+
++ (void)setSessionCredentials:(NSMutableDictionary *)newCredentials;
++ (void)setSessionAuthentication:(CFHTTPAuthenticationRef)newAuthentication;
 
 #pragma mark keychain storage
 
-//Save credentials to the keychain
+// Save credentials for this request to the keychain
+- (void)saveCredentialsToKeychain:(NSMutableDictionary *)newCredentials;
+
+// Save creddentials to the keychain
 + (void)saveCredentials:(NSURLCredential *)credentials forHost:(NSString *)host port:(int)port protocol:(NSString *)protocol realm:(NSString *)realm;
 
-//Return credentials from the keychain
+// Return credentials from the keychain
 + (NSURLCredential *)savedCredentialsForHost:(NSString *)host port:(int)port protocol:(NSString *)protocol realm:(NSString *)realm;
 
-//Remove credentials from the keychain
+// Remove credentials from the keychain
 + (void)removeCredentialsForHost:(NSString *)host port:(int)port protocol:(NSString *)protocol realm:(NSString *)realm;
 
 
@@ -215,9 +230,7 @@
 @property (assign,readonly) BOOL complete;
 @property (retain) NSDictionary *responseHeaders;
 @property (retain) NSDictionary *requestCredentials;
-
-- (void)saveCredentialsToKeychain:(NSMutableDictionary *)newCredentials;
-- (BOOL)applyCredentials:(NSMutableDictionary *)newCredentials;
+@property (assign) int responseStatusCode;
 
 
 @end
