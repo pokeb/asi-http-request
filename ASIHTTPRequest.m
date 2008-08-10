@@ -110,15 +110,6 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 	[fileData setValue:filePath forKey:key];
 }
 
-- (void)setUsername:(NSString *)newUsername andPassword:(NSString *)newPassword
-{
-	[username release];
-	username = [newUsername retain];
-	[password release];
-	password = [newPassword retain];
-}
-
-
 
 #pragma mark get information about this request
 
@@ -190,25 +181,35 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 		NSData *endItemBoundary = [[NSString stringWithFormat:@"\r\n--%@\r\n",stringBoundary] dataUsingEncoding:NSUTF8StringEncoding];
 		NSEnumerator *e = [postData keyEnumerator];
 		NSString *key;
+		int i=0;
 		while (key = [e nextObject]) {
 			[postBody appendData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"\r\n\r\n",key] dataUsingEncoding:NSUTF8StringEncoding]];
 			[postBody appendData:[[postData objectForKey:key] dataUsingEncoding:NSUTF8StringEncoding]];
-			[postBody appendData:endItemBoundary];
+			i++;
+			if (i != [postData count] || [fileData count] > 0) { //Only add the boundary if this is not the last item in the post body
+				[postBody appendData:endItemBoundary];
+			}
 		}
 		
 		//Adds files to upload
-		NSData *contentTypeHeader = [[NSString stringWithString:@"Content-Type: application/octet-stream\r\n\r\n"] dataUsingEncoding:NSUTF8StringEncoding];
+		NSData *contentBlueprintHeader = [[NSString stringWithString:@"Content-Type: application/octet-stream\r\n\r\n"] dataUsingEncoding:NSUTF8StringEncoding];
 		e = [fileData keyEnumerator];
+		i=0;
 		while (key = [e nextObject]) {
 			NSString *filePath = [fileData objectForKey:key];
 			[postBody appendData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"; filename=\"%@\"\r\n",key,[filePath lastPathComponent]] dataUsingEncoding:NSUTF8StringEncoding]];
-			[postBody appendData:contentTypeHeader];
+			[postBody appendData:contentBlueprintHeader];
 			[postBody appendData:[NSData dataWithContentsOfMappedFile:filePath]];
-			[postBody appendData:endItemBoundary];
+			i++;
+			if (i != [fileData count]) { //Only add the boundary if this is not the last item in the post body
+				[postBody appendData:endItemBoundary];
+			}
 		}
 		
 		[postBody appendData:[[NSString stringWithFormat:@"\r\n--%@--\r\n",stringBoundary] dataUsingEncoding:NSUTF8StringEncoding]];
 		
+		NSString *foo = [[[NSString alloc] initWithBytes:[postBody bytes] length:[postBody length] encoding:NSUTF8StringEncoding] autorelease];
+
 		// Set the body.
 		CFHTTPMessageSetBody(request, (CFDataRef)postBody);
 		
@@ -464,6 +465,11 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 - (NSMutableDictionary *)findCredentials
 {
 	NSMutableDictionary *newCredentials = [[[NSMutableDictionary alloc] init] autorelease];
+
+	// Is an account domain needed? (used currently for NTLM only)
+	if (CFHTTPAuthenticationRequiresAccountDomain(requestAuthentication)) {
+		[newCredentials setObject:domain forKey:(NSString *)kCFHTTPAuthenticationAccountDomain];
+	}
 	
 	// Get the authentication realm
 	[authenticationRealm release];
@@ -763,8 +769,9 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 }
 
 
-
-
+@synthesize username;
+@synthesize password;
+@synthesize domain;
 @synthesize url;
 @synthesize delegate;
 @synthesize uploadProgressDelegate;

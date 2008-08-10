@@ -62,7 +62,7 @@ More tests needed for:
 	NSOperationQueue *queue = [[[NSOperationQueue alloc] init] autorelease];
 
 	NSURL *url;	
-	url = [[[NSURL alloc] initWithString:@"http:/allseeing-i.com/asi-http-request/tests/first"] autorelease];
+	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/asi-http-request/tests/first"] autorelease];
 	ASIHTTPRequest *request1 = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[queue addOperation:request1];
 

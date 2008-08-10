@@ -26,3 +26,7 @@ ASIHTTPRequest is partly based on code from Apple's ImageClient code samples, so
 
 ASIHTTPRequest is my first open source Objective-C code. I hope to expand the class and example application further (unit tests, maybe even iphone examples...) in the coming months. If you find it helpful, please do get in touch!
 
+To do:
+NTLM Authentication?
+Digest Authentication?
+PUT / DELETE /GET?

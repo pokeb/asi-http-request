@@ -60,6 +60,9 @@
 	//Username and password used for authentication
 	NSString *username;
 	NSString *password;
+
+	//Domain used for NTLM authentication
+	NSString *domain;
 	
 	//Delegate for displaying upload progress (usually an NSProgressIndicator, but you can supply a different object and handle this yourself)
 	NSObject <ASIProgressDelegate> *uploadProgressDelegate;
@@ -128,9 +131,6 @@
 
 //Add the contents of a local file as a POST variable to the request
 - (void)setFile:(NSString *)filePath forKey:(NSString *)key;
-
-// When set, username and password will be presented for HTTP authentication
-- (void)setUsername:(NSString *)newUsername andPassword:(NSString *)newPassword;
 
 #pragma mark get information about this request
 
@@ -215,6 +215,9 @@
 // Remove credentials from the keychain
 + (void)removeCredentialsForHost:(NSString *)host port:(int)port protocol:(NSString *)protocol realm:(NSString *)realm;
 
+@property (retain) NSString *username;
+@property (retain) NSString *password;
+@property (retain) NSString *domain;
 
 @property (retain,readonly) NSURL *url;
 @property (assign) id delegate;
