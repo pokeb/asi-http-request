@@ -192,13 +192,13 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 		}
 		
 		//Adds files to upload
-		NSData *contentBlueprintHeader = [[NSString stringWithString:@"Content-Type: application/octet-stream\r\n\r\n"] dataUsingEncoding:NSUTF8StringEncoding];
+		NSData *contentTypeHeader = [[NSString stringWithString:@"Content-Type: application/octet-stream\r\n\r\n"] dataUsingEncoding:NSUTF8StringEncoding];
 		e = [fileData keyEnumerator];
 		i=0;
 		while (key = [e nextObject]) {
 			NSString *filePath = [fileData objectForKey:key];
 			[postBody appendData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"; filename=\"%@\"\r\n",key,[filePath lastPathComponent]] dataUsingEncoding:NSUTF8StringEncoding]];
-			[postBody appendData:contentBlueprintHeader];
+			[postBody appendData:contentTypeHeader];
 			[postBody appendData:[NSData dataWithContentsOfMappedFile:filePath]];
 			i++;
 			if (i != [fileData count]) { //Only add the boundary if this is not the last item in the post body
