@@ -127,46 +127,55 @@
 					PBXFileDataSource_Warnings_ColumnID,
 				);
 			};
-			PBXPerProjectTemplateStateSaveDate = 241392109;
-			PBXWorkspaceStateSaveDate = 241392109;
+			PBXPerProjectTemplateStateSaveDate = 241392852;
+			PBXWorkspaceStateSaveDate = 241392852;
 		};
 		perUserProjectItems = {
-			B500B5400E635A0700744D82 /* PBXTextBookmark */ = B500B5400E635A0700744D82 /* PBXTextBookmark */;
-			B500B5410E635A0700744D82 /* PBXTextBookmark */ = B500B5410E635A0700744D82 /* PBXTextBookmark */;
-			B500B54C0E635A3200744D82 /* PBXTextBookmark */ = B500B54C0E635A3200744D82 /* PBXTextBookmark */;
-			B500B54D0E635A3200744D82 /* PBXTextBookmark */ = B500B54D0E635A3200744D82 /* PBXTextBookmark */;
-			B500B54E0E635A3200744D82 /* PBXTextBookmark */ = B500B54E0E635A3200744D82 /* PBXTextBookmark */;
-			B500B54F0E635A3200744D82 /* PBXTextBookmark */ = B500B54F0E635A3200744D82 /* PBXTextBookmark */;
-			B500B5500E635A3200744D82 /* PBXTextBookmark */ = B500B5500E635A3200744D82 /* PBXTextBookmark */;
-			B500B5510E635A3200744D82 /* PBXTextBookmark */ = B500B5510E635A3200744D82 /* PBXTextBookmark */;
-			B500B5520E635A3200744D82 /* PBXTextBookmark */ = B500B5520E635A3200744D82 /* PBXTextBookmark */;
-			B500B5590E635A3B00744D82 /* PBXTextBookmark */ = B500B5590E635A3B00744D82 /* PBXTextBookmark */;
-			B500B55E0E635AA300744D82 /* PBXTextBookmark */ = B500B55E0E635AA300744D82 /* PBXTextBookmark */;
-			B500B5610E635AB400744D82 /* PBXTextBookmark */ = B500B5610E635AB400744D82 /* PBXTextBookmark */;
-			B500B56B0E635B1C00744D82 /* PBXTextBookmark */ = B500B56B0E635B1C00744D82 /* PBXTextBookmark */;
-			B500B56C0E635B1C00744D82 /* PBXTextBookmark */ = B500B56C0E635B1C00744D82 /* PBXTextBookmark */;
-			B500B56D0E635B1C00744D82 /* PBXTextBookmark */ = B500B56D0E635B1C00744D82 /* PBXTextBookmark */;
-			B500B56E0E635B1C00744D82 /* PBXTextBookmark */ = B500B56E0E635B1C00744D82 /* PBXTextBookmark */;
-			B500B5740E635B5500744D82 /* PBXTextBookmark */ = B500B5740E635B5500744D82 /* PBXTextBookmark */;
-			B500B5750E635B5500744D82 /* PBXTextBookmark */ = B500B5750E635B5500744D82 /* PBXTextBookmark */;
-			B500B5760E635B5500744D82 /* PBXTextBookmark */ = B500B5760E635B5500744D82 /* PBXTextBookmark */;
-			B500B5770E635B5500744D82 /* PBXTextBookmark */ = B500B5770E635B5500744D82 /* PBXTextBookmark */;
-			B500B5780E635B5500744D82 /* PBXTextBookmark */ = B500B5780E635B5500744D82 /* PBXTextBookmark */;
-			B500B5790E635B5500744D82 /* PBXTextBookmark */ = B500B5790E635B5500744D82 /* PBXTextBookmark */;
-			B500B57A0E635B5500744D82 /* PBXTextBookmark */ = B500B57A0E635B5500744D82 /* PBXTextBookmark */;
-			B500B57B0E635B5500744D82 /* PBXTextBookmark */ = B500B57B0E635B5500744D82 /* PBXTextBookmark */;
-			B500B57E0E635BC700744D82 /* PBXTextBookmark */ = B500B57E0E635BC700744D82 /* PBXTextBookmark */;
-			B500B57F0E635BC700744D82 /* PBXTextBookmark */ = B500B57F0E635BC700744D82 /* PBXTextBookmark */;
-			B500B5800E635BC700744D82 /* PBXTextBookmark */ = B500B5800E635BC700744D82 /* PBXTextBookmark */;
-			B500B5810E635BC700744D82 /* PBXTextBookmark */ = B500B5810E635BC700744D82 /* PBXTextBookmark */;
-			B500B5820E635BC700744D82 /* PBXTextBookmark */ = B500B5820E635BC700744D82 /* PBXTextBookmark */;
-			B500B5830E635BC700744D82 /* PBXTextBookmark */ = B500B5830E635BC700744D82 /* PBXTextBookmark */;
-			B500B5840E635BC700744D82 /* PBXTextBookmark */ = B500B5840E635BC700744D82 /* PBXTextBookmark */;
-			B500B5850E635BC700744D82 /* PBXTextBookmark */ = B500B5850E635BC700744D82 /* PBXTextBookmark */;
-			B500B5860E635BC700744D82 /* PBXTextBookmark */ = B500B5860E635BC700744D82 /* PBXTextBookmark */;
-			B500B5870E635BC700744D82 /* PBXTextBookmark */ = B500B5870E635BC700744D82 /* PBXTextBookmark */;
-			B500B5880E635BC700744D82 /* PBXTextBookmark */ = B500B5880E635BC700744D82 /* PBXTextBookmark */;
-			B500B5890E635BC700744D82 /* PBXTextBookmark */ = B500B5890E635BC700744D82 /* PBXTextBookmark */;
+			B500B5400E635A0700744D82 = B500B5400E635A0700744D82 /* PBXTextBookmark */;
+			B500B5410E635A0700744D82 = B500B5410E635A0700744D82 /* PBXTextBookmark */;
+			B500B54C0E635A3200744D82 = B500B54C0E635A3200744D82 /* PBXTextBookmark */;
+			B500B54D0E635A3200744D82 = B500B54D0E635A3200744D82 /* PBXTextBookmark */;
+			B500B54E0E635A3200744D82 = B500B54E0E635A3200744D82 /* PBXTextBookmark */;
+			B500B54F0E635A3200744D82 = B500B54F0E635A3200744D82 /* PBXTextBookmark */;
+			B500B5500E635A3200744D82 = B500B5500E635A3200744D82 /* PBXTextBookmark */;
+			B500B5510E635A3200744D82 = B500B5510E635A3200744D82 /* PBXTextBookmark */;
+			B500B5520E635A3200744D82 = B500B5520E635A3200744D82 /* PBXTextBookmark */;
+			B500B5590E635A3B00744D82 = B500B5590E635A3B00744D82 /* PBXTextBookmark */;
+			B500B55E0E635AA300744D82 = B500B55E0E635AA300744D82 /* PBXTextBookmark */;
+			B500B5610E635AB400744D82 = B500B5610E635AB400744D82 /* PBXTextBookmark */;
+			B500B56B0E635B1C00744D82 = B500B56B0E635B1C00744D82 /* PBXTextBookmark */;
+			B500B56C0E635B1C00744D82 = B500B56C0E635B1C00744D82 /* PBXTextBookmark */;
+			B500B56D0E635B1C00744D82 = B500B56D0E635B1C00744D82 /* PBXTextBookmark */;
+			B500B56E0E635B1C00744D82 = B500B56E0E635B1C00744D82 /* PBXTextBookmark */;
+			B500B5740E635B5500744D82 = B500B5740E635B5500744D82 /* PBXTextBookmark */;
+			B500B5750E635B5500744D82 = B500B5750E635B5500744D82 /* PBXTextBookmark */;
+			B500B5760E635B5500744D82 = B500B5760E635B5500744D82 /* PBXTextBookmark */;
+			B500B5770E635B5500744D82 = B500B5770E635B5500744D82 /* PBXTextBookmark */;
+			B500B5780E635B5500744D82 = B500B5780E635B5500744D82 /* PBXTextBookmark */;
+			B500B5790E635B5500744D82 = B500B5790E635B5500744D82 /* PBXTextBookmark */;
+			B500B57A0E635B5500744D82 = B500B57A0E635B5500744D82 /* PBXTextBookmark */;
+			B500B57B0E635B5500744D82 = B500B57B0E635B5500744D82 /* PBXTextBookmark */;
+			B500B57E0E635BC700744D82 = B500B57E0E635BC700744D82 /* PBXTextBookmark */;
+			B500B57F0E635BC700744D82 = B500B57F0E635BC700744D82 /* PBXTextBookmark */;
+			B500B5800E635BC700744D82 = B500B5800E635BC700744D82 /* PBXTextBookmark */;
+			B500B5810E635BC700744D82 = B500B5810E635BC700744D82 /* PBXTextBookmark */;
+			B500B5820E635BC700744D82 = B500B5820E635BC700744D82 /* PBXTextBookmark */;
+			B500B5830E635BC700744D82 = B500B5830E635BC700744D82 /* PBXTextBookmark */;
+			B500B5840E635BC700744D82 = B500B5840E635BC700744D82 /* PBXTextBookmark */;
+			B500B5850E635BC700744D82 = B500B5850E635BC700744D82 /* PBXTextBookmark */;
+			B500B5860E635BC700744D82 = B500B5860E635BC700744D82 /* PBXTextBookmark */;
+			B500B5870E635BC700744D82 = B500B5870E635BC700744D82 /* PBXTextBookmark */;
+			B500B5880E635BC700744D82 = B500B5880E635BC700744D82 /* PBXTextBookmark */;
+			B500B5890E635BC700744D82 = B500B5890E635BC700744D82 /* PBXTextBookmark */;
+			B500B5910E635CE900744D82 /* PBXTextBookmark */ = B500B5910E635CE900744D82 /* PBXTextBookmark */;
+			B500B5920E635CE900744D82 /* PBXTextBookmark */ = B500B5920E635CE900744D82 /* PBXTextBookmark */;
+			B500B59F0E635CFE00744D82 /* PBXTextBookmark */ = B500B59F0E635CFE00744D82 /* PBXTextBookmark */;
+			B500B5A50E635D1400744D82 /* PBXTextBookmark */ = B500B5A50E635D1400744D82 /* PBXTextBookmark */;
+			B500B5A90E635D5100744D82 /* PBXTextBookmark */ = B500B5A90E635D5100744D82 /* PBXTextBookmark */;
+			B500B5AD0E635DA200744D82 /* PBXTextBookmark */ = B500B5AD0E635DA200744D82 /* PBXTextBookmark */;
+			B500B5B80E635E0D00744D82 /* PBXTextBookmark */ = B500B5B80E635E0D00744D82 /* PBXTextBookmark */;
+			B500B5B90E635E0D00744D82 /* PBXTextBookmark */ = B500B5B90E635E0D00744D82 /* PBXTextBookmark */;
+			B500B5BA0E635E0E00744D82 /* PBXTextBookmark */ = B500B5BA0E635E0E00744D82 /* PBXTextBookmark */;
 			B513D4020E2BD48A000A50C6 = B513D4020E2BD48A000A50C6 /* PlistBookmark */;
 			B513D4030E2BD48A000A50C6 = B513D4030E2BD48A000A50C6 /* PBXTextBookmark */;
 			B567EF5C0E4EE4FC001E238F = B567EF5C0E4EE4FC001E238F /* PBXTextBookmark */;
@@ -567,7 +576,7 @@
 		rLen = 0;
 		rLoc = 5618;
 		rType = 0;
-		vrLen = 2416;
+		vrLen = 2294;
 		vrLoc = 6299;
 	};
 	B500B5760E635B5500744D82 /* PBXTextBookmark */ = {
@@ -594,7 +603,7 @@
 		rLen = 0;
 		rLoc = 5563;
 		rType = 0;
-		vrLen = 2392;
+		vrLen = 2270;
 		vrLoc = 6323;
 	};
 	B500B5790E635B5500744D82 /* PBXTextBookmark */ = {
@@ -614,7 +623,7 @@
 		rLen = 0;
 		rLoc = 5618;
 		rType = 0;
-		vrLen = 2416;
+		vrLen = 2294;
 		vrLoc = 6299;
 	};
 	B500B57B0E635B5500744D82 /* PBXTextBookmark */ = {
@@ -742,9 +751,95 @@
 		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
 		name = "ASIHTTPRequestTests.m: 196";
 		rLen = 0;
-		rLoc = 8273;
+		rLoc = 8285;
 		rType = 0;
 		vrLen = 2494;
+		vrLoc = 6099;
+	};
+	B500B5910E635CE900744D82 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		comments = "error: -[ASIHTTPRequestTests testBasicDownload] : \"((error) != nil)\" should be true. Failed to generate an error for a bad host - this test may fail when your DNS server redirects you to another page when it can't find a domain name (eg OpenDNS)";
+		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
+		rLen = 1;
+		rLoc = 57;
+		rType = 1;
+	};
+	B500B5920E635CE900744D82 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
+		name = "ASIHTTPRequestTests.m: 58";
+		rLen = 188;
+		rLoc = 1963;
+		rType = 0;
+		vrLen = 2780;
+		vrLoc = 578;
+	};
+	B500B59F0E635CFE00744D82 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
+		name = "ASIHTTPRequestTests.m: 58";
+		rLen = 188;
+		rLoc = 1963;
+		rType = 0;
+		vrLen = 2780;
+		vrLoc = 578;
+	};
+	B500B5A50E635D1400744D82 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
+		name = "ASIHTTPRequestTests.m: 178";
+		rLen = 0;
+		rLoc = 7207;
+		rType = 0;
+		vrLen = 2503;
+		vrLoc = 6099;
+	};
+	B500B5A90E635D5100744D82 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
+		name = "ASIHTTPRequestTests.m: 178";
+		rLen = 0;
+		rLoc = 7207;
+		rType = 0;
+		vrLen = 1993;
+		vrLoc = 161;
+	};
+	B500B5AD0E635DA200744D82 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
+		name = "ASIHTTPRequestTests.m: 177";
+		rLen = 0;
+		rLoc = 7207;
+		rType = 0;
+		vrLen = 2440;
+		vrLoc = 6153;
+	};
+	B500B5B80E635E0D00744D82 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		comments = "error: -[ASIHTTPRequestTests testBasicDownload] : \"((error) != nil)\" should be true. Failed to generate an error for a bad host - this test may fail when your DNS server redirects you to another page when it can't find a domain name (eg OpenDNS)";
+		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
+		rLen = 1;
+		rLoc = 57;
+		rType = 1;
+	};
+	B500B5B90E635E0D00744D82 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
+		name = "ASIHTTPRequestTests.m: 58";
+		rLen = 188;
+		rLoc = 1963;
+		rType = 0;
+		vrLen = 1767;
+		vrLoc = 1064;
+	};
+	B500B5BA0E635E0E00744D82 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
+		name = "ASIHTTPRequestTests.m: 159";
+		rLen = 0;
+		rLoc = 6478;
+		rType = 0;
+		vrLen = 2506;
 		vrLoc = 6099;
 	};
 	B513D4020E2BD48A000A50C6 /* PlistBookmark */ = {
@@ -811,8 +906,8 @@
 	B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */ = {
 		uiCtxt = {
 			sepNavIntBoundsRect = "{{0, 0}, {1252, 2926}}";
-			sepNavSelRange = "{8273, 0}";
-			sepNavVisRange = "{6099, 2494}";
+			sepNavSelRange = "{6478, 0}";
+			sepNavVisRange = "{6099, 2506}";
 			sepNavWindowFrame = "{{148, 98}, {1485, 874}}";
 		};
 	};
@@ -935,11 +1030,6 @@
 		name = RunPlatformUnitTests.include;
 		path = /Developer/Tools/RunPlatformUnitTests.include;
 		sourceTree = "<absolute>";
-		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {1379, 5824}}";
-			sepNavSelRange = "{13188, 135}";
-			sepNavVisRange = "{12388, 1252}";
-		};
 	};
 	B5731D9B0E433A750008024F /* PBXTextBookmark */ = {
 		isa = PBXTextBookmark;
@@ -954,13 +1044,13 @@
 	B5ABC7A70E24C5280072F422 /* asi-http-request */ = {
 		isa = PBXExecutable;
 		activeArgIndices = (
-			YES,
+			NO,
 		);
 		argumentStrings = (
 			"-SenTest All",
 		);
 		autoAttachOnCrash = 1;
-		breakpointsEnabled = 1;
+		breakpointsEnabled = 0;
 		configStateDict = {
 		};
 		customDataFormattersEnabled = 1;
@@ -970,32 +1060,32 @@
 		enableDebugStr = 1;
 		environmentEntries = (
 			{
-				active = YES;
+				active = NO;
 				name = CFZombieLevel;
 				value = 5;
 			},
 			{
-				active = YES;
+				active = NO;
 				name = NSZombieEnabled;
 				value = YES;
 			},
 			{
-				active = YES;
+				active = NO;
 				name = XCInjectBundleInto;
 				value = "asi-http-request.app/Contents/MacOS/asi-http-request";
 			},
 			{
-				active = YES;
+				active = NO;
 				name = XCInjectBundle;
 				value = Tests.octest;
 			},
 			{
-				active = YES;
+				active = NO;
 				name = DYLD_FALLBACK_FRAMEWORK_PATH;
 				value = "$(DEVELOPER_LIBRARY_DIR)/Frameworks";
 			},
 			{
-				active = YES;
+				active = NO;
 				name = DYLD_INSERT_LIBRARIES;
 				value = "$(DEVELOPER_LIBRARY_DIR)/PrivateFrameworks/DevToolsBundleInjection.framework/DevToolsBundleInjection";
 			},
@@ -1280,7 +1370,7 @@
 		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
 		name = "ASIHTTPRequestTests.m: 148";
 		rLen = 0;
-		rLoc = 8581;
+		rLoc = 8593;
 		rType = 0;
 		vrLen = 1760;
 		vrLoc = 4106;
@@ -1500,7 +1590,7 @@
 		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
 		name = "ASIHTTPRequestTests.m: 148";
 		rLen = 0;
-		rLoc = 8581;
+		rLoc = 8593;
 		rType = 0;
 		vrLen = 1906;
 		vrLoc = 4264;
@@ -1530,7 +1620,7 @@
 		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
 		name = "ASIHTTPRequestTests.m: 148";
 		rLen = 0;
-		rLoc = 8581;
+		rLoc = 8593;
 		rType = 0;
 		vrLen = 1944;
 		vrLoc = 4226;
@@ -2524,7 +2614,7 @@
 		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
 		name = "ASIHTTPRequestTests.m: 180";
 		rLen = 0;
-		rLoc = 8408;
+		rLoc = 8420;
 		rType = 0;
 		vrLen = 2446;
 		vrLoc = 5449;
@@ -2544,7 +2634,7 @@
 		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
 		name = "ASIHTTPRequestTests.m: 180";
 		rLen = 0;
-		rLoc = 8408;
+		rLoc = 8420;
 		rType = 0;
 		vrLen = 2552;
 		vrLoc = 375;
@@ -2776,7 +2866,7 @@
 		rLen = 0;
 		rLoc = 5618;
 		rType = 0;
-		vrLen = 2392;
+		vrLen = 2230;
 		vrLoc = 6363;
 	};
 	B5B3BF520E634B0C0071D39F /* PBXTextBookmark */ = {

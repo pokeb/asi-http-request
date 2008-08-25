@@ -156,7 +156,7 @@ More tests needed for:
 			foundCookie = YES;
 			success = [[cookie value] isEqualToString:@"This is the value"];
 			STAssertTrue(success,@"Failed to store the correct value for a cookie");
-			success = [[cookie domain] isEqualToString:@"asi"];
+			success = [[cookie domain] isEqualToString:@"allseeing-i.com"];
 			STAssertTrue(success,@"Failed to store the correct domain for a cookie");
 			success = [[cookie path] isEqualToString:@"/asi-http-request/tests"];
 			STAssertTrue(success,@"Failed to store the correct path for a cookie");

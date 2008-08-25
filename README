@@ -16,6 +16,8 @@ It provides:
 
 * Basic authentication (username and password) support, credentials are automatically for the duration of a session, and can be stored for later in the Keychain.
 
+* Cookie support - read and write cookies, and re-use them in other requests
+
 * Based on NSOperation to make queuing requests and background operation easy
 
 * Basic unit tests (more to come!)
@@ -28,7 +30,6 @@ ASIHTTPRequest is my first open source Objective-C code. I hope to expand the cl
 
 To do:
 More unit tests
-Cookie support
 Split up class - move form request stuff into subclass, and have simple implementation for main that sets request body according to data supplied by the subclass - this will allow other types of HTTP request (eg soap)
 Add SOAP example
 See if Digest Authentication works
