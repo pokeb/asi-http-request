@@ -14,7 +14,7 @@
 {
 	NSString *prop = [property lowercaseString];
 	if ([prop isEqualToString:@"expires"]) {
-		//[self setExpires:[NSDate dateFrom
+		[self setExpires:[NSDate dateWithNaturalLanguageString:newValue]];
 		return;
 	} else if ([prop isEqualToString:@"domain"]) {
 		[self setDomain:newValue];
