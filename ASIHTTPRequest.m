@@ -11,6 +11,7 @@
 //  See: http://developer.apple.com/samplecode/ImageClient/listing37.html
 
 #import "ASIHTTPRequest.h"
+#import "ASIHTTPCookie.h"
 
 static NSString *NetworkRequestErrorDomain = @"com.Your-Company.Your-Product.NetworkError.";
 
@@ -21,6 +22,7 @@ static const CFOptionFlags kNetworkEvents = kCFStreamEventOpenCompleted |
 
 static CFHTTPAuthenticationRef sessionAuthentication = NULL;
 static NSMutableDictionary *sessionCredentials = nil;
+static NSMutableArray *sessionCookies = nil;
 
 
 static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventType type, void *clientCallBackInfo) {
@@ -51,6 +53,8 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 	responseHeaders = nil;
 	[self setUseKeychainPersistance:NO];
 	[self setUseSessionPersistance:YES];
+	[self setUseCookiePersistance:YES];
+	[self setRequestCookies:[[[NSMutableArray alloc] init] autorelease]];
 	didFinishSelector = @selector(requestFinished:);
 	didFailSelector = @selector(requestFailed:);
 	delegate = nil;
@@ -164,6 +168,55 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 	//Set your own boundary string only if really obsessive. We don't bother to check if post data contains the boundary, since it's pretty unlikely that it does.
 	NSString *stringBoundary = @"0xKhTmLbOuNdArY";
 	
+	//Add cookies from session
+	if (useCookiePersistance && [[ASIHTTPRequest sessionCookies] count] > 0) {
+		ASIHTTPCookie *requestCookie;
+		ASIHTTPCookie *storedCookie;
+		for (storedCookie in sessionCookies) {
+			BOOL foundExistingCookie = NO;
+			//Look for existing cookies in the request - these will always take precedence over session stored cookies
+			for (requestCookie in requestCookies) {
+				if ([[requestCookie domain] isEqualToString:[storedCookie domain]]) {
+					if ([[requestCookie path] isEqualToString:[storedCookie path]] || (![requestCookie path] && ![storedCookie path])) {
+						if ([[requestCookie name] isEqualToString:[storedCookie name]]) {
+							foundExistingCookie = YES;
+							break;
+						}
+					}
+				}
+			}
+			if (!foundExistingCookie) {
+				[requestCookies addObject:storedCookie];
+			}
+		}
+	}
+	
+	//Apply request cookies
+	if ([requestCookies count] > 0) {
+		ASIHTTPCookie *cookie;
+		NSString *cookieHeader = nil;
+		for (cookie in requestCookies) {
+			//Ensure the cookie is valid for this request
+			if ([[[url host] substringWithRange:NSMakeRange([[url host] length]-[[cookie domain] length],[[cookie domain] length])] isEqualToString:[cookie domain]]) {
+				if ([[[url path] substringWithRange:NSMakeRange(0,[[cookie path] length])] isEqualToString:[cookie path]]) {
+					if (![cookie requiresHTTPS] || [[url port] intValue] == 443) {
+						if (![cookie expires] || [[cookie expires] timeIntervalSinceNow] > 0) {
+							if (!cookieHeader) {
+								cookieHeader = [NSString stringWithFormat: @"%@=%@",[cookie name],[ASIHTTPCookie urlEncodedValue:[cookie value]]];
+							} else {
+								cookieHeader = [NSString stringWithFormat: @"%@; %@=%@",cookieHeader,[cookie name],[ASIHTTPCookie urlEncodedValue:[cookie value]]];
+							}
+						}
+					}
+				}
+			}
+		}
+		if (cookieHeader) {
+			[self addRequestHeader:@"Cookie" value:cookieHeader];
+		}
+	}
+	
+	
 	//Add custom headers
 	NSString *header;
 	for (header in requestHeaders) {
@@ -207,8 +260,6 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 		}
 		
 		[postBody appendData:[[NSString stringWithFormat:@"\r\n--%@--\r\n",stringBoundary] dataUsingEncoding:NSUTF8StringEncoding]];
-		
-		NSString *foo = [[[NSString alloc] initWithBytes:[postBody bytes] length:[postBody length] encoding:NSUTF8StringEncoding] autorelease];
 
 		// Set the body.
 		CFHTTPMessageSetBody(request, (CFDataRef)postBody);
@@ -422,6 +473,16 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 					[self performSelectorOnMainThread:@selector(resetDownloadProgress:) withObject:[NSNumber numberWithDouble:contentLength] waitUntilDone:YES];
 				}
 			}
+			
+			//Handle cookies
+			NSString *cookieHeader = [responseHeaders valueForKey:@"Set-Cookie"];
+			if (cookieHeader) {
+				[self setResponseCookies:[ASIHTTPCookie cookiesFromHeader:cookieHeader]];
+				if (useCookiePersistance) {
+					[ASIHTTPRequest recordCookiesInSessionForRequest:self];
+				}
+			}
+			
 		}
 		
 	}
@@ -768,6 +829,57 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 	
 }
 
++ (void)recordCookiesInSessionForRequest:(ASIHTTPRequest *)request
+{
+	if (!sessionCookies) {
+		[self setSessionCookies:[[[NSMutableArray alloc] init] autorelease]];
+	}
+	ASIHTTPCookie *newCookie;
+	ASIHTTPCookie *storedCookie;
+	for (newCookie in [request responseCookies]) {
+		//If we didn't get a domain for the cookie, let's add the one from this request, so we aren't sending cookies from the wrong server later on 
+		if (![newCookie domain]) {
+			[newCookie setDomain:[[request url] host]];
+		}
+		int i = 0;
+		BOOL foundExistingCookie = NO;
+		for (storedCookie in sessionCookies) {
+			if ([[storedCookie domain] isEqualToString:[newCookie domain]]) {
+				if ([[storedCookie path] isEqualToString:[newCookie path]] || (![storedCookie path] && ![newCookie path])) {
+					if ([[storedCookie name] isEqualToString:[newCookie name]]) {
+						foundExistingCookie = YES;
+						[sessionCookies replaceObjectAtIndex:i withObject:newCookie];
+						break;
+					}
+				}
+			}
+			i++;
+		}
+		if (!foundExistingCookie) {
+			[sessionCookies addObject:newCookie];
+		}
+	}
+}
+
++ (NSMutableArray *)sessionCookies
+{
+	return sessionCookies;
+}
+			
++ (void)setSessionCookies:(NSMutableArray *)newSessionCookies
+{
+	[sessionCookies release];
+	sessionCookies = [newSessionCookies retain];
+}
+
+// Dump all session data (authentication and cookies)
++ (void)clearSession
+{
+	[ASIHTTPRequest setSessionAuthentication:NULL];
+	[ASIHTTPRequest setSessionCredentials:nil];
+	[ASIHTTPRequest setSessionCookies:nil];
+}
+
 
 @synthesize username;
 @synthesize password;
@@ -778,6 +890,7 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 @synthesize downloadProgressDelegate;
 @synthesize useKeychainPersistance;
 @synthesize useSessionPersistance;
+@synthesize useCookiePersistance;
 @synthesize downloadDestinationPath;
 @synthesize didFinishSelector;
 @synthesize didFailSelector;
@@ -785,6 +898,8 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 @synthesize error;
 @synthesize complete;
 @synthesize responseHeaders;
+@synthesize responseCookies;
+@synthesize requestCookies;
 @synthesize requestCredentials;
 @synthesize responseStatusCode;
 @synthesize receivedData;

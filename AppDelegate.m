@@ -147,7 +147,8 @@
 - (void)authSheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo {
 	ASIHTTPRequest *request = (ASIHTTPRequest *)contextInfo;
     if (returnCode == NSOKButton) {
-		[request setUsername:[[[username stringValue] copy] autorelease] andPassword:[[[password stringValue] copy] autorelease]];
+		[request setUsername:[[[username stringValue] copy] autorelease]];
+		[request setPassword:[[[password stringValue] copy] autorelease]];
 		[request retryWithAuthentication];
     } else {
 		[request cancelLoad];

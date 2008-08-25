@@ -32,8 +32,17 @@
 	//Dictionary for custom HTTP request headers
 	NSMutableDictionary *requestHeaders;
 	
-	//Will be populate with HTTP response headers from the server
+	//Will be populated with HTTP response headers from the server
 	NSDictionary *responseHeaders;
+	
+	//Can be used to manually insert cookie headers to a request, but it's more likely that sessionCookies will do this for you
+	NSMutableArray *requestCookies;
+	
+	//Will be populated with Cookies
+	NSMutableArray *responseCookies;
+	
+	//If use cokie persistance is true, network requests will present valid cookies from previous requests
+	BOOL useCookiePersistance;
 	
 	//If useKeychainPersistance is true, network requests will attempt to read credentials from the keychain, and will save them in the keychain when they are successfully presented
 	BOOL useKeychainPersistance;
@@ -215,6 +224,17 @@
 // Remove credentials from the keychain
 + (void)removeCredentialsForHost:(NSString *)host port:(int)port protocol:(NSString *)protocol realm:(NSString *)realm;
 
+// Store cookies for a particular request in the session
++ (void)recordCookiesInSessionForRequest:(ASIHTTPRequest *)request;
+
++ (void)setSessionCookies:(NSMutableArray *)newSessionCookies;
++ (NSMutableArray *)sessionCookies;
+
+// Dump all session data (authentication and cookies)
++ (void)clearSession;
+
+
+
 @property (retain) NSString *username;
 @property (retain) NSString *password;
 @property (retain) NSString *domain;
@@ -232,6 +252,9 @@
 @property (retain) NSError *error;
 @property (assign,readonly) BOOL complete;
 @property (retain) NSDictionary *responseHeaders;
+@property (retain) NSMutableArray *requestCookies;
+@property (retain) NSMutableArray *responseCookies;
+@property (assign) BOOL useCookiePersistance;
 @property (retain) NSDictionary *requestCredentials;
 @property (assign) int responseStatusCode;
 @property (retain) NSMutableData *receivedData;

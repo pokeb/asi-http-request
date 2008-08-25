@@ -14,5 +14,5 @@
 
 - (void)testBasicDownload;
 - (void)testOperationQueue;
-
+- (void)testCookies;
 @end

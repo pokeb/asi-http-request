@@ -17,6 +17,8 @@
 		B5731C300E431B340008024F /* ASIHTTPRequestTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */; };
 		B5ABC7BB0E24C5620072F422 /* ASIHTTPRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5ABC7B90E24C5620072F422 /* ASIHTTPRequest.m */; };
 		B5ABC80F0E24CB100072F422 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = B5ABC80E0E24CB100072F422 /* AppDelegate.m */; };
+		B5B3BC480E62D4790071D39F /* ASIHTTPCookie.m in Sources */ = {isa = PBXBuildFile; fileRef = B5B3BC470E62D4790071D39F /* ASIHTTPCookie.m */; };
+		B5B3BCC10E6327100071D39F /* ASIHTTPCookie.m in Sources */ = {isa = PBXBuildFile; fileRef = B5B3BC470E62D4790071D39F /* ASIHTTPCookie.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -52,6 +54,8 @@
 		B5ABC7ED0E24C6670072F422 /* ASIProgressDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIProgressDelegate.h; sourceTree = "<group>"; };
 		B5ABC80D0E24CB100072F422 /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		B5ABC80E0E24CB100072F422 /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		B5B3BC460E62D4790071D39F /* ASIHTTPCookie.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIHTTPCookie.h; sourceTree = "<group>"; };
+		B5B3BC470E62D4790071D39F /* ASIHTTPCookie.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIHTTPCookie.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -78,6 +82,8 @@
 		080E96DDFE201D6D7F000001 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
+				B5B3BC460E62D4790071D39F /* ASIHTTPCookie.h */,
+				B5B3BC470E62D4790071D39F /* ASIHTTPCookie.m */,
 				B5ABC80D0E24CB100072F422 /* AppDelegate.h */,
 				B5ABC80E0E24CB100072F422 /* AppDelegate.m */,
 				B5ABC7BA0E24C5620072F422 /* ASIHTTPRequest.h */,
@@ -269,6 +275,7 @@
 				8D11072D0486CEB800E47090 /* main.m in Sources */,
 				B5ABC7BB0E24C5620072F422 /* ASIHTTPRequest.m in Sources */,
 				B5ABC80F0E24CB100072F422 /* AppDelegate.m in Sources */,
+				B5B3BC480E62D4790071D39F /* ASIHTTPCookie.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -278,6 +285,7 @@
 			files = (
 				B5731B250E430B800008024F /* ASIHTTPRequest.m in Sources */,
 				B5731C300E431B340008024F /* ASIHTTPRequestTests.m in Sources */,
+				B5B3BCC10E6327100071D39F /* ASIHTTPCookie.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
