@@ -138,7 +138,7 @@ More tests needed for:
 	success = [date isEqualToDate:referenceDate];
 	STAssertTrue(success,@"Date parse 3 failed");	
 	
-	NSURL *url = [[[NSURL alloc] initWithString:@"http://asi/asi-http-request/tests/set_cookie"] autorelease];
+	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/asi-http-request/tests/set_cookie"] autorelease];
 	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUseCookiePersistance:YES];
 	[request start];
@@ -169,7 +169,7 @@ More tests needed for:
 		return;
 	}
 	
-	url = [[[NSURL alloc] initWithString:@"http://asi/asi-http-request/tests/read_cookie"] autorelease];
+	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/asi-http-request/tests/read_cookie"] autorelease];
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUseCookiePersistance:NO];
 	[request setRequestCookies:[NSMutableArray arrayWithObject:cookie]];
@@ -178,7 +178,7 @@ More tests needed for:
 	success = [html isEqualToString:@"I have 'This is the value' as the value of 'ASIHTTPRequestTestCookie'"];
 	STAssertTrue(success,@"Cookie not presented to the server with cookie persistance OFF");
 
-	url = [[[NSURL alloc] initWithString:@"http://asi/asi-http-request/tests/read_cookie"] autorelease];
+	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/asi-http-request/tests/read_cookie"] autorelease];
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUseCookiePersistance:YES];
 	[request start];
@@ -186,14 +186,14 @@ More tests needed for:
 	success = [html isEqualToString:@"I have 'This is the value' as the value of 'ASIHTTPRequestTestCookie'"];
 	STAssertTrue(success,@"Cookie not presented to the server with cookie persistance ON");
 	
-	url = [[[NSURL alloc] initWithString:@"http://asi/asi-http-request/tests/remove_cookie"] autorelease];
+	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/asi-http-request/tests/remove_cookie"] autorelease];
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request start];
 	html = [request dataString];
 	success = [html isEqualToString:@"I have removed a cookie"];
 	STAssertTrue(success,@"Failed to remove a cookie");
 
-	url = [[[NSURL alloc] initWithString:@"http://asi/asi-http-request/tests/read_cookie"] autorelease];
+	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/asi-http-request/tests/read_cookie"] autorelease];
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request start];
 	html = [request dataString];
