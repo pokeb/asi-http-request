@@ -39,7 +39,7 @@
 	NSMutableArray *requestCookies;
 	
 	//Will be populated with Cookies
-	NSMutableArray *responseCookies;
+	NSArray *responseCookies;
 	
 	//If use cokie persistance is true, network requests will present valid cookies from previous requests
 	BOOL useCookiePersistance;
@@ -224,16 +224,12 @@
 // Remove credentials from the keychain
 + (void)removeCredentialsForHost:(NSString *)host port:(int)port protocol:(NSString *)protocol realm:(NSString *)realm;
 
-// Store cookies for a particular request in the session
-+ (void)recordCookiesInSessionForRequest:(ASIHTTPRequest *)request;
-
+// We keep track of any cookies we accept, so that we can remove them from the persistent store later
 + (void)setSessionCookies:(NSMutableArray *)newSessionCookies;
 + (NSMutableArray *)sessionCookies;
 
 // Dump all session data (authentication and cookies)
 + (void)clearSession;
-
-
 
 @property (retain) NSString *username;
 @property (retain) NSString *password;
@@ -253,7 +249,7 @@
 @property (assign,readonly) BOOL complete;
 @property (retain) NSDictionary *responseHeaders;
 @property (retain) NSMutableArray *requestCookies;
-@property (retain) NSMutableArray *responseCookies;
+@property (retain) NSArray *responseCookies;
 @property (assign) BOOL useCookiePersistance;
 @property (retain) NSDictionary *requestCredentials;
 @property (assign) int responseStatusCode;

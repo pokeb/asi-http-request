@@ -8,7 +8,7 @@
 
 #import "ASIHTTPRequestTests.h"
 #import "ASIHTTPRequest.h"
-#import "ASIHTTPCookie.h"
+#import "NSHTTPCookieAdditions.h"
 
 @implementation ASIHTTPRequestTests
 
@@ -120,24 +120,6 @@ More tests needed for:
 {
 	BOOL success;
 	
-	//Firstly, let's make sure cocoa still parses cookie dates correctly using the three examples at http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.3
-	NSString *dte = @"Sun, 06 Nov 1994 08:49:37 GMT";
-
-	NSDate *date = [NSDate dateWithNaturalLanguageString:dte];
-	NSDate *referenceDate = [NSDate dateWithString:@"1994-11-06 08:49:37 +0000"];
-	success = [date isEqualToDate:referenceDate];
-	STAssertTrue(success,@"Date parse 1 failed");
-
-	dte = @"Sunday, 06-Nov-94 08:49:37 GMT";
-	date = [NSDate dateWithNaturalLanguageString:dte];
-	success = [date isEqualToDate:referenceDate];
-	STAssertTrue(success,@"Date parse 2 failed");
-	
-	dte = @"Sun Nov  6 08:49:37 1994";
-	date = [NSDate dateWithNaturalLanguageString:dte];
-	success = [date isEqualToDate:referenceDate];
-	STAssertTrue(success,@"Date parse 3 failed");	
-	
 	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/asi-http-request/tests/set_cookie"] autorelease];
 	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUseCookiePersistance:YES];
@@ -149,14 +131,15 @@ More tests needed for:
 	NSArray *cookies = [request responseCookies];
 	STAssertNotNil(cookies,@"Failed to store cookie data in responseCookies");
 	
-	ASIHTTPCookie *cookie = nil;
+	NSHTTPCookie *cookie = nil;
 	BOOL foundCookie = NO;
 	for (cookie in cookies) {
 		if ([[cookie name] isEqualToString:@"ASIHTTPRequestTestCookie"]) {
 			foundCookie = YES;
-			success = [[cookie value] isEqualToString:@"This is the value"];
+			NSLog(@"%@",cookie);
+			success = [[cookie decodedValue] isEqualToString:@"This is the value"];
 			STAssertTrue(success,@"Failed to store the correct value for a cookie");
-			success = [[cookie domain] isEqualToString:@"allseeing-i.com"];
+			success = [[cookie domain] isEqualToString:@".allseeing-i.com"];
 			STAssertTrue(success,@"Failed to store the correct domain for a cookie");
 			success = [[cookie path] isEqualToString:@"/asi-http-request/tests"];
 			STAssertTrue(success,@"Failed to store the correct path for a cookie");

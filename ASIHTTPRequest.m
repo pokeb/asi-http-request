@@ -11,7 +11,7 @@
 //  See: http://developer.apple.com/samplecode/ImageClient/listing37.html
 
 #import "ASIHTTPRequest.h"
-#import "ASIHTTPCookie.h"
+#import "NSHTTPCookieAdditions.h"
 
 static NSString *NetworkRequestErrorDomain = @"com.Your-Company.Your-Product.NetworkError.";
 
@@ -168,47 +168,23 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 	//Set your own boundary string only if really obsessive. We don't bother to check if post data contains the boundary, since it's pretty unlikely that it does.
 	NSString *stringBoundary = @"0xKhTmLbOuNdArY";
 	
-	//Add cookies from session
-	if (useCookiePersistance && [[ASIHTTPRequest sessionCookies] count] > 0) {
-		ASIHTTPCookie *requestCookie;
-		ASIHTTPCookie *storedCookie;
-		for (storedCookie in sessionCookies) {
-			BOOL foundExistingCookie = NO;
-			//Look for existing cookies in the request - these will always take precedence over session stored cookies
-			for (requestCookie in requestCookies) {
-				if ([[requestCookie domain] isEqualToString:[storedCookie domain]]) {
-					if ([[requestCookie path] isEqualToString:[storedCookie path]] || (![requestCookie path] && ![storedCookie path])) {
-						if ([[requestCookie name] isEqualToString:[storedCookie name]]) {
-							foundExistingCookie = YES;
-							break;
-						}
-					}
-				}
-			}
-			if (!foundExistingCookie) {
-				[requestCookies addObject:storedCookie];
-			}
+	//Add cookies from the persistant (mac os global) store
+	if (useCookiePersistance) {
+		NSArray *cookies = [[NSHTTPCookieStorage sharedHTTPCookieStorage] cookiesForURL:url];
+		if (cookies) {
+			[requestCookies addObjectsFromArray:cookies];
 		}
 	}
 	
 	//Apply request cookies
 	if ([requestCookies count] > 0) {
-		ASIHTTPCookie *cookie;
+		NSHTTPCookie *cookie;
 		NSString *cookieHeader = nil;
 		for (cookie in requestCookies) {
-			//Ensure the cookie is valid for this request
-			if ([[[url host] substringWithRange:NSMakeRange([[url host] length]-[[cookie domain] length],[[cookie domain] length])] isEqualToString:[cookie domain]]) {
-				if ([[[url path] substringWithRange:NSMakeRange(0,[[cookie path] length])] isEqualToString:[cookie path]]) {
-					if (![cookie requiresHTTPS] || [[url port] intValue] == 443) {
-						if (![cookie expires] || [[cookie expires] timeIntervalSinceNow] > 0) {
-							if (!cookieHeader) {
-								cookieHeader = [NSString stringWithFormat: @"%@=%@",[cookie name],[ASIHTTPCookie urlEncodedValue:[cookie value]]];
-							} else {
-								cookieHeader = [NSString stringWithFormat: @"%@; %@=%@",cookieHeader,[cookie name],[ASIHTTPCookie urlEncodedValue:[cookie value]]];
-							}
-						}
-					}
-				}
+			if (!cookieHeader) {
+				cookieHeader = [NSString stringWithFormat: @"%@=%@",[cookie name],[cookie encodedValue]];
+			} else {
+				cookieHeader = [NSString stringWithFormat: @"%@; %@=%@",cookieHeader,[cookie name],[cookie encodedValue]];
 			}
 		}
 		if (cookieHeader) {
@@ -475,11 +451,20 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 			}
 			
 			//Handle cookies
-			NSString *cookieHeader = [responseHeaders valueForKey:@"Set-Cookie"];
-			if (cookieHeader) {
-				[self setResponseCookies:[ASIHTTPCookie cookiesFromHeader:cookieHeader]];
-				if (useCookiePersistance) {
-					[ASIHTTPRequest recordCookiesInSessionForRequest:self];
+			NSArray *cookies = [NSHTTPCookie cookiesWithResponseHeaderFields:responseHeaders forURL:url];
+			[self setResponseCookies:cookies];
+
+			if (useCookiePersistance) {
+				//Store cookies in global persistent store
+				[[NSHTTPCookieStorage sharedHTTPCookieStorage] setCookies:cookies forURL:url mainDocumentURL:nil];
+				
+				//We also keep any cookies in the sessionCookies array, so that we have a reference to them if we need to remove them later
+				if (!sessionCookies) {
+					[ASIHTTPRequest setSessionCookies:[[[NSMutableArray alloc] init] autorelease]];
+					NSHTTPCookie *cookie;
+					for (cookie in cookies) {
+						[[ASIHTTPRequest sessionCookies] addObject:cookie];
+					}
 				}
 			}
 			
@@ -829,37 +814,6 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 	
 }
 
-+ (void)recordCookiesInSessionForRequest:(ASIHTTPRequest *)request
-{
-	if (!sessionCookies) {
-		[self setSessionCookies:[[[NSMutableArray alloc] init] autorelease]];
-	}
-	ASIHTTPCookie *newCookie;
-	ASIHTTPCookie *storedCookie;
-	for (newCookie in [request responseCookies]) {
-		//If we didn't get a domain for the cookie, let's add the one from this request, so we aren't sending cookies from the wrong server later on 
-		if (![newCookie domain]) {
-			[newCookie setDomain:[[request url] host]];
-		}
-		int i = 0;
-		BOOL foundExistingCookie = NO;
-		for (storedCookie in sessionCookies) {
-			if ([[storedCookie domain] isEqualToString:[newCookie domain]]) {
-				if ([[storedCookie path] isEqualToString:[newCookie path]] || (![storedCookie path] && ![newCookie path])) {
-					if ([[storedCookie name] isEqualToString:[newCookie name]]) {
-						foundExistingCookie = YES;
-						[sessionCookies replaceObjectAtIndex:i withObject:newCookie];
-						break;
-					}
-				}
-			}
-			i++;
-		}
-		if (!foundExistingCookie) {
-			[sessionCookies addObject:newCookie];
-		}
-	}
-}
 
 + (NSMutableArray *)sessionCookies
 {
@@ -868,6 +822,11 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 			
 + (void)setSessionCookies:(NSMutableArray *)newSessionCookies
 {
+	//Remove existing cookies from the persistent store
+	NSHTTPCookie *cookie;
+	for (cookie in newSessionCookies) {
+		[[NSHTTPCookieStorage sharedHTTPCookieStorage] deleteCookie:cookie];
+	}
 	[sessionCookies release];
 	sessionCookies = [newSessionCookies retain];
 }
@@ -879,6 +838,7 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 	[ASIHTTPRequest setSessionCredentials:nil];
 	[ASIHTTPRequest setSessionCookies:nil];
 }
+
 
 
 @synthesize username;
