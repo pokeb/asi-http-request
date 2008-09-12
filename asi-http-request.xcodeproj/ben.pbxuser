@@ -15,7 +15,7 @@
 			8D1107260486CEB800E47090 /* asi-http-request */,
 		);
 		breakpoints = (
-			B5CF36D30E7A8A910050CBA7 /* ASIHTTPRequestTests.m:143 */,
+			B5CF36D30E7A8A910050CBA7 /* ASIHTTPRequestTests.m:147 */,
 		);
 		codeSenseManager = B5ABC7B60E24C52A0072F422 /* Code sense */;
 		executables = (
@@ -380,6 +380,13 @@
 			B5CF371B0E7A8CC30050CBA7 /* PBXTextBookmark */ = B5CF371B0E7A8CC30050CBA7 /* PBXTextBookmark */;
 			B5CF372E0E7A8CEC0050CBA7 /* PBXTextBookmark */ = B5CF372E0E7A8CEC0050CBA7 /* PBXTextBookmark */;
 			B5CF37350E7A8D040050CBA7 /* PBXTextBookmark */ = B5CF37350E7A8D040050CBA7 /* PBXTextBookmark */;
+			B5CF373C0E7A8FF90050CBA7 /* PBXTextBookmark */ = B5CF373C0E7A8FF90050CBA7 /* PBXTextBookmark */;
+			B5CF373D0E7A8FF90050CBA7 /* PBXTextBookmark */ = B5CF373D0E7A8FF90050CBA7 /* PBXTextBookmark */;
+			B5CF37400E7A90320050CBA7 /* PBXTextBookmark */ = B5CF37400E7A90320050CBA7 /* PBXTextBookmark */;
+			B5CF37410E7A90320050CBA7 /* PBXTextBookmark */ = B5CF37410E7A90320050CBA7 /* PBXTextBookmark */;
+			B5CF37420E7A90E10050CBA7 /* PBXTextBookmark */ = B5CF37420E7A90E10050CBA7 /* PBXTextBookmark */;
+			B5CF37430E7A90E10050CBA7 /* PBXTextBookmark */ = B5CF37430E7A90E10050CBA7 /* PBXTextBookmark */;
+			B5CF37440E7A90E10050CBA7 /* PBXTextBookmark */ = B5CF37440E7A90E10050CBA7 /* PBXTextBookmark */;
 			B5F3B7370E43683600E001FD = B5F3B7370E43683600E001FD /* PBXTextBookmark */;
 			B5F3B7390E43683600E001FD = B5F3B7390E43683600E001FD /* PBXTextBookmark */;
 		};
@@ -548,9 +555,9 @@
 	};
 	B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {1218, 2674}}";
-			sepNavSelRange = "{1971, 188}";
-			sepNavVisRange = "{1072, 1767}";
+			sepNavIntBoundsRect = "{{0, 0}, {1164, 3192}}";
+			sepNavSelRange = "{4774, 0}";
+			sepNavVisRange = "{6716, 3018}";
 			sepNavWindowFrame = "{{148, 98}, {1485, 874}}";
 		};
 	};
@@ -762,9 +769,9 @@
 	};
 	B5ABC7B90E24C5620072F422 /* ASIHTTPRequest.m */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {1680, 11858}}";
+			sepNavIntBoundsRect = "{{0, 0}, {1037, 11900}}";
 			sepNavSelRange = "{14904, 0}";
-			sepNavVisRange = "{12494, 2255}";
+			sepNavVisRange = "{12494, 2251}";
 			sepNavWindowFrame = "{{759, 71}, {1475, 874}}";
 		};
 	};
@@ -2523,7 +2530,7 @@
 		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
 		name = "ASIHTTPRequestTests.m: 179";
 		rLen = 0;
-		rLoc = 7503;
+		rLoc = 7814;
 		rType = 0;
 		vrLen = 2507;
 		vrLoc = 5316;
@@ -2533,12 +2540,12 @@
 		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
 		name = "ASIHTTPRequestTests.m: 179";
 		rLen = 0;
-		rLoc = 7503;
+		rLoc = 7814;
 		rType = 0;
 		vrLen = 2538;
 		vrLoc = 5285;
 	};
-	B5CF36D30E7A8A910050CBA7 /* ASIHTTPRequestTests.m:143 */ = {
+	B5CF36D30E7A8A910050CBA7 /* ASIHTTPRequestTests.m:147 */ = {
 		isa = PBXFileBreakpoint;
 		actions = (
 		);
@@ -2550,7 +2557,7 @@
 		functionName = "-testCookies";
 		hitCount = 0;
 		ignoreCount = 0;
-		lineNumber = 143;
+		lineNumber = 147;
 		location = Tests;
 		modificationTime = 242912513.58;
 		state = 0;
@@ -2560,7 +2567,7 @@
 		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
 		name = "ASIHTTPRequestTests.m: 179";
 		rLen = 0;
-		rLoc = 7503;
+		rLoc = 7814;
 		rType = 0;
 		vrLen = 2661;
 		vrLoc = 5162;
@@ -2570,7 +2577,7 @@
 		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
 		name = "ASIHTTPRequestTests.m: 179";
 		rLen = 0;
-		rLoc = 7503;
+		rLoc = 7814;
 		rType = 0;
 		vrLen = 2661;
 		vrLoc = 5162;
@@ -2580,7 +2587,7 @@
 		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
 		name = "ASIHTTPRequestTests.m: 179";
 		rLen = 0;
-		rLoc = 7503;
+		rLoc = 7814;
 		rType = 0;
 		vrLen = 2803;
 		vrLoc = 4757;
@@ -2590,7 +2597,7 @@
 		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
 		name = "ASIHTTPRequestTests.m: 179";
 		rLen = 0;
-		rLoc = 7503;
+		rLoc = 7814;
 		rType = 0;
 		vrLen = 2804;
 		vrLoc = 4757;
@@ -2600,7 +2607,7 @@
 		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
 		name = "ASIHTTPRequestTests.m: 179";
 		rLen = 0;
-		rLoc = 7503;
+		rLoc = 7814;
 		rType = 0;
 		vrLen = 2804;
 		vrLoc = 4757;
@@ -2610,7 +2617,7 @@
 		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
 		name = "ASIHTTPRequestTests.m: 179";
 		rLen = 0;
-		rLoc = 7503;
+		rLoc = 7814;
 		rType = 0;
 		vrLen = 2636;
 		vrLoc = 4757;
@@ -2630,7 +2637,7 @@
 		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
 		name = "ASIHTTPRequestTests.m: 179";
 		rLen = 0;
-		rLoc = 7503;
+		rLoc = 7814;
 		rType = 0;
 		vrLen = 2636;
 		vrLoc = 4757;
@@ -2708,7 +2715,7 @@
 		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
 		name = "ASIHTTPRequestTests.m: 162";
 		rLen = 90;
-		rLoc = 6535;
+		rLoc = 6716;
 		rType = 0;
 		vrLen = 1609;
 		vrLoc = 5784;
@@ -3060,6 +3067,72 @@
 		rType = 0;
 		vrLen = 2255;
 		vrLoc = 12494;
+	};
+	B5CF373C0E7A8FF90050CBA7 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		comments = "error: -[ASIHTTPRequestTests testBasicDownload] : \"((error) != nil)\" should be true. Failed to generate an error for a bad host - this test may fail when your DNS server redirects you to another page when it can't find a domain name (eg OpenDNS)";
+		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
+		rLen = 1;
+		rLoc = 57;
+		rType = 1;
+	};
+	B5CF373D0E7A8FF90050CBA7 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
+		name = "ASIHTTPRequestTests.m: 58";
+		rLen = 188;
+		rLoc = 1971;
+		rType = 0;
+		vrLen = 1767;
+		vrLoc = 1072;
+	};
+	B5CF37400E7A90320050CBA7 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		comments = "error: -[ASIHTTPRequestTests testBasicDownload] : \"((error) != nil)\" should be true. Failed to generate an error for a bad host - this test may fail when your DNS server redirects you to another page when it can't find a domain name (eg OpenDNS)";
+		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
+		rLen = 1;
+		rLoc = 57;
+		rType = 1;
+	};
+	B5CF37410E7A90320050CBA7 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
+		name = "ASIHTTPRequestTests.m: 58";
+		rLen = 188;
+		rLoc = 1971;
+		rType = 0;
+		vrLen = 1767;
+		vrLoc = 1072;
+	};
+	B5CF37420E7A90E10050CBA7 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = B5ABC7B90E24C5620072F422 /* ASIHTTPRequest.m */;
+		name = "ASIHTTPRequest.m: 456";
+		rLen = 0;
+		rLoc = 14904;
+		rType = 0;
+		vrLen = 2251;
+		vrLoc = 12494;
+	};
+	B5CF37430E7A90E10050CBA7 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = B5ABC7B90E24C5620072F422 /* ASIHTTPRequest.m */;
+		name = "ASIHTTPRequest.m: 456";
+		rLen = 0;
+		rLoc = 14904;
+		rType = 0;
+		vrLen = 2251;
+		vrLoc = 12494;
+	};
+	B5CF37440E7A90E10050CBA7 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */;
+		name = "ASIHTTPRequestTests.m: 123";
+		rLen = 0;
+		rLoc = 4774;
+		rType = 0;
+		vrLen = 3018;
+		vrLoc = 6716;
 	};
 	B5F3B72B0E4367CA00E001FD /* TimelineViewSelectionManagement.m */ = {
 		isa = PBXFileReference;

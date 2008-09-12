@@ -120,6 +120,7 @@ More tests needed for:
 {
 	BOOL success;
 	
+	//Set setting a cookie
 	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/asi-http-request/tests/set_cookie"] autorelease];
 	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUseCookiePersistance:YES];
@@ -128,9 +129,12 @@ More tests needed for:
 	success = [html isEqualToString:@"I have set a cookie"];
 	STAssertTrue(success,@"Failed to set a cookie");
 	
+	//Test a cookie is stored in responseCookies
 	NSArray *cookies = [request responseCookies];
 	STAssertNotNil(cookies,@"Failed to store cookie data in responseCookies");
 	
+
+	//Test the cookie contains the correct data
 	NSHTTPCookie *cookie = nil;
 	BOOL foundCookie = NO;
 	for (cookie in cookies) {
@@ -152,6 +156,7 @@ More tests needed for:
 		return;
 	}
 	
+	//Test a cookie is presented when manually added to the request
 	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/asi-http-request/tests/read_cookie"] autorelease];
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUseCookiePersistance:NO];
@@ -161,6 +166,7 @@ More tests needed for:
 	success = [html isEqualToString:@"I have 'This is the value' as the value of 'ASIHTTPRequestTestCookie'"];
 	STAssertTrue(success,@"Cookie not presented to the server with cookie persistance OFF");
 
+	//Test a cookie is presented from the persistent store
 	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/asi-http-request/tests/read_cookie"] autorelease];
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUseCookiePersistance:YES];
@@ -169,12 +175,42 @@ More tests needed for:
 	success = [html isEqualToString:@"I have 'This is the value' as the value of 'ASIHTTPRequestTestCookie'"];
 	STAssertTrue(success,@"Cookie not presented to the server with cookie persistance ON");
 	
+	//Test removing a cookie
 	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/asi-http-request/tests/remove_cookie"] autorelease];
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request start];
 	html = [request dataString];
 	success = [html isEqualToString:@"I have removed a cookie"];
 	STAssertTrue(success,@"Failed to remove a cookie");
+
+	//Test making sure cookie was properly removed
+	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/asi-http-request/tests/read_cookie"] autorelease];
+	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request start];
+	html = [request dataString];
+	success = [html isEqualToString:@"No cookie exists"];
+	STAssertTrue(success,@"Cookie presented to the server when it should have been removed");
+	
+	//Test setting a custom cookie works
+	NSDictionary *cookieProperties = [[[NSMutableDictionary alloc] init] autorelease];
+	[cookieProperties setValue:@"Test Value" forKey:NSHTTPCookieValue];
+	[cookieProperties setValue:@"ASIHTTPRequestTestCookie" forKey:NSHTTPCookieName];
+	[cookieProperties setValue:@".allseeing-i.com" forKey:NSHTTPCookieDomain];
+	[cookieProperties setValue:[NSDate dateWithTimeIntervalSinceNow:60*60] forKey:NSHTTPCookieExpires];
+	[cookieProperties setValue:@"/asi-http-request/tests" forKey:NSHTTPCookiePath];
+	cookie = [[[NSHTTPCookie alloc] initWithProperties:cookieProperties] autorelease];
+
+	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/asi-http-request/tests/read_cookie"] autorelease];
+	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request setUseCookiePersistance:NO];
+	[request setRequestCookies:[NSMutableArray arrayWithObject:cookie]];
+	[request start];
+	html = [request dataString];
+	success = [html isEqualToString:@"I have 'Test Value' as the value of 'ASIHTTPRequestTestCookie'"];
+	STAssertTrue(success,@"Custom cookie not presented to the server with cookie persistance OFF");
+	
+	//Test removing all cookies works
+	[ASIHTTPRequest clearSession];
 
 	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/asi-http-request/tests/read_cookie"] autorelease];
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
