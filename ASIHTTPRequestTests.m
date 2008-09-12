@@ -196,7 +196,7 @@ More tests needed for:
 	[cookieProperties setValue:@"Test Value" forKey:NSHTTPCookieValue];
 	[cookieProperties setValue:@"ASIHTTPRequestTestCookie" forKey:NSHTTPCookieName];
 	[cookieProperties setValue:@".allseeing-i.com" forKey:NSHTTPCookieDomain];
-	[cookieProperties setValue:[NSDate dateWithTimeIntervalSinceNow:60*60] forKey:NSHTTPCookieExpires];
+	[cookieProperties setValue:[NSDate dateWithTimeIntervalSinceNow:60*60*4] forKey:NSHTTPCookieExpires];
 	[cookieProperties setValue:@"/asi-http-request/tests" forKey:NSHTTPCookiePath];
 	cookie = [[[NSHTTPCookie alloc] initWithProperties:cookieProperties] autorelease];
 
