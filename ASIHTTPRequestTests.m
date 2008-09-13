@@ -58,6 +58,20 @@ More tests needed for:
 	STAssertNotNil(error,@"Failed to generate an error for a bad host - this test may fail when your DNS server redirects you to another page when it can't find a domain name (eg OpenDNS)");
 }
 
+- (void)testTimeOut
+{
+	//Grab data
+	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com"] autorelease];
+	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request setTimeOutSeconds:0.0001]; //It's pretty unlikely we will be able to grab the data this quickly, so the request should timeout
+	[request start];
+	NSError *error = [request error];
+	STAssertNotNil(error,@"Request didn't timeout");
+	BOOL success = [[[error userInfo] valueForKey:@"Description"] isEqualToString:@"Request timed out"];
+	STAssertTrue(success,@"Timeout didn't generate the correct error");
+	
+}
+
 - (void)testOperationQueue
 {
 	NSOperationQueue *queue = [[[NSOperationQueue alloc] init] autorelease];

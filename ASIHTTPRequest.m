@@ -51,6 +51,7 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 	//credentials = NULL;
 	request = NULL;
 	responseHeaders = nil;
+	[self setTimeOutSeconds:30];
 	[self setUseKeychainPersistance:NO];
 	[self setUseSessionPersistance:YES];
 	[self setUseCookiePersistance:YES];
@@ -83,6 +84,7 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 	[authenticationRealm release];
 	[url release];
 	[authenticationLock release];
+	[lastActivityTime release];
 	[super dealloc];
 }
 
@@ -304,10 +306,22 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 		[self performSelectorOnMainThread:@selector(resetUploadProgress:) withObject:[NSNumber numberWithDouble:postLength] waitUntilDone:YES];
 	}
 
+	//Record when the request started, so we can timeout if nothing happens
+	[self setLastActivityTime:[[NSDate new] autorelease]];
 	
 	// Wait for the request to finish
 	NSDate* endDate = [NSDate distantFuture];
 	while (!complete) {
+		
+		//See if we need to timeout
+		if (lastActivityTime && timeOutSeconds > 0) {
+			if ([[[NSDate new] autorelease] timeIntervalSinceDate:lastActivityTime] > timeOutSeconds) {
+				[self failWithProblem:@"Request timed out"];
+				[self cancelLoad];
+				complete = YES;
+				break;
+			}
+		}
 		
 		// See if our NSOperationQueue told us to cancel
 		if ([self isCancelled]) {
@@ -366,6 +380,8 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 
 - (void)updateUploadProgress
 {
+	[self setLastActivityTime:[[NSDate new] autorelease]];
+	
 	double byteCount = [[(NSNumber *)CFReadStreamCopyProperty (readStream, kCFStreamPropertyHTTPRequestBytesWrittenCount) autorelease] doubleValue];
 	if (uploadProgressDelegate) {
 		[uploadProgressDelegate incrementBy:byteCount-lastBytesSent];
@@ -385,6 +401,8 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 
 - (void)updateDownloadProgress
 {
+	[self setLastActivityTime:[[NSDate new] autorelease]];
+	
 	//We won't update downlaod progress until we've examined the headers, since we might need to authenticate
 	if (downloadProgressDelegate && responseHeaders) {
 		[downloadProgressDelegate incrementBy:totalBytesRead-lastBytesRead];
@@ -586,6 +604,7 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 		// check for bad credentials, so we can give the delegate a chance to replace them
 		if (err.domain == kCFStreamErrorDomainHTTP && (err.error == kCFStreamErrorHTTPAuthenticationBadUserName || err.error == kCFStreamErrorHTTPAuthenticationBadPassword)) {
 			ignoreError = YES;	
+			[self setLastActivityTime:nil];
 			if ([delegate respondsToSelector:@selector(authorizationNeededForRequest:)]) {
 				[delegate performSelectorOnMainThread:@selector(authorizationNeededForRequest:) withObject:self waitUntilDone:YES];
 				[authenticationLock lockWhenCondition:2];
@@ -682,14 +701,14 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 
 - (void)handleBytesAvailable
 {
-
+	
 	if (!responseHeaders) {
 		if ([self readResponseHeadersReturningAuthenticationFailure]) {
 			[self attemptToApplyCredentialsAndResume];
 			return;
 		}
 	}
-
+	
     UInt8 buffer[2048];
     CFIndex bytesRead = CFReadStreamRead(readStream, buffer, sizeof(buffer));
 	  
@@ -863,4 +882,6 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 @synthesize requestCredentials;
 @synthesize responseStatusCode;
 @synthesize receivedData;
+@synthesize lastActivityTime;
+@synthesize timeOutSeconds;
 @end

@@ -122,7 +122,10 @@
 	//Called on the delegate when the request fails
 	SEL didFailSelector;
 	
+	//Used for recording when something last happened during the request, we will compare this value with the current date to time out requests when appropriate
+	NSDate *lastActivityTime;
 	
+	NSTimeInterval timeOutSeconds;
 }
 
 #pragma mark init / dealloc
@@ -254,5 +257,6 @@
 @property (retain) NSDictionary *requestCredentials;
 @property (assign) int responseStatusCode;
 @property (retain) NSMutableData *receivedData;
-
+@property (retain) NSDate *lastActivityTime;
+@property (assign) NSTimeInterval timeOutSeconds;
 @end

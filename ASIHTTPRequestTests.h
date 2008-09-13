@@ -13,6 +13,7 @@
 }
 
 - (void)testBasicDownload;
+- (void)testTimeOut;
 - (void)testOperationQueue;
 - (void)testCookies;
 @end
