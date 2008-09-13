@@ -279,8 +279,8 @@
 							<key>PBXSmartGroupTreeModuleOutlineStateSelectionKey</key>
 							<array>
 								<array>
-									<integer>4</integer>
-									<integer>2</integer>
+									<integer>11</integer>
+									<integer>5</integer>
 									<integer>0</integer>
 								</array>
 							</array>
@@ -322,7 +322,7 @@
 								<key>PBXProjectModuleGUID</key>
 								<string>1CE0B20306471E060097A5F4</string>
 								<key>PBXProjectModuleLabel</key>
-								<string>ASIHTTPRequestTests.m</string>
+								<string>ASIHTTPRequest.m</string>
 								<key>PBXSplitModuleInNavigatorKey</key>
 								<dict>
 									<key>Split0</key>
@@ -330,11 +330,11 @@
 										<key>PBXProjectModuleGUID</key>
 										<string>1CE0B20406471E060097A5F4</string>
 										<key>PBXProjectModuleLabel</key>
-										<string>ASIHTTPRequestTests.m</string>
+										<string>ASIHTTPRequest.m</string>
 										<key>_historyCapacity</key>
 										<integer>0</integer>
 										<key>bookmark</key>
-										<string>B5B297070E7BCA3D000B04CD</string>
+										<string>B5B297440E7BCD91000B04CD</string>
 										<key>history</key>
 										<array>
 											<string>B5731B8B0E4310180008024F</string>
@@ -347,14 +347,14 @@
 											<string>B500B54C0E635A3200744D82</string>
 											<string>B5CF35640E7A7B2C0050CBA7</string>
 											<string>B5B2969F0E7BC6C7000B04CD</string>
-											<string>B5B296A10E7BC6C7000B04CD</string>
-											<string>B5B296BB0E7BC7E3000B04CD</string>
 											<string>B5B296BC0E7BC7E3000B04CD</string>
 											<string>B5B296CC0E7BC846000B04CD</string>
-											<string>B5B296FF0E7BCA3D000B04CD</string>
-											<string>B5B297000E7BCA3D000B04CD</string>
 											<string>B5B297010E7BCA3D000B04CD</string>
-											<string>B5B297020E7BCA3D000B04CD</string>
+											<string>B5B297120E7BCB58000B04CD</string>
+											<string>B5B297340E7BCD41000B04CD</string>
+											<string>B5B297350E7BCD41000B04CD</string>
+											<string>B5B2973E0E7BCD91000B04CD</string>
+											<string>B5B2973F0E7BCD91000B04CD</string>
 										</array>
 										<key>prevStack</key>
 										<array>
@@ -412,6 +412,18 @@
 											<string>B5B297040E7BCA3D000B04CD</string>
 											<string>B5B297050E7BCA3D000B04CD</string>
 											<string>B5B297060E7BCA3D000B04CD</string>
+											<string>B5B297140E7BCB58000B04CD</string>
+											<string>B5B297150E7BCB58000B04CD</string>
+											<string>B5B297280E7BCC8B000B04CD</string>
+											<string>B5B297370E7BCD41000B04CD</string>
+											<string>B5B297380E7BCD41000B04CD</string>
+											<string>B5B297390E7BCD41000B04CD</string>
+											<string>B5B2973A0E7BCD41000B04CD</string>
+											<string>B5B2973B0E7BCD41000B04CD</string>
+											<string>B5B297400E7BCD91000B04CD</string>
+											<string>B5B297410E7BCD91000B04CD</string>
+											<string>B5B297420E7BCD91000B04CD</string>
+											<string>B5B297430E7BCD91000B04CD</string>
 										</array>
 									</dict>
 									<key>SplitCount</key>
@@ -609,8 +621,9 @@
 		<string>B5B296C80E7BC7E3000B04CD</string>
 		<string>B5ABC8410E24CDE70072F422</string>
 		<string>1CD10A99069EF8BA00B06720</string>
-		<string>/Users/ben/asi-http-request/asi-http-request.xcodeproj</string>
 		<string>1C78EAAD065D492600B07095</string>
+		<string>1C530D57069F1CE1000CFCEE</string>
+		<string>/Users/ben/asi-http-request/asi-http-request.xcodeproj</string>
 	</array>
 	<key>WindowString</key>
 	<string>227 156 1432 976 0 0 1920 1178 </string>
@@ -850,7 +863,7 @@
 										<key>PBXProjectModuleGUID</key>
 										<string>1CDD528C0622207200134675</string>
 										<key>PBXProjectModuleLabel</key>
-										<string></string>
+										<string>ASIHTTPRequest.m</string>
 										<key>StatusBarVisibility</key>
 										<true/>
 									</dict>
@@ -859,7 +872,7 @@
 										<key>Frame</key>
 										<string>{{0, 0}, {781, 212}}</string>
 										<key>RubberWindowFrame</key>
-										<string>569 668 781 470 0 0 1920 1178 </string>
+										<string>1148 334 781 470 0 0 1920 1178 </string>
 									</dict>
 									<key>Module</key>
 									<string>PBXNavigatorGroup</string>
@@ -885,7 +898,7 @@
 								<key>Frame</key>
 								<string>{{0, 217}, {781, 212}}</string>
 								<key>RubberWindowFrame</key>
-								<string>569 668 781 470 0 0 1920 1178 </string>
+								<string>1148 334 781 470 0 0 1920 1178 </string>
 							</dict>
 							<key>Module</key>
 							<string>PBXProjectFindModule</string>
@@ -908,17 +921,17 @@
 			<key>TableOfContents</key>
 			<array>
 				<string>1C530D57069F1CE1000CFCEE</string>
-				<string>B5CF35C20E7A84E30050CBA7</string>
-				<string>B5CF35C30E7A84E30050CBA7</string>
+				<string>B5B297300E7BCD05000B04CD</string>
+				<string>B5B297310E7BCD05000B04CD</string>
 				<string>1CDD528C0622207200134675</string>
 				<string>1CD0528E0623707200166675</string>
 			</array>
 			<key>WindowString</key>
-			<string>569 668 781 470 0 0 1920 1178 </string>
+			<string>1148 334 781 470 0 0 1920 1178 </string>
 			<key>WindowToolGUID</key>
 			<string>1C530D57069F1CE1000CFCEE</string>
 			<key>WindowToolIsVisible</key>
-			<false/>
+			<true/>
 		</dict>
 		<dict>
 			<key>Identifier</key>

@@ -51,7 +51,7 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 	//credentials = NULL;
 	request = NULL;
 	responseHeaders = nil;
-	[self setTimeOutSeconds:30];
+	[self setTimeOutSeconds:10];
 	[self setUseKeychainPersistance:NO];
 	[self setUseSessionPersistance:YES];
 	[self setUseCookiePersistance:YES];
@@ -603,6 +603,9 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 		
 		// check for bad credentials, so we can give the delegate a chance to replace them
 		if (err.domain == kCFStreamErrorDomainHTTP && (err.error == kCFStreamErrorHTTPAuthenticationBadUserName || err.error == kCFStreamErrorHTTPAuthenticationBadPassword)) {
+			
+			[self setRequestCredentials:nil];
+			
 			ignoreError = YES;	
 			[self setLastActivityTime:nil];
 			if ([delegate respondsToSelector:@selector(authorizationNeededForRequest:)]) {
