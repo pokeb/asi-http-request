@@ -30,6 +30,7 @@
 		B5F4C2A30EC4768500D4F31C /* QueueViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B5F4C2A20EC4768500D4F31C /* QueueViewController.m */; };
 		B5F4C3470EC47B0400D4F31C /* ASIHTTPRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5ABC7B90E24C5620072F422 /* ASIHTTPRequest.m */; };
 		B5F4C3490EC47B1700D4F31C /* NSHTTPCookieAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = B5B3BC470E62D4790071D39F /* NSHTTPCookieAdditions.m */; };
+		B5F4C3C50EC47F6C00D4F31C /* iphone-icon.png in Resources */ = {isa = PBXBuildFile; fileRef = B5F4C3C40EC47F6C00D4F31C /* iphone-icon.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -69,7 +70,7 @@
 		B5B3BC470E62D4790071D39F /* NSHTTPCookieAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSHTTPCookieAdditions.m; sourceTree = "<group>"; };
 		B5CFFA3E0EC45D49009ADE56 /* ASIFormDataRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIFormDataRequest.h; sourceTree = "<group>"; };
 		B5CFFA3F0EC45D49009ADE56 /* ASIFormDataRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIFormDataRequest.m; sourceTree = "<group>"; };
-		B5CFFAC90EC464D2009ADE56 /* iPhone Sample Application.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "iPhone Sample Application.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		B5CFFAC90EC464D2009ADE56 /* AHR Sample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "AHR Sample.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B5CFFACB0EC464D2009ADE56 /* iPhone Sample Application-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "iPhone Sample Application-Info.plist"; sourceTree = "<group>"; };
 		B5CFFB4A0EC467DA009ADE56 /* iPhone-Sample-main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "iPhone-Sample-main.m"; sourceTree = "<group>"; };
 		B5CFFBCB0EC46E20009ADE56 /* MainWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = MainWindow.xib; path = "iphone-xibs/MainWindow.xib"; sourceTree = "<group>"; };
@@ -82,6 +83,7 @@
 		B5F4C2390EC4742C00D4F31C /* SynchronousViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SynchronousViewController.m; sourceTree = "<group>"; };
 		B5F4C2A10EC4768500D4F31C /* QueueViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QueueViewController.h; sourceTree = "<group>"; };
 		B5F4C2A20EC4768500D4F31C /* QueueViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = QueueViewController.m; sourceTree = "<group>"; };
+		B5F4C3C40EC47F6C00D4F31C /* iphone-icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "iphone-icon.png"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -150,7 +152,7 @@
 			children = (
 				8D1107320486CEB800E47090 /* asi-http-request.app */,
 				B5731AE60E430AC30008024F /* Tests.octest */,
-				B5CFFAC90EC464D2009ADE56 /* iPhone Sample Application.app */,
+				B5CFFAC90EC464D2009ADE56 /* AHR Sample.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -176,6 +178,7 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				B5F4C3C40EC47F6C00D4F31C /* iphone-icon.png */,
 				B5CFFBCB0EC46E20009ADE56 /* MainWindow.xib */,
 				B5CFFBCC0EC46E20009ADE56 /* Synchronous.xib */,
 				B5CFFBCD0EC46E20009ADE56 /* Queue.xib */,
@@ -284,7 +287,7 @@
 			);
 			name = "iPhone Sample Application";
 			productName = "iPhone Sample Application";
-			productReference = B5CFFAC90EC464D2009ADE56 /* iPhone Sample Application.app */;
+			productReference = B5CFFAC90EC464D2009ADE56 /* AHR Sample.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -330,6 +333,7 @@
 				B5CFFBCE0EC46E20009ADE56 /* MainWindow.xib in Resources */,
 				B5CFFBCF0EC46E20009ADE56 /* Synchronous.xib in Resources */,
 				B5CFFBD00EC46E20009ADE56 /* Queue.xib in Resources */,
+				B5F4C3C50EC47F6C00D4F31C /* iphone-icon.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -496,7 +500,7 @@
 					CFNetwork,
 				);
 				PREBINDING = NO;
-				PRODUCT_NAME = "iPhone Sample Application";
+				PRODUCT_NAME = "AHR Sample";
 				SDKROOT = iphonesimulator2.1;
 			};
 			name = Debug;
@@ -521,7 +525,7 @@
 					UIKit,
 				);
 				PREBINDING = NO;
-				PRODUCT_NAME = "iPhone Sample Application";
+				PRODUCT_NAME = "AHR Sample";
 				SDKROOT = iphonesimulator2.1;
 				ZERO_LINK = NO;
 			};

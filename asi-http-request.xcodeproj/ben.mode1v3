@@ -280,8 +280,7 @@
 							<key>PBXSmartGroupTreeModuleOutlineStateSelectionKey</key>
 							<array>
 								<array>
-									<integer>21</integer>
-									<integer>19</integer>
+									<integer>42</integer>
 									<integer>0</integer>
 								</array>
 							</array>
@@ -316,14 +315,12 @@
 					<key>Dock</key>
 					<array>
 						<dict>
-							<key>BecomeActive</key>
-							<true/>
 							<key>ContentConfiguration</key>
 							<dict>
 								<key>PBXProjectModuleGUID</key>
 								<string>1CE0B20306471E060097A5F4</string>
 								<key>PBXProjectModuleLabel</key>
-								<string>NSHTTPCookieAdditions.m</string>
+								<string>iPhone Sample Application-Info.plist</string>
 								<key>PBXSplitModuleInNavigatorKey</key>
 								<dict>
 									<key>Split0</key>
@@ -331,11 +328,11 @@
 										<key>PBXProjectModuleGUID</key>
 										<string>1CE0B20406471E060097A5F4</string>
 										<key>PBXProjectModuleLabel</key>
-										<string>NSHTTPCookieAdditions.m</string>
+										<string>iPhone Sample Application-Info.plist</string>
 										<key>_historyCapacity</key>
 										<integer>0</integer>
 										<key>bookmark</key>
-										<string>B5F4C35B0EC47BB200D4F31C</string>
+										<string>B5F4C3C30EC47F0500D4F31C</string>
 										<key>history</key>
 										<array>
 											<string>B5731B8B0E4310180008024F</string>
@@ -365,7 +362,8 @@
 											<string>B5F4C3520EC47B3A00D4F31C</string>
 											<string>B5F4C3530EC47B3A00D4F31C</string>
 											<string>B5F4C3540EC47B3A00D4F31C</string>
-											<string>B5CFFAEF0EC46616009ADE56</string>
+											<string>B5F4C3B20EC47D7B00D4F31C</string>
+											<string>B5F4C3B30EC47D7B00D4F31C</string>
 										</array>
 										<key>prevStack</key>
 										<array>
@@ -512,6 +510,7 @@
 											<string>B5F4C3560EC47B3A00D4F31C</string>
 											<string>B5F4C3570EC47B3A00D4F31C</string>
 											<string>B5F4C3580EC47B3A00D4F31C</string>
+											<string>B5F4C3B40EC47D7B00D4F31C</string>
 										</array>
 									</dict>
 									<key>SplitCount</key>

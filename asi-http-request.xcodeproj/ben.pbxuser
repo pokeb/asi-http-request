@@ -505,6 +505,18 @@
 			B5F4C3580EC47B3A00D4F31C /* PBXTextBookmark */ = B5F4C3580EC47B3A00D4F31C /* PBXTextBookmark */;
 			B5F4C3590EC47B3A00D4F31C /* PBXTextBookmark */ = B5F4C3590EC47B3A00D4F31C /* PBXTextBookmark */;
 			B5F4C35B0EC47BB200D4F31C /* PBXTextBookmark */ = B5F4C35B0EC47BB200D4F31C /* PBXTextBookmark */;
+			B5F4C3830EC47CDC00D4F31C /* PBXTextBookmark */ = B5F4C3830EC47CDC00D4F31C /* PBXTextBookmark */;
+			B5F4C3A70EC47CE700D4F31C /* PBXTextBookmark */ = B5F4C3A70EC47CE700D4F31C /* PBXTextBookmark */;
+			B5F4C3A90EC47CFE00D4F31C /* PBXTextBookmark */ = B5F4C3A90EC47CFE00D4F31C /* PBXTextBookmark */;
+			B5F4C3B20EC47D7B00D4F31C /* PBXTextBookmark */ = B5F4C3B20EC47D7B00D4F31C /* PBXTextBookmark */;
+			B5F4C3B30EC47D7B00D4F31C /* PlistBookmark */ = B5F4C3B30EC47D7B00D4F31C /* PlistBookmark */;
+			B5F4C3B40EC47D7B00D4F31C /* PBXTextBookmark */ = B5F4C3B40EC47D7B00D4F31C /* PBXTextBookmark */;
+			B5F4C3B50EC47D7B00D4F31C /* PlistBookmark */ = B5F4C3B50EC47D7B00D4F31C /* PlistBookmark */;
+			B5F4C3B70EC47D8B00D4F31C /* PlistBookmark */ = B5F4C3B70EC47D8B00D4F31C /* PlistBookmark */;
+			B5F4C3BB0EC47DB400D4F31C /* PlistBookmark */ = B5F4C3BB0EC47DB400D4F31C /* PlistBookmark */;
+			B5F4C3BF0EC47DD000D4F31C /* PlistBookmark */ = B5F4C3BF0EC47DD000D4F31C /* PlistBookmark */;
+			B5F4C3C10EC47EFA00D4F31C /* PlistBookmark */ = B5F4C3C10EC47EFA00D4F31C /* PlistBookmark */;
+			B5F4C3C30EC47F0500D4F31C /* PlistBookmark */ = B5F4C3C30EC47F0500D4F31C /* PlistBookmark */;
 		};
 		sourceControlManager = B5ABC7B50E24C52A0072F422 /* Source Control */;
 		userBuildSettings = {
@@ -583,7 +595,7 @@
 	};
 	B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {1218, 3388}}";
+			sepNavIntBoundsRect = "{{0, 0}, {1218, 3416}}";
 			sepNavSelRange = "{1971, 188}";
 			sepNavVisRange = "{0, 839}";
 			sepNavWindowFrame = "{{148, 98}, {1485, 874}}";
@@ -792,9 +804,9 @@
 	};
 	B5ABC7B90E24C5620072F422 /* ASIHTTPRequest.m */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {1037, 12376}}";
-			sepNavSelRange = "{3348, 0}";
-			sepNavVisRange = "{21071, 1517}";
+			sepNavIntBoundsRect = "{{0, 0}, {1440, 11984}}";
+			sepNavSelRange = "{3091, 0}";
+			sepNavVisRange = "{2840, 441}";
 			sepNavWindowFrame = "{{759, 71}, {1475, 874}}";
 		};
 	};
@@ -3214,8 +3226,8 @@
 		ignoreCount = 0;
 		lineNumber = 372;
 		location = Tests;
-		modificationTime = 247757745.136433;
-		state = 1;
+		modificationTime = 247758705.235667;
+		state = 0;
 	};
 	B5F4C27F0EC4758800D4F31C /* PBXTextBookmark */ = {
 		isa = PBXTextBookmark;
@@ -4554,5 +4566,132 @@
 		rType = 0;
 		vrLen = 736;
 		vrLoc = 0;
+	};
+	B5F4C3830EC47CDC00D4F31C /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = B5B3BC470E62D4790071D39F /* NSHTTPCookieAdditions.m */;
+		name = "NSHTTPCookieAdditions.m: 19";
+		rLen = 0;
+		rLoc = 607;
+		rType = 0;
+		vrLen = 736;
+		vrLoc = 0;
+	};
+	B5F4C3A70EC47CE700D4F31C /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = B5B3BC470E62D4790071D39F /* NSHTTPCookieAdditions.m */;
+		name = "NSHTTPCookieAdditions.m: 19";
+		rLen = 0;
+		rLoc = 607;
+		rType = 0;
+		vrLen = 736;
+		vrLoc = 0;
+	};
+	B5F4C3A90EC47CFE00D4F31C /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = B5B3BC470E62D4790071D39F /* NSHTTPCookieAdditions.m */;
+		name = "NSHTTPCookieAdditions.m: 19";
+		rLen = 0;
+		rLoc = 607;
+		rType = 0;
+		vrLen = 736;
+		vrLoc = 0;
+	};
+	B5F4C3B20EC47D7B00D4F31C /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = B5B3BC470E62D4790071D39F /* NSHTTPCookieAdditions.m */;
+		name = "NSHTTPCookieAdditions.m: 20";
+		rLen = 0;
+		rLoc = 609;
+		rType = 0;
+		vrLen = 736;
+		vrLoc = 0;
+	};
+	B5F4C3B30EC47D7B00D4F31C /* PlistBookmark */ = {
+		isa = PlistBookmark;
+		fRef = B5CFFACB0EC464D2009ADE56 /* iPhone Sample Application-Info.plist */;
+		fallbackIsa = PBXBookmark;
+		isK = 0;
+		kPath = (
+		);
+		name = "/Users/ben/asi-http-request/iPhone Sample Application-Info.plist";
+		rLen = 0;
+		rLoc = 2147483647;
+	};
+	B5F4C3B40EC47D7B00D4F31C /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = B5B3BC470E62D4790071D39F /* NSHTTPCookieAdditions.m */;
+		name = "NSHTTPCookieAdditions.m: 20";
+		rLen = 0;
+		rLoc = 609;
+		rType = 0;
+		vrLen = 736;
+		vrLoc = 0;
+	};
+	B5F4C3B50EC47D7B00D4F31C /* PlistBookmark */ = {
+		isa = PlistBookmark;
+		fRef = B5CFFACB0EC464D2009ADE56 /* iPhone Sample Application-Info.plist */;
+		fallbackIsa = PBXBookmark;
+		isK = 0;
+		kPath = (
+		);
+		name = "/Users/ben/asi-http-request/iPhone Sample Application-Info.plist";
+		rLen = 0;
+		rLoc = 2147483647;
+	};
+	B5F4C3B70EC47D8B00D4F31C /* PlistBookmark */ = {
+		isa = PlistBookmark;
+		fRef = B5CFFACB0EC464D2009ADE56 /* iPhone Sample Application-Info.plist */;
+		fallbackIsa = PBXBookmark;
+		isK = 0;
+		kPath = (
+		);
+		name = "/Users/ben/asi-http-request/iPhone Sample Application-Info.plist";
+		rLen = 0;
+		rLoc = 2147483647;
+	};
+	B5F4C3BB0EC47DB400D4F31C /* PlistBookmark */ = {
+		isa = PlistBookmark;
+		fRef = B5CFFACB0EC464D2009ADE56 /* iPhone Sample Application-Info.plist */;
+		fallbackIsa = PBXBookmark;
+		isK = 0;
+		kPath = (
+		);
+		name = "/Users/ben/asi-http-request/iPhone Sample Application-Info.plist";
+		rLen = 0;
+		rLoc = 2147483647;
+	};
+	B5F4C3BF0EC47DD000D4F31C /* PlistBookmark */ = {
+		isa = PlistBookmark;
+		fRef = B5CFFACB0EC464D2009ADE56 /* iPhone Sample Application-Info.plist */;
+		fallbackIsa = PBXBookmark;
+		isK = 0;
+		kPath = (
+		);
+		name = "/Users/ben/asi-http-request/iPhone Sample Application-Info.plist";
+		rLen = 0;
+		rLoc = 2147483647;
+	};
+	B5F4C3C10EC47EFA00D4F31C /* PlistBookmark */ = {
+		isa = PlistBookmark;
+		fRef = B5CFFACB0EC464D2009ADE56 /* iPhone Sample Application-Info.plist */;
+		fallbackIsa = PBXBookmark;
+		isK = 0;
+		kPath = (
+		);
+		name = "/Users/ben/asi-http-request/iPhone Sample Application-Info.plist";
+		rLen = 0;
+		rLoc = 2147483647;
+	};
+	B5F4C3C30EC47F0500D4F31C /* PlistBookmark */ = {
+		isa = PlistBookmark;
+		fRef = B5CFFACB0EC464D2009ADE56 /* iPhone Sample Application-Info.plist */;
+		fallbackIsa = PBXBookmark;
+		isK = 0;
+		kPath = (
+		);
+		name = "/Users/ben/asi-http-request/iPhone Sample Application-Info.plist";
+		rLen = 0;
+		rLoc = 2147483647;
 	};
 }
