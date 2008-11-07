@@ -5,7 +5,6 @@
 //  Copyright 2008 All-Seeing Interactive Ltd. All rights reserved.
 //
 
-#import <Cocoa/Cocoa.h>
 @class ASIHTTPRequest;
 
 @interface AppDelegate : NSObject {

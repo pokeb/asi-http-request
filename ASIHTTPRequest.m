@@ -38,10 +38,9 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 
 - (id)initWithURL:(NSURL *)newURL
 {
-	[super init];
+	self = [super init];
+	[self setRequestMethod:@"GET"];
 	lastBytesSent = 0;
-	postData = nil;
-	fileData = nil;
 	username = nil;
 	password = nil;
 	requestHeaders = nil;
@@ -72,19 +71,24 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 		CFRelease(request);
 	}
 	[self cancelLoad];
+	[postBody release];
 	[requestCredentials release];
 	[error release];
-	[postData release];
-	[fileData release];
 	[requestHeaders release];
+	[requestCookies release];
 	[downloadDestinationPath release];
 	[outputStream release];
 	[username release];
 	[password release];
+	[domain release];
 	[authenticationRealm release];
 	[url release];
 	[authenticationLock release];
 	[lastActivityTime release];
+	[responseCookies release];
+	[receivedData release];
+	[responseHeaders release];
+	[requestMethod release];
 	[super dealloc];
 }
 
@@ -97,23 +101,6 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 		requestHeaders = [[NSMutableDictionary alloc] init];
 	}
 	[requestHeaders setObject:value forKey:header];
-}
-
-
-- (void)setPostValue:(id)value forKey:(NSString *)key
-{
-	if (!postData) {
-		postData = [[NSMutableDictionary alloc] init];
-	}
-	[postData setValue:value forKey:key];
-}
-
-- (void)setFile:(NSString *)filePath forKey:(NSString *)key
-{
-	if (!fileData) {
-		fileData = [[NSMutableDictionary alloc] init];
-	}
-	[fileData setValue:filePath forKey:key];
 }
 
 
@@ -145,15 +132,9 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 - (void)main
 {
 	complete = NO;
-
-	// We'll make a post request only if the user specified post data
-	NSString *method = @"GET";
-	if ([postData count] > 0 || [fileData count] > 0) {
-		method = @"POST";
-	}
 	
     // Create a new HTTP request.
-	request = CFHTTPMessageCreateRequest(kCFAllocatorDefault, (CFStringRef)method, (CFURLRef)url, kCFHTTPVersion1_1);
+	request = CFHTTPMessageCreateRequest(kCFAllocatorDefault, (CFStringRef)requestMethod, (CFURLRef)url, kCFHTTPVersion1_1);
     if (!request) {
 		[self failWithProblem:[NSString stringWithFormat:@"Unable to create request for: %@",url]];
 		return;
@@ -166,9 +147,6 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 			[ASIHTTPRequest setSessionCredentials:nil];
 		}
 	}
-
-	//Set your own boundary string only if really obsessive. We don't bother to check if post data contains the boundary, since it's pretty unlikely that it does.
-	NSString *stringBoundary = @"0xKhTmLbOuNdArY";
 	
 	//Add cookies from the persistant (mac os global) store
 	if (useCookiePersistance) {
@@ -200,48 +178,11 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 	for (header in requestHeaders) {
 		CFHTTPMessageSetHeaderFieldValue(request, (CFStringRef)header, (CFStringRef)[requestHeaders objectForKey:header]);
 	}
-	CFHTTPMessageSetHeaderFieldValue(request, (CFStringRef)@"Content-Type", (CFStringRef)[NSString stringWithFormat:@"multipart/form-data; boundary=%@",stringBoundary]);
-		
 	
-	if ([postData count] > 0 || [fileData count] > 0) {
-		
-		NSMutableData *postBody = [NSMutableData data];
-		[postBody appendData:[[NSString stringWithFormat:@"--%@\r\n",stringBoundary] dataUsingEncoding:NSUTF8StringEncoding]];
-		
-		//Adds post data
-		NSData *endItemBoundary = [[NSString stringWithFormat:@"\r\n--%@\r\n",stringBoundary] dataUsingEncoding:NSUTF8StringEncoding];
-		NSEnumerator *e = [postData keyEnumerator];
-		NSString *key;
-		int i=0;
-		while (key = [e nextObject]) {
-			[postBody appendData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"\r\n\r\n",key] dataUsingEncoding:NSUTF8StringEncoding]];
-			[postBody appendData:[[postData objectForKey:key] dataUsingEncoding:NSUTF8StringEncoding]];
-			i++;
-			if (i != [postData count] || [fileData count] > 0) { //Only add the boundary if this is not the last item in the post body
-				[postBody appendData:endItemBoundary];
-			}
-		}
-		
-		//Adds files to upload
-		NSData *contentTypeHeader = [[NSString stringWithString:@"Content-Type: application/octet-stream\r\n\r\n"] dataUsingEncoding:NSUTF8StringEncoding];
-		e = [fileData keyEnumerator];
-		i=0;
-		while (key = [e nextObject]) {
-			NSString *filePath = [fileData objectForKey:key];
-			[postBody appendData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"; filename=\"%@\"\r\n",key,[filePath lastPathComponent]] dataUsingEncoding:NSUTF8StringEncoding]];
-			[postBody appendData:contentTypeHeader];
-			[postBody appendData:[NSData dataWithContentsOfMappedFile:filePath]];
-			i++;
-			if (i != [fileData count]) { //Only add the boundary if this is not the last item in the post body
-				[postBody appendData:endItemBoundary];
-			}
-		}
-		
-		[postBody appendData:[[NSString stringWithFormat:@"\r\n--%@--\r\n",stringBoundary] dataUsingEncoding:NSUTF8StringEncoding]];
-
-		// Set the body.
+	
+	//If this is a post request and we have data to send, add it to the request
+	if ([self postBody]) {
 		CFHTTPMessageSetBody(request, (CFDataRef)postBody);
-		
 		postLength = [postBody length];
 	}
 	
@@ -887,4 +828,6 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 @synthesize receivedData;
 @synthesize lastActivityTime;
 @synthesize timeOutSeconds;
+@synthesize requestMethod;
+@synthesize postBody;
 @end

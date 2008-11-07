@@ -1,3 +1,13 @@
+To do:
+Rest unit tests (get / post / put /delete)
+
+
+Changes for release notes:
+* Set request method (get,post,delete,put)
+* Fixed a few memory leaks (thanks clang static analyser!)
+* Split ASIHTTPRequest in two
+
+
 [NEW!] Documentation is available at: http://allseeing-i.com/asi-http-request
 
 ASIHTTPRequest is an easy to use wrapper around the CFNetwork API that makes some of the more tedious aspects of communicating with web servers easier.

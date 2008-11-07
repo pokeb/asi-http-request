@@ -10,9 +10,7 @@
 //  Portions are based on the ImageClient example from Apple:
 //  See: http://developer.apple.com/samplecode/ImageClient/listing37.html
 
-#import <Cocoa/Cocoa.h>
 #import "ASIProgressDelegate.h"
-
 
 
 @interface ASIHTTPRequest : NSOperation {
@@ -23,11 +21,11 @@
 	//The delegate, you need to manage setting and talking to your delegate in your subclasses
 	id delegate;
 	
-	//Parameters that will be POSTed to the url
-	NSMutableDictionary *postData;
+	//HTTP method to use (GET / POST / PUT / DELETE). Defaults to GET
+	NSString *requestMethod;
 	
-	//Files that will be POSTed to the url
-	NSMutableDictionary *fileData;
+	//Request body
+	NSMutableData *postBody;
 	
 	//Dictionary for custom HTTP request headers
 	NSMutableDictionary *requestHeaders;
@@ -138,11 +136,6 @@
 //Add a custom header to the request
 - (void)addRequestHeader:(NSString *)header value:(NSString *)value;
 
-//Add a POST variable to the request
-- (void)setPostValue:(id)value forKey:(NSString *)key;
-
-//Add the contents of a local file as a POST variable to the request
-- (void)setFile:(NSString *)filePath forKey:(NSString *)key;
 
 #pragma mark get information about this request
 
@@ -259,4 +252,6 @@
 @property (retain) NSMutableData *receivedData;
 @property (retain) NSDate *lastActivityTime;
 @property (assign) NSTimeInterval timeOutSeconds;
+@property (retain) NSString *requestMethod;
+@property (retain) NSMutableData *postBody;
 @end

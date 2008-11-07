@@ -1,0 +1,28 @@
+//
+//  SynchronousViewController.m
+//  asi-http-request
+//
+//  Created by Ben Copsey on 07/11/2008.
+//  Copyright 2008 All-Seeing Interactive. All rights reserved.
+//
+
+#import "SynchronousViewController.h"
+#import "ASIHTTPRequest.h"
+
+@implementation SynchronousViewController
+
+- (IBAction)simpleURLFetch:(id)sender
+{
+	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com/"]] autorelease];
+	
+	//Customise our user agent, for no real reason
+	[request addRequestHeader:@"User-Agent" value:@"ASIHTTPRequest"];
+	
+	[request start];
+	if ([request dataString]) {
+		[htmlSource setText:[request dataString]];
+	}
+}
+
+
+@end

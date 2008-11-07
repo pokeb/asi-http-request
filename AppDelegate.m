@@ -7,6 +7,7 @@
 
 #import "AppDelegate.h"
 #import "ASIHTTPRequest.h"
+#import "ASIFormDataRequest.h"
 
 @implementation AppDelegate
 
@@ -26,7 +27,7 @@
 
 - (IBAction)simpleURLFetch:(id)sender
 {
-	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://asi/"]] autorelease];
+	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com/"]] autorelease];
 	
 	//Customise our user agent, for no real reason
 	[request addRequestHeader:@"User-Agent" value:@"ASIHTTPRequest"];
@@ -165,7 +166,7 @@
 	
 	[networkQueue cancelAllOperations];
 	[progressIndicator setDoubleValue:0];
-	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ignore"]] autorelease];
+	ASIFormDataRequest *request = [[[ASIFormDataRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ignore"]] autorelease];
 	[request setDelegate:self];
 	[request setUploadProgressDelegate:progressIndicator];
 	[request setPostValue:@"test" forKey:@"value1"];
