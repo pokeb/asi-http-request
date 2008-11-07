@@ -1,6 +1,4 @@
 To do:
-Rest unit tests (get / post / put /delete)
-
 
 Changes for release notes:
 * Set request method (get,post,delete,put)
@@ -40,7 +38,7 @@ ASIHTTPRequest is my first open source Objective-C code. I hope to expand the cl
 
 To do:
 More unit tests
-Split up class - move form request stuff into subclass, and have simple implementation for main that sets request body according to data supplied by the subclass - this will allow other types of HTTP request (eg soap)
+Rest unit tests (get / post / put /delete)
 Add SOAP example
 See if Digest Authentication works
 PUT / DELETE /GET?

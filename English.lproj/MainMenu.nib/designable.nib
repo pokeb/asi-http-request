@@ -2,13 +2,13 @@
 <archive type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="7.02">
 	<data>
 		<int key="IBDocument.SystemTarget">0</int>
-		<string key="IBDocument.SystemVersion">9E17</string>
-		<string key="IBDocument.InterfaceBuilderVersion">670</string>
-		<string key="IBDocument.AppKitVersion">949.33</string>
+		<string key="IBDocument.SystemVersion">9F33</string>
+		<string key="IBDocument.InterfaceBuilderVersion">672</string>
+		<string key="IBDocument.AppKitVersion">949.34</string>
 		<string key="IBDocument.HIToolboxVersion">352.00</string>
 		<object class="NSMutableArray" key="IBDocument.EditedObjectIDs">
 			<bool key="EncodedWithXMLCoder">YES</bool>
-			<integer value="444"/>
+			<integer value="372"/>
 		</object>
 		<object class="NSArray" key="IBDocument.PluginDependencies">
 			<bool key="EncodedWithXMLCoder">YES</bool>
@@ -773,7 +773,7 @@
 							<string key="NSFrame">{{11, 16}, {151, 20}}</string>
 							<reference key="NSSuperview" ref="439893737"/>
 							<int key="NSpiFlags">16392</int>
-							<double key="NSMaxValue">1.000000e+02</double>
+							<double key="NSMaxValue">1.000000e+00</double>
 						</object>
 						<object class="NSTabView" id="495298985">
 							<reference key="NSNextResponder" ref="439893737"/>
@@ -863,7 +863,7 @@ cmVhZC4</string>
 															<object class="NSTextView" id="385949022">
 																<reference key="NSNextResponder" ref="934233033"/>
 																<int key="NSvFlags">2322</int>
-																<string key="NSFrameSize">{395, 20}</string>
+																<string key="NSFrameSize">{395, 14}</string>
 																<reference key="NSSuperview" ref="934233033"/>
 																<object class="NSTextContainer" key="NSTextContainer" id="691554270">
 																	<object class="NSLayoutManager" key="NSLayoutManager">

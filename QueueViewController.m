@@ -8,13 +8,14 @@
 
 #import "QueueViewController.h"
 #import "ASIHTTPRequest.h"
+#import "ASIProgressQueue.h"
 
 @implementation QueueViewController
 
 
 - (void)awakeFromNib
 {
-	networkQueue = [[NSOperationQueue alloc] init];
+	networkQueue = [[ASIProgressQueue alloc] init];
 }
 
 - (IBAction)fetchThreeImages:(id)sender
@@ -24,7 +25,9 @@
 	[imageView3 setImage:nil];
 	
 	[networkQueue cancelAllOperations];
-	[progressIndicator setProgress:0];
+	[networkQueue setDownloadProgressDelegate:progressIndicator];
+
+	
 	ASIHTTPRequest *request;
 	request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com/i/logo.png"]] autorelease];
 	[request setDelegate:self];
@@ -57,8 +60,6 @@
 			[imageView1 setImage:img];
 		}
 	}
-	[progressIndicator setProgress:[progressIndicator progress]+0.3333];
-	
 }
 
 - (void)dealloc {

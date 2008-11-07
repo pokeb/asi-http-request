@@ -10,8 +10,6 @@
 //  Portions are based on the ImageClient example from Apple:
 //  See: http://developer.apple.com/samplecode/ImageClient/listing37.html
 
-#import "ASIProgressDelegate.h"
-
 
 @interface ASIHTTPRequest : NSOperation {
 	
@@ -72,10 +70,10 @@
 	NSString *domain;
 	
 	//Delegate for displaying upload progress (usually an NSProgressIndicator, but you can supply a different object and handle this yourself)
-	NSObject <ASIProgressDelegate> *uploadProgressDelegate;
+	id uploadProgressDelegate;
 	
 	//Delegate for displaying download progress (usually an NSProgressIndicator, but you can supply a different object and handle this yourself)
-	NSObject <ASIProgressDelegate> *downloadProgressDelegate;
+	id downloadProgressDelegate;
 
 	// Whether we've seen the headers of the response yet
     BOOL haveExaminedHeaders;
@@ -95,18 +93,18 @@
 	int responseStatusCode;
 	
 	//Size of the response
-	double contentLength;
+	int contentLength;
 
 	//Size of the POST payload
-	double postLength;	
+	int postLength;	
 	
 	//The total amount of downloaded data
-	double totalBytesRead;
+	int totalBytesRead;
 	
 	//Last amount of data read (used for incrementing progress)
-	double lastBytesRead;
+	int lastBytesRead;
 	//Last amount of data sent (used for incrementing progress)
-	double lastBytesSent;
+	int lastBytesSent;
 	
 	//Realm for authentication when credentials are required
 	NSString *authenticationRealm;
@@ -124,6 +122,7 @@
 	NSDate *lastActivityTime;
 	
 	NSTimeInterval timeOutSeconds;
+
 }
 
 #pragma mark init / dealloc
@@ -142,7 +141,7 @@
 - (BOOL)isFinished; //Same thing, for NSOperationQueues to read
 
 // Get total amount of data received so far for this request
-- (double)totalBytesRead;
+- (int)totalBytesRead;
 
 // Returns the contents of the result as an NSString (not appropriate for binary data!)
 - (NSString *)dataString;
@@ -163,6 +162,7 @@
 - (void)updateUploadProgress;
 - (void)resetDownloadProgress:(NSNumber *)max;
 - (void)updateDownloadProgress;
+- (void)removeUploadProgressSoFar;
 
 #pragma mark handling request complete / failure
 
@@ -227,14 +227,17 @@
 // Dump all session data (authentication and cookies)
 + (void)clearSession;
 
+//Helper method for interacting with progress indicators to abstract the details of different APIS for cocoa and cocoa touch
++ (void)setProgress:(double)progress forProgressIndicator:(id)indicator;
+
 @property (retain) NSString *username;
 @property (retain) NSString *password;
 @property (retain) NSString *domain;
 
 @property (retain,readonly) NSURL *url;
 @property (assign) id delegate;
-@property (assign) NSObject *uploadProgressDelegate;
-@property (assign) NSObject *downloadProgressDelegate;
+@property (assign) id uploadProgressDelegate;
+@property (assign) id downloadProgressDelegate;
 @property (assign) BOOL useKeychainPersistance;
 @property (assign) BOOL useSessionPersistance;
 @property (retain) NSString *downloadDestinationPath;

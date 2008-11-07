@@ -8,13 +8,14 @@
 #import "AppDelegate.h"
 #import "ASIHTTPRequest.h"
 #import "ASIFormDataRequest.h"
+#import "ASIProgressQueue.h"
 
 @implementation AppDelegate
 
 - (id)init
 {
 	[super init];
-	networkQueue = [[NSOperationQueue alloc] init];
+	networkQueue = [[ASIProgressQueue alloc] init];
 	return self;
 }
 
@@ -66,8 +67,8 @@
 	[imageView3 setImage:nil];
 	
 	[networkQueue cancelAllOperations];
-	[progressIndicator setDoubleValue:0];
-	[progressIndicator setMaxValue:3];
+	[networkQueue setDownloadProgressDelegate:progressIndicator];
+	
 	ASIHTTPRequest *request;
 	request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com/i/logo.png"]] autorelease];
 	[request setDelegate:self];
@@ -103,7 +104,6 @@
 			[imageView1 setImage:img];
 		}
 	}
-	[progressIndicator incrementBy:1];
 
 }
 
@@ -168,13 +168,14 @@
 	[progressIndicator setDoubleValue:0];
 	ASIFormDataRequest *request = [[[ASIFormDataRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ignore"]] autorelease];
 	[request setDelegate:self];
-	[request setUploadProgressDelegate:progressIndicator];
+
 	[request setPostValue:@"test" forKey:@"value1"];
 	[request setPostValue:@"test" forKey:@"value2"];
 	[request setPostValue:@"test" forKey:@"value3"];
 
 	[request setFile:path forKey:@"file"];
-
+	
+	[networkQueue setUploadProgressDelegate:progressIndicator];
 	[networkQueue addOperation:request];
 	
 }

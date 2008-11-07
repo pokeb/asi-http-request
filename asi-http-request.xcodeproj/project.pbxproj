@@ -31,6 +31,8 @@
 		B5F4C3470EC47B0400D4F31C /* ASIHTTPRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5ABC7B90E24C5620072F422 /* ASIHTTPRequest.m */; };
 		B5F4C3490EC47B1700D4F31C /* NSHTTPCookieAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = B5B3BC470E62D4790071D39F /* NSHTTPCookieAdditions.m */; };
 		B5F4C3C50EC47F6C00D4F31C /* iphone-icon.png in Resources */ = {isa = PBXBuildFile; fileRef = B5F4C3C40EC47F6C00D4F31C /* iphone-icon.png */; };
+		B5F4C4380EC49EAB00D4F31C /* ASIProgressQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = B5F4C4370EC49EAB00D4F31C /* ASIProgressQueue.m */; };
+		B5F4C7140EC4C9DE00D4F31C /* ASIProgressQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = B5F4C4370EC49EAB00D4F31C /* ASIProgressQueue.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -63,7 +65,6 @@
 		B5731BD10E4319B30008024F /* SenTestingKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SenTestingKit.framework; path = Library/Frameworks/SenTestingKit.framework; sourceTree = DEVELOPER_DIR; };
 		B5ABC7B90E24C5620072F422 /* ASIHTTPRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIHTTPRequest.m; sourceTree = "<group>"; };
 		B5ABC7BA0E24C5620072F422 /* ASIHTTPRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIHTTPRequest.h; sourceTree = "<group>"; };
-		B5ABC7ED0E24C6670072F422 /* ASIProgressDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIProgressDelegate.h; sourceTree = "<group>"; };
 		B5ABC80D0E24CB100072F422 /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		B5ABC80E0E24CB100072F422 /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		B5B3BC460E62D4790071D39F /* NSHTTPCookieAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NSHTTPCookieAdditions.h; sourceTree = "<group>"; };
@@ -84,6 +85,8 @@
 		B5F4C2A10EC4768500D4F31C /* QueueViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QueueViewController.h; sourceTree = "<group>"; };
 		B5F4C2A20EC4768500D4F31C /* QueueViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = QueueViewController.m; sourceTree = "<group>"; };
 		B5F4C3C40EC47F6C00D4F31C /* iphone-icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "iphone-icon.png"; sourceTree = "<group>"; };
+		B5F4C4360EC49EAB00D4F31C /* ASIProgressQueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIProgressQueue.h; sourceTree = "<group>"; };
+		B5F4C4370EC49EAB00D4F31C /* ASIProgressQueue.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIProgressQueue.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -117,13 +120,14 @@
 		080E96DDFE201D6D7F000001 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
+				B5F4C4360EC49EAB00D4F31C /* ASIProgressQueue.h */,
+				B5F4C4370EC49EAB00D4F31C /* ASIProgressQueue.m */,
 				B5B3BC460E62D4790071D39F /* NSHTTPCookieAdditions.h */,
 				B5B3BC470E62D4790071D39F /* NSHTTPCookieAdditions.m */,
 				B5CFFA3E0EC45D49009ADE56 /* ASIFormDataRequest.h */,
 				B5CFFA3F0EC45D49009ADE56 /* ASIFormDataRequest.m */,
 				B5ABC7BA0E24C5620072F422 /* ASIHTTPRequest.h */,
 				B5ABC7B90E24C5620072F422 /* ASIHTTPRequest.m */,
-				B5ABC7ED0E24C6670072F422 /* ASIProgressDelegate.h */,
 			);
 			name = Classes;
 			sourceTree = "<group>";
@@ -365,6 +369,7 @@
 				B5ABC80F0E24CB100072F422 /* AppDelegate.m in Sources */,
 				B5B3BC480E62D4790071D39F /* NSHTTPCookieAdditions.m in Sources */,
 				B5CFFA400EC45D49009ADE56 /* ASIFormDataRequest.m in Sources */,
+				B5F4C4380EC49EAB00D4F31C /* ASIProgressQueue.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -389,6 +394,7 @@
 				B5CFFBD30EC46E41009ADE56 /* iPhoneSampleAppDelegate.m in Sources */,
 				B5F4C23A0EC4742C00D4F31C /* SynchronousViewController.m in Sources */,
 				B5F4C2A30EC4768500D4F31C /* QueueViewController.m in Sources */,
+				B5F4C7140EC4C9DE00D4F31C /* ASIProgressQueue.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
