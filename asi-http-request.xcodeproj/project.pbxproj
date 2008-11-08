@@ -513,7 +513,7 @@
 					"-framework",
 					Foundation,
 					"-framework",
-					UIKit,
+					UIKIT,
 					"-framework",
 					CFNetwork,
 				);
@@ -540,7 +540,9 @@
 					"-framework",
 					Foundation,
 					"-framework",
-					UIKit,
+					UIKIT,
+					"-framework",
+					CFNetwork,
 				);
 				PREBINDING = NO;
 				PRODUCT_NAME = "AHR Sample";
