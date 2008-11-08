@@ -13,6 +13,8 @@
 #import "ASIHTTPRequest.h"
 #import "NSHTTPCookieAdditions.h"
 
+static CFStringRef ASIHTTPRequestRunMode = CFSTR("ASIHTTPRequest");
+
 static NSString *NetworkRequestErrorDomain = @"com.Your-Company.Your-Product.NetworkError.";
 
 static const CFOptionFlags kNetworkEvents = kCFStreamEventOpenCompleted |
@@ -136,6 +138,10 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 // Create the request
 - (void)main
 {
+	
+	[pool release];
+	pool = [[NSAutoreleasePool alloc] init];
+	
 	complete = NO;
 	
     // Create a new HTTP request.
@@ -199,6 +205,7 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 // Start the request
 - (void)loadRequest
 {
+	CFRunLoopAddCommonMode(CFRunLoopGetCurrent(),ASIHTTPRequestRunMode);
 	
 	[authenticationLock release];
 	authenticationLock = [[NSConditionLock alloc] initWithCondition:1];
@@ -234,12 +241,12 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
     }
     
     // Schedule the stream
-    CFReadStreamScheduleWithRunLoop(readStream, CFRunLoopGetCurrent(), kCFRunLoopCommonModes);
+    CFReadStreamScheduleWithRunLoop(readStream, CFRunLoopGetCurrent(), ASIHTTPRequestRunMode);
     
     // Start the HTTP connection
     if (!CFReadStreamOpen(readStream)) {
         CFReadStreamSetClient(readStream, 0, NULL, NULL);
-        CFReadStreamUnscheduleFromRunLoop(readStream, CFRunLoopGetCurrent(), kCFRunLoopCommonModes);
+        CFReadStreamUnscheduleFromRunLoop(readStream, CFRunLoopGetCurrent(), ASIHTTPRequestRunMode);
         CFRelease(readStream);
         readStream = NULL;
 		[self failWithProblem:@"Unable to start http connection"];
@@ -276,8 +283,12 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 			break;
 		}
 		[self updateProgressIndicators];
-		[[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:endDate];
+		CFRunLoopRunInMode(ASIHTTPRequestRunMode,0.5,YES);
+		//[[NSRunLoop currentRunLoop] runMode:NSRunLoopCommonModes beforeDate:endDate];
 	}
+	
+	[pool release];
+	pool = nil;
 }
 
 // Cancel loading and clean up
@@ -286,7 +297,7 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
     if (readStream) {
         CFReadStreamClose(readStream);
         CFReadStreamSetClient(readStream, kCFStreamEventNone, NULL, NULL);
-        CFReadStreamUnscheduleFromRunLoop(readStream, CFRunLoopGetCurrent(), kCFRunLoopCommonModes);
+        CFReadStreamUnscheduleFromRunLoop(readStream, CFRunLoopGetCurrent(), ASIHTTPRequestRunMode);
         CFRelease(readStream);
         readStream = NULL;
     }
@@ -811,7 +822,7 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
     if (readStream) {
         CFReadStreamClose(readStream);
         CFReadStreamSetClient(readStream, kCFStreamEventNone, NULL, NULL);
-        CFReadStreamUnscheduleFromRunLoop(readStream, CFRunLoopGetCurrent(), kCFRunLoopCommonModes);
+        CFReadStreamUnscheduleFromRunLoop(readStream, CFRunLoopGetCurrent(), ASIHTTPRequestRunMode);
         CFRelease(readStream);
         readStream = NULL;
     }

@@ -123,6 +123,7 @@
 	
 	NSTimeInterval timeOutSeconds;
 	
+	NSAutoreleasePool *pool;
 }
 
 #pragma mark init / dealloc
