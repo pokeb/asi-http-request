@@ -85,6 +85,7 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 	[domain release];
 	[authenticationRealm release];
 	[url release];
+	[progressLock release];
 	[authenticationLock release];
 	[lastActivityTime release];
 	[responseCookies release];
@@ -116,6 +117,13 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 - (BOOL)isFinished 
 {
 	return complete;
+}
+
+- (void)cancel
+{
+	[progressLock lock];
+	[super cancel];
+	[progressLock unlock];
 }
 
 - (int)totalBytesRead
@@ -206,6 +214,9 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 - (void)loadRequest
 {
 	CFRunLoopAddCommonMode(CFRunLoopGetCurrent(),ASIHTTPRequestRunMode);
+
+	[progressLock release];
+	progressLock = [[NSLock alloc] init];
 	
 	[authenticationLock release];
 	authenticationLock = [[NSConditionLock alloc] initWithCondition:1];
@@ -321,8 +332,14 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 
 - (void)updateProgressIndicators
 {
+	[progressLock lock];
+	if ([self isCancelled]) {
+		[progressLock unlock];
+		return;
+	}
 	[self updateUploadProgress];
 	[self updateDownloadProgress];
+	[progressLock unlock];
 
 }
 

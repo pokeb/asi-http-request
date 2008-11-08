@@ -30,15 +30,17 @@
 					<object class="IBUILabel" id="602749642">
 						<reference key="NSNextResponder" ref="191373211"/>
 						<int key="NSvFlags">292</int>
-						<string key="NSFrame">{{20, 20}, {280, 105}}</string>
+						<string key="NSFrame">{{20, 20}, {280, 144}}</string>
 						<reference key="NSSuperview" ref="191373211"/>
 						<bool key="IBUIOpaque">NO</bool>
 						<bool key="IBUIClipsSubviews">YES</bool>
 						<bool key="IBUIUserInteractionEnabled">NO</bool>
 						<string type="base64-UTF8" key="IBUIText">RGVtb25zdHJhdGVzIGZldGNoaW5nIGEgd2ViIHBhZ2Ugc3luY2hyb25vdXNseSwgdGhlIEhUTUwgc291
 cmNlIHdpbGwgYXBwZWFyIGluIHRoZSBib3ggYmVsb3cgd2hlbiB0aGUgZG93bmxvYWQgaXMgY29tcGxl
-dGUuICBJbiByZWFsIHdvcmxkIHNpdHVhdGlvbnMsIHlvdSdkIGJlIG1vcmUgbGlrZWx5IHRvIHJ1biB0
-aGlzIGluIGEgdGhyZWFkLg</string>
+dGUuICBUaGUgaW50ZXJmYWNlIHdpbGwgbG9jayB1cCB3aGVuIHlvdSBwcmVzcyB0aGlzIGJ1dHRvbiB1
+bnRpbCB0aGUgb3BlcmF0aW9uIHRpbWVzIG91dCBvciBzdWNjZWVkcy4gSW4gcmVhbCB3b3JsZCBzaXR1
+YXRpb25zLCB5b3UnZCBiZSBtb3JlIGxpa2VseSB0byB1c2Ugc3luY2hyb25vdXMgcmVxdWVzdHMgaW4g
+YSB0aHJlYWQuA</string>
 						<object class="NSFont" key="IBUIFont" id="467718481">
 							<string key="NSName">Helvetica</string>
 							<double key="NSSize">1.400000e+01</double>
@@ -56,7 +58,7 @@ aGlzIGluIGEgdGhyZWFkLg</string>
 					<object class="IBUIButton" id="963091686">
 						<reference key="NSNextResponder" ref="191373211"/>
 						<int key="NSvFlags">292</int>
-						<string key="NSFrame">{{20, 133}, {72, 37}}</string>
+						<string key="NSFrame">{{20, 172}, {72, 37}}</string>
 						<reference key="NSSuperview" ref="191373211"/>
 						<bool key="IBUIOpaque">NO</bool>
 						<bool key="IBUIClearsContextBeforeDrawing">NO</bool>
@@ -84,7 +86,7 @@ aGlzIGluIGEgdGhyZWFkLg</string>
 					<object class="IBUITextView" id="251778509">
 						<reference key="NSNextResponder" ref="191373211"/>
 						<int key="NSvFlags">292</int>
-						<string key="NSFrame">{{20, 184}, {280, 187}}</string>
+						<string key="NSFrame">{{20, 217}, {280, 154}}</string>
 						<reference key="NSSuperview" ref="191373211"/>
 						<bool key="IBUIOpaque">NO</bool>
 						<bool key="IBUIClipsSubviews">YES</bool>

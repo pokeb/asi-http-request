@@ -112,6 +112,9 @@
 	//This lock will block the request until the delegate supplies authentication info
 	NSConditionLock *authenticationLock;
 	
+	//This lock prevents the operation from being cancelled while it is trying to update the progress, and vice versa
+	NSLock *progressLock;
+	
 	//Called on the delegate when the request completes successfully
 	SEL didFinishSelector;
 	
