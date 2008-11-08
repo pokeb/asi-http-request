@@ -227,7 +227,7 @@ More tests needed for:
 			foundCookie = YES;
 			success = [[cookie decodedValue] isEqualToString:@"This is the value"];
 			STAssertTrue(success,@"Failed to store the correct value for a cookie");
-			success = [[cookie domain] isEqualToString:@".allseeing-i.com"];
+			success = [[cookie domain] isEqualToString:@"allseeing-i.com"];
 			STAssertTrue(success,@"Failed to store the correct domain for a cookie");
 			success = [[cookie path] isEqualToString:@"/asi-http-request/tests"];
 			STAssertTrue(success,@"Failed to store the correct path for a cookie");
@@ -279,7 +279,7 @@ More tests needed for:
 	NSDictionary *cookieProperties = [[[NSMutableDictionary alloc] init] autorelease];
 	[cookieProperties setValue:@"Test Value" forKey:NSHTTPCookieValue];
 	[cookieProperties setValue:@"ASIHTTPRequestTestCookie" forKey:NSHTTPCookieName];
-	[cookieProperties setValue:@".allseeing-i.com" forKey:NSHTTPCookieDomain];
+	[cookieProperties setValue:@"allseeing-i.com" forKey:NSHTTPCookieDomain];
 	[cookieProperties setValue:[NSDate dateWithTimeIntervalSinceNow:60*60*4] forKey:NSHTTPCookieExpires];
 	[cookieProperties setValue:@"/asi-http-request/tests" forKey:NSHTTPCookiePath];
 	cookie = [[[NSHTTPCookie alloc] initWithProperties:cookieProperties] autorelease];

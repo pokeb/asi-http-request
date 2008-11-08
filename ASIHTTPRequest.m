@@ -262,7 +262,6 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 	[self setLastActivityTime:[[NSDate new] autorelease]];
 	
 	// Wait for the request to finish
-	NSDate* endDate = [NSDate distantFuture];
 	while (!complete) {
 		
 		//See if we need to timeout
@@ -283,8 +282,9 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 			break;
 		}
 		[self updateProgressIndicators];
-		CFRunLoopRunInMode(ASIHTTPRequestRunMode,0.5,YES);
-		//[[NSRunLoop currentRunLoop] runMode:NSRunLoopCommonModes beforeDate:endDate];
+		
+		//This thread should wait for 1/4 second for the stream to do something. We'll stop early if it does.
+		CFRunLoopRunInMode(ASIHTTPRequestRunMode,0.25,YES);
 	}
 	
 	[pool release];

@@ -222,13 +222,13 @@
 		B5CFFBC70EC46DDE009ADE56 /* iPhone Sample */ = {
 			isa = PBXGroup;
 			children = (
-				B5CFFC110EC4710E009ADE56 /* iPhone-Sample-Application.pch */,
 				B5CFFBD10EC46E41009ADE56 /* iPhoneSampleAppDelegate.h */,
 				B5CFFBD20EC46E41009ADE56 /* iPhoneSampleAppDelegate.m */,
 				B5F4C2380EC4742C00D4F31C /* SynchronousViewController.h */,
 				B5F4C2390EC4742C00D4F31C /* SynchronousViewController.m */,
 				B5F4C2A10EC4768500D4F31C /* QueueViewController.h */,
 				B5F4C2A20EC4768500D4F31C /* QueueViewController.m */,
+				B5CFFC110EC4710E009ADE56 /* iPhone-Sample-Application.pch */,
 				B5CFFB4A0EC467DA009ADE56 /* iPhone-Sample-main.m */,
 			);
 			name = "iPhone Sample";
