@@ -6,10 +6,10 @@
 //
 
 @class ASIHTTPRequest;
-@class ASIProgressQueue;
+@class ASINetworkQueue;
 
 @interface AppDelegate : NSObject {
-	ASIProgressQueue *networkQueue;
+	ASINetworkQueue *networkQueue;
 	IBOutlet NSProgressIndicator *progressIndicator;
 	IBOutlet NSTextView *htmlSource;
 	IBOutlet NSTextField *fileLocation;

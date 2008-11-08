@@ -8,14 +8,14 @@
 #import "AppDelegate.h"
 #import "ASIHTTPRequest.h"
 #import "ASIFormDataRequest.h"
-#import "ASIProgressQueue.h"
+#import "ASINetworkQueue.h"
 
 @implementation AppDelegate
 
 - (id)init
 {
 	[super init];
-	networkQueue = [[ASIProgressQueue alloc] init];
+	networkQueue = [[ASINetworkQueue alloc] init];
 	return self;
 }
 
@@ -68,23 +68,20 @@
 	
 	[networkQueue cancelAllOperations];
 	[networkQueue setDownloadProgressDelegate:progressIndicator];
+	[networkQueue setRequestDidFinishSelector:@selector(imageFetchComplete:)];
+	[networkQueue setDelegate:self];
 	
 	ASIHTTPRequest *request;
+	
 	request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com/i/logo.png"]] autorelease];
-	[request setDelegate:self];
-	[request setDidFinishSelector:@selector(imageFetchComplete:)];
 	[request setDownloadDestinationPath:[[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"1.png"]];
 	[networkQueue addOperation:request];
 	
 	request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com/i/trailsnetwork.png"]] autorelease];
-	[request setDelegate:self];
-	[request setDidFinishSelector:@selector(imageFetchComplete:)];
 	[request setDownloadDestinationPath:[[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"2.png"]];
 	[networkQueue addOperation:request];
 	
 	request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com/i/sharedspace20.png"]] autorelease];
-	[request setDelegate:self];
-	[request setDidFinishSelector:@selector(imageFetchComplete:)];
 	[request setDownloadDestinationPath:[[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"3.png"]];
 	[networkQueue addOperation:request];
 }

@@ -9,20 +9,20 @@
 #import "ASIHTTPRequestTests.h"
 #import "ASIHTTPRequest.h"
 #import "NSHTTPCookieAdditions.h"
+#import "ASINetworkQueue.h"
+
 
 @implementation ASIHTTPRequestTests
 
 /*
 More tests needed for:
- - Delegates
- - Progress delegates
- - Content length
- - POSTing
- - File downloads
+ - Delegates - success and failure
  - Authentication
  - Keychains
  - Session persistence
 */
+
+
 
 - (void)testBasicDownload
 {
@@ -50,12 +50,12 @@ More tests needed for:
 	success = !NSEqualRanges([html rangeOfString:@"All-Seeing Interactive"],notFound);
 	STAssertTrue(success,@"Failed to download the correct data");
 	
-	//Attempt to grab from bad url (astonishingly, there is a website at http://aaaaaaaaaaaaaaaaaaaaaaaaaaaaa.com !)
-	url = [[[NSURL alloc] initWithString:@"http://aaaaaaaaaaaaaaaaaaaaaaaaaaaaab.com"] autorelease];
+	//Attempt to grab from bad url
+	url = [[[NSURL alloc] initWithString:@""] autorelease];
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request start];
 	NSError *error = [request error];
-	STAssertNotNil(error,@"Failed to generate an error for a bad host - this test may fail when your DNS server redirects you to another page when it can't find a domain name (eg OpenDNS)");
+	STAssertNotNil(error,@"Failed to generate an error for a bad host");
 }
 
 - (void)testTimeOut
@@ -71,6 +71,75 @@ More tests needed for:
 	STAssertTrue(success,@"Timeout didn't generate the correct error");
 	
 }
+
+
+- (void)testRequestMethod
+{
+	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASI-HTTP-Request/tests/request-method"] autorelease];
+	NSArray *methods = [[[NSArray alloc] initWithObjects:@"GET",@"POST",@"PUT",@"DELETE"] autorelease];
+	for (NSString *method in methods) {
+		ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+		[request setRequestMethod:method];
+		[request start];
+		BOOL success = [[request dataString] isEqualToString:method];
+		STAssertTrue(success,@"Failed to set the request method correctly");	
+	}
+}
+
+- (void)testContentLength
+{
+	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/i/logo.png"] autorelease];
+	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request start];
+	
+	BOOL success = ([request contentLength] == 18443);
+	STAssertTrue(success,@"Got wrong content length");
+}
+
+- (void)testFileDownload
+{
+	NSString *path = [[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"testfile"];
+	
+	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/asi-http-request/tests/first"] autorelease];
+	ASIHTTPRequest *request1 = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request1 setDownloadDestinationPath:path];
+	[request1 start];
+	
+	BOOL success = [[NSString stringWithContentsOfURL:[NSURL fileURLWithPath:path]] isEqualToString:@"This is the expected content for the first string"];
+	STAssertTrue(success,@"Failed to download data to a file");
+}
+
+
+- (void)testDownloadProgress
+{
+	progress = 0;
+	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/i/logo.png"] autorelease];
+	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request setDownloadProgressDelegate:self];
+	[request start];
+	BOOL success = (progress == 1);
+	STAssertTrue(success,@"Failed to properly increment download progress");	
+}
+
+
+- (void)testUploadProgress
+{
+	progress = 0;
+	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ignore"]] autorelease];
+	[request setPostBody:[NSMutableData dataWithLength:1024*32]];
+	[request setUploadProgressDelegate:self];
+	[request start];
+	BOOL success = (progress == 1);
+	STAssertTrue(success,@"Failed to properly increment upload progress");	
+}
+
+
+- (void)setProgress:(float)newProgress;
+{
+	progress = newProgress;
+}
+
+
 
 - (void)testOperationQueue
 {
@@ -89,7 +158,7 @@ More tests needed for:
 	ASIHTTPRequest *request3 = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[queue addOperation:request3];
 	
-	url = [[[NSURL alloc] initWithString:@"http://aaaaaaaaaaaaaaaaaaaaaaaaaaaaab.com"] autorelease];
+	url = [[[NSURL alloc] initWithString:@""] autorelease];
 	ASIHTTPRequest *request4 = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[queue addOperation:request4];
 	
@@ -120,7 +189,7 @@ More tests needed for:
 	STAssertTrue(success,@"Failed to download the correct data for request 3");
 	
 	success = ([request4 error] != nil);
-	STAssertTrue(success,@"Request 4 succeed when it should have failed - this test may fail when your DNS server redirects you to another page when it can't find a domain name (eg OpenDNS)");
+	STAssertTrue(success,@"Request 4 succeed when it should have failed");
 
 	success = ([request5 error] == nil);
 	STAssertTrue(success,@"Request 5 failed");
@@ -129,6 +198,8 @@ More tests needed for:
 	STAssertTrue(success,@"Failed to obtain the correct status code for request 5");
 		
 }
+ 
+
 
 - (void)testCookies
 {
@@ -154,7 +225,6 @@ More tests needed for:
 	for (cookie in cookies) {
 		if ([[cookie name] isEqualToString:@"ASIHTTPRequestTestCookie"]) {
 			foundCookie = YES;
-			NSLog(@"%@",cookie);
 			success = [[cookie decodedValue] isEqualToString:@"This is the value"];
 			STAssertTrue(success,@"Failed to store the correct value for a cookie");
 			success = [[cookie domain] isEqualToString:@".allseeing-i.com"];
@@ -233,5 +303,7 @@ More tests needed for:
 	success = [html isEqualToString:@"No cookie exists"];
 	STAssertTrue(success,@"Cookie presented to the server when it should have been removed");
 }
+
+
 
 @end

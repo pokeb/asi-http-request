@@ -1,5 +1,5 @@
 //
-//  ASIProgressQueue.h
+//  ASINetworkQueue.h
 //  asi-http-request
 //
 //  Created by Ben Copsey on 07/11/2008.
@@ -8,8 +8,8 @@
 
 
 
-@interface ASIProgressQueue : NSOperationQueue {
-	NSMutableArray *operations;
+@interface ASINetworkQueue : NSOperationQueue {
+	id delegate;
 	
 	id uploadProgressDelegate;
 	int uploadProgressBytes;
@@ -19,9 +19,17 @@
 	int downloadProgressBytes;
 	int downloadProgressTotalBytes;
 	
+	SEL requestDidFinishSelector;
+	SEL requestDidFailSelector;
+	SEL queueDidFinishSelector;
+	
+	BOOL shouldCancelAllRequestsOnFailure;
+	
+	int requestsCount;
+	int requestsCompleteCount;
 }
 
-- (void)addOperation:(NSOperation *)operation;
+//
 
 // Called at the start of a request to add on the size of this upload to the total
 - (void)incrementUploadSizeBy:(int)bytes;
@@ -37,4 +45,10 @@
 
 @property (assign,setter=setUploadProgressDelegate:) id uploadProgressDelegate;
 @property (assign,setter=setDownloadProgressDelegate:) id downloadProgressDelegate;
+
+@property (assign) SEL requestDidFinishSelector;
+@property (assign) SEL requestDidFailSelector;
+@property (assign) SEL queueDidFinishSelector;
+@property (assign) BOOL shouldCancelAllRequestsOnFailure;
+@property (assign) id delegate;
 @end

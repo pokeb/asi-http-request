@@ -30,12 +30,12 @@
 					<object class="IBUILabel" id="602749642">
 						<reference key="NSNextResponder" ref="191373211"/>
 						<int key="NSvFlags">292</int>
-						<string key="NSFrame">{{20, 20}, {280, 46}}</string>
+						<string key="NSFrame">{{20, 20}, {280, 54}}</string>
 						<reference key="NSSuperview" ref="191373211"/>
 						<bool key="IBUIOpaque">NO</bool>
 						<bool key="IBUIClipsSubviews">YES</bool>
 						<bool key="IBUIUserInteractionEnabled">NO</bool>
-						<string key="IBUIText">Demonstrates a fetching 3 items at once, using an NSOperationQueue.</string>
+						<string key="IBUIText">Demonstrates a fetching 3 items at once, using an ASINetworkQueue to track progress.</string>
 						<object class="NSFont" key="IBUIFont">
 							<string key="NSName">Helvetica</string>
 							<double key="NSSize">1.400000e+01</double>
@@ -53,7 +53,7 @@
 					<object class="IBUIButton" id="963091686">
 						<reference key="NSNextResponder" ref="191373211"/>
 						<int key="NSvFlags">292</int>
-						<string key="NSFrame">{{20, 74}, {72, 37}}</string>
+						<string key="NSFrame">{{20, 99}, {72, 37}}</string>
 						<reference key="NSSuperview" ref="191373211"/>
 						<bool key="IBUIOpaque">NO</bool>
 						<bool key="IBUIClearsContextBeforeDrawing">NO</bool>
@@ -81,7 +81,7 @@
 					<object class="IBUIImageView" id="512691955">
 						<reference key="NSNextResponder" ref="191373211"/>
 						<int key="NSvFlags">292</int>
-						<string key="NSFrame">{{20, 124}, {135, 87}}</string>
+						<string key="NSFrame">{{20, 149}, {135, 87}}</string>
 						<reference key="NSSuperview" ref="191373211"/>
 						<bool key="IBUIOpaque">NO</bool>
 						<bool key="IBUIClearsContextBeforeDrawing">NO</bool>
@@ -91,7 +91,7 @@
 					<object class="IBUIImageView" id="496427125">
 						<reference key="NSNextResponder" ref="191373211"/>
 						<int key="NSvFlags">292</int>
-						<string key="NSFrame">{{20, 219}, {135, 87}}</string>
+						<string key="NSFrame">{{20, 244}, {135, 87}}</string>
 						<reference key="NSSuperview" ref="191373211"/>
 						<bool key="IBUIOpaque">NO</bool>
 						<bool key="IBUIClearsContextBeforeDrawing">NO</bool>
@@ -101,7 +101,7 @@
 					<object class="IBUIImageView" id="393184766">
 						<reference key="NSNextResponder" ref="191373211"/>
 						<int key="NSvFlags">292</int>
-						<string key="NSFrame">{{163, 124}, {137, 87}}</string>
+						<string key="NSFrame">{{163, 149}, {137, 87}}</string>
 						<reference key="NSSuperview" ref="191373211"/>
 						<bool key="IBUIOpaque">NO</bool>
 						<bool key="IBUIClearsContextBeforeDrawing">NO</bool>
@@ -111,7 +111,7 @@
 					<object class="IBUIProgressView" id="138477738">
 						<reference key="NSNextResponder" ref="191373211"/>
 						<int key="NSvFlags">292</int>
-						<string key="NSFrame">{{20, 325}, {280, 9}}</string>
+						<string key="NSFrame">{{20, 350}, {280, 9}}</string>
 						<reference key="NSSuperview" ref="191373211"/>
 						<bool key="IBUIOpaque">NO</bool>
 						<bool key="IBUIClipsSubviews">YES</bool>
@@ -199,12 +199,12 @@
 						<reference key="object" ref="191373211"/>
 						<object class="NSMutableArray" key="children">
 							<bool key="EncodedWithXMLCoder">YES</bool>
-							<reference ref="602749642"/>
 							<reference ref="496427125"/>
 							<reference ref="393184766"/>
 							<reference ref="138477738"/>
 							<reference ref="963091686"/>
 							<reference ref="512691955"/>
+							<reference ref="602749642"/>
 						</object>
 						<reference key="parent" ref="360949347"/>
 					</object>

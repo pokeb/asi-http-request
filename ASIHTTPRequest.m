@@ -103,6 +103,11 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 	[requestHeaders setObject:value forKey:header];
 }
 
+-(void)setPostBody:(NSData *)body
+{
+	postBody = [body retain];
+	[self setRequestMethod:@"POST"];
+}
 
 #pragma mark get information about this request
 
@@ -362,7 +367,14 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 {
 	//We're using a progress queue or compatible controller to handle progress
 	if ([uploadProgressDelegate respondsToSelector:@selector(incrementUploadProgressBy:)]) {
-		[uploadProgressDelegate incrementUploadProgressBy:0-lastBytesSent];
+		int value = 0-lastBytesSent;
+		SEL selector = @selector(incrementUploadProgressBy:);
+		NSMethodSignature *signature = [[uploadProgressDelegate class] instanceMethodSignatureForSelector:selector];
+		NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
+		[invocation setTarget:uploadProgressDelegate];
+		[invocation setSelector:selector];
+		[invocation setArgument:&value atIndex:2];
+		[invocation invoke];
 		
 	//We aren't using a queue, we should just set progress of the indicator to 0
 	} else {
@@ -375,7 +387,14 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 {
 	//We're using a progress queue or compatible controller to handle progress
 	if ([uploadProgressDelegate respondsToSelector:@selector(incrementUploadSizeBy:)]) {
-		[uploadProgressDelegate incrementUploadSizeBy:[max intValue]];
+		int value = [max intValue];
+		SEL selector = @selector(incrementUploadSizeBy:);
+		NSMethodSignature *signature = [[uploadProgressDelegate class] instanceMethodSignatureForSelector:selector];
+		NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
+		[invocation setTarget:uploadProgressDelegate];
+		[invocation setSelector:selector];
+		[invocation setArgument:&value atIndex:2];
+		[invocation invoke];
 	} else {
 		[ASIHTTPRequest setProgress:0 forProgressIndicator:uploadProgressDelegate];
 	}
@@ -385,14 +404,21 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 {
 	[self setLastActivityTime:[[NSDate new] autorelease]];
 	
-	int byteCount = [[(NSNumber *)CFReadStreamCopyProperty (readStream, kCFStreamPropertyHTTPRequestBytesWrittenCount) autorelease] intValue];
+	unsigned int byteCount = [[(NSNumber *)CFReadStreamCopyProperty (readStream, kCFStreamPropertyHTTPRequestBytesWrittenCount) autorelease] unsignedIntValue];
 	if (uploadProgressDelegate) {
 	
 		//We're using a progress queue or compatible controller to handle progress
 		if ([uploadProgressDelegate respondsToSelector:@selector(incrementUploadProgressBy:)]) {
-			[uploadProgressDelegate incrementUploadProgressBy:(byteCount-lastBytesSent)];
+			int value = byteCount-lastBytesSent;
+			SEL selector = @selector(incrementUploadProgressBy:);
+			NSMethodSignature *signature = [[uploadProgressDelegate class] instanceMethodSignatureForSelector:selector];
+			NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
+			[invocation setTarget:uploadProgressDelegate];
+			[invocation setSelector:selector];
+			[invocation setArgument:&value atIndex:2];
+			[invocation invoke];
 			
-			//We aren't using a queue, we should just set progress of the indicator to 0
+		//We aren't using a queue, we should just set progress of the indicator
 		} else {
 			[ASIHTTPRequest setProgress:(double)(byteCount/postLength) forProgressIndicator:uploadProgressDelegate];
 		}
@@ -406,7 +432,14 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 {
 	//We're using a progress queue or compatible controller to handle progress
 	if ([downloadProgressDelegate respondsToSelector:@selector(incrementDownloadSizeBy:)]) {
-		[downloadProgressDelegate incrementDownloadSizeBy:[max intValue]];
+		int value = [max intValue];
+		SEL selector = @selector(incrementDownloadSizeBy:);
+		NSMethodSignature *signature = [[downloadProgressDelegate class] instanceMethodSignatureForSelector:selector];
+		NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
+		[invocation setTarget:downloadProgressDelegate];
+		[invocation setSelector:selector];
+		[invocation setArgument:&value atIndex:2];
+		[invocation invoke];
 	} else {
 		[ASIHTTPRequest setProgress:0 forProgressIndicator:downloadProgressDelegate];
 	}
@@ -421,10 +454,17 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 
 		//We're using a progress queue or compatible controller to handle progress
 		if ([downloadProgressDelegate respondsToSelector:@selector(incrementDownloadProgressBy:)]) {
-			[downloadProgressDelegate incrementDownloadProgressBy:(int)(totalBytesRead-lastBytesRead)];
+			int value = totalBytesRead-lastBytesRead;
+			SEL selector = @selector(incrementDownloadProgressBy:);
+			NSMethodSignature *signature = [[downloadProgressDelegate class] instanceMethodSignatureForSelector:selector];
+			NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
+			[invocation setTarget:downloadProgressDelegate];
+			[invocation setSelector:selector];
+			[invocation setArgument:&value atIndex:2];
+			[invocation invoke];
 			
 			//We aren't using a queue, we should just set progress of the indicator to 0
-		} else {
+		} else if (contentLength > 0)  {
 			[ASIHTTPRequest setProgress:(double)(totalBytesRead/contentLength) forProgressIndicator:downloadProgressDelegate];
 		}
 		
@@ -913,4 +953,5 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 @synthesize timeOutSeconds;
 @synthesize requestMethod;
 @synthesize postBody;
+@synthesize contentLength;
 @end

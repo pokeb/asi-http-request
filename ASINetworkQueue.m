@@ -1,27 +1,38 @@
 //
-//  ASIProgressQueue.m
+//  ASINetworkQueue.m
 //  asi-http-request
 //
 //  Created by Ben Copsey on 07/11/2008.
 //  Copyright 2008 All-Seeing Interactive. All rights reserved.
 //
 
-#import "ASIProgressQueue.h"
+#import "ASINetworkQueue.h"
 #import "ASIHTTPRequest.h"
 
 
-@implementation ASIProgressQueue
+@implementation ASINetworkQueue
 
 - (id)init
 {
 	self = [super init];
+	
+	delegate = NULL;
+	requestDidFinishSelector = NULL;
+	requestDidFailSelector = NULL;
+	queueDidFinishSelector = NULL;
+	shouldCancelAllRequestsOnFailure = YES;
+	
 	uploadProgressDelegate = nil;
 	uploadProgressBytes = 0;
 	uploadProgressTotalBytes = 0;
 	
 	downloadProgressDelegate = nil;
 	downloadProgressBytes = 0;
-	downloadProgressTotalBytes = 0;	
+	downloadProgressTotalBytes = 0;
+	
+	requestsCount = 0;
+	requestsCompleteCount = 0;
+	
 	return self;
 }
 
@@ -64,13 +75,41 @@
 	}	
 }
 
+//Only add ASIHTTPRequests to this queue
 - (void)addOperation:(NSOperation *)operation
 {
 	if ([operation isKindOfClass:[ASIHTTPRequest class]]) {
+		requestsCount++;
 		[(ASIHTTPRequest *)operation setUploadProgressDelegate:self];
 		[(ASIHTTPRequest *)operation setDownloadProgressDelegate:self];
+		[(ASIHTTPRequest *)operation setDelegate:self];
+		[(ASIHTTPRequest *)operation setDidFailSelector:@selector(requestDidFail:)];
+		[(ASIHTTPRequest *)operation setDidFinishSelector:@selector(requestDidFinish:)];
+		[super addOperation:operation];
 	}
-	[super addOperation:operation];
+	
+}
+
+- (void)requestDidFail:(ASIHTTPRequest *)request
+{
+	if (requestDidFailSelector) {
+		[delegate performSelector:requestDidFailSelector withObject:request];
+	}
+	if (shouldCancelAllRequestsOnFailure) {
+		[self cancelAllOperations];
+	}
+	requestsCompleteCount++;
+}
+
+- (void)requestDidFinish:(ASIHTTPRequest *)request
+{
+	requestsCompleteCount++;
+	if (requestDidFinishSelector) {
+		[delegate performSelector:requestDidFinishSelector withObject:request];
+	}
+	if (queueDidFinishSelector && requestsCompleteCount == requestsCount) {
+		[delegate performSelector:queueDidFinishSelector withObject:self];
+	}
 }
 
 - (void)incrementUploadSizeBy:(int)bytes
@@ -115,4 +154,9 @@
 
 @synthesize uploadProgressDelegate;
 @synthesize downloadProgressDelegate;
+@synthesize requestDidFinishSelector;
+@synthesize requestDidFailSelector;
+@synthesize queueDidFinishSelector;
+@synthesize shouldCancelAllRequestsOnFailure;
+@synthesize delegate;
 @end

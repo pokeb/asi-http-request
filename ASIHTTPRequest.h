@@ -23,7 +23,7 @@
 	NSString *requestMethod;
 	
 	//Request body
-	NSMutableData *postBody;
+	NSData *postBody;
 	
 	//Dictionary for custom HTTP request headers
 	NSMutableDictionary *requestHeaders;
@@ -93,18 +93,18 @@
 	int responseStatusCode;
 	
 	//Size of the response
-	int contentLength;
+	unsigned int contentLength;
 
 	//Size of the POST payload
-	int postLength;	
+	unsigned int postLength;	
 	
 	//The total amount of downloaded data
-	int totalBytesRead;
+	unsigned int totalBytesRead;
 	
 	//Last amount of data read (used for incrementing progress)
-	int lastBytesRead;
+	unsigned int lastBytesRead;
 	//Last amount of data sent (used for incrementing progress)
-	int lastBytesSent;
+	unsigned int lastBytesSent;
 	
 	//Realm for authentication when credentials are required
 	NSString *authenticationRealm;
@@ -256,5 +256,6 @@
 @property (retain) NSDate *lastActivityTime;
 @property (assign) NSTimeInterval timeOutSeconds;
 @property (retain) NSString *requestMethod;
-@property (retain) NSMutableData *postBody;
+@property (retain,setter=setPostBody:) NSData *postBody;
+@property (assign) unsigned int contentLength;
 @end

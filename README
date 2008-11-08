@@ -1,9 +1,5 @@
 To do:
-
-Changes for release notes:
-* Set request method (get,post,delete,put)
-* Fixed a few memory leaks (thanks clang static analyser!)
-* Split ASIHTTPRequest in two
+Replace this with a link to the docs?
 
 
 [NEW!] Documentation is available at: http://allseeing-i.com/asi-http-request
@@ -38,7 +34,5 @@ ASIHTTPRequest is my first open source Objective-C code. I hope to expand the cl
 
 To do:
 More unit tests
-Rest unit tests (get / post / put /delete)
 Add SOAP example
 See if Digest Authentication works
-PUT / DELETE /GET?

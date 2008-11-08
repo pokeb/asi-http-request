@@ -53,13 +53,13 @@
 - (void)main
 {
 	
-	// If the user didn't specify post data, we will let ASIHTTPRequest use the value of postBody
+	// If the user didn't specify post data, we will let ASIHTTPRequest use the value of body
 	if ([postData count] == 0 && [fileData count] == 0) {
 		[super main];
 		return;
 	}
 
-	[self setRequestMethod:@"POST"];
+	NSMutableData *body = [[[NSMutableData alloc] init] autorelease];
 	
 	//Set your own boundary string only if really obsessive. We don't bother to check if post data contains the boundary, since it's pretty unlikely that it does.
 	NSString *stringBoundary = @"0xKhTmLbOuNdArY";
@@ -69,10 +69,9 @@
 		[self addRequestHeader:@"Content-Type" value:[NSString stringWithFormat:@"multipart/form-data; boundary=%@",stringBoundary]];
 	}
 	
-	//Since we've got post data, let's set the post body to an empty NSMutableData object
-	[self setPostBody:[NSMutableData data]];
+
 	
-	[postBody appendData:[[NSString stringWithFormat:@"--%@\r\n",stringBoundary] dataUsingEncoding:NSUTF8StringEncoding]];
+	[body appendData:[[NSString stringWithFormat:@"--%@\r\n",stringBoundary] dataUsingEncoding:NSUTF8StringEncoding]];
 	
 	//Adds post data
 	NSData *endItemBoundary = [[NSString stringWithFormat:@"\r\n--%@\r\n",stringBoundary] dataUsingEncoding:NSUTF8StringEncoding];
@@ -80,11 +79,11 @@
 	NSString *key;
 	int i=0;
 	while (key = [e nextObject]) {
-		[postBody appendData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"\r\n\r\n",key] dataUsingEncoding:NSUTF8StringEncoding]];
-		[postBody appendData:[[postData objectForKey:key] dataUsingEncoding:NSUTF8StringEncoding]];
+		[body appendData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"\r\n\r\n",key] dataUsingEncoding:NSUTF8StringEncoding]];
+		[body appendData:[[postData objectForKey:key] dataUsingEncoding:NSUTF8StringEncoding]];
 		i++;
 		if (i != [postData count] || [fileData count] > 0) { //Only add the boundary if this is not the last item in the post body
-			[postBody appendData:endItemBoundary];
+			[body appendData:endItemBoundary];
 		}
 	}
 	
@@ -94,16 +93,19 @@
 	i=0;
 	while (key = [e nextObject]) {
 		NSString *filePath = [fileData objectForKey:key];
-		[postBody appendData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"; filename=\"%@\"\r\n",key,[filePath lastPathComponent]] dataUsingEncoding:NSUTF8StringEncoding]];
-		[postBody appendData:contentTypeHeader];
-		[postBody appendData:[NSData dataWithContentsOfMappedFile:filePath]];
+		[body appendData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"; filename=\"%@\"\r\n",key,[filePath lastPathComponent]] dataUsingEncoding:NSUTF8StringEncoding]];
+		[body appendData:contentTypeHeader];
+		[body appendData:[NSData dataWithContentsOfMappedFile:filePath]];
 		i++;
 		if (i != [fileData count]) { //Only add the boundary if this is not the last item in the post body
-			[postBody appendData:endItemBoundary];
+			[body appendData:endItemBoundary];
 		}
 	}
 	
-	[postBody appendData:[[NSString stringWithFormat:@"\r\n--%@--\r\n",stringBoundary] dataUsingEncoding:NSUTF8StringEncoding]];
+	[body appendData:[[NSString stringWithFormat:@"\r\n--%@--\r\n",stringBoundary] dataUsingEncoding:NSUTF8StringEncoding]];
+
+	//Since we've got post data, let's set the post body to an empty NSMutableData object
+	[self setPostBody:body];
 	
 	//Now we've created our post data, construct the request
 	[super main];

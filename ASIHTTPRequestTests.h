@@ -10,10 +10,17 @@
 
 
 @interface ASIHTTPRequestTests : SenTestCase {
+	float progress;
 }
 
 - (void)testBasicDownload;
 - (void)testTimeOut;
+- (void)testRequestMethod;
+- (void)testContentLength;
+- (void)testFileDownload;
+- (void)testDownloadProgress;
+- (void)testUploadProgress;
 - (void)testOperationQueue;
 - (void)testCookies;
+
 @end

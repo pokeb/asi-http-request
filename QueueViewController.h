@@ -8,10 +8,10 @@
 
 #import <UIKit/UIKit.h>
 
-@class ASIProgressQueue;
+@class ASINetworkQueue;
 
 @interface QueueViewController : UIViewController {
-	ASIProgressQueue *networkQueue;
+	ASINetworkQueue *networkQueue;
 	
 	IBOutlet UIImageView *imageView1;
 	IBOutlet UIImageView *imageView2;
