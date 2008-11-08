@@ -47,12 +47,12 @@
 	if (img) {
 		if ([imageView1 image]) {
 			if ([imageView2 image]) {
-				[imageView3 setImage:img];
+				[imageView3 performSelectorOnMainThread:@selector(setImage:) withObject:img waitUntilDone:NO];
 			} else {
-				[imageView2 setImage:img];
+				[imageView2 performSelectorOnMainThread:@selector(setImage:) withObject:img waitUntilDone:NO];
 			}
 		} else {
-			[imageView1 setImage:img];
+			[imageView1 performSelectorOnMainThread:@selector(setImage:) withObject:img waitUntilDone:NO];
 		}
 	}
 }

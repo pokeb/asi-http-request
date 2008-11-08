@@ -152,6 +152,14 @@
 	[ASIHTTPRequest setProgress:progress forProgressIndicator:downloadProgressDelegate];
 }
 
+- (void)authorizationNeededForRequest:(ASIHTTPRequest *)request
+{
+	if ([delegate respondsToSelector:@selector(authorizationNeededForRequest:)]) {
+		[delegate performSelector:@selector(authorizationNeededForRequest:) withObject:request];
+	}
+}
+
+
 @synthesize uploadProgressDelegate;
 @synthesize downloadProgressDelegate;
 @synthesize requestDidFinishSelector;

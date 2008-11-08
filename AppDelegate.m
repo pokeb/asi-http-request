@@ -43,10 +43,11 @@
 - (IBAction)URLFetchWithProgress:(id)sender
 {
 	[networkQueue cancelAllOperations];
+	[networkQueue setDownloadProgressDelegate:progressIndicator];
+	[networkQueue setDelegate:self];
+	[networkQueue setRequestDidFinishSelector:@selector(URLFetchWithProgressComplete:)];
+	
 	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://trails-network.net/Downloads/MemexTrails_1.0b1.zip"]] autorelease];
-	[request setDelegate:self];
-	[request setDownloadProgressDelegate:progressIndicator];
-	[request setDidFinishSelector:@selector(URLFetchWithProgressComplete:)];
 	[request setDownloadDestinationPath:[[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"MemexTrails_1.0b1.zip"]];
 	[networkQueue addOperation:request];
 }
@@ -108,13 +109,16 @@
 - (IBAction)fetchTopSecretInformation:(id)sender
 {
 	[networkQueue cancelAllOperations];
+	[networkQueue setRequestDidFinishSelector:@selector(topSecretFetchComplete:)];
+	[networkQueue setDelegate:self];
+	
 	[progressIndicator setDoubleValue:0];
+	
 	ASIHTTPRequest *request;
 	request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com/top_secret/"]] autorelease];
-	[request setDelegate:self];
-	[request setDidFinishSelector:@selector(topSecretFetchComplete:)];
 	[request setUseKeychainPersistance:[keychainCheckbox state]];
 	[networkQueue addOperation:request];
+
 
 }
 

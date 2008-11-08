@@ -122,7 +122,7 @@
 	NSDate *lastActivityTime;
 	
 	NSTimeInterval timeOutSeconds;
-
+	
 }
 
 #pragma mark init / dealloc
