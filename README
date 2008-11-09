@@ -1,40 +1,17 @@
-To do:
-Add note about not locking main thread when using progress
-Replace this with a link to the docs?
-Add to release notes - lots of leaks fixed, and it it releases temporary stuff during a request rather than waiting until the end
+ASIHTTPRequest is an easy to use wrapper around the CFNetwork API that makes some of the more tedious aspects of communicating with web servers easier. It is written in Objective-C and works in both Mac OS X and iPhone applications.
 
-
-[NEW!] Documentation is available at: http://allseeing-i.com/asi-http-request
-
-ASIHTTPRequest is an easy to use wrapper around the CFNetwork API that makes some of the more tedious aspects of communicating with web servers easier.
-
-It is suitable for when you want to submit data to an existing web form, or don't want to mess around with SOAP or XML-RPC.
+It is suitable performing basic HTTP requests and interacting with REST-based services (GET / POST / PUT / DELETE). The included ASIFormDataRequest subclass makes it easy to submit POST data and files using multipart/form-data.
 
 It provides:
-
-* A straightforward interface for submitting data to (GET & POST) and fetching data from webservers
-
+* A straightforward interface for submitting data to and fetching data from webservers
+* Download data to memory or directly to a file on disk(i)
 * The ability to submit files on local drives as part of POST data, compatible with the HTML file input mechanism
-
 * Easy access to request and response HTTP headers
-
-* Ability for setting up progress delegates (e.g. NSProgressIndicators) to show information about download AND upload progress
-
+* Ability for setting up progress delegates (NSProgressIndicators and UIProgressViews) to show information about download AND upload progress
+* Auto-magic management of upload and download progress indicators for operation queues
 * Basic authentication (username and password) support, credentials are automatically for the duration of a session, and can be stored for later in the Keychain.
-
-* Cookie support - read and write cookies, and re-use them in other requests
-
+* Cookie support
 * Based on NSOperation to make queuing requests and background operation easy
-
 * Basic unit tests (more to come!)
 
-ASIHTTPRequest comes as part of a simple application that demonstrates many of the features above, just look at AppDelegate.m for good pointers on basic usage, or read the comments in ASIHTTPRequest.h for more detail.
-
-ASIHTTPRequest is partly based on code from Apple's ImageClient code samples, so if it doesn't meet your needs, take a look at their CFNetwork examples for more.
-
-ASIHTTPRequest is my first open source Objective-C code. I hope to expand the class and example application further (unit tests, maybe even iphone examples...) in the coming months. If you find it helpful, please do get in touch!
-
-To do:
-More unit tests
-Add SOAP example
-See if Digest Authentication works
+Documentation is available "here":http://allseeing-i.com/ASI-HTTP-REQUEST.
