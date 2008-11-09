@@ -1,5 +1,7 @@
 To do:
+Add note about not locking main thread when using progress
 Replace this with a link to the docs?
+Add to release notes - lots of leaks fixed, and it it releases temporary stuff during a request rather than waiting until the end
 
 
 [NEW!] Documentation is available at: http://allseeing-i.com/asi-http-request

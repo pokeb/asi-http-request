@@ -31,12 +31,20 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
     [((ASIHTTPRequest*)clientCallBackInfo) handleNetworkEvent: type];
 }
 
+//This lock prevents the operation from being cancelled while it is trying to update the progress, and vice versa
+
+static NSLock *progressLock;
 
 @implementation ASIHTTPRequest
 
 
 
 #pragma mark init / dealloc
+
+- (void)initialize
+{
+	progressLock = [[NSLock alloc] init];
+}
 
 - (id)initWithURL:(NSURL *)newURL
 {
@@ -85,7 +93,6 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 	[domain release];
 	[authenticationRealm release];
 	[url release];
-	[progressLock release];
 	[authenticationLock release];
 	[lastActivityTime release];
 	[responseCookies release];
@@ -214,9 +221,6 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 - (void)loadRequest
 {
 	CFRunLoopAddCommonMode(CFRunLoopGetCurrent(),ASIHTTPRequestRunMode);
-
-	[progressLock release];
-	progressLock = [[NSLock alloc] init];
 	
 	[authenticationLock release];
 	authenticationLock = [[NSConditionLock alloc] initWithCondition:1];
@@ -270,14 +274,18 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 	}
 
 	//Record when the request started, so we can timeout if nothing happens
-	[self setLastActivityTime:[[NSDate new] autorelease]];
+	[self setLastActivityTime:[NSDate date]];
 	
 	// Wait for the request to finish
 	while (!complete) {
 		
+		//This may take a while, so we'll release the pool each cycle to stop a giant backlog building up
+		[pool release];
+		pool = [[NSAutoreleasePool alloc] init];
+		
 		//See if we need to timeout
 		if (lastActivityTime && timeOutSeconds > 0) {
-			if ([[[NSDate new] autorelease] timeIntervalSinceDate:lastActivityTime] > timeOutSeconds) {
+			if ([[NSDate date] timeIntervalSinceDate:lastActivityTime] > timeOutSeconds) {
 				[self failWithProblem:@"Request timed out"];
 				[self cancelLoad];
 				complete = YES;
@@ -292,7 +300,7 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 			complete = YES;
 			break;
 		}
-		[self updateProgressIndicators];
+		[self performSelectorOnMainThread:@selector(updateProgressIndicators) withObject:nil waitUntilDone:YES];
 		
 		//This thread should wait for 1/4 second for the stream to do something. We'll stop early if it does.
 		CFRunLoopRunInMode(ASIHTTPRequestRunMode,0.25,YES);
@@ -332,20 +340,16 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 
 - (void)updateProgressIndicators
 {
-	[progressLock lock];
-	if ([self isCancelled]) {
-		[progressLock unlock];
-		return;
-	}
+
 	[self updateUploadProgress];
 	[self updateDownloadProgress];
-	[progressLock unlock];
 
 }
 
 
 + (void)setProgress:(double)progress forProgressIndicator:(id)indicator
 {
+
 	SEL selector;
 	
 	//Cocoa Touch: UIProgressView
@@ -393,6 +397,12 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 
 -(void)removeUploadProgressSoFar
 {
+	[progressLock lock];
+	if ([self isCancelled]) {
+		[progressLock unlock];
+		return;
+	}
+	
 	//We're using a progress queue or compatible controller to handle progress
 	if ([uploadProgressDelegate respondsToSelector:@selector(incrementUploadProgressBy:)]) {
 		int value = 0-lastBytesSent;
@@ -407,12 +417,19 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 	//We aren't using a queue, we should just set progress of the indicator to 0
 	} else {
 		[ASIHTTPRequest setProgress:0 forProgressIndicator:uploadProgressDelegate];
-	}	
+	}
+	[progressLock unlock];
 }
 
 
 - (void)resetUploadProgress:(NSNumber *)max
 {
+	[progressLock lock];
+	if ([self isCancelled]) {
+		[progressLock unlock];
+		return;
+	}	
+	
 	//We're using a progress queue or compatible controller to handle progress
 	if ([uploadProgressDelegate respondsToSelector:@selector(incrementUploadSizeBy:)]) {
 		int value = [max intValue];
@@ -426,11 +443,18 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 	} else {
 		[ASIHTTPRequest setProgress:0 forProgressIndicator:uploadProgressDelegate];
 	}
+	[progressLock unlock];
 }		
 
 - (void)updateUploadProgress
 {
-	[self setLastActivityTime:[[NSDate new] autorelease]];
+	[progressLock lock];
+	if ([self isCancelled]) {
+		[progressLock unlock];
+		return;
+	}
+	
+	[self setLastActivityTime:[NSDate date]];
 	
 	unsigned int byteCount = [[(NSNumber *)CFReadStreamCopyProperty (readStream, kCFStreamPropertyHTTPRequestBytesWrittenCount) autorelease] unsignedIntValue];
 	if (uploadProgressDelegate) {
@@ -439,7 +463,8 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 		if ([uploadProgressDelegate respondsToSelector:@selector(incrementUploadProgressBy:)]) {
 			int value = byteCount-lastBytesSent;
 			SEL selector = @selector(incrementUploadProgressBy:);
-			NSMethodSignature *signature = [[uploadProgressDelegate class] instanceMethodSignatureForSelector:selector];
+			NSMethodSignature *signature = nil;
+			signature = [[uploadProgressDelegate class] instanceMethodSignatureForSelector:selector];
 			NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
 			[invocation setTarget:uploadProgressDelegate];
 			[invocation setSelector:selector];
@@ -453,11 +478,19 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 		
 	}
 	lastBytesSent = byteCount;
+	[progressLock unlock];
 }
 
 
 - (void)resetDownloadProgress:(NSNumber *)max
 {
+	[progressLock lock];
+	if ([self isCancelled]) {
+		[progressLock unlock];
+		return;
+	}	
+	
+	
 	//We're using a progress queue or compatible controller to handle progress
 	if ([downloadProgressDelegate respondsToSelector:@selector(incrementDownloadSizeBy:)]) {
 		int value = [max intValue];
@@ -471,17 +504,27 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 	} else {
 		[ASIHTTPRequest setProgress:0 forProgressIndicator:downloadProgressDelegate];
 	}
+	[progressLock unlock];
 }	
 
 - (void)updateDownloadProgress
 {
-	[self setLastActivityTime:[[NSDate new] autorelease]];
+	[progressLock lock];
+	if ([self isCancelled]) {
+		[progressLock unlock];
+		return;
+	}	
+	
+	[self setLastActivityTime:[NSDate date]];
 	
 	//We won't update downlaod progress until we've examined the headers, since we might need to authenticate
 	if (downloadProgressDelegate && responseHeaders) {
 
 		//We're using a progress queue or compatible controller to handle progress
 		if ([downloadProgressDelegate respondsToSelector:@selector(incrementDownloadProgressBy:)]) {
+			
+			NSAutoreleasePool *thePool = [[NSAutoreleasePool alloc] init];
+			
 			int value = totalBytesRead-lastBytesRead;
 			SEL selector = @selector(incrementDownloadProgressBy:);
 			NSMethodSignature *signature = [[downloadProgressDelegate class] instanceMethodSignatureForSelector:selector];
@@ -491,13 +534,16 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 			[invocation setArgument:&value atIndex:2];
 			[invocation invoke];
 			
+			[thePool release];
+			
 			//We aren't using a queue, we should just set progress of the indicator to 0
 		} else if (contentLength > 0)  {
 			[ASIHTTPRequest setProgress:(double)(totalBytesRead/contentLength) forProgressIndicator:downloadProgressDelegate];
 		}
 		
 		lastBytesRead = totalBytesRead;
-	} 
+	}
+	[progressLock unlock];
 }
 
 #pragma mark handling request complete / failure

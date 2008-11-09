@@ -80,8 +80,16 @@
 {
 	if ([operation isKindOfClass:[ASIHTTPRequest class]]) {
 		requestsCount++;
-		[(ASIHTTPRequest *)operation setUploadProgressDelegate:self];
-		[(ASIHTTPRequest *)operation setDownloadProgressDelegate:self];
+		if (uploadProgressDelegate) {
+			[(ASIHTTPRequest *)operation setUploadProgressDelegate:self];
+		} else {
+			[(ASIHTTPRequest *)operation setUploadProgressDelegate:NULL];
+		}
+		if (downloadProgressDelegate) {
+			[(ASIHTTPRequest *)operation setDownloadProgressDelegate:self];
+		} else {
+			[(ASIHTTPRequest *)operation setDownloadProgressDelegate:NULL];	
+		}
 		[(ASIHTTPRequest *)operation setDelegate:self];
 		[(ASIHTTPRequest *)operation setDidFailSelector:@selector(requestDidFail:)];
 		[(ASIHTTPRequest *)operation setDidFinishSelector:@selector(requestDidFinish:)];
