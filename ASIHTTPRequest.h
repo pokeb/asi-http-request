@@ -163,7 +163,12 @@
 - (void)updateUploadProgress;
 - (void)resetDownloadProgress:(NSNumber *)max;
 - (void)updateDownloadProgress;
+
+// Called when authorisation is needed, as we only find out we don't have permission to something when the upload is complete
 - (void)removeUploadProgressSoFar;
+
+// Helper method for interacting with progress indicators to abstract the details of different APIS (NSProgressIndicator and UIProgressView)
++ (void)setProgress:(double)progress forProgressIndicator:(id)indicator;
 
 #pragma mark handling request complete / failure
 
@@ -228,8 +233,6 @@
 // Dump all session data (authentication and cookies)
 + (void)clearSession;
 
-//Helper method for interacting with progress indicators to abstract the details of different APIS for cocoa and cocoa touch
-+ (void)setProgress:(double)progress forProgressIndicator:(id)indicator;
 
 @property (retain) NSString *username;
 @property (retain) NSString *password;

@@ -13,6 +13,7 @@
 #import "ASIHTTPRequest.h"
 #import "NSHTTPCookieAdditions.h"
 
+// We use our own custom run loop mode as CoreAnimation seems to want to hijack our threads otherwise
 static CFStringRef ASIHTTPRequestRunMode = CFSTR("ASIHTTPRequest");
 
 static NSString *NetworkRequestErrorDomain = @"com.Your-Company.Your-Product.NetworkError.";
@@ -31,8 +32,7 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
     [((ASIHTTPRequest*)clientCallBackInfo) handleNetworkEvent: type];
 }
 
-//This lock prevents the operation from being cancelled while it is trying to update the progress, and vice versa
-
+// This lock prevents the operation from being cancelled while it is trying to update the progress, and vice versa
 static NSLock *progressLock;
 
 @implementation ASIHTTPRequest
@@ -166,7 +166,7 @@ static NSLock *progressLock;
 		return;
     }
 	
-	//If we've already talked to this server and have valid credentials, let's apply them to the request
+	// If we've already talked to this server and have valid credentials, let's apply them to the request
 	if (useSessionPersistance && sessionCredentials && sessionAuthentication) {
 		if (!CFHTTPMessageApplyCredentialDictionary(request, sessionAuthentication, (CFMutableDictionaryRef)sessionCredentials, NULL)) {
 			[ASIHTTPRequest setSessionAuthentication:NULL];
@@ -174,7 +174,7 @@ static NSLock *progressLock;
 		}
 	}
 	
-	//Add cookies from the persistant (mac os global) store
+	// Add cookies from the persistant (mac os global) store
 	if (useCookiePersistance) {
 		NSArray *cookies = [[NSHTTPCookieStorage sharedHTTPCookieStorage] cookiesForURL:url];
 		if (cookies) {
@@ -182,7 +182,7 @@ static NSLock *progressLock;
 		}
 	}
 	
-	//Apply request cookies
+	// Apply request cookies
 	if ([requestCookies count] > 0) {
 		NSHTTPCookie *cookie;
 		NSString *cookieHeader = nil;
@@ -199,14 +199,14 @@ static NSLock *progressLock;
 	}
 	
 	
-	//Add custom headers
+	// Add custom headers
 	NSString *header;
 	for (header in requestHeaders) {
 		CFHTTPMessageSetHeaderFieldValue(request, (CFStringRef)header, (CFStringRef)[requestHeaders objectForKey:header]);
 	}
 	
 	
-	//If this is a post request and we have data to send, add it to the request
+	// If this is a post request and we have data to send, add it to the request
 	if ([self postBody]) {
 		CFHTTPMessageSetBody(request, (CFDataRef)postBody);
 		postLength = [postBody length];
@@ -229,7 +229,7 @@ static NSLock *progressLock;
 	totalBytesRead = 0;
 	lastBytesRead = 0;
 	
-	//If we're retrying a request after an authentication failure, let's remove any progress we made
+	// If we're retrying a request after an authentication failure, let's remove any progress we made
 	if (lastBytesSent > 0 && uploadProgressDelegate) {
 		[self removeUploadProgressSoFar];
 	}
@@ -273,17 +273,17 @@ static NSLock *progressLock;
 		[self performSelectorOnMainThread:@selector(resetUploadProgress:) withObject:[NSNumber numberWithDouble:postLength] waitUntilDone:YES];
 	}
 
-	//Record when the request started, so we can timeout if nothing happens
+	// Record when the request started, so we can timeout if nothing happens
 	[self setLastActivityTime:[NSDate date]];
 	
 	// Wait for the request to finish
 	while (!complete) {
 		
-		//This may take a while, so we'll release the pool each cycle to stop a giant backlog building up
+		// This may take a while, so we'll release the pool each cycle to stop a giant backlog of autoreleased objects building up
 		[pool release];
 		pool = [[NSAutoreleasePool alloc] init];
 		
-		//See if we need to timeout
+		// See if we need to timeout
 		if (lastActivityTime && timeOutSeconds > 0) {
 			if ([[NSDate date] timeIntervalSinceDate:lastActivityTime] > timeOutSeconds) {
 				[self failWithProblem:@"Request timed out"];
@@ -324,7 +324,7 @@ static NSLock *progressLock;
     if (receivedData) {
 		[self setReceivedData:nil];
 		
-		//If we were downloading to a file, let's remove it
+	//If we were downloading to a file, let's remove it
 	} else if (downloadDestinationPath) {
 		[outputStream close];
 		[[NSFileManager defaultManager] removeFileAtPath:downloadDestinationPath handler:nil];
@@ -347,40 +347,11 @@ static NSLock *progressLock;
 }
 
 
-+ (void)setProgress:(double)progress forProgressIndicator:(id)indicator
-{
-
-	SEL selector;
-	
-	//Cocoa Touch: UIProgressView
-	if ([indicator respondsToSelector:@selector(setProgress:)]) {
-		selector = @selector(setProgress:);
-		NSMethodSignature *signature = [[indicator class] instanceMethodSignatureForSelector:selector];
-		NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
-		[invocation setSelector:selector];
-		float progressFloat = (float)progress; //UIProgressView wants a float for the progress parameter
-		[invocation setArgument:&progressFloat atIndex:2];
-		[invocation invokeWithTarget:indicator];
-		
-		
-	//Cocoa: NSProgressIndicator
-	} else if ([indicator respondsToSelector:@selector(setDoubleValue:)]) {
-		selector = @selector(setDoubleValue:);
-		NSMethodSignature *signature = [[indicator class] instanceMethodSignatureForSelector:selector];
-		NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
-		[invocation setSelector:selector];
-		[invocation setArgument:&progress atIndex:2];
-		[invocation invokeWithTarget:indicator];
-		
-	//Progress indicator is some other thing that we can't handle
-	} else {
-		return;
-	}
-}
-
 - (void)setUploadProgressDelegate:(id)newDelegate
 {
 	uploadProgressDelegate = newDelegate;
+	
+	// If the uploadProgressDelegate is an NSProgressIndicator, we set it's MaxValue to 1.0 so we can treat it similarly to UIProgressViews
 	SEL selector = @selector(setMaxValue:);
 	if ([uploadProgressDelegate respondsToSelector:selector]) {
 		double max = 1.0;
@@ -394,31 +365,20 @@ static NSLock *progressLock;
 	}	
 }
 
-
--(void)removeUploadProgressSoFar
+- (void)setDownloadProgressDelegate:(id)newDelegate
 {
-	[progressLock lock];
-	if ([self isCancelled]) {
-		[progressLock unlock];
-		return;
-	}
+	downloadProgressDelegate = newDelegate;
 	
-	//We're using a progress queue or compatible controller to handle progress
-	if ([uploadProgressDelegate respondsToSelector:@selector(incrementUploadProgressBy:)]) {
-		int value = 0-lastBytesSent;
-		SEL selector = @selector(incrementUploadProgressBy:);
-		NSMethodSignature *signature = [[uploadProgressDelegate class] instanceMethodSignatureForSelector:selector];
+	// If the downloadProgressDelegate is an NSProgressIndicator, we set it's MaxValue to 1.0 so we can treat it similarly to UIProgressViews
+	SEL selector = @selector(setMaxValue:);
+	if ([downloadProgressDelegate respondsToSelector:selector]) {
+		double max = 1.0;
+		NSMethodSignature *signature = [[downloadProgressDelegate class] instanceMethodSignatureForSelector:selector];
 		NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
-		[invocation setTarget:uploadProgressDelegate];
-		[invocation setSelector:selector];
-		[invocation setArgument:&value atIndex:2];
-		[invocation invoke];
-		
-	//We aren't using a queue, we should just set progress of the indicator to 0
-	} else {
-		[ASIHTTPRequest setProgress:0 forProgressIndicator:uploadProgressDelegate];
-	}
-	[progressLock unlock];
+		[invocation setSelector:@selector(setMaxValue:)];
+		[invocation setArgument:&max atIndex:2];
+		[invocation invokeWithTarget:downloadProgressDelegate];
+	}	
 }
 
 
@@ -545,6 +505,65 @@ static NSLock *progressLock;
 	}
 	[progressLock unlock];
 }
+
+-(void)removeUploadProgressSoFar
+{
+	[progressLock lock];
+	if ([self isCancelled]) {
+		[progressLock unlock];
+		return;
+	}
+	
+	//We're using a progress queue or compatible controller to handle progress
+	if ([uploadProgressDelegate respondsToSelector:@selector(incrementUploadProgressBy:)]) {
+		int value = 0-lastBytesSent;
+		SEL selector = @selector(incrementUploadProgressBy:);
+		NSMethodSignature *signature = [[uploadProgressDelegate class] instanceMethodSignatureForSelector:selector];
+		NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
+		[invocation setTarget:uploadProgressDelegate];
+		[invocation setSelector:selector];
+		[invocation setArgument:&value atIndex:2];
+		[invocation invoke];
+		
+		//We aren't using a queue, we should just set progress of the indicator to 0
+	} else {
+		[ASIHTTPRequest setProgress:0 forProgressIndicator:uploadProgressDelegate];
+	}
+	[progressLock unlock];
+}
+
+
++ (void)setProgress:(double)progress forProgressIndicator:(id)indicator
+{
+	
+	SEL selector;
+	
+	//Cocoa Touch: UIProgressView
+	if ([indicator respondsToSelector:@selector(setProgress:)]) {
+		selector = @selector(setProgress:);
+		NSMethodSignature *signature = [[indicator class] instanceMethodSignatureForSelector:selector];
+		NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
+		[invocation setSelector:selector];
+		float progressFloat = (float)progress; //UIProgressView wants a float for the progress parameter
+		[invocation setArgument:&progressFloat atIndex:2];
+		[invocation invokeWithTarget:indicator];
+		
+		
+		//Cocoa: NSProgressIndicator
+	} else if ([indicator respondsToSelector:@selector(setDoubleValue:)]) {
+		selector = @selector(setDoubleValue:);
+		NSMethodSignature *signature = [[indicator class] instanceMethodSignatureForSelector:selector];
+		NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
+		[invocation setSelector:selector];
+		[invocation setArgument:&progress atIndex:2];
+		[invocation invokeWithTarget:indicator];
+		
+		//Progress indicator is some other thing that we can't handle
+	} else {
+		return;
+	}
+}
+
 
 #pragma mark handling request complete / failure
 
@@ -718,7 +737,7 @@ static NSLock *progressLock;
 - (void)attemptToApplyCredentialsAndResume
 {
 
-	//Read authentication data
+	// Read authentication data
 	if (!requestAuthentication) {
 		CFHTTPMessageRef responseHeader = (CFHTTPMessageRef) CFReadStreamCopyProperty(readStream,kCFStreamPropertyHTTPResponseHeader);
 		requestAuthentication = CFHTTPAuthenticationCreateFromResponse(NULL, responseHeader);
@@ -730,7 +749,7 @@ static NSLock *progressLock;
 		return;
 	}
 	
-	//See if authentication is valid
+	// See if authentication is valid
 	CFStreamError err;		
 	if (!CFHTTPAuthenticationIsValid(requestAuthentication, &err)) {
 		
@@ -749,7 +768,7 @@ static NSLock *progressLock;
 				[authenticationLock lockWhenCondition:2];
 				[authenticationLock unlock];
 				
-				//Hopefully, the delegate gave us some credentials, let's apply them and reload
+				// Hopefully, the delegate gave us some credentials, let's apply them and reload
 				[self attemptToApplyCredentialsAndResume];
 				return;
 			}
@@ -768,7 +787,7 @@ static NSLock *progressLock;
 			[self failWithProblem:@"Failed to apply credentials to request"];
 		}
 	
-	// are a user name & password needed?
+	// Are a user name & password needed?
 	}  else if (CFHTTPAuthenticationRequiresUserNameAndPassword(requestAuthentication)) {
 
 		NSMutableDictionary *newCredentials = [self findCredentials];
@@ -784,7 +803,7 @@ static NSLock *progressLock;
 			return;
 		}
 
-		//We've got no credentials, let's ask the delegate to sort this out
+		// We've got no credentials, let's ask the delegate to sort this out
 		ignoreError = YES;	
 		if ([delegate respondsToSelector:@selector(authorizationNeededForRequest:)]) {
 			[delegate performSelectorOnMainThread:@selector(authorizationNeededForRequest:) withObject:self waitUntilDone:YES];
@@ -794,7 +813,7 @@ static NSLock *progressLock;
 			return;
 		}
 		
-		//The delegate isn't interested, we'll have to give up
+		// The delegate isn't interested, we'll have to give up
 		[self setError:[self authenticationError]];
 		complete = YES;
 		return;
@@ -890,7 +909,7 @@ static NSLock *progressLock;
         readStream = NULL;
     }
 	
-	//close the output stream as we're done writing to the file
+	// Close the output stream as we're done writing to the file
 	if (downloadDestinationPath) {
 		[outputStream close];
 	}
@@ -906,7 +925,7 @@ static NSLock *progressLock;
 
 	[self cancelLoad];
 	
-	if (!error) { //We may already have handled this error
+	if (!error) { // We may already have handled this error
 		[self failWithProblem:[NSString stringWithFormat: @"An error occurred: %@",[err localizedDescription]]];
 	}
 }
@@ -980,7 +999,7 @@ static NSLock *progressLock;
 			
 + (void)setSessionCookies:(NSMutableArray *)newSessionCookies
 {
-	//Remove existing cookies from the persistent store
+	// Remove existing cookies from the persistent store
 	NSHTTPCookie *cookie;
 	for (cookie in newSessionCookies) {
 		[[NSHTTPCookieStorage sharedHTTPCookieStorage] deleteCookie:cookie];

@@ -48,6 +48,8 @@
 - (void)setUploadProgressDelegate:(id)newDelegate
 {
 	uploadProgressDelegate = newDelegate;
+	
+	// If the uploadProgressDelegate is an NSProgressIndicator, we set it's MaxValue to 1.0 so we can treat it similarly to UIProgressViews
 	SEL selector = @selector(setMaxValue:);
 	if ([uploadProgressDelegate respondsToSelector:selector]) {
 		double max = 1.0;
@@ -64,6 +66,8 @@
 - (void)setDownloadProgressDelegate:(id)newDelegate
 {
 	downloadProgressDelegate = newDelegate;
+	
+	// If the downloadProgressDelegate is an NSProgressIndicator, we set it's MaxValue to 1.0 so we can treat it similarly to UIProgressViews
 	SEL selector = @selector(setMaxValue:);
 	if ([downloadProgressDelegate respondsToSelector:selector]) {
 		double max = 1.0;
@@ -75,7 +79,7 @@
 	}	
 }
 
-//Only add ASIHTTPRequests to this queue
+// Only add ASIHTTPRequests to this queue!!
 - (void)addOperation:(NSOperation *)operation
 {
 	if ([operation isKindOfClass:[ASIHTTPRequest class]]) {
@@ -160,6 +164,7 @@
 	[ASIHTTPRequest setProgress:progress forProgressIndicator:downloadProgressDelegate];
 }
 
+// Since this queue takes over as the delegate for all requests it contains, it should forward authorisation requests to its own delegate
 - (void)authorizationNeededForRequest:(ASIHTTPRequest *)request
 {
 	if ([delegate respondsToSelector:@selector(authorizationNeededForRequest:)]) {

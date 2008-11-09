@@ -20,7 +20,6 @@
 - (void)testFileDownload;
 - (void)testDownloadProgress;
 - (void)testUploadProgress;
-- (void)testOperationQueue;
 - (void)testCookies;
 
 @end

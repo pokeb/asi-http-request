@@ -82,11 +82,47 @@
 	url = [[[NSURL alloc] initWithString:@""] autorelease];
 	requestThatShouldFail = [[ASIHTTPRequest alloc] initWithURL:url];
 	[networkQueue addOperation:requestThatShouldFail];
+
+	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/asi-http-request/tests/broken"] autorelease];
+	ASIHTTPRequest *request5 = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[networkQueue addOperation:request5];
+	
 	
 	NSDate* endDate = [NSDate distantFuture];
 	while (!complete) {
 		[[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:endDate];
 	}
+	
+	
+	BOOL success;
+	success = ([request1 error] == nil);
+	STAssertTrue(success,@"Request 1 failed");
+	
+	success = [[request1 dataString] isEqualToString:@"This is the expected content for the first string"];
+	STAssertTrue(success,@"Failed to download the correct data for request 1");
+	
+	success = ([request2 error] == nil);
+	STAssertTrue(success,@"Request 2 failed");
+	
+	success = [[request2 dataString] isEqualToString:@"This is the expected content for the second string"];
+	STAssertTrue(success,@"Failed to download the correct data for request 2");
+	
+	success = ([request3 error] == nil);
+	STAssertTrue(success,@"Request 3 failed");
+	
+	success = [[request3 dataString] isEqualToString:@"This is the expected content for the third string"];
+	STAssertTrue(success,@"Failed to download the correct data for request 3");
+	
+	success = ([requestThatShouldFail error] != nil);
+	STAssertTrue(success,@"Request 4 succeed when it should have failed");
+	
+	success = ([request5 error] == nil);
+	STAssertTrue(success,@"Request 5 failed");
+	
+	success = ([request5 responseStatusCode] == 404);
+	STAssertTrue(success,@"Failed to obtain the correct status code for request 5");
+
+
 	
 	[requestThatShouldFail release];
 	
@@ -118,14 +154,14 @@
 	url = [[[NSURL alloc] initWithString:@""] autorelease];
 	requestThatShouldFail = [[ASIHTTPRequest alloc] initWithURL:url];
 	[networkQueue addOperation:requestThatShouldFail];
-
+	
 	NSDate* endDate = [NSDate distantFuture];
 	while (!complete) {
 		[[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:endDate];
 	}
 	
-	[requestThatShouldFail release];
 	
+	[requestThatShouldFail release];	
 }
 
 - (void)requestFailedCancellingOthers:(ASIHTTPRequest *)request
@@ -144,7 +180,6 @@
 - (void)queueFinished:(ASINetworkQueue *)queue
 {
 	complete = YES;
-
 }
  
 
