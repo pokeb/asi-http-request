@@ -21,5 +21,7 @@
 - (void)testDownloadProgress;
 - (void)testUploadProgress;
 - (void)testCookies;
+- (void)testBasicAuthentication;
+- (void)testDigestAuthentication;
 
 @end

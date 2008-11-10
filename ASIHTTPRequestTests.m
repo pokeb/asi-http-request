@@ -14,14 +14,6 @@
 
 @implementation ASIHTTPRequestTests
 
-/*
-More tests needed for:
- - Delegates - success and failure
- - Authentication
- - Keychains
- - Session persistence
-*/
-
 
 
 - (void)testBasicDownload
@@ -244,6 +236,125 @@ More tests needed for:
 	STAssertTrue(success,@"Cookie presented to the server when it should have been removed");
 }
 
+
+- (void)testBasicAuthentication
+{
+
+	NSURL *url = [[[NSURL alloc] initWithString:@"http://asi/asi-http-request/tests/basic-authentication"] autorelease];
+	ASIHTTPRequest *request;
+	BOOL success;
+	NSError *err;
+	
+	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request setUseKeychainPersistance:NO];
+	[request start];
+	success = ([[[[request error] userInfo] objectForKey:@"Description"] isEqualToString:@"Your username and password were incorrect."]);
+	STAssertTrue(success,@"Failed to generate permission denied error with no credentials");
+	
+	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request setUseKeychainPersistance:NO];
+	[request setUsername:@"wrong"];
+	[request setPassword:@"wrong"];
+	[request start];
+	success = ([[[[request error] userInfo] objectForKey:@"Description"] isEqualToString:@"Your username and password were incorrect."]);
+	STAssertTrue(success,@"Failed to generate permission denied error with wrong credentials");
+	
+	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request setUseSessionPersistance:YES];
+	[request setUseKeychainPersistance:YES];
+	[request setUsername:@"secret_username"];
+	[request setPassword:@"secret_password"];
+	[request start];
+	err = [request error];
+	STAssertNil(err,@"Failed to supply correct username and password");
+	
+	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request setUseSessionPersistance:NO];
+	[request setUseKeychainPersistance:NO];
+	[request start];
+	success = ([[[[request error] userInfo] objectForKey:@"Description"] isEqualToString:@"Your username and password were incorrect."]);
+	STAssertTrue(success,@"Reused credentials when we shouldn't have");
+
+	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request setUseSessionPersistance:YES];
+	[request setUseKeychainPersistance:NO];
+	[request start];
+	err = [request error];
+	STAssertNil(err,@"Failed to reuse credentials");
+	
+	[ASIHTTPRequest clearSession];
+	
+	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request setUseKeychainPersistance:NO];
+	[request start];
+	success = ([[[[request error] userInfo] objectForKey:@"Description"] isEqualToString:@"Your username and password were incorrect."]);
+	STAssertTrue(success,@"Failed to clear credentials");
+	
+	//This test may show a dialog!
+	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request setUseKeychainPersistance:YES];
+	[request start];
+	err = [request error];
+	STAssertNil(err,@"Failed to use stored credentials");
+}
+
+
+
+- (void)testDigestAuthentication
+{
+	[ASIHTTPRequest clearSession];
+	
+	NSURL *url = [[[NSURL alloc] initWithString:@"http://asi/asi-http-request/tests/digest-authentication"] autorelease];
+	ASIHTTPRequest *request;
+	BOOL success;
+	NSError *err;
+	
+	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request setUseKeychainPersistance:NO];
+	[request start];
+	success = ([[[[request error] userInfo] objectForKey:@"Description"] isEqualToString:@"Your username and password were incorrect."]);
+	STAssertTrue(success,@"Failed to generate permission denied error with no credentials");
+	
+	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request setUseKeychainPersistance:NO];
+	[request setUsername:@"wrong"];
+	[request setPassword:@"wrong"];
+	[request start];
+	success = ([[[[request error] userInfo] objectForKey:@"Description"] isEqualToString:@"Your username and password were incorrect."]);
+	STAssertTrue(success,@"Failed to generate permission denied error with wrong credentials");
+	
+	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request setUseSessionPersistance:YES];
+	[request setUseKeychainPersistance:YES];
+	[request setUsername:@"secret_username"];
+	[request setPassword:@"secret_password"];
+	[request start];
+	err = [request error];
+	STAssertNil(err,@"Failed to supply correct username and password");
+	
+	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request setUseSessionPersistance:NO];
+	[request setUseKeychainPersistance:NO];
+	[request start];
+	success = ([[[[request error] userInfo] objectForKey:@"Description"] isEqualToString:@"Your username and password were incorrect."]);
+	STAssertTrue(success,@"Reused credentials when we shouldn't have");
+	
+	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request setUseSessionPersistance:YES];
+	[request setUseKeychainPersistance:NO];
+	[request start];
+	err = [request error];
+	STAssertNil(err,@"Failed to reuse credentials");
+	
+	[ASIHTTPRequest clearSession];
+	
+	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request setUseKeychainPersistance:NO];
+	[request start];
+	success = ([[[[request error] userInfo] objectForKey:@"Description"] isEqualToString:@"Your username and password were incorrect."]);
+	STAssertTrue(success,@"Failed to clear credentials");
+
+}
 
 
 @end

@@ -32,5 +32,7 @@
 	BOOL success = ([[request dataString] isEqualToString:[NSString stringWithFormat:@"post_var: %@\r\nfile_name: %@\r\nfile_size: %hu",@"foo",@"bigfile",size]]);
 	STAssertTrue(success,@"Failed to upload the correct data");	
 }
+ 
+
 
 @end
