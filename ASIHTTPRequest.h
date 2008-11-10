@@ -121,9 +121,27 @@
 	//Used for recording when something last happened during the request, we will compare this value with the current date to time out requests when appropriate
 	NSDate *lastActivityTime;
 	
+	// Number of seconds to wait before timing out - default is 10
 	NSTimeInterval timeOutSeconds;
 	
+	// Autorelease pool for the main loop, since it's highly likely that this operation will run in a thread
 	NSAutoreleasePool *pool;
+	
+	// Will be YES when a HEAD request will handle the content-length before this request starts
+	BOOL useCachedContentLength;
+	
+	// Used by HEAD requests when showAccurateProgress is YES to preset the content-length for this request
+	ASIHTTPRequest *mainRequest;
+	
+	// When NO, this request will only update the progress indicator when it completes
+	// When YES, this request will update the progress indicator according to how much data it has recieved so far
+	// The default for requests is YES
+	// Also see the comments in ASINetworkQueue.h
+	BOOL showAccurateProgress;
+	
+	BOOL updatedProgress;
+	
+	BOOL haveBuiltPostBody;
 }
 
 #pragma mark init / dealloc
@@ -136,6 +154,7 @@
 //Add a custom header to the request
 - (void)addRequestHeader:(NSString *)header value:(NSString *)value;
 
+- (void)buildPostBody;
 
 #pragma mark get information about this request
 
@@ -262,4 +281,8 @@
 @property (retain) NSString *requestMethod;
 @property (retain,setter=setPostBody:) NSData *postBody;
 @property (assign) unsigned int contentLength;
+@property (assign) unsigned int postLength;
+@property (assign) BOOL useCachedContentLength;
+@property (retain) ASIHTTPRequest *mainRequest;
+@property (assign) BOOL showAccurateProgress;
 @end

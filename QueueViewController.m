@@ -38,6 +38,8 @@
 	
 	request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com/i/sharedspace20.png"]] autorelease];
 	[networkQueue addOperation:request];
+	
+	[networkQueue go];
 }
 
 

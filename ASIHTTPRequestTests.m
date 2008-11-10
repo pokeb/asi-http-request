@@ -117,7 +117,7 @@
 - (void)testUploadProgress
 {
 	progress = 0;
-	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ignore"]] autorelease];
+	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://asi/ignore"]] autorelease];
 	[request setPostBody:[NSMutableData dataWithLength:1024*32]];
 	[request setUploadProgressDelegate:self];
 	[request start];
@@ -355,6 +355,7 @@
 	STAssertTrue(success,@"Failed to clear credentials");
 
 }
+
 
 
 @end

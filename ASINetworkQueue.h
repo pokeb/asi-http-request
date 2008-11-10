@@ -26,27 +26,39 @@
 	id uploadProgressDelegate;
 	
 	// Total amount uploaded so far for all requests in this queue
-	int uploadProgressBytes;
+	unsigned int uploadProgressBytes;
 	
 	// Total amount to be uploaded for all requests in this queue - requests add to this figure as they work out how much data they have to transmit
-	int uploadProgressTotalBytes;
+	unsigned int uploadProgressTotalBytes;
 
 	// Download progress indicator, probably an NSProgressIndicator or UIProgressView
 	id downloadProgressDelegate;
 	
 	// Total amount downloaded so far for all requests in this queue
-	int downloadProgressBytes;
+	unsigned int downloadProgressBytes;
 	
 	// Total amount to be downloaded for all requests in this queue - requests add to this figure as they receive Content-Length headers
-	int downloadProgressTotalBytes;
+	unsigned int downloadProgressTotalBytes;
 	
 	// When YES, the queue will cancel all requests when a request fails. Default is YES
 	BOOL shouldCancelAllRequestsOnFailure;
 	
+	//Number of real requests (excludes HEAD requests created to manage showAccurateProgress)
 	int requestsCount;
-	int requestsCompleteCount;
+	
+	// When NO, this request will only update the progress indicator when it completes
+	// When YES, this request will update the progress indicator according to how much data it has recieved so far
+	// When YES, the queue will first perform HEAD requests for all GET requests in the queue, so it can calculate the total download size before it starts
+	// NO means better performance, because it skips this step for GET requests, and it won't waste time updating the progress indicator until a request completes 
+	// Set to YES if the size of a requests in the queue varies greatly for much more accurate results
+	// Default for requests in the queue is NO
+	BOOL showAccurateProgress;
+
+	
 }
 
+// Used internally to manage HEAD requests when showAccurateProgress is YES, do not use!
+- (void)addHEADOperation:(NSOperation *)operation;
 
 // Called at the start of a request to add on the size of this upload to the total
 - (void)incrementUploadSizeBy:(int)bytes;
@@ -60,6 +72,10 @@
 // Called during a request when data is received to increment the progress indicator
 - (void)incrementDownloadProgressBy:(int)bytes;
 
+// All ASINetworkQueues are paused when created so that total size can be calculated before the queue starts
+// This method will start the queue
+- (void)go;
+
 @property (assign,setter=setUploadProgressDelegate:) id uploadProgressDelegate;
 @property (assign,setter=setDownloadProgressDelegate:) id downloadProgressDelegate;
 
@@ -68,4 +84,5 @@
 @property (assign) SEL queueDidFinishSelector;
 @property (assign) BOOL shouldCancelAllRequestsOnFailure;
 @property (assign) id delegate;
+@property (assign) BOOL showAccurateProgress;
 @end

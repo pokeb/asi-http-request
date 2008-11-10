@@ -21,21 +21,23 @@
 	networkQueue = [[ASINetworkQueue alloc] init];
 	[networkQueue setDownloadProgressDelegate:self];
 	[networkQueue setDelegate:self];
-	[networkQueue setRequestDidFinishSelector:@selector(queueFinished:)];	
+	[networkQueue setShowAccurateProgress:NO];
+	[networkQueue setQueueDidFinishSelector:@selector(queueFinished:)];	
 	
 	NSURL *url;	
-	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/asi-http-request/tests/first"] autorelease];
+	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/i/logo.png"] autorelease];
 	ASIHTTPRequest *request1 = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[networkQueue addOperation:request1];
 	
-	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/asi-http-request/tests/second"] autorelease];
+	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/i/trailsnetwork.png"] autorelease];
 	ASIHTTPRequest *request2 = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[networkQueue addOperation:request2];
 	
-	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/asi-http-request/tests/third"] autorelease];
+	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/sharedspace20.png"] autorelease];
 	ASIHTTPRequest *request3 = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[networkQueue addOperation:request3];
 	
+	[networkQueue go];
 	
 	NSDate* endDate = [NSDate distantFuture];
 	while (!complete) {
@@ -45,7 +47,37 @@
 	BOOL success = (progress == 1.0);
 	STAssertTrue(success,@"Failed to increment progress properly");
 	
+	//Now test again with accurate progress
+	
+	[networkQueue cancelAllOperations];
+	[networkQueue setShowAccurateProgress:YES];
+
+	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/i/logo.png"] autorelease];
+	request1 = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[networkQueue addOperation:request1];
+	
+	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/i/trailsnetwork.png"] autorelease];
+	request2 = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[networkQueue addOperation:request2];
+	
+	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/sharedspace20.png"] autorelease];
+	request3 = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[networkQueue addOperation:request3];
+	
+	[networkQueue go];
+	
+	endDate = [NSDate distantFuture];
+	while (!complete) {
+		[[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:endDate];
+	}
+	
+	success = (progress == 1.0);
+	STAssertTrue(success,@"Failed to increment progress properly");
+	
+	
 	[networkQueue release];
+	
+	
 	
 	
 }
@@ -86,7 +118,8 @@
 	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/asi-http-request/tests/broken"] autorelease];
 	ASIHTTPRequest *request5 = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[networkQueue addOperation:request5];
-	
+
+	[networkQueue go];
 	
 	NSDate* endDate = [NSDate distantFuture];
 	while (!complete) {
@@ -154,6 +187,8 @@
 	url = [[[NSURL alloc] initWithString:@""] autorelease];
 	requestThatShouldFail = [[ASIHTTPRequest alloc] initWithURL:url];
 	[networkQueue addOperation:requestThatShouldFail];
+
+	[networkQueue go];
 	
 	NSDate* endDate = [NSDate distantFuture];
 	while (!complete) {

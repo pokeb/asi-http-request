@@ -31,17 +31,37 @@
 	downloadProgressTotalBytes = 0;
 	
 	requestsCount = 0;
-	requestsCompleteCount = 0;
+	
+	showAccurateProgress = NO;
+	
+	[self setSuspended:YES];
 	
 	return self;
 }
 
+- (void)go
+{
+	if (!showAccurateProgress) {
+		if (downloadProgressDelegate) {
+			[self incrementDownloadSizeBy:requestsCount];
+		}
+		if (uploadProgressDelegate) {
+			[self incrementUploadSizeBy:requestsCount];
+		}		
+	}
+	[self setSuspended:NO];
+}
+
 - (void)cancelAllOperations
 {
+	requestsCount = 0;
 	uploadProgressBytes = 0;
 	uploadProgressTotalBytes = 0;
 	downloadProgressBytes = 0;
-	downloadProgressTotalBytes = 0;	
+	downloadProgressTotalBytes = 0;
+	[self setUploadProgressDelegate:nil];
+	[self setDownloadProgressDelegate:nil];
+	[self setDelegate:nil];
 	[super cancelAllOperations];
 }
 
@@ -58,7 +78,6 @@
 		[invocation setSelector:selector];
 		[invocation setArgument:&max atIndex:2];
 		[invocation invokeWithTarget:uploadProgressDelegate];
-
 	}	
 }
 
@@ -79,48 +98,96 @@
 	}	
 }
 
+- (void)addHEADOperation:(NSOperation *)operation
+{
+	if ([operation isKindOfClass:[ASIHTTPRequest class]]) {
+		
+		ASIHTTPRequest *request = (ASIHTTPRequest *)operation;
+		[request setShowAccurateProgress:YES];
+		if (uploadProgressDelegate) {
+			[request setUploadProgressDelegate:self];
+		} else {
+			[request setUploadProgressDelegate:NULL];
+		}
+		if (downloadProgressDelegate) {
+			[request setDownloadProgressDelegate:self];
+		} else {
+			[request setDownloadProgressDelegate:NULL];	
+		}
+		[request setDelegate:self];
+		[super addOperation:request];
+	}
+}
+
 // Only add ASIHTTPRequests to this queue!!
 - (void)addOperation:(NSOperation *)operation
 {
 	if ([operation isKindOfClass:[ASIHTTPRequest class]]) {
+		
 		requestsCount++;
+		
+		ASIHTTPRequest *request = (ASIHTTPRequest *)operation;
+		
+		if (showAccurateProgress) {
+			
+			//If this is a GET request and we want accurate progress, perform a HEAD request first to get the content-length
+			if ([[request requestMethod] isEqualToString:@"GET"]) {
+				ASIHTTPRequest *HEADRequest = [[[ASIHTTPRequest alloc] initWithURL:[request url]] autorelease];
+				[HEADRequest setRequestMethod:@"HEAD"];
+				[HEADRequest setQueuePriority:10];
+				[HEADRequest setMainRequest:request];
+				[self addHEADOperation:HEADRequest];
+				
+				[request setUseCachedContentLength:YES];
+				[request addDependency:HEADRequest];
+			
+			//If we want to track uploading for this request accurately, we need to add the size of the post content to the total
+			} else if (uploadProgressDelegate) {
+				[request buildPostBody];
+				uploadProgressTotalBytes += [request postLength];
+			}
+		}
+		[request setShowAccurateProgress:showAccurateProgress];
+		
 		if (uploadProgressDelegate) {
-			[(ASIHTTPRequest *)operation setUploadProgressDelegate:self];
+			[request setUploadProgressDelegate:self];
 		} else {
-			[(ASIHTTPRequest *)operation setUploadProgressDelegate:NULL];
+			[request setUploadProgressDelegate:NULL];
 		}
 		if (downloadProgressDelegate) {
-			[(ASIHTTPRequest *)operation setDownloadProgressDelegate:self];
+			[request setDownloadProgressDelegate:self];
 		} else {
-			[(ASIHTTPRequest *)operation setDownloadProgressDelegate:NULL];	
+			[request setDownloadProgressDelegate:NULL];	
 		}
-		[(ASIHTTPRequest *)operation setDelegate:self];
-		[(ASIHTTPRequest *)operation setDidFailSelector:@selector(requestDidFail:)];
-		[(ASIHTTPRequest *)operation setDidFinishSelector:@selector(requestDidFinish:)];
-		[super addOperation:operation];
+		[request setDelegate:self];
+		[request setDidFailSelector:@selector(requestDidFail:)];
+		[request setDidFinishSelector:@selector(requestDidFinish:)];
+		[super addOperation:request];
 	}
 	
 }
 
 - (void)requestDidFail:(ASIHTTPRequest *)request
 {
+	requestsCount--;
 	if (requestDidFailSelector) {
 		[delegate performSelector:requestDidFailSelector withObject:request];
 	}
 	if (shouldCancelAllRequestsOnFailure) {
 		[self cancelAllOperations];
 	}
-	requestsCompleteCount++;
 }
 
 - (void)requestDidFinish:(ASIHTTPRequest *)request
 {
-	requestsCompleteCount++;
+	requestsCount--;
 	if (requestDidFinishSelector) {
 		[delegate performSelector:requestDidFinishSelector withObject:request];
 	}
-	if (queueDidFinishSelector && requestsCompleteCount == requestsCount) {
-		[delegate performSelector:queueDidFinishSelector withObject:self];
+	if (requestsCount == 0) {
+		if (queueDidFinishSelector) {
+			[delegate performSelector:queueDidFinishSelector withObject:self];
+		}
 	}
 }
 
@@ -159,7 +226,7 @@
 		return;
 	}
 	downloadProgressBytes += bytes;
-	
+	//NSLog(@"%hu/%hu",downloadProgressBytes,downloadProgressTotalBytes);
 	double progress = (downloadProgressBytes*1.0)/(downloadProgressTotalBytes*1.0);
 	[ASIHTTPRequest setProgress:progress forProgressIndicator:downloadProgressDelegate];
 }
@@ -173,6 +240,7 @@
 }
 
 
+
 @synthesize uploadProgressDelegate;
 @synthesize downloadProgressDelegate;
 @synthesize requestDidFinishSelector;
@@ -180,4 +248,6 @@
 @synthesize queueDidFinishSelector;
 @synthesize shouldCancelAllRequestsOnFailure;
 @synthesize delegate;
+@synthesize showAccurateProgress;
+
 @end

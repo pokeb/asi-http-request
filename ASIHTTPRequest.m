@@ -51,12 +51,17 @@ static NSLock *progressLock;
 	self = [super init];
 	[self setRequestMethod:@"GET"];
 	lastBytesSent = 0;
+	showAccurateProgress = YES;
+	useCachedContentLength = NO;
+	updatedProgress = NO;
+	mainRequest = nil;
 	username = nil;
 	password = nil;
 	requestHeaders = nil;
 	authenticationRealm = nil;
 	outputStream = nil;
 	requestAuthentication = NULL;
+	haveBuiltPostBody = NO;
 	//credentials = NULL;
 	request = NULL;
 	responseHeaders = nil;
@@ -81,6 +86,7 @@ static NSLock *progressLock;
 		CFRelease(request);
 	}
 	[self cancelLoad];
+	[mainRequest release];
 	[postBody release];
 	[requestCredentials release];
 	[error release];
@@ -116,7 +122,18 @@ static NSLock *progressLock;
 -(void)setPostBody:(NSData *)body
 {
 	postBody = [body retain];
-	[self setRequestMethod:@"POST"];
+	postLength = [postBody length];
+	if (postBody && postLength > 0 && ![requestMethod isEqualToString:@"POST"] && ![requestMethod isEqualToString:@"PUT"]) {
+		[self setRequestMethod:@"POST"];
+	}
+}
+
+// Subclasses should override this method if they need to create POST content for this request
+// This function will be called either just before a request starts, or when postLength is needed, whichever comes first
+// postLength must be set by the time this function is complete - calling setPostBody: will do this for you
+- (void)buildPostBody
+{
+	haveBuiltPostBody = YES;
 }
 
 #pragma mark get information about this request
@@ -197,7 +214,11 @@ static NSLock *progressLock;
 			[self addRequestHeader:@"Cookie" value:cookieHeader];
 		}
 	}
-	
+
+
+	if (!haveBuiltPostBody) {
+		[self buildPostBody];
+	}
 	
 	// Add custom headers
 	NSString *header;
@@ -205,13 +226,15 @@ static NSLock *progressLock;
 		CFHTTPMessageSetHeaderFieldValue(request, (CFStringRef)header, (CFStringRef)[requestHeaders objectForKey:header]);
 	}
 	
+
+
+	
 	
 	// If this is a post request and we have data to send, add it to the request
 	if ([self postBody]) {
 		CFHTTPMessageSetBody(request, (CFDataRef)postBody);
-		postLength = [postBody length];
 	}
-	
+
 	[self loadRequest];
 
 }
@@ -235,7 +258,9 @@ static NSLock *progressLock;
 	}
 	
 	lastBytesSent = 0;
-	contentLength = 0;
+	if (!useCachedContentLength) {
+		contentLength = 0;
+	}
 	[self setResponseHeaders:nil];
     [self setReceivedData:[[[NSMutableData alloc] init] autorelease]];
     
@@ -267,7 +292,6 @@ static NSLock *progressLock;
 		[self failWithProblem:@"Unable to start http connection"];
         return;
     }
-
 	
 	if (uploadProgressDelegate) {
 		[self performSelectorOnMainThread:@selector(resetUploadProgress:) withObject:[NSNumber numberWithDouble:postLength] waitUntilDone:YES];
@@ -340,9 +364,14 @@ static NSLock *progressLock;
 
 - (void)updateProgressIndicators
 {
-
-	[self updateUploadProgress];
-	[self updateDownloadProgress];
+	//Only update progress if this isn't a HEAD request used to preset the content-length
+	if (!mainRequest) {
+		
+		if (showAccurateProgress || (complete && !updatedProgress)) {
+			[self updateUploadProgress];
+			[self updateDownloadProgress];
+		}
+	}
 
 }
 
@@ -421,7 +450,13 @@ static NSLock *progressLock;
 	
 		//We're using a progress queue or compatible controller to handle progress
 		if ([uploadProgressDelegate respondsToSelector:@selector(incrementUploadProgressBy:)]) {
-			int value = byteCount-lastBytesSent;
+			int value = 0;
+			if (showAccurateProgress) {
+				value = byteCount-lastBytesSent;
+			} else {
+				value = 1;
+				updatedProgress = YES;
+			}
 			SEL selector = @selector(incrementUploadProgressBy:);
 			NSMethodSignature *signature = nil;
 			signature = [[uploadProgressDelegate class] instanceMethodSignatureForSelector:selector];
@@ -485,7 +520,14 @@ static NSLock *progressLock;
 			
 			NSAutoreleasePool *thePool = [[NSAutoreleasePool alloc] init];
 			
-			int value = totalBytesRead-lastBytesRead;
+			int value = 0;
+			if (showAccurateProgress) {
+				value = totalBytesRead-lastBytesRead;
+			} else {
+				value = 1;
+				updatedProgress = YES;
+			}
+			
 			SEL selector = @selector(incrementDownloadProgressBy:);
 			NSMethodSignature *signature = [[downloadProgressDelegate class] instanceMethodSignatureForSelector:selector];
 			NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
@@ -614,12 +656,18 @@ static NSLock *progressLock;
 		//We won't reset the download progress delegate if we got an authentication challenge
 		if (!isAuthenticationChallenge) {
 
-			//See if we got a Content-length header
-			NSString *cLength = [responseHeaders valueForKey:@"Content-Length"];
-			if (cLength) {
-				contentLength = CFStringGetDoubleValue((CFStringRef)cLength);
-				if (downloadProgressDelegate) {
-					[self performSelectorOnMainThread:@selector(resetDownloadProgress:) withObject:[NSNumber numberWithDouble:contentLength] waitUntilDone:YES];
+			//Only check the content length if we haven't already got one (may have been set by an ASINetworkQueue using a previous HEAD request)
+			if (!useCachedContentLength) {
+				//See if we got a Content-length header
+				NSString *cLength = [responseHeaders valueForKey:@"Content-Length"];
+				if (cLength) {
+					contentLength = CFStringGetDoubleValue((CFStringRef)cLength);
+					if (mainRequest) {
+						[mainRequest setContentLength:contentLength];
+					}
+					if (downloadProgressDelegate && showAccurateProgress) {
+						[self performSelectorOnMainThread:@selector(resetDownloadProgress:) withObject:[NSNumber numberWithDouble:contentLength] waitUntilDone:YES];
+					}
 				}
 			}
 			
@@ -836,7 +884,6 @@ static NSLock *progressLock;
 
 - (void)handleNetworkEvent:(CFStreamEventType)type
 {
-    
     // Dispatch the stream events.
     switch (type) {
         case kCFStreamEventHasBytesAvailable:
@@ -898,9 +945,18 @@ static NSLock *progressLock;
 
 - (void)handleStreamComplete
 {
+	
+	//Try to read the headers (if this is a HEAD request handleBytesAvailable available may not be called)
+	if (!responseHeaders) {
+		if ([self readResponseHeadersReturningAuthenticationFailure]) {
+			[self attemptToApplyCredentialsAndResume];
+			return;
+		}
+	}
+
+	
 	complete = YES;
-	[self updateUploadProgress];
-	[self updateDownloadProgress];
+	[self updateProgressIndicators];
     if (readStream) {
         CFReadStreamClose(readStream);
         CFReadStreamSetClient(readStream, kCFStreamEventNone, NULL, NULL);
@@ -1017,9 +1073,6 @@ static NSLock *progressLock;
 }
 
 
-
-
-
 @synthesize username;
 @synthesize password;
 @synthesize domain;
@@ -1047,4 +1100,8 @@ static NSLock *progressLock;
 @synthesize requestMethod;
 @synthesize postBody;
 @synthesize contentLength;
+@synthesize postLength;
+@synthesize useCachedContentLength;
+@synthesize mainRequest;
+@synthesize showAccurateProgress;
 @end

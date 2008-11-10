@@ -43,6 +43,7 @@
 - (IBAction)URLFetchWithProgress:(id)sender
 {
 	[networkQueue cancelAllOperations];
+	[networkQueue setShowAccurateProgress:YES];
 	[networkQueue setDownloadProgressDelegate:progressIndicator];
 	[networkQueue setDelegate:self];
 	[networkQueue setRequestDidFinishSelector:@selector(URLFetchWithProgressComplete:)];
@@ -50,6 +51,7 @@
 	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://trails-network.net/Downloads/MemexTrails_1.0b1.zip"]] autorelease];
 	[request setDownloadDestinationPath:[[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"MemexTrails_1.0b1.zip"]];
 	[networkQueue addOperation:request];
+	[networkQueue go];
 }
 
 - (void)URLFetchWithProgressComplete:(ASIHTTPRequest *)request
@@ -71,6 +73,7 @@
 	[networkQueue setDownloadProgressDelegate:progressIndicator];
 	[networkQueue setRequestDidFinishSelector:@selector(imageFetchComplete:)];
 	[networkQueue setDelegate:self];
+	[networkQueue setShowAccurateProgress:([showAccurateProgress state] == NSOnState)];
 	
 	ASIHTTPRequest *request;
 	
@@ -85,6 +88,9 @@
 	request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com/i/sharedspace20.png"]] autorelease];
 	[request setDownloadDestinationPath:[[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"3.png"]];
 	[networkQueue addOperation:request];
+	
+	
+	[networkQueue go];
 }
 
 
@@ -118,7 +124,7 @@
 	request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com/top_secret/"]] autorelease];
 	[request setUseKeychainPersistance:[keychainCheckbox state]];
 	[networkQueue addOperation:request];
-
+	[networkQueue go];
 
 }
 
@@ -166,19 +172,19 @@
 	[data writeToFile:path atomically:NO];
 	
 	[networkQueue cancelAllOperations];
-	[progressIndicator setDoubleValue:0];
+	[networkQueue setShowAccurateProgress:YES];
+	[networkQueue setUploadProgressDelegate:progressIndicator];
+	[networkQueue setDelegate:self];
+	
 	ASIFormDataRequest *request = [[[ASIFormDataRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ignore"]] autorelease];
-	[request setDelegate:self];
-
 	[request setPostValue:@"test" forKey:@"value1"];
 	[request setPostValue:@"test" forKey:@"value2"];
 	[request setPostValue:@"test" forKey:@"value3"];
-
 	[request setFile:path forKey:@"file"];
 	
-	[networkQueue setUploadProgressDelegate:progressIndicator];
+
 	[networkQueue addOperation:request];
-	
+	[networkQueue go];
 }
 
 

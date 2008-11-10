@@ -16,6 +16,8 @@
 	IBOutlet NSWindow *window;
 	IBOutlet NSWindow *loginWindow;
 	
+	IBOutlet NSButton *showAccurateProgress;
+	
 	IBOutlet NSTextField *host;
 	IBOutlet NSTextField *realm;	
 	IBOutlet NSTextField *username;
