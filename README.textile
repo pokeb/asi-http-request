@@ -7,9 +7,9 @@ It provides:
 * Download data to memory or directly to a file on disk(i)
 * The ability to submit files on local drives as part of POST data, compatible with the HTML file input mechanism
 * Easy access to request and response HTTP headers
-* Ability for setting up progress delegates (NSProgressIndicators and UIProgressViews) to show information about download AND upload progress
+* Progress delegates (NSProgressIndicators and UIProgressViews) to show information about download AND upload progress
 * Auto-magic management of upload and download progress indicators for operation queues
-* Basic authentication (username and password) support, credentials are automatically for the duration of a session, and can be stored for later in the Keychain.
+* Basic + Digest authentication support, credentials are automatically for the duration of a session, and can be stored for later in the Keychain.
 * Cookie support
 * Based on NSOperation to make queuing requests and background operation easy
 * Basic unit tests (more to come!)
