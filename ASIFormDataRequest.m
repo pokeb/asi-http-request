@@ -55,12 +55,7 @@
 	// Set your own boundary string only if really obsessive. We don't bother to check if post data contains the boundary, since it's pretty unlikely that it does.
 	NSString *stringBoundary = @"0xKhTmLbOuNdArY";
 	
-	//if ([fileData count] > 0) {
-		// We need to use multipart/form-data when using file upload
 	[self addRequestHeader:@"Content-Type" value:[NSString stringWithFormat:@"multipart/form-data; boundary=%@",stringBoundary]];
-	//}
-	
-	
 	
 	[body appendData:[[NSString stringWithFormat:@"--%@\r\n",stringBoundary] dataUsingEncoding:NSUTF8StringEncoding]];
 	
@@ -86,9 +81,7 @@
 		NSString *filePath = [fileData objectForKey:key];
 		[body appendData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"; filename=\"%@\"\r\n",key,[filePath lastPathComponent]] dataUsingEncoding:NSUTF8StringEncoding]];
 		[body appendData:contentTypeHeader];
-		//[body appendData: [NSData dataWithContentsOfFile:filePath options:NSUncachedRead error:NULL]];
-		//[body appendData:[NSData dataWithContentsOfMappedFile:filePath]];
-		[body appendData:[NSData dataWithContentsOfFile:filePath]];
+		[body appendData: [NSData dataWithContentsOfFile:filePath options:NSUncachedRead error:NULL]];
 		i++;
 		// Only add the boundary if this is not the last item in the post body
 		if (i != [fileData count]) { 

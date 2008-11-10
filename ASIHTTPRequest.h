@@ -139,8 +139,10 @@
 	// Also see the comments in ASINetworkQueue.h
 	BOOL showAccurateProgress;
 	
+	//Used to ensure the progress indicator is only incremented once when showAccurateProgress = NO
 	BOOL updatedProgress;
 	
+	//Prevents the body of the post being built more than once (largely for subclasses)
 	BOOL haveBuiltPostBody;
 }
 
@@ -159,9 +161,6 @@
 #pragma mark get information about this request
 
 - (BOOL)isFinished; //Same thing, for NSOperationQueues to read
-
-// Get total amount of data received so far for this request
-- (int)totalBytesRead;
 
 // Returns the contents of the result as an NSString (not appropriate for binary data!)
 - (NSString *)dataString;
@@ -285,4 +284,5 @@
 @property (assign) BOOL useCachedContentLength;
 @property (retain) ASIHTTPRequest *mainRequest;
 @property (assign) BOOL showAccurateProgress;
+@property (assign,readonly) unsigned int totalBytesRead;
 @end
