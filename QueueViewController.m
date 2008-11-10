@@ -27,6 +27,7 @@
 	[networkQueue cancelAllOperations];
 	[networkQueue setDownloadProgressDelegate:progressIndicator];
 	[networkQueue setRequestDidFinishSelector:@selector(imageFetchComplete:)];
+	[networkQueue setShowAccurateProgress:[accurateProgress isOn]];
 	[networkQueue setDelegate:self];
 	
 	ASIHTTPRequest *request;

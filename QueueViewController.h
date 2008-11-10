@@ -17,6 +17,7 @@
 	IBOutlet UIImageView *imageView2;
 	IBOutlet UIImageView *imageView3;
 	IBOutlet UIProgressView *progressIndicator;
+	IBOutlet UISwitch *accurateProgress;
 	
 }
 
