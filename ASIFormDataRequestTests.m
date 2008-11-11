@@ -22,7 +22,7 @@
 	NSString *path = [[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"bigfile"];
 	[data writeToFile:path atomically:NO];
 	
-	ASIFormDataRequest *request = [[[ASIFormDataRequest alloc] initWithURL:[NSURL URLWithString:@"http://asi/asi-http-request/tests/post"]] autorelease];
+	ASIFormDataRequest *request = [[[ASIFormDataRequest alloc] initWithURL:[NSURL URLWithString:@"http:/http://allseeing-i.com/asi-http-request/tests/post"]] autorelease];
 	[request setPostValue:@"foo" forKey:@"post_var"];
 	[request setFile:path forKey:@"file"];
 	[request start];

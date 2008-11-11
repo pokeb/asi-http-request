@@ -62,7 +62,6 @@ static NSRecursiveLock *progressLock;
 	outputStream = nil;
 	requestAuthentication = NULL;
 	haveBuiltPostBody = NO;
-	//credentials = NULL;
 	request = NULL;
 	responseHeaders = nil;
 	[self setTimeOutSeconds:10];
@@ -226,10 +225,6 @@ static NSRecursiveLock *progressLock;
 		CFHTTPMessageSetHeaderFieldValue(request, (CFStringRef)header, (CFStringRef)[requestHeaders objectForKey:header]);
 	}
 	
-	//NSData *d = (NSData *)CFHTTPMessageCopySerializedMessage(request);
-	//NSLog(@"%@",[[[NSString alloc] initWithBytes:[d bytes] length:[d length] encoding:NSUTF8StringEncoding] autorelease]);
-
-	
 	// If this is a post request and we have data to send, add it to the request
 	if ([self postBody]) {
 		CFHTTPMessageSetBody(request, (CFDataRef)postBody);
@@ -388,7 +383,6 @@ static NSRecursiveLock *progressLock;
 
 - (void)updateProgressIndicators
 {
-	
 	//Only update progress if this isn't a HEAD request used to preset the content-length
 	if (!mainRequest) {
 		if (showAccurateProgress || (complete && !updatedProgress)) {
@@ -396,7 +390,6 @@ static NSRecursiveLock *progressLock;
 			[self updateDownloadProgress];
 		}
 	}
-
 }
 
 
@@ -519,7 +512,7 @@ static NSRecursiveLock *progressLock;
 {
 	unsigned long long bytesReadSoFar = totalBytesRead;
 	
-	//We won't update download progress until we've examined the headers, since we might need to authenticate
+	// We won't update download progress until we've examined the headers, since we might need to authenticate
 	if (responseHeaders) {
 		
 		if (bytesReadSoFar > lastBytesRead) {
@@ -528,8 +521,7 @@ static NSRecursiveLock *progressLock;
 		
 		if (downloadProgressDelegate) {
 		
-
-			//We're using a progress queue or compatible controller to handle progress
+			// We're using a progress queue or compatible controller to handle progress
 			if ([downloadProgressDelegate respondsToSelector:@selector(incrementDownloadProgressBy:)]) {
 				
 				NSAutoreleasePool *thePool = [[NSAutoreleasePool alloc] init];
@@ -554,7 +546,7 @@ static NSRecursiveLock *progressLock;
 				
 				[thePool release];
 				
-				//We aren't using a queue, we should just set progress of the indicator to 0
+			// We aren't using a queue, we should just set progress of the indicator to 0
 			} else if (contentLength > 0)  {
 				[ASIHTTPRequest setProgress:(double)(bytesReadSoFar/contentLength) forProgressIndicator:downloadProgressDelegate];
 			}
@@ -568,7 +560,7 @@ static NSRecursiveLock *progressLock;
 -(void)removeUploadProgressSoFar
 {
 	
-	//We're using a progress queue or compatible controller to handle progress
+	// We're using a progress queue or compatible controller to handle progress
 	if ([uploadProgressDelegate respondsToSelector:@selector(decrementUploadProgressBy:)]) {
 		unsigned long long value = 0-lastBytesSent;
 		SEL selector = @selector(decrementUploadProgressBy:);
@@ -579,7 +571,7 @@ static NSRecursiveLock *progressLock;
 		[invocation setArgument:&value atIndex:2];
 		[invocation invoke];
 		
-		//We aren't using a queue, we should just set progress of the indicator to 0
+	// We aren't using a queue, we should just set progress of the indicator to 0
 	} else {
 		[ASIHTTPRequest setProgress:0 forProgressIndicator:uploadProgressDelegate];
 	}
@@ -598,11 +590,11 @@ static NSRecursiveLock *progressLock;
 		NSMethodSignature *signature = [[indicator class] instanceMethodSignatureForSelector:selector];
 		NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
 		[invocation setSelector:selector];
-		float progressFloat = (float)progress; //UIProgressView wants a float for the progress parameter
+		float progressFloat = (float)progress; // UIProgressView wants a float for the progress parameter
 		[invocation setArgument:&progressFloat atIndex:2];
 		[invocation invokeWithTarget:indicator];
 		
-		//If we're running in the main thread, update the progress straight away. Otherwise, it's not that urgent
+		// If we're running in the main thread, update the progress straight away. Otherwise, it's not that urgent
 		[invocation performSelectorOnMainThread:@selector(invokeWithTarget:) withObject:indicator waitUntilDone:[NSThread isMainThread]];
 		
 		
@@ -667,10 +659,10 @@ static NSRecursiveLock *progressLock;
 		// Is the server response a challenge for credentials?
 		isAuthenticationChallenge = (responseStatusCode == 401);
 		
-		//We won't reset the download progress delegate if we got an authentication challenge
+		// We won't reset the download progress delegate if we got an authentication challenge
 		if (!isAuthenticationChallenge) {
 
-			//See if we got a Content-length header
+			// See if we got a Content-length header
 			NSString *cLength = [responseHeaders valueForKey:@"Content-Length"];
 			if (cLength) {
 				contentLength = CFStringGetIntValue((CFStringRef)cLength);
@@ -682,15 +674,16 @@ static NSRecursiveLock *progressLock;
 				}
 			}
 			
-			//Handle cookies
+			// Handle cookies
 			NSArray *cookies = [NSHTTPCookie cookiesWithResponseHeaderFields:responseHeaders forURL:url];
 			[self setResponseCookies:cookies];
 
 			if (useCookiePersistance) {
-				//Store cookies in global persistent store
+				
+				// Store cookies in global persistent store
 				[[NSHTTPCookieStorage sharedHTTPCookieStorage] setCookies:cookies forURL:url mainDocumentURL:nil];
 				
-				//We also keep any cookies in the sessionCookies array, so that we have a reference to them if we need to remove them later
+				// We also keep any cookies in the sessionCookies array, so that we have a reference to them if we need to remove them later
 				if (!sessionCookies) {
 					[ASIHTTPRequest setSessionCookies:[[[NSMutableArray alloc] init] autorelease]];
 					NSHTTPCookie *cookie;
@@ -711,7 +704,8 @@ static NSRecursiveLock *progressLock;
 - (void)saveCredentialsToKeychain:(NSMutableDictionary *)newCredentials
 {
 	NSURLCredential *authenticationCredentials = [NSURLCredential credentialWithUser:[newCredentials objectForKey:(NSString *)kCFHTTPAuthenticationUsername]
-																			password:[newCredentials objectForKey:(NSString *)kCFHTTPAuthenticationPassword]																		 persistence:NSURLCredentialPersistencePermanent];
+																			password:[newCredentials objectForKey:(NSString *)kCFHTTPAuthenticationPassword]
+																		 persistence:NSURLCredentialPersistencePermanent];
 	
 	if (authenticationCredentials) {
 		[ASIHTTPRequest saveCredentials:authenticationCredentials forHost:[url host] port:[[url port] intValue] protocol:[url scheme] realm:authenticationRealm];
@@ -958,8 +952,6 @@ static NSRecursiveLock *progressLock;
 
 - (void)handleStreamComplete
 {
-
-	
 	//Try to read the headers (if this is a HEAD request handleBytesAvailable available may not be called)
 	if (!responseHeaders) {
 		if ([self readResponseHeadersReturningAuthenticationFailure]) {
