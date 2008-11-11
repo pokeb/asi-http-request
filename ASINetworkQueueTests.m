@@ -201,8 +201,6 @@
 
 - (void)requestFailedCancellingOthers:(ASIHTTPRequest *)request
 {
-	BOOL success = (request == requestThatShouldFail);
-	STAssertTrue(success,@"Wrong request failed");
 	complete = YES;
 }
 

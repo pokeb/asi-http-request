@@ -34,6 +34,7 @@
 	
 	showAccurateProgress = NO;
 	
+	[self setMaxConcurrentOperationCount:4];
 	[self setSuspended:YES];
 	
 	return self;
@@ -59,9 +60,6 @@
 	uploadProgressTotalBytes = 0;
 	downloadProgressBytes = 0;
 	downloadProgressTotalBytes = 0;
-	[self setUploadProgressDelegate:nil];
-	[self setDownloadProgressDelegate:nil];
-	[self setDelegate:nil];
 	[super cancelAllOperations];
 }
 
@@ -103,6 +101,8 @@
 	if ([operation isKindOfClass:[ASIHTTPRequest class]]) {
 		
 		ASIHTTPRequest *request = (ASIHTTPRequest *)operation;
+		[request setRequestMethod:@"HEAD"];
+		[request setQueuePriority:10];
 		[request setShowAccurateProgress:YES];
 		if (uploadProgressDelegate) {
 			[request setUploadProgressDelegate:self];
@@ -133,12 +133,11 @@
 			//If this is a GET request and we want accurate progress, perform a HEAD request first to get the content-length
 			if ([[request requestMethod] isEqualToString:@"GET"]) {
 				ASIHTTPRequest *HEADRequest = [[[ASIHTTPRequest alloc] initWithURL:[request url]] autorelease];
-				[HEADRequest setRequestMethod:@"HEAD"];
-				[HEADRequest setQueuePriority:10];
 				[HEADRequest setMainRequest:request];
 				[self addHEADOperation:HEADRequest];
 				
-				[request setUseCachedContentLength:YES];
+				//Tell the request not to reset the progress indicator when it gets a content-length, as we will get the length from the HEAD request
+				[request setShouldResetProgressIndicators:NO];
 				[request addDependency:HEADRequest];
 			
 			//If we want to track uploading for this request accurately, we need to add the size of the post content to the total
@@ -150,6 +149,9 @@
 		[request setShowAccurateProgress:showAccurateProgress];
 		
 		if (uploadProgressDelegate) {
+			
+			//For uploads requests, we always work out the total upload size before the queue starts, so we tell the request not to reset the progress indicator when starting each request
+			[request setShouldResetProgressIndicators:NO];
 			[request setUploadProgressDelegate:self];
 		} else {
 			[request setUploadProgressDelegate:NULL];
@@ -173,7 +175,7 @@
 	if (requestDidFailSelector) {
 		[delegate performSelector:requestDidFailSelector withObject:request];
 	}
-	if (shouldCancelAllRequestsOnFailure) {
+	if (shouldCancelAllRequestsOnFailure && requestsCount > 0) {
 		[self cancelAllOperations];
 	}
 }
@@ -191,7 +193,7 @@
 	}
 }
 
-- (void)incrementUploadSizeBy:(int)bytes
+- (void)incrementUploadSizeBy:(unsigned long long)bytes
 {
 	if (!uploadProgressDelegate) {
 		return;
@@ -200,7 +202,19 @@
 	[self incrementUploadProgressBy:0];
 }
 
-- (void)incrementUploadProgressBy:(int)bytes
+- (void)decrementUploadProgressBy:(unsigned long long)bytes
+{
+	if (!uploadProgressDelegate || uploadProgressTotalBytes == 0) {
+		return;
+	}
+	uploadProgressBytes -= bytes;
+	
+	double progress = (uploadProgressBytes*1.0)/(uploadProgressTotalBytes*1.0);
+	[ASIHTTPRequest setProgress:progress forProgressIndicator:uploadProgressDelegate];
+}
+
+
+- (void)incrementUploadProgressBy:(unsigned long long)bytes
 {
 	if (!uploadProgressDelegate || uploadProgressTotalBytes == 0) {
 		return;
@@ -209,24 +223,26 @@
 	
 	double progress = (uploadProgressBytes*1.0)/(uploadProgressTotalBytes*1.0);
 	[ASIHTTPRequest setProgress:progress forProgressIndicator:uploadProgressDelegate];
+
 }
 
-- (void)incrementDownloadSizeBy:(int)bytes
+- (void)incrementDownloadSizeBy:(unsigned long long)bytes
 {
 	if (!downloadProgressDelegate) {
 		return;
 	}
 	downloadProgressTotalBytes += bytes;
 	[self incrementDownloadProgressBy:0];
+	NSLog(@"download size is now: %qu",downloadProgressTotalBytes);
 }
 
-- (void)incrementDownloadProgressBy:(int)bytes
+- (void)incrementDownloadProgressBy:(unsigned long long)bytes
 {
 	if (!downloadProgressDelegate || downloadProgressTotalBytes == 0) {
 		return;
 	}
 	downloadProgressBytes += bytes;
-	//NSLog(@"%hu/%hu",downloadProgressBytes,downloadProgressTotalBytes);
+	//NSLog(@"%qu/%qu",downloadProgressBytes,downloadProgressTotalBytes);
 	double progress = (downloadProgressBytes*1.0)/(downloadProgressTotalBytes*1.0);
 	[ASIHTTPRequest setProgress:progress forProgressIndicator:downloadProgressDelegate];
 }

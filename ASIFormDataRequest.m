@@ -50,6 +50,11 @@
 
 - (void)buildPostBody
 {
+	if (!postData && ! fileData) {
+		[super buildPostBody];
+		return;
+	}	
+
 	NSMutableData *body = [[[NSMutableData alloc] init] autorelease];
 	
 	// Set your own boundary string only if really obsessive. We don't bother to check if post data contains the boundary, since it's pretty unlikely that it does.

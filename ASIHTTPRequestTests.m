@@ -109,8 +109,9 @@
 	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setDownloadProgressDelegate:self];
 	[request start];
+	
 	BOOL success = (progress == 1);
-	STAssertTrue(success,@"Failed to properly increment download progress");	
+	STAssertTrue(success,@"Failed to properly increment download progress %f != 1.0",progress);	
 }
 
 
@@ -121,8 +122,9 @@
 	[request setPostBody:[NSMutableData dataWithLength:1024*32]];
 	[request setUploadProgressDelegate:self];
 	[request start];
+	
 	BOOL success = (progress == 1);
-	STAssertTrue(success,@"Failed to properly increment upload progress");	
+	STAssertTrue(success,@"Failed to properly increment upload progress %f != 1.0",progress);	
 }
 
 

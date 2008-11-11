@@ -33,7 +33,7 @@ static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventTy
 }
 
 // This lock prevents the operation from being cancelled while it is trying to update the progress, and vice versa
-static NSLock *progressLock;
+static NSRecursiveLock *progressLock;
 
 @implementation ASIHTTPRequest
 
@@ -41,9 +41,9 @@ static NSLock *progressLock;
 
 #pragma mark init / dealloc
 
-- (void)initialize
++ (void)initialize
 {
-	progressLock = [[NSLock alloc] init];
+	progressLock = [[NSRecursiveLock alloc] init];
 }
 
 - (id)initWithURL:(NSURL *)newURL
@@ -52,7 +52,7 @@ static NSLock *progressLock;
 	[self setRequestMethod:@"GET"];
 	lastBytesSent = 0;
 	showAccurateProgress = YES;
-	useCachedContentLength = NO;
+	shouldResetProgressIndicators = YES;
 	updatedProgress = NO;
 	mainRequest = nil;
 	username = nil;
@@ -74,6 +74,7 @@ static NSLock *progressLock;
 	didFailSelector = @selector(requestFailed:);
 	delegate = nil;
 	url = [newURL retain];
+	cancelledLock = [[NSLock alloc] init];
 	return self;
 }
 
@@ -105,6 +106,7 @@ static NSLock *progressLock;
 	[receivedData release];
 	[responseHeaders release];
 	[requestMethod release];
+	[cancelledLock release];
 	[super dealloc];
 }
 
@@ -143,17 +145,15 @@ static NSLock *progressLock;
 	return complete;
 }
 
+
 - (void)cancel
 {
-	[progressLock lock];
+	[self failWithProblem:@"The request was cancelled"];
+	[self cancelLoad];
+	complete = YES;
 	[super cancel];
-	[progressLock unlock];
 }
 
-- (int)totalBytesRead
-{
-	return totalBytesRead;
-}
 
 // Call this method to get the recieved data as an NSString. Don't use for Binary data!
 - (NSString *)dataString
@@ -226,9 +226,9 @@ static NSLock *progressLock;
 		CFHTTPMessageSetHeaderFieldValue(request, (CFStringRef)header, (CFStringRef)[requestHeaders objectForKey:header]);
 	}
 	
+	//NSData *d = (NSData *)CFHTTPMessageCopySerializedMessage(request);
+	//NSLog(@"%@",[[[NSString alloc] initWithBytes:[d bytes] length:[d length] encoding:NSUTF8StringEncoding] autorelease]);
 
-
-	
 	
 	// If this is a post request and we have data to send, add it to the request
 	if ([self postBody]) {
@@ -243,6 +243,13 @@ static NSLock *progressLock;
 // Start the request
 - (void)loadRequest
 {
+	[cancelledLock lock];
+	
+	if ([self isCancelled]) {
+		[cancelledLock unlock];
+		return;
+	}
+	
 	CFRunLoopAddCommonMode(CFRunLoopGetCurrent(),ASIHTTPRequestRunMode);
 	
 	[authenticationLock release];
@@ -258,7 +265,7 @@ static NSLock *progressLock;
 	}
 	
 	lastBytesSent = 0;
-	if (!useCachedContentLength) {
+	if (shouldResetProgressIndicators) {
 		contentLength = 0;
 	}
 	[self setResponseHeaders:nil];
@@ -267,6 +274,7 @@ static NSLock *progressLock;
     // Create the stream for the request.
     readStream = CFReadStreamCreateForStreamedHTTPRequest(kCFAllocatorDefault, request,readStream);
     if (!readStream) {
+		[cancelledLock unlock];
 		[self failWithProblem:@"Unable to create read stream"];
         return;
     }
@@ -276,6 +284,7 @@ static NSLock *progressLock;
     if (!CFReadStreamSetClient(readStream, kNetworkEvents, ReadStreamClientCallBack, &ctxt)) {
         CFRelease(readStream);
         readStream = NULL;
+		[cancelledLock unlock];
 		[self failWithProblem:@"Unable to setup read stream"];
         return;
     }
@@ -289,14 +298,23 @@ static NSLock *progressLock;
         CFReadStreamUnscheduleFromRunLoop(readStream, CFRunLoopGetCurrent(), ASIHTTPRequestRunMode);
         CFRelease(readStream);
         readStream = NULL;
+		[cancelledLock unlock];
 		[self failWithProblem:@"Unable to start http connection"];
         return;
     }
+	[cancelledLock unlock];
 	
-	if (uploadProgressDelegate) {
-		[self performSelectorOnMainThread:@selector(resetUploadProgress:) withObject:[NSNumber numberWithDouble:postLength] waitUntilDone:YES];
+	
+	if (uploadProgressDelegate && shouldResetProgressIndicators) {
+		double amount = 1;
+		if (showAccurateProgress) {
+			amount = postLength;
+		}
+		[self resetUploadProgress:amount];
 	}
 
+
+	
 	// Record when the request started, so we can timeout if nothing happens
 	[self setLastActivityTime:[NSDate date]];
 	
@@ -307,9 +325,11 @@ static NSLock *progressLock;
 		[pool release];
 		pool = [[NSAutoreleasePool alloc] init];
 		
+		NSDate *now = [NSDate new];
+		
 		// See if we need to timeout
 		if (lastActivityTime && timeOutSeconds > 0) {
-			if ([[NSDate date] timeIntervalSinceDate:lastActivityTime] > timeOutSeconds) {
+			if ([now timeIntervalSinceDate:lastActivityTime] > timeOutSeconds) {
 				[self failWithProblem:@"Request timed out"];
 				[self cancelLoad];
 				complete = YES;
@@ -324,10 +344,12 @@ static NSLock *progressLock;
 			complete = YES;
 			break;
 		}
-		[self performSelectorOnMainThread:@selector(updateProgressIndicators) withObject:nil waitUntilDone:YES];
+		
+		[self updateProgressIndicators];
 		
 		//This thread should wait for 1/4 second for the stream to do something. We'll stop early if it does.
 		CFRunLoopRunInMode(ASIHTTPRequestRunMode,0.25,YES);
+		[now release];
 	}
 	
 	[pool release];
@@ -337,6 +359,7 @@ static NSLock *progressLock;
 // Cancel loading and clean up
 - (void)cancelLoad
 {
+	[cancelledLock lock];
     if (readStream) {
         CFReadStreamClose(readStream);
         CFReadStreamSetClient(readStream, kCFStreamEventNone, NULL, NULL);
@@ -355,6 +378,7 @@ static NSLock *progressLock;
 	}
 	
 	[self setResponseHeaders:nil];
+	[cancelledLock unlock];
 }
 
 
@@ -364,9 +388,9 @@ static NSLock *progressLock;
 
 - (void)updateProgressIndicators
 {
+	
 	//Only update progress if this isn't a HEAD request used to preset the content-length
 	if (!mainRequest) {
-		
 		if (showAccurateProgress || (complete && !updatedProgress)) {
 			[self updateUploadProgress];
 			[self updateDownloadProgress];
@@ -411,17 +435,11 @@ static NSLock *progressLock;
 }
 
 
-- (void)resetUploadProgress:(NSNumber *)max
+- (void)resetUploadProgress:(unsigned long long)value
 {
 	[progressLock lock];
-	if ([self isCancelled]) {
-		[progressLock unlock];
-		return;
-	}	
-	
 	//We're using a progress queue or compatible controller to handle progress
 	if ([uploadProgressDelegate respondsToSelector:@selector(incrementUploadSizeBy:)]) {
-		int value = [max intValue];
 		SEL selector = @selector(incrementUploadSizeBy:);
 		NSMethodSignature *signature = [[uploadProgressDelegate class] instanceMethodSignatureForSelector:selector];
 		NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
@@ -437,20 +455,21 @@ static NSLock *progressLock;
 
 - (void)updateUploadProgress
 {
-	[progressLock lock];
+	[cancelledLock lock];
 	if ([self isCancelled]) {
-		[progressLock unlock];
 		return;
 	}
+	unsigned long long byteCount = [[(NSNumber *)CFReadStreamCopyProperty (readStream, kCFStreamPropertyHTTPRequestBytesWrittenCount) autorelease] unsignedLongLongValue];
+	[cancelledLock unlock];
+	if (byteCount > lastBytesSent) {
+		[self setLastActivityTime:[NSDate date]];		
+	}
 	
-	[self setLastActivityTime:[NSDate date]];
-	
-	unsigned int byteCount = [[(NSNumber *)CFReadStreamCopyProperty (readStream, kCFStreamPropertyHTTPRequestBytesWrittenCount) autorelease] unsignedIntValue];
 	if (uploadProgressDelegate) {
-	
+		
 		//We're using a progress queue or compatible controller to handle progress
 		if ([uploadProgressDelegate respondsToSelector:@selector(incrementUploadProgressBy:)]) {
-			int value = 0;
+			unsigned long long value = 0;
 			if (showAccurateProgress) {
 				value = byteCount-lastBytesSent;
 			} else {
@@ -473,22 +492,15 @@ static NSLock *progressLock;
 		
 	}
 	lastBytesSent = byteCount;
-	[progressLock unlock];
+
 }
 
 
-- (void)resetDownloadProgress:(NSNumber *)max
+- (void)resetDownloadProgress:(unsigned long long)value
 {
-	[progressLock lock];
-	if ([self isCancelled]) {
-		[progressLock unlock];
-		return;
-	}	
-	
-	
+	[progressLock lock];	
 	//We're using a progress queue or compatible controller to handle progress
 	if ([downloadProgressDelegate respondsToSelector:@selector(incrementDownloadSizeBy:)]) {
-		int value = [max intValue];
 		SEL selector = @selector(incrementDownloadSizeBy:);
 		NSMethodSignature *signature = [[downloadProgressDelegate class] instanceMethodSignatureForSelector:selector];
 		NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
@@ -496,6 +508,7 @@ static NSLock *progressLock;
 		[invocation setSelector:selector];
 		[invocation setArgument:&value atIndex:2];
 		[invocation invoke];
+
 	} else {
 		[ASIHTTPRequest setProgress:0 forProgressIndicator:downloadProgressDelegate];
 	}
@@ -504,62 +517,61 @@ static NSLock *progressLock;
 
 - (void)updateDownloadProgress
 {
-	[progressLock lock];
-	if ([self isCancelled]) {
-		[progressLock unlock];
-		return;
-	}	
+	unsigned long long bytesReadSoFar = totalBytesRead;
 	
-	[self setLastActivityTime:[NSDate date]];
-	
-	//We won't update downlaod progress until we've examined the headers, since we might need to authenticate
-	if (downloadProgressDelegate && responseHeaders) {
-
-		//We're using a progress queue or compatible controller to handle progress
-		if ([downloadProgressDelegate respondsToSelector:@selector(incrementDownloadProgressBy:)]) {
-			
-			NSAutoreleasePool *thePool = [[NSAutoreleasePool alloc] init];
-			
-			int value = 0;
-			if (showAccurateProgress) {
-				value = totalBytesRead-lastBytesRead;
-			} else {
-				value = 1;
-				updatedProgress = YES;
-			}
-			
-			SEL selector = @selector(incrementDownloadProgressBy:);
-			NSMethodSignature *signature = [[downloadProgressDelegate class] instanceMethodSignatureForSelector:selector];
-			NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
-			[invocation setTarget:downloadProgressDelegate];
-			[invocation setSelector:selector];
-			[invocation setArgument:&value atIndex:2];
-			[invocation invoke];
-			
-			[thePool release];
-			
-			//We aren't using a queue, we should just set progress of the indicator to 0
-		} else if (contentLength > 0)  {
-			[ASIHTTPRequest setProgress:(double)(totalBytesRead/contentLength) forProgressIndicator:downloadProgressDelegate];
+	//We won't update download progress until we've examined the headers, since we might need to authenticate
+	if (responseHeaders) {
+		
+		if (bytesReadSoFar > lastBytesRead) {
+			[self setLastActivityTime:[NSDate date]];
 		}
 		
-		lastBytesRead = totalBytesRead;
+		if (downloadProgressDelegate) {
+		
+
+			//We're using a progress queue or compatible controller to handle progress
+			if ([downloadProgressDelegate respondsToSelector:@selector(incrementDownloadProgressBy:)]) {
+				
+				NSAutoreleasePool *thePool = [[NSAutoreleasePool alloc] init];
+				
+				unsigned long long value = 0;
+				if (showAccurateProgress) {
+					value = bytesReadSoFar-lastBytesRead;
+				} else {
+					value = 1;
+					updatedProgress = YES;
+				}
+				
+
+				
+				SEL selector = @selector(incrementDownloadProgressBy:);
+				NSMethodSignature *signature = [[downloadProgressDelegate class] instanceMethodSignatureForSelector:selector];
+				NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
+				[invocation setTarget:downloadProgressDelegate];
+				[invocation setSelector:selector];
+				[invocation setArgument:&value atIndex:2];
+				[invocation invoke];
+				
+				[thePool release];
+				
+				//We aren't using a queue, we should just set progress of the indicator to 0
+			} else if (contentLength > 0)  {
+				[ASIHTTPRequest setProgress:(double)(bytesReadSoFar/contentLength) forProgressIndicator:downloadProgressDelegate];
+			}
+		}
+		
+		lastBytesRead = bytesReadSoFar;
 	}
-	[progressLock unlock];
+
 }
 
 -(void)removeUploadProgressSoFar
 {
-	[progressLock lock];
-	if ([self isCancelled]) {
-		[progressLock unlock];
-		return;
-	}
 	
 	//We're using a progress queue or compatible controller to handle progress
-	if ([uploadProgressDelegate respondsToSelector:@selector(incrementUploadProgressBy:)]) {
-		int value = 0-lastBytesSent;
-		SEL selector = @selector(incrementUploadProgressBy:);
+	if ([uploadProgressDelegate respondsToSelector:@selector(decrementUploadProgressBy:)]) {
+		unsigned long long value = 0-lastBytesSent;
+		SEL selector = @selector(decrementUploadProgressBy:);
 		NSMethodSignature *signature = [[uploadProgressDelegate class] instanceMethodSignatureForSelector:selector];
 		NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
 		[invocation setTarget:uploadProgressDelegate];
@@ -571,7 +583,6 @@ static NSLock *progressLock;
 	} else {
 		[ASIHTTPRequest setProgress:0 forProgressIndicator:uploadProgressDelegate];
 	}
-	[progressLock unlock];
 }
 
 
@@ -579,8 +590,9 @@ static NSLock *progressLock;
 {
 	
 	SEL selector;
+	[progressLock lock];
 	
-	//Cocoa Touch: UIProgressView
+	// Cocoa Touch: UIProgressView
 	if ([indicator respondsToSelector:@selector(setProgress:)]) {
 		selector = @selector(setProgress:);
 		NSMethodSignature *signature = [[indicator class] instanceMethodSignatureForSelector:selector];
@@ -590,25 +602,27 @@ static NSLock *progressLock;
 		[invocation setArgument:&progressFloat atIndex:2];
 		[invocation invokeWithTarget:indicator];
 		
+		//If we're running in the main thread, update the progress straight away. Otherwise, it's not that urgent
+		[invocation performSelectorOnMainThread:@selector(invokeWithTarget:) withObject:indicator waitUntilDone:[NSThread isMainThread]];
 		
-		//Cocoa: NSProgressIndicator
+		
+	// Cocoa: NSProgressIndicator
 	} else if ([indicator respondsToSelector:@selector(setDoubleValue:)]) {
 		selector = @selector(setDoubleValue:);
 		NSMethodSignature *signature = [[indicator class] instanceMethodSignatureForSelector:selector];
 		NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
 		[invocation setSelector:selector];
 		[invocation setArgument:&progress atIndex:2];
-		[invocation invokeWithTarget:indicator];
 		
-		//Progress indicator is some other thing that we can't handle
-	} else {
-		return;
+		//If we're running in the main thread, update the progress straight away. Otherwise, it's not that urgent
+		[invocation performSelectorOnMainThread:@selector(invokeWithTarget:) withObject:indicator waitUntilDone:[NSThread isMainThread]];
+		
 	}
+	[progressLock unlock];
 }
 
 
 #pragma mark handling request complete / failure
-
 
 // Subclasses can override this method to process the result in the same thread
 // If not overidden, it will call the didFinishSelector on the delegate, if one has been setup
@@ -656,18 +670,15 @@ static NSLock *progressLock;
 		//We won't reset the download progress delegate if we got an authentication challenge
 		if (!isAuthenticationChallenge) {
 
-			//Only check the content length if we haven't already got one (may have been set by an ASINetworkQueue using a previous HEAD request)
-			if (!useCachedContentLength) {
-				//See if we got a Content-length header
-				NSString *cLength = [responseHeaders valueForKey:@"Content-Length"];
-				if (cLength) {
-					contentLength = CFStringGetDoubleValue((CFStringRef)cLength);
-					if (mainRequest) {
-						[mainRequest setContentLength:contentLength];
-					}
-					if (downloadProgressDelegate && showAccurateProgress) {
-						[self performSelectorOnMainThread:@selector(resetDownloadProgress:) withObject:[NSNumber numberWithDouble:contentLength] waitUntilDone:YES];
-					}
+			//See if we got a Content-length header
+			NSString *cLength = [responseHeaders valueForKey:@"Content-Length"];
+			if (cLength) {
+				contentLength = CFStringGetIntValue((CFStringRef)cLength);
+				if (mainRequest) {
+					[mainRequest setContentLength:contentLength];
+				}
+				if (downloadProgressDelegate && showAccurateProgress && shouldResetProgressIndicators) {
+					[self resetDownloadProgress:contentLength];
 				}
 			}
 			
@@ -940,11 +951,14 @@ static NSLock *progressLock;
 			[receivedData appendBytes:buffer length:bytesRead];
 		}
     }
+
+
 }
 
 
 - (void)handleStreamComplete
 {
+
 	
 	//Try to read the headers (if this is a HEAD request handleBytesAvailable available may not be called)
 	if (!responseHeaders) {
@@ -953,10 +967,10 @@ static NSLock *progressLock;
 			return;
 		}
 	}
-
-	
+	[progressLock lock];	
 	complete = YES;
-	[self updateProgressIndicators];
+	[self updateProgressIndicators];	
+
     if (readStream) {
         CFReadStreamClose(readStream);
         CFReadStreamSetClient(readStream, kCFStreamEventNone, NULL, NULL);
@@ -969,8 +983,9 @@ static NSLock *progressLock;
 	if (downloadDestinationPath) {
 		[outputStream close];
 	}
-
+	[progressLock unlock];
 	[self requestFinished];
+
 }
 
 
@@ -1101,7 +1116,9 @@ static NSLock *progressLock;
 @synthesize postBody;
 @synthesize contentLength;
 @synthesize postLength;
-@synthesize useCachedContentLength;
+@synthesize shouldResetProgressIndicators;
 @synthesize mainRequest;
+@synthesize totalBytesRead;
 @synthesize showAccurateProgress;
+@synthesize totalBytesRead;
 @end

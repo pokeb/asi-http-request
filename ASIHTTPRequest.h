@@ -10,6 +10,7 @@
 //  Portions are based on the ImageClient example from Apple:
 //  See: http://developer.apple.com/samplecode/ImageClient/listing37.html
 
+#import <Cocoa/Cocoa.h>
 
 @interface ASIHTTPRequest : NSOperation {
 	
@@ -93,24 +94,27 @@
 	int responseStatusCode;
 	
 	//Size of the response
-	unsigned int contentLength;
+	unsigned long long contentLength;
 
 	//Size of the POST payload
-	unsigned int postLength;	
+	unsigned long long postLength;	
 	
 	//The total amount of downloaded data
-	unsigned int totalBytesRead;
+	unsigned long long totalBytesRead;
 	
 	//Last amount of data read (used for incrementing progress)
-	unsigned int lastBytesRead;
+	unsigned long long lastBytesRead;
 	//Last amount of data sent (used for incrementing progress)
-	unsigned int lastBytesSent;
+	unsigned long long lastBytesSent;
 	
 	//Realm for authentication when credentials are required
 	NSString *authenticationRealm;
 
 	//This lock will block the request until the delegate supplies authentication info
 	NSConditionLock *authenticationLock;
+	
+	//This lock prevents the operation from being cancelled at an inopportune moment
+	NSLock *cancelledLock;
 	
 	//Called on the delegate when the request completes successfully
 	SEL didFinishSelector;
@@ -128,7 +132,7 @@
 	NSAutoreleasePool *pool;
 	
 	// Will be YES when a HEAD request will handle the content-length before this request starts
-	BOOL useCachedContentLength;
+	BOOL shouldResetProgressIndicators;
 	
 	// Used by HEAD requests when showAccurateProgress is YES to preset the content-length for this request
 	ASIHTTPRequest *mainRequest;
@@ -177,9 +181,9 @@
 
 // Called on main thread to update progress delegates
 - (void)updateProgressIndicators;
-- (void)resetUploadProgress:(NSNumber *)max;
+- (void)resetUploadProgress:(unsigned long long)value;
 - (void)updateUploadProgress;
-- (void)resetDownloadProgress:(NSNumber *)max;
+- (void)resetDownloadProgress:(unsigned long long)value;
 - (void)updateDownloadProgress;
 
 // Called when authorisation is needed, as we only find out we don't have permission to something when the upload is complete
@@ -279,10 +283,10 @@
 @property (assign) NSTimeInterval timeOutSeconds;
 @property (retain) NSString *requestMethod;
 @property (retain,setter=setPostBody:) NSData *postBody;
-@property (assign) unsigned int contentLength;
-@property (assign) unsigned int postLength;
-@property (assign) BOOL useCachedContentLength;
+@property (assign) unsigned long long contentLength;
+@property (assign) unsigned long long postLength;
+@property (assign) BOOL shouldResetProgressIndicators;
 @property (retain) ASIHTTPRequest *mainRequest;
 @property (assign) BOOL showAccurateProgress;
-@property (assign,readonly) unsigned int totalBytesRead;
+@property (assign,readonly) unsigned long long totalBytesRead;
 @end

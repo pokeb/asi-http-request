@@ -6,7 +6,7 @@
 //  Copyright 2008 All-Seeing Interactive. All rights reserved.
 //
 
-
+#import <Cocoa/Cocoa.h>
 
 @interface ASINetworkQueue : NSOperationQueue {
 	
@@ -26,19 +26,19 @@
 	id uploadProgressDelegate;
 	
 	// Total amount uploaded so far for all requests in this queue
-	unsigned int uploadProgressBytes;
+	unsigned long long uploadProgressBytes;
 	
 	// Total amount to be uploaded for all requests in this queue - requests add to this figure as they work out how much data they have to transmit
-	unsigned int uploadProgressTotalBytes;
+	unsigned long long uploadProgressTotalBytes;
 
 	// Download progress indicator, probably an NSProgressIndicator or UIProgressView
 	id downloadProgressDelegate;
 	
 	// Total amount downloaded so far for all requests in this queue
-	unsigned int downloadProgressBytes;
+	unsigned long long downloadProgressBytes;
 	
 	// Total amount to be downloaded for all requests in this queue - requests add to this figure as they receive Content-Length headers
-	unsigned int downloadProgressTotalBytes;
+	unsigned long long downloadProgressTotalBytes;
 	
 	// When YES, the queue will cancel all requests when a request fails. Default is YES
 	BOOL shouldCancelAllRequestsOnFailure;
@@ -61,16 +61,19 @@
 - (void)addHEADOperation:(NSOperation *)operation;
 
 // Called at the start of a request to add on the size of this upload to the total
-- (void)incrementUploadSizeBy:(int)bytes;
+- (void)incrementUploadSizeBy:(unsigned long long)bytes;
 
 // Called during a request when data is written to the upload stream to increment the progress indicator
-- (void)incrementUploadProgressBy:(int)bytes;
+- (void)incrementUploadProgressBy:(unsigned long long)bytes;
 
 // Called at the start of a request to add on the size of this download to the total
-- (void)incrementDownloadSizeBy:(int)bytes;
+- (void)incrementDownloadSizeBy:(unsigned long long)bytes;
 
 // Called during a request when data is received to increment the progress indicator
-- (void)incrementDownloadProgressBy:(int)bytes;
+- (void)incrementDownloadProgressBy:(unsigned long long)bytes;
+
+// Called during a request when authorisation fails to cancel any progress so far
+- (void)decrementUploadProgressBy:(unsigned long long)bytes;
 
 // All ASINetworkQueues are paused when created so that total size can be calculated before the queue starts
 // This method will start the queue
