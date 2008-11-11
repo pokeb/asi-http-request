@@ -629,7 +629,7 @@ static NSRecursiveLock *progressLock;
 - (void)requestFinished
 {
 	if (didFinishSelector && ![self isCancelled] && [delegate respondsToSelector:didFinishSelector]) {
-		[delegate performSelectorOnMainThread:didFinishSelector withObject:self waitUntilDone:YES];		
+		[delegate performSelectorOnMainThread:didFinishSelector withObject:self waitUntilDone:[NSThread isMainThread]];		
 	}
 }
 
@@ -648,7 +648,7 @@ static NSRecursiveLock *progressLock;
 		NSLog(problem);
 		
 		if (didFailSelector && ![self isCancelled] && [delegate respondsToSelector:didFailSelector]) {
-			[delegate performSelectorOnMainThread:didFailSelector withObject:self waitUntilDone:YES];		
+			[delegate performSelectorOnMainThread:didFailSelector withObject:self waitUntilDone:[NSThread isMainThread]];		
 		}
 	}
 }
@@ -823,7 +823,7 @@ static NSRecursiveLock *progressLock;
 			ignoreError = YES;	
 			[self setLastActivityTime:nil];
 			if ([delegate respondsToSelector:@selector(authorizationNeededForRequest:)]) {
-				[delegate performSelectorOnMainThread:@selector(authorizationNeededForRequest:) withObject:self waitUntilDone:YES];
+				[delegate performSelectorOnMainThread:@selector(authorizationNeededForRequest:) withObject:self waitUntilDone:[NSThread isMainThread]];
 				[authenticationLock lockWhenCondition:2];
 				[authenticationLock unlock];
 				
@@ -865,7 +865,7 @@ static NSRecursiveLock *progressLock;
 		// We've got no credentials, let's ask the delegate to sort this out
 		ignoreError = YES;	
 		if ([delegate respondsToSelector:@selector(authorizationNeededForRequest:)]) {
-			[delegate performSelectorOnMainThread:@selector(authorizationNeededForRequest:) withObject:self waitUntilDone:YES];
+			[delegate performSelectorOnMainThread:@selector(authorizationNeededForRequest:) withObject:self waitUntilDone:[NSThread isMainThread]];
 			[authenticationLock lockWhenCondition:2];
 			[authenticationLock unlock];
 			[self attemptToApplyCredentialsAndResume];

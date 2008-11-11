@@ -6,7 +6,6 @@
 //  Copyright 2008 All-Seeing Interactive. All rights reserved.
 //
 
-#import <Cocoa/Cocoa.h>
 
 @interface ASINetworkQueue : NSOperationQueue {
 	

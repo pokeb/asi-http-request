@@ -10,8 +10,6 @@
 //  Portions are based on the ImageClient example from Apple:
 //  See: http://developer.apple.com/samplecode/ImageClient/listing37.html
 
-#import <Cocoa/Cocoa.h>
-
 @interface ASIHTTPRequest : NSOperation {
 	
 	//The url for this operation, should include GET params in the query string where appropriate

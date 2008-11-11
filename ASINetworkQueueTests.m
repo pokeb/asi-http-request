@@ -66,10 +66,7 @@
 	
 	[networkQueue go];
 	
-	endDate = [NSDate distantFuture];
-	while (!complete) {
-		[[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:endDate];
-	}
+	[networkQueue waitUntilAllOperationsAreFinished];
 	
 	success = (progress == 1.0);
 	STAssertTrue(success,@"Failed to increment progress properly");
@@ -121,10 +118,7 @@
 
 	[networkQueue go];
 	
-	NSDate* endDate = [NSDate distantFuture];
-	while (!complete) {
-		[[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:endDate];
-	}
+	[networkQueue waitUntilAllOperationsAreFinished];
 	
 	
 	BOOL success;
@@ -190,10 +184,7 @@
 
 	[networkQueue go];
 	
-	NSDate* endDate = [NSDate distantFuture];
-	while (!complete) {
-		[[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:endDate];
-	}
+	[networkQueue waitUntilAllOperationsAreFinished];
 	
 	
 	[requestThatShouldFail release];	
