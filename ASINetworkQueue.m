@@ -130,7 +130,7 @@
 		
 		if (showAccurateProgress) {
 			
-			//If this is a GET request and we want accurate progress, perform a HEAD request first to get the content-length
+			// If this is a GET request and we want accurate progress, perform a HEAD request first to get the content-length
 			if ([[request requestMethod] isEqualToString:@"GET"]) {
 				ASIHTTPRequest *HEADRequest = [[[ASIHTTPRequest alloc] initWithURL:[request url]] autorelease];
 				[HEADRequest setMainRequest:request];
@@ -140,7 +140,7 @@
 				[request setShouldResetProgressIndicators:NO];
 				[request addDependency:HEADRequest];
 			
-			//If we want to track uploading for this request accurately, we need to add the size of the post content to the total
+			// If we want to track uploading for this request accurately, we need to add the size of the post content to the total
 			} else if (uploadProgressDelegate) {
 				[request buildPostBody];
 				uploadProgressTotalBytes += [request postLength];
@@ -150,7 +150,7 @@
 		
 		if (uploadProgressDelegate) {
 			
-			//For uploads requests, we always work out the total upload size before the queue starts, so we tell the request not to reset the progress indicator when starting each request
+			// For uploads requests, we always work out the total upload size before the queue starts, so we tell the request not to reset the progress indicator when starting each request
 			[request setShouldResetProgressIndicators:NO];
 			[request setUploadProgressDelegate:self];
 		} else {
@@ -233,7 +233,6 @@
 	}
 	downloadProgressTotalBytes += bytes;
 	[self incrementDownloadProgressBy:0];
-	NSLog(@"download size is now: %qu",downloadProgressTotalBytes);
 }
 
 - (void)incrementDownloadProgressBy:(unsigned long long)bytes
@@ -242,7 +241,6 @@
 		return;
 	}
 	downloadProgressBytes += bytes;
-	//NSLog(@"%qu/%qu",downloadProgressBytes,downloadProgressTotalBytes);
 	double progress = (downloadProgressBytes*1.0)/(downloadProgressTotalBytes*1.0);
 	[ASIHTTPRequest setProgress:progress forProgressIndicator:downloadProgressDelegate];
 }
