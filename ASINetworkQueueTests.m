@@ -48,7 +48,6 @@
 	STAssertTrue(success,@"Failed to increment progress properly");
 	
 	//Now test again with accurate progress
-	
 	[networkQueue cancelAllOperations];
 	[networkQueue setShowAccurateProgress:YES];
 

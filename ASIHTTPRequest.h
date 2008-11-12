@@ -10,117 +10,132 @@
 //  Portions are based on the ImageClient example from Apple:
 //  See: http://developer.apple.com/samplecode/ImageClient/listing37.html
 
+#import <Cocoa/Cocoa.h>
+
+
+typedef enum _ASINetworkErrorType {
+    ASIConnectionFailureErrorType = 1,
+    ASIRequestTimedOutErrorType = 2,
+    ASIAuthenticationErrorType = 3,
+    ASIRequestCancelledErrorType = 4,
+    ASIUnableToCreateRequestErrorType = 5,
+    ASIInternalErrorWhileBuildingRequestType  = 6,
+    ASIInternalErrorWhileApplyingCredentialsType  = 7
+	
+} ASINetworkErrorType;
+
 @interface ASIHTTPRequest : NSOperation {
 	
-	//The url for this operation, should include GET params in the query string where appropriate
+	// The url for this operation, should include GET params in the query string where appropriate
 	NSURL *url; 
 	
-	//The delegate, you need to manage setting and talking to your delegate in your subclasses
+	// The delegate, you need to manage setting and talking to your delegate in your subclasses
 	id delegate;
 	
-	//HTTP method to use (GET / POST / PUT / DELETE). Defaults to GET
+	// HTTP method to use (GET / POST / PUT / DELETE). Defaults to GET
 	NSString *requestMethod;
 	
-	//Request body
+	// Request body
 	NSData *postBody;
 	
-	//Dictionary for custom HTTP request headers
+	// Dictionary for custom HTTP request headers
 	NSMutableDictionary *requestHeaders;
 	
-	//Will be populated with HTTP response headers from the server
+	// Will be populated with HTTP response headers from the server
 	NSDictionary *responseHeaders;
 	
-	//Can be used to manually insert cookie headers to a request, but it's more likely that sessionCookies will do this for you
+	// Can be used to manually insert cookie headers to a request, but it's more likely that sessionCookies will do this for you
 	NSMutableArray *requestCookies;
 	
-	//Will be populated with Cookies
+	// Will be populated with Cookies
 	NSArray *responseCookies;
 	
-	//If use cokie persistance is true, network requests will present valid cookies from previous requests
+	// If use cokie persistance is true, network requests will present valid cookies from previous requests
 	BOOL useCookiePersistance;
 	
-	//If useKeychainPersistance is true, network requests will attempt to read credentials from the keychain, and will save them in the keychain when they are successfully presented
+	// If useKeychainPersistance is true, network requests will attempt to read credentials from the keychain, and will save them in the keychain when they are successfully presented
 	BOOL useKeychainPersistance;
 	
-	//If useSessionPersistance is true, network requests will save credentials and reuse for the duration of the session (until clearSession is called)
+	// If useSessionPersistance is true, network requests will save credentials and reuse for the duration of the session (until clearSession is called)
 	BOOL useSessionPersistance;
 	
-	//When downloadDestinationPath is set, the result of this request will be downloaded to the file at this location
-	//If downloadDestinationPath is not set, download data will be stored in memory
+	// When downloadDestinationPath is set, the result of this request will be downloaded to the file at this location
+	// If downloadDestinationPath is not set, download data will be stored in memory
 	NSString *downloadDestinationPath;
 	
-	//Used for writing data to a file when downloadDestinationPath is set
+	// Used for writing data to a file when downloadDestinationPath is set
 	NSOutputStream *outputStream;
 	
-	//When the request fails or completes successfully, complete will be true
+	// When the request fails or completes successfully, complete will be true
 	BOOL complete;
 	
-	//If an error occurs, error will contain an NSError
+	// If an error occurs, error will contain an NSError
+	// If error code is = ASIConnectionFailureErrorType (1, Connection failure occurred) - inspect [[error userInfo] objectForKey:NSUnderlyingErrorKey] for more information
 	NSError *error;
 	
-	//If an authentication error occurs, we give the delegate a chance to handle it, ignoreError will be set to true
+	// If an authentication error occurs, we give the delegate a chance to handle it, ignoreError will be set to true
 	BOOL ignoreError;
 	
-	//Username and password used for authentication
+	// Username and password used for authentication
 	NSString *username;
 	NSString *password;
-
-	//Domain used for NTLM authentication
+	
+	// Domain used for NTLM authentication
 	NSString *domain;
 	
-	//Delegate for displaying upload progress (usually an NSProgressIndicator, but you can supply a different object and handle this yourself)
+	// Delegate for displaying upload progress (usually an NSProgressIndicator, but you can supply a different object and handle this yourself)
 	id uploadProgressDelegate;
 	
-	//Delegate for displaying download progress (usually an NSProgressIndicator, but you can supply a different object and handle this yourself)
+	// Delegate for displaying download progress (usually an NSProgressIndicator, but you can supply a different object and handle this yourself)
 	id downloadProgressDelegate;
-
+	
 	// Whether we've seen the headers of the response yet
     BOOL haveExaminedHeaders;
 	
-	//Data we receive will be stored here
+	// Data we receive will be stored here
 	NSMutableData *receivedData;
 	
-	//Used for sending and receiving data
+	// Used for sending and receiving data
     CFHTTPMessageRef request;	
 	CFReadStreamRef readStream;
 	
 	// Authentication currently being used for prompting and resuming
     CFHTTPAuthenticationRef requestAuthentication; 
 	NSMutableDictionary *requestCredentials;
-
+	
 	// HTTP status code, eg: 200 = OK, 404 = Not found etc
 	int responseStatusCode;
 	
-	//Size of the response
+	// Size of the response
 	unsigned long long contentLength;
-
-	//Size of the POST payload
+	
+	// Size of the POST payload
 	unsigned long long postLength;	
 	
-	//The total amount of downloaded data
+	// The total amount of downloaded data
 	unsigned long long totalBytesRead;
 	
-	//Last amount of data read (used for incrementing progress)
+	// Last amount of data read (used for incrementing progress)
 	unsigned long long lastBytesRead;
-	//Last amount of data sent (used for incrementing progress)
+	// Last amount of data sent (used for incrementing progress)
 	unsigned long long lastBytesSent;
 	
-	//Realm for authentication when credentials are required
+	// Realm for authentication when credentials are required
 	NSString *authenticationRealm;
-
-	//This lock will block the request until the delegate supplies authentication info
+	
+	// This lock will block the request until the delegate supplies authentication info
 	NSConditionLock *authenticationLock;
 	
-	//This lock prevents the operation from being cancelled at an inopportune moment
+	// This lock prevents the operation from being cancelled at an inopportune moment
 	NSLock *cancelledLock;
 	
-	//Called on the delegate when the request completes successfully
+	// Called on the delegate when the request completes successfully
 	SEL didFinishSelector;
 	
-	//Called on the delegate when the request fails
+	// Called on the delegate when the request fails
 	SEL didFailSelector;
 	
-	//Used for recording when something last happened during the request, we will compare this value with the current date to time out requests when appropriate
+	// Used for recording when something last happened during the request, we will compare this value with the current date to time out requests when appropriate
 	NSDate *lastActivityTime;
 	
 	// Number of seconds to wait before timing out - default is 10
@@ -141,10 +156,10 @@
 	// Also see the comments in ASINetworkQueue.h
 	BOOL showAccurateProgress;
 	
-	//Used to ensure the progress indicator is only incremented once when showAccurateProgress = NO
+	// Used to ensure the progress indicator is only incremented once when showAccurateProgress = NO
 	BOOL updatedProgress;
 	
-	//Prevents the body of the post being built more than once (largely for subclasses)
+	// Prevents the body of the post being built more than once (largely for subclasses)
 	BOOL haveBuiltPostBody;
 }
 
@@ -155,16 +170,14 @@
 
 #pragma mark setup request
 
-//Add a custom header to the request
+// Add a custom header to the request
 - (void)addRequestHeader:(NSString *)header value:(NSString *)value;
 
 - (void)buildPostBody;
 
 #pragma mark get information about this request
 
-- (BOOL)isFinished; //Same thing, for NSOperationQueues to read
-
-// Returns the contents of the result as an NSString (not appropriate for binary data!)
+// Returns the contents of the result as an NSString (not appropriate for binary data - used receivedData instead)
 - (NSString *)dataString;
 
 #pragma mark request logic
@@ -192,11 +205,11 @@
 
 #pragma mark handling request complete / failure
 
-// Called when a request completes successfully - defaults to: @selector(requestFinished:)
+// Called when a request completes successfully, lets the delegate now via didFinishSelector
 - (void)requestFinished;
 
-// Called when a request fails - defaults to: @selector(requestFailed:)
-- (void)failWithProblem:(NSString *)problem;
+// Called when a request fails, and lets the delegate now via didFailSelector
+- (void)failWithError:(NSError *)theError;
 
 #pragma mark http authentication stuff
 
@@ -216,8 +229,6 @@
 // Apply authentication information and resume the request after an authentication challenge
 - (void)attemptToApplyCredentialsAndResume;
 
-// Customise or overidde this to have a generic error for authentication failure
-- (NSError *)authenticationError;
 
 #pragma mark stream status handlers
 
