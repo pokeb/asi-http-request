@@ -23,7 +23,10 @@
 // Add a POST variable to the request
 - (void)setPostValue:(id)value forKey:(NSString *)key;
 
-// Add the contents of a local file as a POST variable to the request
+// Add the contents of a local file to the request
 - (void)setFile:(NSString *)filePath forKey:(NSString *)key;
+
+// Add the contents of an NSData object to the request
+- (void)setData:(NSData *)data forKey:(NSString *)key;
 
 @end

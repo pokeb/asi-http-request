@@ -70,7 +70,7 @@
 
 - (void)testRequestMethod
 {
-	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASI-HTTP-Request/tests/request-method"] autorelease];
+	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/request-method"] autorelease];
 	NSArray *methods = [[[NSArray alloc] initWithObjects:@"GET",@"POST",@"PUT",@"DELETE"] autorelease];
 	for (NSString *method in methods) {
 		ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
@@ -81,7 +81,19 @@
 	}
 }
 
-- (void)testContentLength
+- (void)testUploadContentLength
+{
+	//This url will return the contents of the Content-Length request header
+	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/content-length"] autorelease];
+	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request setPostBody:[NSMutableData dataWithLength:1024*32]];
+	[request start];
+	
+	BOOL success = ([[request dataString] isEqualToString:[NSString stringWithFormat:@"%hu",(1024*32)]]);
+	STAssertTrue(success,@"Sent wrong content length");
+}
+
+- (void)testDownloadContentLength
 {
 	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/i/logo.png"] autorelease];
 	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
@@ -95,7 +107,7 @@
 {
 	NSString *path = [[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"testfile"];
 	
-	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/asi-http-request/tests/first"] autorelease];
+	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/first"] autorelease];
 	ASIHTTPRequest *request1 = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request1 setDownloadDestinationPath:path];
 	[request1 start];
@@ -121,7 +133,7 @@
 - (void)testUploadProgress
 {
 	progress = 0;
-	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://asi/ignore"]] autorelease];
+	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ignore"]] autorelease];
 	[request setPostBody:[NSMutableData dataWithLength:1024*32]];
 	[request setUploadProgressDelegate:self];
 	[request start];
@@ -143,7 +155,7 @@
 	BOOL success;
 	
 	// Set setting a cookie
-	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/asi-http-request/tests/set_cookie"] autorelease];
+	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/set_cookie"] autorelease];
 	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUseCookiePersistance:YES];
 	[request start];
@@ -166,7 +178,7 @@
 			STAssertTrue(success,@"Failed to store the correct value for a cookie");
 			success = [[cookie domain] isEqualToString:@"allseeing-i.com"];
 			STAssertTrue(success,@"Failed to store the correct domain for a cookie");
-			success = [[cookie path] isEqualToString:@"/asi-http-request/tests"];
+			success = [[cookie path] isEqualToString:@"/ASIHTTPRequest/tests"];
 			STAssertTrue(success,@"Failed to store the correct path for a cookie");
 			break;
 		}
@@ -178,7 +190,7 @@
 	}
 	
 	// Test a cookie is presented when manually added to the request
-	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/asi-http-request/tests/read_cookie"] autorelease];
+	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/read_cookie"] autorelease];
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUseCookiePersistance:NO];
 	[request setRequestCookies:[NSMutableArray arrayWithObject:cookie]];
@@ -188,7 +200,7 @@
 	STAssertTrue(success,@"Cookie not presented to the server with cookie persistance OFF");
 
 	// Test a cookie is presented from the persistent store
-	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/asi-http-request/tests/read_cookie"] autorelease];
+	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/read_cookie"] autorelease];
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUseCookiePersistance:YES];
 	[request start];
@@ -197,7 +209,7 @@
 	STAssertTrue(success,@"Cookie not presented to the server with cookie persistance ON");
 	
 	// Test removing a cookie
-	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/asi-http-request/tests/remove_cookie"] autorelease];
+	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/remove_cookie"] autorelease];
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request start];
 	html = [request dataString];
@@ -205,7 +217,7 @@
 	STAssertTrue(success,@"Failed to remove a cookie");
 
 	// Test making sure cookie was properly removed
-	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/asi-http-request/tests/read_cookie"] autorelease];
+	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/read_cookie"] autorelease];
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request start];
 	html = [request dataString];
@@ -218,10 +230,10 @@
 	[cookieProperties setValue:@"ASIHTTPRequestTestCookie" forKey:NSHTTPCookieName];
 	[cookieProperties setValue:@"allseeing-i.com" forKey:NSHTTPCookieDomain];
 	[cookieProperties setValue:[NSDate dateWithTimeIntervalSinceNow:60*60*4] forKey:NSHTTPCookieExpires];
-	[cookieProperties setValue:@"/asi-http-request/tests" forKey:NSHTTPCookiePath];
+	[cookieProperties setValue:@"/ASIHTTPRequest/tests" forKey:NSHTTPCookiePath];
 	cookie = [[[NSHTTPCookie alloc] initWithProperties:cookieProperties] autorelease];
 
-	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/asi-http-request/tests/read_cookie"] autorelease];
+	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/read_cookie"] autorelease];
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUseCookiePersistance:NO];
 	[request setRequestCookies:[NSMutableArray arrayWithObject:cookie]];
@@ -233,7 +245,7 @@
 	// Test removing all cookies works
 	[ASIHTTPRequest clearSession];
 
-	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/asi-http-request/tests/read_cookie"] autorelease];
+	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/read_cookie"] autorelease];
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request start];
 	html = [request dataString];
@@ -245,7 +257,7 @@
 - (void)testBasicAuthentication
 {
 
-	NSURL *url = [[[NSURL alloc] initWithString:@"http://asi/asi-http-request/tests/basic-authentication"] autorelease];
+	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/basic-authentication"] autorelease];
 	ASIHTTPRequest *request;
 	BOOL success;
 	NSError *err;
@@ -310,7 +322,7 @@
 {
 	[ASIHTTPRequest clearSession];
 	
-	NSURL *url = [[[NSURL alloc] initWithString:@"http://asi/asi-http-request/tests/digest-authentication"] autorelease];
+	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/digest-authentication"] autorelease];
 	ASIHTTPRequest *request;
 	BOOL success;
 	NSError *err;

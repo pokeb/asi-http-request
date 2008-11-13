@@ -15,6 +15,7 @@
 
 - (void)testPostWithFileUpload
 {
+	NSURL *url = [NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/post"];
 	
 	//Create a 32kb file
 	unsigned int size = 1024*32;
@@ -22,14 +23,22 @@
 	NSString *path = [[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"bigfile"];
 	[data writeToFile:path atomically:NO];
 	
-	ASIFormDataRequest *request = [[[ASIFormDataRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com/asi-http-request/tests/post"]] autorelease];
+	ASIFormDataRequest *request = [[[ASIFormDataRequest alloc] initWithURL:url] autorelease];
 	[request setPostValue:@"foo" forKey:@"post_var"];
 	[request setFile:path forKey:@"file"];
 	[request start];
 
-	
 	BOOL success = ([[request dataString] isEqualToString:[NSString stringWithFormat:@"post_var: %@\r\nfile_name: %@\r\nfile_size: %hu",@"foo",@"bigfile",size]]);
-	STAssertTrue(success,@"Failed to upload the correct data");	
+	STAssertTrue(success,@"Failed to upload the correct data (using local file)");	
+	
+	//Try the same with the raw data
+	request = [[[ASIFormDataRequest alloc] initWithURL:url] autorelease];
+	[request setPostValue:@"foo" forKey:@"post_var"];
+	[request setData:data forKey:@"file"];
+	[request start];
+	
+	success = ([[request dataString] isEqualToString:[NSString stringWithFormat:@"post_var: %@\r\nfile_name: %@\r\nfile_size: %hu",@"foo",@"file",size]]);
+	STAssertTrue(success,@"Failed to upload the correct data (using NSData)");	
 }
  
 

@@ -5,7 +5,7 @@
 //  Copyright 2007-2008 All-Seeing Interactive. All rights reserved.
 //
 //  A guide to the main features is available at:
-//  http://allseeing-i.com/asi-http-request
+//  http://allseeing-i.com/ASIHTTPRequest
 //
 //  Portions are based on the ImageClient example from Apple:
 //  See: http://developer.apple.com/samplecode/ImageClient/listing37.html

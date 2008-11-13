@@ -14,4 +14,4 @@ It provides:
 * Based on NSOperation to make queuing requests and background operation easy
 * Basic unit tests (more to come!)
 
-Documentation is available "here":http://allseeing-i.com/ASI-HTTP-REQUEST.
+Documentation is available "here":http://allseeing-i.com/ASIHTTPRequest.

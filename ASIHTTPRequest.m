@@ -5,7 +5,7 @@
 //  Copyright 2007-2008 All-Seeing Interactive. All rights reserved.
 //
 //  A guide to the main features is available at:
-//  http://allseeing-i.com/asi-http-request
+//  http://allseeing-i.com/ASIHTTPRequest
 //
 //  Portions are based on the ImageClient example from Apple:
 //  See: http://developer.apple.com/samplecode/ImageClient/listing37.html
@@ -132,6 +132,7 @@ static NSError *ASIUnableToCreateRequestError;
 {
 	postBody = [body retain];
 	postLength = [postBody length];
+	[self addRequestHeader:@"Content-Length" value:[NSString stringWithFormat:@"%llu",postLength]];
 	if (postBody && postLength > 0 && ![requestMethod isEqualToString:@"POST"] && ![requestMethod isEqualToString:@"PUT"]) {
 		[self setRequestMethod:@"POST"];
 	}
@@ -329,7 +330,7 @@ static NSError *ASIUnableToCreateRequestError;
 		[pool release];
 		pool = [[NSAutoreleasePool alloc] init];
 		
-		NSDate *now = [NSDate new];
+		NSDate *now = [NSDate date];
 		
 		// See if we need to timeout
 		if (lastActivityTime && timeOutSeconds > 0) {
@@ -350,7 +351,6 @@ static NSError *ASIUnableToCreateRequestError;
 		
 		// This thread should wait for 1/4 second for the stream to do something. We'll stop early if it does.
 		CFRunLoopRunInMode(ASIHTTPRequestRunMode,0.25,YES);
-		[now release];
 	}
 	
 	[pool release];
