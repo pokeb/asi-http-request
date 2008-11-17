@@ -488,7 +488,7 @@ static NSError *ASIUnableToCreateRequestError;
 			
 			// We aren't using a queue, we should just set progress of the indicator
 		} else {
-			[ASIHTTPRequest setProgress:(double)(byteCount/postLength) forProgressIndicator:uploadProgressDelegate];
+			[ASIHTTPRequest setProgress:(double)(1.0*byteCount/postLength) forProgressIndicator:uploadProgressDelegate];
 		}
 		
 	}
@@ -557,7 +557,7 @@ static NSError *ASIUnableToCreateRequestError;
 				
 				// We aren't using a queue, we should just set progress of the indicator to 0
 			} else if (contentLength > 0)  {
-				[ASIHTTPRequest setProgress:(double)(bytesReadSoFar/contentLength) forProgressIndicator:downloadProgressDelegate];
+				[ASIHTTPRequest setProgress:(double)(1.0*bytesReadSoFar/contentLength) forProgressIndicator:downloadProgressDelegate];
 			}
 		}
 		
