@@ -12,7 +12,6 @@
 
 @implementation ASINetworkQueueTests
 
-
 - (void)testProgress
 {
 	complete = NO;
@@ -78,10 +77,13 @@
 	
 }
 
+ 
+
 - (void)setProgress:(float)newProgress
 {
 	progress = newProgress;
 }
+
 
 
 - (void)testFailure
@@ -189,6 +191,8 @@
 	[requestThatShouldFail release];	
 }
 
+
+ 
 - (void)requestFailedCancellingOthers:(ASIHTTPRequest *)request
 {
 	complete = YES;
@@ -203,6 +207,62 @@
 - (void)queueFinished:(ASINetworkQueue *)queue
 {
 	complete = YES;
+}
+
+- (void)testProgressWithAuthentication
+{
+	complete = NO;
+	progress = 0;
+	
+	networkQueue = [[ASINetworkQueue alloc] init];
+	[networkQueue setDownloadProgressDelegate:self];
+	[networkQueue setDelegate:self];
+	[networkQueue setShowAccurateProgress:YES];
+	[networkQueue setQueueDidFinishSelector:@selector(queueFinished:)];	
+	[networkQueue setRequestDidFailSelector:@selector(requestFailedCancellingOthers:)];
+	
+	NSURL *url;	
+	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/basic-authentication"] autorelease];
+	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[networkQueue addOperation:request];
+	
+	[networkQueue go];
+	
+	NSDate* endDate = [NSDate distantFuture];
+	while (!complete) {
+		[[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:endDate];
+	}
+
+	NSError *error = [request error];
+	STAssertNotNil(error,@"The HEAD request failed, but it didn't tell the main request to fail");	
+	[networkQueue release];
+	
+	
+	networkQueue = [[ASINetworkQueue alloc] init];
+	[networkQueue setDownloadProgressDelegate:self];
+	[networkQueue setDelegate:self];
+	[networkQueue setShowAccurateProgress:YES];
+	[networkQueue setQueueDidFinishSelector:@selector(queueFinished:)];	
+	
+	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request setUsername:@"secret_username"];
+	[request setPassword:@"secret_password"];
+	[networkQueue addOperation:request];
+	
+	[networkQueue go];
+	
+	while (!complete) {
+		[[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:endDate];
+	}
+	
+	error = [request error];
+	STAssertNil(error,@"Failed to use authentication in a queue");	
+	[networkQueue release];
+	
+	
+	
+	
+	
 }
 
 

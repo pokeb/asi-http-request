@@ -280,6 +280,7 @@ typedef enum _ASINetworkErrorType {
 @property (retain) NSError *error;
 @property (assign,readonly) BOOL complete;
 @property (retain) NSDictionary *responseHeaders;
+@property (retain) NSMutableDictionary *requestHeaders;
 @property (retain) NSMutableArray *requestCookies;
 @property (retain) NSArray *responseCookies;
 @property (assign) BOOL useCookiePersistance;

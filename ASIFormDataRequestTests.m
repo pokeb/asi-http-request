@@ -12,7 +12,6 @@
 @implementation ASIFormDataRequestTests
 
 
-
 - (void)testPostWithFileUpload
 {
 	NSURL *url = [NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/post"];

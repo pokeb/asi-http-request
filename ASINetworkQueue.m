@@ -254,6 +254,18 @@
 }
 
 
+- (BOOL)respondsToSelector:(SEL)selector
+{
+	if (selector == @selector(authorizationNeededForRequest:)) {
+		if ([delegate respondsToSelector:@selector(authorizationNeededForRequest:)]) {
+			return YES;
+		}
+		return NO;
+	}
+	return [super respondsToSelector:selector];
+}
+
+
 
 @synthesize uploadProgressDelegate;
 @synthesize downloadProgressDelegate;

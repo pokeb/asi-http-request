@@ -15,7 +15,6 @@
 @implementation ASIHTTPRequestTests
 
 
-
 - (void)testBasicDownload
 {
 	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com"] autorelease];
@@ -373,7 +372,6 @@
 	STAssertTrue(success,@"Failed to clear credentials");
 
 }
-
 
 
 @end
