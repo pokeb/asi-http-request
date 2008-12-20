@@ -386,11 +386,11 @@ static NSError *ASIUnableToCreateRequestError;
 	
     if (receivedData) {
 		[self setReceivedData:nil];
-		
-		// If we were downloading to a file, let's remove it
+	
+	// If we were downloading to a file, let's remove it
 	} else if (downloadDestinationPath) {
 		[outputStream close];
-		[[NSFileManager defaultManager] removeFileAtPath:downloadDestinationPath handler:nil];
+		[[NSFileManager defaultManager] removeItemAtPath:downloadDestinationPath error:NULL];
 	}
 	
 	[self setResponseHeaders:nil];

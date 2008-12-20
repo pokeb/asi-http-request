@@ -10,6 +10,7 @@
 //  Portions are based on the ImageClient example from Apple:
 //  See: http://developer.apple.com/samplecode/ImageClient/listing37.html
 
+#import <CFNetwork/CFNetwork.h>
 
 typedef enum _ASINetworkErrorType {
     ASIConnectionFailureErrorType = 1,
