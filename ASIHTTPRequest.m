@@ -270,8 +270,6 @@ static NSError *ASIUnableToCreateRequestError;
 		return;
 	}
 	
-	CFRunLoopAddCommonMode(CFRunLoopGetCurrent(),ASIHTTPRequestRunMode);
-	
 	[authenticationLock release];
 	authenticationLock = [[NSConditionLock alloc] initWithCondition:1];
 	
