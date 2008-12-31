@@ -74,6 +74,11 @@
 // Called during a request when authorisation fails to cancel any progress so far
 - (void)decrementUploadProgressBy:(unsigned long long)bytes;
 
+// Called when the first chunk of data is written to the upload buffer
+// We ignore the first part chunk when tracking upload progress, as kCFStreamPropertyHTTPRequestBytesWrittenCount reports the amount of data written to the buffer, not the amount sent
+// This is to workaround the first 128KB of data appearing in an upload progress delegate immediately
+- (void)setUploadBufferSize:(unsigned long long)bytes;
+
 // All ASINetworkQueues are paused when created so that total size can be calculated before the queue starts
 // This method will start the queue
 - (void)go;

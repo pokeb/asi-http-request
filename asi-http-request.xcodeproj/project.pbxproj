@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
 		8D11072D0486CEB800E47090 /* Mac-OS-Sample-main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* Mac-OS-Sample-main.m */; settings = {ATTRIBUTES = (); }; };
-		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
 		B5731BD00E4319940008024F /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B5731BCF0E4319940008024F /* Cocoa.framework */; };
 		B5731C300E431B340008024F /* ASIHTTPRequestTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests.m */; };
 		B5ABC7BB0E24C5620072F422 /* ASIHTTPRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5ABC7B90E24C5620072F422 /* ASIHTTPRequest.m */; };
@@ -20,6 +19,10 @@
 		B5B03F9C0EC5DEF80089D01F /* ASIFormDataRequestTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B5B03F9B0EC5DEF80089D01F /* ASIFormDataRequestTests.m */; };
 		B5B041810EC5F2850089D01F /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = B5B0417F0EC5F2850089D01F /* MainMenu.xib */; };
 		B5B3BC480E62D4790071D39F /* NSHTTPCookieAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = B5B3BC470E62D4790071D39F /* NSHTTPCookieAdditions.m */; };
+		B5B532450F0B5BD7007E2A5C /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B5731BCF0E4319940008024F /* Cocoa.framework */; };
+		B5B532570F0B5CA9007E2A5C /* UploadProgress.xib in Resources */ = {isa = PBXBuildFile; fileRef = B5B532560F0B5CA9007E2A5C /* UploadProgress.xib */; };
+		B5B5325D0F0B5D0C007E2A5C /* UploadViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B5B5325C0F0B5D0C007E2A5C /* UploadViewController.m */; };
+		B5B532970F0B5F1B007E2A5C /* UploadProgress.xib in Resources */ = {isa = PBXBuildFile; fileRef = B5B532960F0B5F1B007E2A5C /* UploadProgress.xib */; };
 		B5CFFA400EC45D49009ADE56 /* ASIFormDataRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5CFFA3F0EC45D49009ADE56 /* ASIFormDataRequest.m */; };
 		B5CFFADB0EC4650A009ADE56 /* NSHTTPCookieAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = B5B3BC470E62D4790071D39F /* NSHTTPCookieAdditions.m */; };
 		B5CFFADC0EC46516009ADE56 /* ASIFormDataRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5CFFA3F0EC45D49009ADE56 /* ASIFormDataRequest.m */; };
@@ -75,6 +78,11 @@
 		B5B041800EC5F2850089D01F /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		B5B3BC460E62D4790071D39F /* NSHTTPCookieAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NSHTTPCookieAdditions.h; sourceTree = "<group>"; };
 		B5B3BC470E62D4790071D39F /* NSHTTPCookieAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSHTTPCookieAdditions.m; sourceTree = "<group>"; };
+		B5B5314D0F0B59A1007E2A5C /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = System/Library/Frameworks/CoreServices.framework; sourceTree = SDKROOT; };
+		B5B532560F0B5CA9007E2A5C /* UploadProgress.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = UploadProgress.xib; path = "iphone-xibs/UploadProgress.xib"; sourceTree = "<group>"; };
+		B5B5325B0F0B5D0C007E2A5C /* UploadViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UploadViewController.h; sourceTree = "<group>"; };
+		B5B5325C0F0B5D0C007E2A5C /* UploadViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UploadViewController.m; sourceTree = "<group>"; };
+		B5B532960F0B5F1B007E2A5C /* UploadProgress.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = UploadProgress.xib; path = "iphone-xibs/UploadProgress.xib"; sourceTree = "<group>"; };
 		B5CFFA3E0EC45D49009ADE56 /* ASIFormDataRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIFormDataRequest.h; sourceTree = "<group>"; };
 		B5CFFA3F0EC45D49009ADE56 /* ASIFormDataRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIFormDataRequest.m; sourceTree = "<group>"; };
 		B5CFFAC90EC464D2009ADE56 /* AHR Sample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "AHR Sample.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -100,7 +108,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */,
+				B5B532450F0B5BD7007E2A5C /* Cocoa.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -179,6 +187,8 @@
 				B5731AE70E430AC30008024F /* Tests-Info.plist */,
 				B5731BCF0E4319940008024F /* Cocoa.framework */,
 				B5CFFACB0EC464D2009ADE56 /* iPhone Sample Application-Info.plist */,
+				B5B5314D0F0B59A1007E2A5C /* CoreServices.framework */,
+				B5B532560F0B5CA9007E2A5C /* UploadProgress.xib */,
 			);
 			name = "asi-http-request";
 			sourceTree = "<group>";
@@ -186,6 +196,7 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				B5B532960F0B5F1B007E2A5C /* UploadProgress.xib */,
 				B5B0417F0EC5F2850089D01F /* MainMenu.xib */,
 				B5F4C3C40EC47F6C00D4F31C /* iphone-icon.png */,
 				B5CFFBCB0EC46E20009ADE56 /* MainWindow.xib */,
@@ -226,6 +237,8 @@
 				B5CFFBD20EC46E41009ADE56 /* iPhoneSampleAppDelegate.m */,
 				B5F4C2380EC4742C00D4F31C /* SynchronousViewController.h */,
 				B5F4C2390EC4742C00D4F31C /* SynchronousViewController.m */,
+				B5B5325B0F0B5D0C007E2A5C /* UploadViewController.h */,
+				B5B5325C0F0B5D0C007E2A5C /* UploadViewController.m */,
 				B5F4C2A10EC4768500D4F31C /* QueueViewController.h */,
 				B5F4C2A20EC4768500D4F31C /* QueueViewController.m */,
 				B5CFFC110EC4710E009ADE56 /* iPhone-Sample-Application.pch */,
@@ -346,6 +359,8 @@
 				B5CFFBCF0EC46E20009ADE56 /* Synchronous.xib in Resources */,
 				B5CFFBD00EC46E20009ADE56 /* Queue.xib in Resources */,
 				B5F4C3C50EC47F6C00D4F31C /* iphone-icon.png in Resources */,
+				B5B532570F0B5CA9007E2A5C /* UploadProgress.xib in Resources */,
+				B5B532970F0B5F1B007E2A5C /* UploadProgress.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -407,6 +422,7 @@
 				B5F4C23A0EC4742C00D4F31C /* SynchronousViewController.m in Sources */,
 				B5F4C2A30EC4768500D4F31C /* QueueViewController.m in Sources */,
 				B5F4C7140EC4C9DE00D4F31C /* ASINetworkQueue.m in Sources */,
+				B5B5325D0F0B5D0C007E2A5C /* UploadViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -530,7 +546,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
-				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_IDENTITY = "iPhone Developer: Ben Copsey";
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
@@ -548,7 +564,8 @@
 				);
 				PREBINDING = NO;
 				PRODUCT_NAME = "AHR Sample";
-				SDKROOT = iphonesimulator2.1;
+				PROVISIONING_PROFILE = "117D7881-B33E-4AFD-9EB2-E32F1E6033D8";
+				SDKROOT = iphoneos2.1;
 				ZERO_LINK = NO;
 			};
 			name = Release;
@@ -580,6 +597,7 @@
 				GCC_PREFIX_HEADER = "Mac-OS-Sample-Application.pch";
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
+				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = "asi-http-request";
 				WRAPPER_EXTENSION = app;
 			};

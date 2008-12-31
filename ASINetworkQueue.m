@@ -193,6 +193,16 @@
 	}
 }
 
+
+- (void)setUploadBufferSize:(unsigned long long)bytes
+{
+	if (!uploadProgressDelegate) {
+		return;
+	}
+	uploadProgressTotalBytes -= bytes;
+	[self incrementUploadProgressBy:0];
+}
+
 - (void)incrementUploadSizeBy:(unsigned long long)bytes
 {
 	if (!uploadProgressDelegate) {

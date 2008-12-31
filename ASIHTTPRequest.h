@@ -10,7 +10,11 @@
 //  Portions are based on the ImageClient example from Apple:
 //  See: http://developer.apple.com/samplecode/ImageClient/listing37.html
 
-#import <CFNetwork/CFNetwork.h>
+
+// Dammit, importing frameworks when you are targetting two platforms is a PITA
+#if TARGET_OS_IPHONE
+	#import <CFNetwork/CFNetwork.h>
+#endif
 
 typedef enum _ASINetworkErrorType {
     ASIConnectionFailureErrorType = 1,
@@ -160,6 +164,8 @@ typedef enum _ASINetworkErrorType {
 	
 	// Prevents the body of the post being built more than once (largely for subclasses)
 	BOOL haveBuiltPostBody;
+	
+	unsigned long long uploadBufferSize;
 }
 
 #pragma mark init / dealloc
@@ -298,4 +304,5 @@ typedef enum _ASINetworkErrorType {
 @property (retain) ASIHTTPRequest *mainRequest;
 @property (assign) BOOL showAccurateProgress;
 @property (assign,readonly) unsigned long long totalBytesRead;
+@property (assign) unsigned long long uploadBufferSize;
 @end

@@ -9,7 +9,7 @@ It provides:
 * Easy access to request and response HTTP headers
 * Progress delegates (NSProgressIndicators and UIProgressViews) to show information about download AND upload progress
 * Auto-magic management of upload and download progress indicators for operation queues
-* Basic + Digest authentication support, credentials are automatically for the duration of a session, and can be stored for later in the Keychain.
+* Basic + Digest authentication support, credentials are automatically re-used for the duration of a session, and can be stored for later in the Keychain.
 * Cookie support
 * Based on NSOperation to make queuing requests and background operation easy
 * Basic unit tests (more to come!)

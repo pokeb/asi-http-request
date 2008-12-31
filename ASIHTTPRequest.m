@@ -71,6 +71,7 @@ static NSError *ASIUnableToCreateRequestError;
 	requestAuthentication = NULL;
 	haveBuiltPostBody = NO;
 	request = NULL;
+	[self setUploadBufferSize:0];
 	[self setResponseHeaders:nil];
 	[self setTimeOutSeconds:10];
 	[self setUseKeychainPersistance:NO];
@@ -183,6 +184,11 @@ static NSError *ASIUnableToCreateRequestError;
 	pool = [[NSAutoreleasePool alloc] init];
 	
 	complete = NO;
+	
+	if (!url) {
+		[self failWithError:ASIUnableToCreateRequestError];
+		return;		
+	}
 	
     // Create a new HTTP request.
 	request = CFHTTPMessageCreateRequest(kCFAllocatorDefault, (CFStringRef)requestMethod, (CFURLRef)url, kCFHTTPVersion1_1);
@@ -346,8 +352,12 @@ static NSError *ASIUnableToCreateRequestError;
 		NSDate *now = [NSDate date];
 		
 		// See if we need to timeout
-		if (lastActivityTime && timeOutSeconds > 0) {
-			if ([now timeIntervalSinceDate:lastActivityTime] > timeOutSeconds) {
+		if (lastActivityTime && timeOutSeconds > 0 && [now timeIntervalSinceDate:lastActivityTime] > timeOutSeconds) {
+			
+			// Prevent timeouts before 128KB has been sent when the size of data to upload is greater than 128KB
+			// This is to workaround the fact that kCFStreamPropertyHTTPRequestBytesWrittenCount is the amount written to the buffer, not the amount actually sent
+			// This workaround prevents erroneous timeouts in low bandwidth situations (eg iPhone)
+			if (contentLength <= uploadBufferSize || (uploadBufferSize > 0 && lastBytesSent > uploadBufferSize)) {
 				[self failWithError:ASIRequestTimedOutError];
 				[self cancelLoad];
 				complete = YES;
@@ -474,6 +484,25 @@ static NSError *ASIUnableToCreateRequestError;
 		return;
 	}
 	unsigned long long byteCount = [[(NSNumber *)CFReadStreamCopyProperty (readStream, kCFStreamPropertyHTTPRequestBytesWrittenCount) autorelease] unsignedLongLongValue];
+	
+	// If this is the first time we've written to the buffer, byteCount will be the size of the buffer (currently seems to be 128KB on both Mac and iPhone)
+	// We will remove this from any progress display, as kCFStreamPropertyHTTPRequestBytesWrittenCount does not tell us how much data has actually be written
+	if (byteCount > 0 && uploadBufferSize == 0 && byteCount != postLength) {
+		[self setUploadBufferSize:byteCount];
+		SEL selector = @selector(setUploadBufferSize:);
+		if ([uploadProgressDelegate respondsToSelector:selector]) {
+			NSMethodSignature *signature = nil;
+			signature = [[uploadProgressDelegate class] instanceMethodSignatureForSelector:selector];
+			NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
+			[invocation setTarget:uploadProgressDelegate];
+			[invocation setSelector:selector];
+			[invocation setArgument:&byteCount atIndex:2];
+			[invocation invoke];
+		}
+	}
+	
+
+	
 	[cancelledLock unlock];
 	if (byteCount > lastBytesSent) {
 		[self setLastActivityTime:[NSDate date]];		
@@ -485,7 +514,13 @@ static NSError *ASIUnableToCreateRequestError;
 		if ([uploadProgressDelegate respondsToSelector:@selector(incrementUploadProgressBy:)]) {
 			unsigned long long value = 0;
 			if (showAccurateProgress) {
-				value = byteCount-lastBytesSent;
+				if (byteCount == postLength) {
+					value = byteCount+uploadBufferSize;
+				} else if (lastBytesSent > 0) {
+					value = ((byteCount-uploadBufferSize)-(lastBytesSent-uploadBufferSize));
+				} else {
+					value = 0;
+				}
 			} else {
 				value = 1;
 				updatedProgress = YES;
@@ -501,7 +536,7 @@ static NSError *ASIUnableToCreateRequestError;
 			
 			// We aren't using a queue, we should just set progress of the indicator
 		} else {
-			[ASIHTTPRequest setProgress:(double)(1.0*byteCount/postLength) forProgressIndicator:uploadProgressDelegate];
+			[ASIHTTPRequest setProgress:(double)(1.0*(byteCount-uploadBufferSize)/(postLength-uploadBufferSize)) forProgressIndicator:uploadProgressDelegate];
 		}
 		
 	}
@@ -602,7 +637,7 @@ static NSError *ASIUnableToCreateRequestError;
 
 + (void)setProgress:(double)progress forProgressIndicator:(id)indicator
 {
-	
+
 	SEL selector;
 	[progressLock lock];
 	
@@ -614,13 +649,12 @@ static NSError *ASIUnableToCreateRequestError;
 		[invocation setSelector:selector];
 		float progressFloat = (float)progress; // UIProgressView wants a float for the progress parameter
 		[invocation setArgument:&progressFloat atIndex:2];
-		[invocation invokeWithTarget:indicator];
-		
+
 		// If we're running in the main thread, update the progress straight away. Otherwise, it's not that urgent
 		[invocation performSelectorOnMainThread:@selector(invokeWithTarget:) withObject:indicator waitUntilDone:[NSThread isMainThread]];
+
 		
-		
-		// Cocoa: NSProgressIndicator
+	// Cocoa: NSProgressIndicator
 	} else if ([indicator respondsToSelector:@selector(setDoubleValue:)]) {
 		selector = @selector(setDoubleValue:);
 		NSMethodSignature *signature = [[indicator class] instanceMethodSignatureForSelector:selector];
@@ -1146,4 +1180,5 @@ static NSError *ASIUnableToCreateRequestError;
 @synthesize totalBytesRead;
 @synthesize showAccurateProgress;
 @synthesize totalBytesRead;
+@synthesize uploadBufferSize;
 @end
