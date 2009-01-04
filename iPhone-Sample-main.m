@@ -3,7 +3,7 @@
 //  asi-http-request
 //
 //  Created by Ben Copsey on 09/07/2008.
-//  Copyright __MyCompanyName__ 2008. All rights reserved.
+//  Copyright 2008 All-Seeing Interactive. All rights reserved.
 //
 
 #import <UIKit/UIKit.h>

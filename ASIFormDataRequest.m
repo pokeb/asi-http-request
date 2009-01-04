@@ -30,12 +30,12 @@
 
 #pragma mark setup request
 
-- (void)setPostValue:(id)value forKey:(NSString *)key
+- (void)setPostValue:(id <NSObject>)value forKey:(NSString *)key
 {
 	if (!postData) {
 		postData = [[NSMutableDictionary alloc] init];
 	}
-	[postData setValue:value forKey:key];
+	[postData setValue:[value description] forKey:key];
 	[self setRequestMethod:@"POST"];
 }
 

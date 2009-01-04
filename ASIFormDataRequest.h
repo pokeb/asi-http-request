@@ -21,7 +21,7 @@
 #pragma mark setup request
 
 // Add a POST variable to the request
-- (void)setPostValue:(id)value forKey:(NSString *)key;
+- (void)setPostValue:(id <NSObject>)value forKey:(NSString *)key;
 
 // Add the contents of a local file to the request
 - (void)setFile:(NSString *)filePath forKey:(NSString *)key;
