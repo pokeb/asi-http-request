@@ -24,5 +24,6 @@
 - (void)testCookies;
 - (void)testBasicAuthentication;
 - (void)testDigestAuthentication;
+- (void)testCharacterEncoding;
 
 @end

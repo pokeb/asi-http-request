@@ -72,6 +72,7 @@ static NSError *ASIUnableToCreateRequestError;
 	requestAuthentication = NULL;
 	haveBuiltPostBody = NO;
 	request = NULL;
+	[self setDefaultResponseEncoding:NSISOLatin1StringEncoding];
 	[self setUploadBufferSize:0];
 	[self setResponseHeaders:nil];
 	[self setTimeOutSeconds:10];
@@ -171,7 +172,8 @@ static NSError *ASIUnableToCreateRequestError;
 	if (!receivedData) {
 		return nil;
 	}
-	return [[[NSString alloc] initWithBytes:[receivedData bytes] length:[receivedData length] encoding:NSUTF8StringEncoding] autorelease];
+	
+	return [[[NSString alloc] initWithBytes:[receivedData bytes] length:[receivedData length] encoding:[self responseEncoding]] autorelease];
 }
 
 
@@ -738,6 +740,22 @@ static NSError *ASIUnableToCreateRequestError;
 				}
 			}
 			
+			// Handle response text encoding
+			// If the Content-Type header specified an encoding, we'll use that, otherwise we use defaultStringEncoding (which defaults to NSISOLatin1StringEncoding)
+			NSString *contentType = [[self responseHeaders] objectForKey:@"Content-Type"];
+			NSStringEncoding encoding = [self defaultResponseEncoding];
+			if (contentType) {
+				NSArray *parts = [contentType componentsSeparatedByString:@"="];
+				NSString *IANAEncoding = [parts objectAtIndex:[parts count]-1];
+				if (IANAEncoding) {
+					CFStringEncoding cfEncoding = CFStringConvertIANACharSetNameToEncoding((CFStringRef)IANAEncoding);
+					if (cfEncoding != kCFStringEncodingInvalidId) {
+						encoding = CFStringConvertEncodingToNSStringEncoding(cfEncoding);
+					}
+				}
+			}
+			[self setResponseEncoding:encoding];
+			
 			// Handle cookies
 			NSArray *cookies = [NSHTTPCookie cookiesWithResponseHeaderFields:responseHeaders forURL:url];
 			[self setResponseCookies:cookies];
@@ -1182,4 +1200,6 @@ static NSError *ASIUnableToCreateRequestError;
 @synthesize showAccurateProgress;
 @synthesize totalBytesRead;
 @synthesize uploadBufferSize;
+@synthesize defaultResponseEncoding;
+@synthesize responseEncoding;
 @end

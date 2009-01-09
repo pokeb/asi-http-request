@@ -166,6 +166,9 @@ typedef enum _ASINetworkErrorType {
 	BOOL haveBuiltPostBody;
 	
 	unsigned long long uploadBufferSize;
+	
+	NSStringEncoding defaultResponseEncoding;
+	NSStringEncoding responseEncoding;
 }
 
 #pragma mark init / dealloc
@@ -305,4 +308,6 @@ typedef enum _ASINetworkErrorType {
 @property (assign) BOOL showAccurateProgress;
 @property (assign,readonly) unsigned long long totalBytesRead;
 @property (assign) unsigned long long uploadBufferSize;
+@property (assign) NSStringEncoding defaultResponseEncoding;
+@property (assign) NSStringEncoding responseEncoding;
 @end

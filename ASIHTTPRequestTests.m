@@ -53,9 +53,31 @@
 	STAssertTrue(success,@"Failed to generate an error for a bad host");
 }
 
+- (void)testCharacterEncoding
+{
+	
+	NSArray *IANAEncodings = [NSArray arrayWithObjects:@"UTF-8",@"US-ASCII",@"ISO-8859-1",@"UTF-16",nil];
+	NSUInteger NSStringEncodings[] = {NSUTF8StringEncoding,NSASCIIStringEncoding,NSISOLatin1StringEncoding,NSUnicodeStringEncoding};
+	
+	int i;
+	for (i=0; i<[IANAEncodings count]; i++) {
+		NSURL *url = [[[NSURL alloc] initWithString:[NSString stringWithFormat:@"http://allseeing-i.com/ASIHTTPRequest/tests/Character-Encoding/%@",[IANAEncodings objectAtIndex:i]]] autorelease];
+		ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+		[request start];
+		BOOL success = [request responseEncoding] == NSStringEncodings[i];
+		STAssertTrue(success,[NSString stringWithFormat:@"Failed to use the correct text encoding for %@i",[IANAEncodings objectAtIndex:i]]);
+	}
+					 
+	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/Character-Encoding/Something-else"] autorelease];
+	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request setDefaultResponseEncoding:NSWindowsCP1251StringEncoding];
+	[request start];
+	BOOL success = [request responseEncoding] == [request defaultResponseEncoding];
+	STAssertTrue(success,[NSString stringWithFormat:@"Failed to use the default string encoding"]);
+}
+
 - (void)testTimeOut
 {
-	//Grab data
 	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com"] autorelease];
 	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setTimeOutSeconds:0.0001]; //It's pretty unlikely we will be able to grab the data this quickly, so the request should timeout
