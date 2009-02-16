@@ -50,10 +50,10 @@ typedef enum _ASINetworkErrorType {
 	// Can be used to manually insert cookie headers to a request, but it's more likely that sessionCookies will do this for you
 	NSMutableArray *requestCookies;
 	
-	// Will be populated with Cookies
+	// Will be populated with cookies
 	NSArray *responseCookies;
 	
-	// If use cokie persistance is true, network requests will present valid cookies from previous requests
+	// If use useCookiePersistance is true, network requests will present valid cookies from previous requests
 	BOOL useCookiePersistance;
 	
 	// If useKeychainPersistance is true, network requests will attempt to read credentials from the keychain, and will save them in the keychain when they are successfully presented

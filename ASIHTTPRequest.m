@@ -2,7 +2,7 @@
 //  ASIHTTPRequest.m
 //
 //  Created by Ben Copsey on 04/10/2007.
-//  Copyright 2007-2008 All-Seeing Interactive. All rights reserved.
+//  Copyright 2007-2009 All-Seeing Interactive. All rights reserved.
 //
 //  A guide to the main features is available at:
 //  http://allseeing-i.com/ASIHTTPRequest
@@ -719,8 +719,8 @@ static NSError *ASIUnableToCreateRequestError;
 	BOOL isAuthenticationChallenge = NO;
 	CFHTTPMessageRef headers = (CFHTTPMessageRef)CFReadStreamCopyProperty(readStream, kCFStreamPropertyHTTPResponseHeader);
 	if (CFHTTPMessageIsHeaderComplete(headers)) {
-		responseHeaders = (NSDictionary *)CFHTTPMessageCopyAllHeaderFields(headers);
-		responseStatusCode = CFHTTPMessageGetResponseStatusCode(headers);
+		[self setResponseHeaders:(NSDictionary *)CFHTTPMessageCopyAllHeaderFields(headers)];
+		[self setResponseStatusCode:CFHTTPMessageGetResponseStatusCode(headers)];
 		
 		// Is the server response a challenge for credentials?
 		isAuthenticationChallenge = (responseStatusCode == 401);
@@ -1148,8 +1148,7 @@ static NSError *ASIUnableToCreateRequestError;
 + (void)setSessionCookies:(NSMutableArray *)newSessionCookies
 {
 	// Remove existing cookies from the persistent store
-	NSHTTPCookie *cookie;
-	for (cookie in newSessionCookies) {
+	for (NSHTTPCookie *cookie in [ASIHTTPRequest sessionCookies]) {
 		[[NSHTTPCookieStorage sharedHTTPCookieStorage] deleteCookie:cookie];
 	}
 	[sessionCookies release];

@@ -168,7 +168,7 @@
 {
 	progress = newProgress;
 }
- 
+
 
 
 - (void)testCookies
@@ -263,11 +263,17 @@
 	success = [html isEqualToString:@"I have 'Test Value' as the value of 'ASIHTTPRequestTestCookie'"];
 	STAssertTrue(success,@"Custom cookie not presented to the server with cookie persistance OFF");
 	
+	
+
 	// Test removing all cookies works
 	[ASIHTTPRequest clearSession];
+	NSArray *sessionCookies = [ASIHTTPRequest sessionCookies];
+	success = ([sessionCookies count] == 0);
+	STAssertTrue(success,@"Cookies not removed");
 
 	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/read_cookie"] autorelease];
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request setUseCookiePersistance:YES];
 	[request start];
 	html = [request dataString];
 	success = [html isEqualToString:@"No cookie exists"];
