@@ -32,7 +32,7 @@
 	[request setFile:path forKey:@"file"];
 	[request start];
 
-	BOOL success = ([[request dataString] isEqualToString:[NSString stringWithFormat:@"post_var: %@\r\npost_var2: %@\r\npost_var3: %@\r\nfile_name: %@\r\nfile_size: %hu",@"foo",d,v,@"bigfile",size]]);
+	BOOL success = ([[request responseString] isEqualToString:[NSString stringWithFormat:@"post_var: %@\r\npost_var2: %@\r\npost_var3: %@\r\nfile_name: %@\r\nfile_size: %hu",@"foo",d,v,@"bigfile",size]]);
 	STAssertTrue(success,@"Failed to upload the correct data (using local file)");	
 	
 	//Try the same with the raw data
@@ -43,7 +43,7 @@
 	[request setData:data forKey:@"file"];
 	[request start];
 	
-	success = ([[request dataString] isEqualToString:[NSString stringWithFormat:@"post_var: %@\r\npost_var2: %@\r\npost_var3: %@\r\nfile_name: %@\r\nfile_size: %hu",@"foo",d,v,@"file",size]]);
+	success = ([[request responseString] isEqualToString:[NSString stringWithFormat:@"post_var: %@\r\npost_var2: %@\r\npost_var3: %@\r\nfile_name: %@\r\nfile_size: %hu",@"foo",d,v,@"file",size]]);
 	STAssertTrue(success,@"Failed to upload the correct data (using NSData)");	
 }
  

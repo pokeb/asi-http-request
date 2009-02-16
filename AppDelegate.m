@@ -34,8 +34,8 @@
 	[request addRequestHeader:@"User-Agent" value:@"ASIHTTPRequest"];
 	
 	[request start];
-	if ([request dataString]) {
-		[htmlSource setString:[request dataString]];
+	if ([request responseString]) {
+		[htmlSource setString:[request responseString]];
 	}
 }
 
@@ -131,7 +131,7 @@
 - (IBAction)topSecretFetchComplete:(ASIHTTPRequest *)request
 {
 	if (![request error]) {
-		[topSecretInfo setStringValue:[request dataString]];
+		[topSecretInfo setStringValue:[request responseString]];
 		[topSecretInfo setFont:[NSFont boldSystemFontOfSize:13]];
 	}
 }

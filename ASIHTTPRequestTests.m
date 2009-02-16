@@ -20,7 +20,7 @@
 	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com"] autorelease];
 	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request start];
-	NSString *html = [request dataString];
+	NSString *html = [request responseString];
 	STAssertNotNil(html,@"Basic synchronous request failed");
 
 	// Check we're getting the correct response headers
@@ -97,7 +97,7 @@
 		ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 		[request setRequestMethod:method];
 		[request start];
-		BOOL success = [[request dataString] isEqualToString:method];
+		BOOL success = [[request responseString] isEqualToString:method];
 		STAssertTrue(success,@"Failed to set the request method correctly");	
 	}
 }
@@ -110,7 +110,7 @@
 	[request setPostBody:[NSMutableData dataWithLength:1024*32]];
 	[request start];
 	
-	BOOL success = ([[request dataString] isEqualToString:[NSString stringWithFormat:@"%hu",(1024*32)]]);
+	BOOL success = ([[request responseString] isEqualToString:[NSString stringWithFormat:@"%hu",(1024*32)]]);
 	STAssertTrue(success,@"Sent wrong content length");
 }
 
@@ -133,6 +133,7 @@
 	[request1 setDownloadDestinationPath:path];
 	[request1 start];
 	
+	NSString *s = [NSString stringWithContentsOfURL:[NSURL fileURLWithPath:path]];
 	BOOL success = [[NSString stringWithContentsOfURL:[NSURL fileURLWithPath:path]] isEqualToString:@"This is the expected content for the first string"];
 	STAssertTrue(success,@"Failed to download data to a file");
 }
@@ -180,7 +181,7 @@
 	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUseCookiePersistance:YES];
 	[request start];
-	NSString *html = [request dataString];
+	NSString *html = [request responseString];
 	success = [html isEqualToString:@"I have set a cookie"];
 	STAssertTrue(success,@"Failed to set a cookie");
 	
@@ -216,7 +217,7 @@
 	[request setUseCookiePersistance:NO];
 	[request setRequestCookies:[NSMutableArray arrayWithObject:cookie]];
 	[request start];
-	html = [request dataString];
+	html = [request responseString];
 	success = [html isEqualToString:@"I have 'This is the value' as the value of 'ASIHTTPRequestTestCookie'"];
 	STAssertTrue(success,@"Cookie not presented to the server with cookie persistance OFF");
 
@@ -225,7 +226,7 @@
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUseCookiePersistance:YES];
 	[request start];
-	html = [request dataString];
+	html = [request responseString];
 	success = [html isEqualToString:@"I have 'This is the value' as the value of 'ASIHTTPRequestTestCookie'"];
 	STAssertTrue(success,@"Cookie not presented to the server with cookie persistance ON");
 	
@@ -233,7 +234,7 @@
 	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/remove_cookie"] autorelease];
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request start];
-	html = [request dataString];
+	html = [request responseString];
 	success = [html isEqualToString:@"I have removed a cookie"];
 	STAssertTrue(success,@"Failed to remove a cookie");
 
@@ -241,7 +242,7 @@
 	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/read_cookie"] autorelease];
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request start];
-	html = [request dataString];
+	html = [request responseString];
 	success = [html isEqualToString:@"No cookie exists"];
 	STAssertTrue(success,@"Cookie presented to the server when it should have been removed");
 	
@@ -259,7 +260,7 @@
 	[request setUseCookiePersistance:NO];
 	[request setRequestCookies:[NSMutableArray arrayWithObject:cookie]];
 	[request start];
-	html = [request dataString];
+	html = [request responseString];
 	success = [html isEqualToString:@"I have 'Test Value' as the value of 'ASIHTTPRequestTestCookie'"];
 	STAssertTrue(success,@"Custom cookie not presented to the server with cookie persistance OFF");
 	
@@ -275,7 +276,7 @@
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUseCookiePersistance:YES];
 	[request start];
-	html = [request dataString];
+	html = [request responseString];
 	success = [html isEqualToString:@"No cookie exists"];
 	STAssertTrue(success,@"Cookie presented to the server when it should have been removed");
 }
@@ -398,7 +399,29 @@
 	[request start];
 	success = [[request error] code] == ASIAuthenticationErrorType;
 	STAssertTrue(success,@"Failed to clear credentials");
+}
 
+- (void)testCompressedResponse
+{
+	// allseeing-i.com does not gzip png images
+	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/i/logo.png"] autorelease];
+	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request start];
+	NSString *encoding = [[request responseHeaders] objectForKey:@"Content-Encoding"];
+	BOOL success = (!encoding || [encoding rangeOfString:@"gzip"].location != NSNotFound);
+	STAssertTrue(success,@"Got incorrect request headers from server");
+	
+	success = ([request rawResponseData] == [request responseData]);
+	STAssertTrue(success,@"Attempted to uncompress data that was not compressed");	
+	
+	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/first"] autorelease];
+	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request start];
+	success = ([request rawResponseData] != [request responseData]);
+	STAssertTrue(success,@"Uncompressed data is the same as compressed data");	
+	
+	success = [[request responseString] isEqualToString:@"This is the expected content for the first string"];
+	STAssertTrue(success,@"Failed to decompress data correctly?");
 }
 
 

@@ -126,19 +126,19 @@
 	success = ([request1 error] == nil);
 	STAssertTrue(success,@"Request 1 failed");
 	
-	success = [[request1 dataString] isEqualToString:@"This is the expected content for the first string"];
+	success = [[request1 responseString] isEqualToString:@"This is the expected content for the first string"];
 	STAssertTrue(success,@"Failed to download the correct data for request 1");
 	
 	success = ([request2 error] == nil);
 	STAssertTrue(success,@"Request 2 failed");
 	
-	success = [[request2 dataString] isEqualToString:@"This is the expected content for the second string"];
+	success = [[request2 responseString] isEqualToString:@"This is the expected content for the second string"];
 	STAssertTrue(success,@"Failed to download the correct data for request 2");
 	
 	success = ([request3 error] == nil);
 	STAssertTrue(success,@"Request 3 failed");
 	
-	success = [[request3 dataString] isEqualToString:@"This is the expected content for the third string"];
+	success = [[request3 responseString] isEqualToString:@"This is the expected content for the third string"];
 	STAssertTrue(success,@"Failed to download the correct data for request 3");
 	
 	success = ([requestThatShouldFail error] != nil);

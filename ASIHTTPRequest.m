@@ -72,6 +72,7 @@ static NSError *ASIUnableToCreateRequestError;
 	requestAuthentication = NULL;
 	haveBuiltPostBody = NO;
 	request = NULL;
+	[self setAllowCompressedResponse:YES];
 	[self setDefaultResponseEncoding:NSISOLatin1StringEncoding];
 	[self setUploadBufferSize:0];
 	[self setResponseHeaders:nil];
@@ -113,7 +114,7 @@ static NSError *ASIUnableToCreateRequestError;
 	[authenticationLock release];
 	[lastActivityTime release];
 	[responseCookies release];
-	[receivedData release];
+	[rawResponseData release];
 	[responseHeaders release];
 	[requestMethod release];
 	[cancelledLock release];
@@ -166,16 +167,27 @@ static NSError *ASIUnableToCreateRequestError;
 }
 
 
-// Call this method to get the recieved data as an NSString. Don't use for Binary data!
-- (NSString *)dataString
+// Call this method to get the received data as an NSString. Don't use for Binary data!
+- (NSString *)responseString
 {
-	if (!receivedData) {
+	NSData *data = [self responseData];
+	if (!data) {
 		return nil;
 	}
 	
-	return [[[NSString alloc] initWithBytes:[receivedData bytes] length:[receivedData length] encoding:[self responseEncoding]] autorelease];
+	return [[[NSString alloc] initWithBytes:[data bytes] length:[data length] encoding:[self responseEncoding]] autorelease];
 }
 
+
+- (NSData *)responseData
+{	
+	NSString *encoding = [[self responseHeaders] objectForKey:@"Content-Encoding"];
+	if(encoding && [encoding rangeOfString:@"gzip"].location != NSNotFound) {
+		return [ASIHTTPRequest uncompressZippedData:[self rawResponseData]];
+	} else {
+		return [self rawResponseData];
+	}
+}
 
 #pragma mark request logic
 
@@ -243,6 +255,12 @@ static NSError *ASIUnableToCreateRequestError;
 		[self buildPostBody];
 	}
 	
+	
+	// Accept a compressed response
+	if ([self allowCompressedResponse]) {
+		[self addRequestHeader:@"Accept-Encoding" value:@"gzip"];
+	}
+	
 	// Add custom headers
 	NSDictionary *headers;
 	
@@ -296,7 +314,7 @@ static NSError *ASIUnableToCreateRequestError;
 		contentLength = 0;
 	}
 	[self setResponseHeaders:nil];
-    [self setReceivedData:[[[NSMutableData alloc] init] autorelease]];
+    [self setRawResponseData:[[[NSMutableData alloc] init] autorelease]];
     
     // Create the stream for the request.
     readStream = CFReadStreamCreateForStreamedHTTPRequest(kCFAllocatorDefault, request,readStream);
@@ -395,8 +413,8 @@ static NSError *ASIUnableToCreateRequestError;
         readStream = NULL;
     }
 	
-    if (receivedData) {
-		[self setReceivedData:nil];
+    if (rawResponseData) {
+		[self setRawResponseData:nil];
 	
 	// If we were downloading to a file, let's remove it
 	} else if (downloadDestinationPath) {
@@ -1025,7 +1043,7 @@ static NSError *ASIUnableToCreateRequestError;
 			
 			//Otherwise, let's add the data to our in-memory store
 		} else {
-			[receivedData appendBytes:buffer length:bytesRead];
+			[rawResponseData appendBytes:buffer length:bytesRead];
 		}
     }
 	
@@ -1164,6 +1182,59 @@ static NSError *ASIUnableToCreateRequestError;
 }
 
 
+#pragma mark gzip data handling
+
+//
+// Contributed by Shaun Harrison of Enormego, see: http://developers.enormego.com/view/asihttprequest_gzip
+// Based on this: http://deusty.blogspot.com/2007/07/gzip-compressiondecompression.html
+//
++ (NSData *)uncompressZippedData:(NSData*)compressedData
+{
+	if ([compressedData length] == 0) return compressedData;
+	
+	unsigned full_length = [compressedData length];
+	unsigned half_length = [compressedData length] / 2;
+	
+	NSMutableData *decompressed = [NSMutableData dataWithLength: full_length + half_length];
+	BOOL done = NO;
+	int status;
+	
+	z_stream strm;
+	strm.next_in = (Bytef *)[compressedData bytes];
+	strm.avail_in = [compressedData length];
+	strm.total_out = 0;
+	strm.zalloc = Z_NULL;
+	strm.zfree = Z_NULL;
+	
+	if (inflateInit2(&strm, (15+32)) != Z_OK) return nil;
+	
+	while (!done) {
+		// Make sure we have enough room and reset the lengths.
+		if (strm.total_out >= [decompressed length]) {
+			[decompressed increaseLengthBy: half_length];
+		}
+		strm.next_out = [decompressed mutableBytes] + strm.total_out;
+		strm.avail_out = [decompressed length] - strm.total_out;
+		
+		// Inflate another chunk.
+		status = inflate (&strm, Z_SYNC_FLUSH);
+		if (status == Z_STREAM_END) {
+			done = YES;
+		} else if (status != Z_OK) {
+			break;
+		}
+	}
+	if (inflateEnd (&strm) != Z_OK) return nil;
+	
+	// Set real length.
+	if (done) {
+		[decompressed setLength: strm.total_out];
+		return [NSData dataWithData: decompressed];
+	} else {
+		return nil;
+	}
+}
+
 @synthesize username;
 @synthesize password;
 @synthesize domain;
@@ -1186,7 +1257,7 @@ static NSError *ASIUnableToCreateRequestError;
 @synthesize requestCookies;
 @synthesize requestCredentials;
 @synthesize responseStatusCode;
-@synthesize receivedData;
+@synthesize rawResponseData;
 @synthesize lastActivityTime;
 @synthesize timeOutSeconds;
 @synthesize requestMethod;
@@ -1201,4 +1272,5 @@ static NSError *ASIUnableToCreateRequestError;
 @synthesize uploadBufferSize;
 @synthesize defaultResponseEncoding;
 @synthesize responseEncoding;
+@synthesize allowCompressedResponse;
 @end
