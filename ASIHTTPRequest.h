@@ -15,7 +15,7 @@
 #if TARGET_OS_IPHONE
 	#import <CFNetwork/CFNetwork.h>
 #endif
-#import <zlib.h>
+#import <stdio.h>
 
 typedef enum _ASINetworkErrorType {
     ASIConnectionFailureErrorType = 1,
@@ -24,7 +24,8 @@ typedef enum _ASINetworkErrorType {
     ASIRequestCancelledErrorType = 4,
     ASIUnableToCreateRequestErrorType = 5,
     ASIInternalErrorWhileBuildingRequestType  = 6,
-    ASIInternalErrorWhileApplyingCredentialsType  = 7
+    ASIInternalErrorWhileApplyingCredentialsType  = 7,
+	ASIFileManagementError = 8
 	
 } ASINetworkErrorType;
 
@@ -69,6 +70,9 @@ typedef enum _ASINetworkErrorType {
 	// When downloadDestinationPath is set, the result of this request will be downloaded to the file at this location
 	// If downloadDestinationPath is not set, download data will be stored in memory
 	NSString *downloadDestinationPath;
+	
+	//The location that files will be downloaded to. Once a download is complete, files will be decompressed (if necessary) and moved to downloadDestinationPath
+	NSString *temporaryFileDownloadPath;
 	
 	// Used for writing data to a file when downloadDestinationPath is set
 	NSOutputStream *outputStream;
@@ -195,6 +199,9 @@ typedef enum _ASINetworkErrorType {
 // Response data, automatically uncompressed where appropriate
 - (NSData *)responseData;
 
+// Returns true if the response was gzip compressed
+- (BOOL)isResponseCompressed;
+
 #pragma mark request logic
 
 // Start loading the request
@@ -284,6 +291,9 @@ typedef enum _ASINetworkErrorType {
 // Uncompress gzipped data with zlib
 + (NSData *)uncompressZippedData:(NSData*)compressedData;
 
+// Uncompress gzipped data from a file into another file, used when downloading to a file
++ (int)uncompressZippedDataFromFile:(NSString *)sourcePath toFile:(NSString *)destinationPath;
++ (int)uncompressZippedDataFromSource:(FILE *)source toDestination:(FILE *)dest;
 
 @property (retain) NSString *username;
 @property (retain) NSString *password;
@@ -296,6 +306,7 @@ typedef enum _ASINetworkErrorType {
 @property (assign) BOOL useKeychainPersistance;
 @property (assign) BOOL useSessionPersistance;
 @property (retain) NSString *downloadDestinationPath;
+@property (retain,readonly) NSString *temporaryFileDownloadPath;
 @property (assign) SEL didFinishSelector;
 @property (assign) SEL didFailSelector;
 @property (retain,readonly) NSString *authenticationRealm;

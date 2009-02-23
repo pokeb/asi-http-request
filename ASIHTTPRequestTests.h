@@ -26,5 +26,5 @@
 - (void)testDigestAuthentication;
 - (void)testCharacterEncoding;
 - (void)testCompressedResponse;
-
+- (void)testCompressedResponseDownloadToFile;
 @end

@@ -11,8 +11,9 @@
 		8D11072D0486CEB800E47090 /* Mac-OS-Sample-main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* Mac-OS-Sample-main.m */; settings = {ATTRIBUTES = (); }; };
 		B568AFFC0F49D7AE00FA13C8 /* libz.1.2.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B568AFFB0F49D7AE00FA13C8 /* libz.1.2.3.dylib */; };
 		B568B0050F49D7CE00FA13C8 /* libz.1.2.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B568AFFB0F49D7AE00FA13C8 /* libz.1.2.3.dylib */; };
+		B568B0E50F49FCB900FA13C8 /* ASIHTTPRequestTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B568B0D10F49FC7900FA13C8 /* ASIHTTPRequestTests.m */; };
 		B5731BD00E4319940008024F /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B5731BCF0E4319940008024F /* Cocoa.framework */; };
-		B5731C300E431B340008024F /* ASIHTTPRequestTests in Sources */ = {isa = PBXBuildFile; fileRef = B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests */; };
+		B58610B80F4F31E600159EBD /* libz.1.2.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B58610B70F4F31E600159EBD /* libz.1.2.3.dylib */; };
 		B5ABC7BB0E24C5620072F422 /* ASIHTTPRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5ABC7B90E24C5620072F422 /* ASIHTTPRequest.m */; };
 		B5ABC80F0E24CB100072F422 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = B5ABC80E0E24CB100072F422 /* AppDelegate.m */; };
 		B5B03D520EC5C0330089D01F /* ASINetworkQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = B5F4C4370EC49EAB00D4F31C /* ASINetworkQueue.m */; };
@@ -64,12 +65,13 @@
 		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		8D1107320486CEB800E47090 /* asi-http-request.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "asi-http-request.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B568AFFB0F49D7AE00FA13C8 /* libz.1.2.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.1.2.3.dylib; path = usr/lib/libz.1.2.3.dylib; sourceTree = SDKROOT; };
+		B568B0D10F49FC7900FA13C8 /* ASIHTTPRequestTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIHTTPRequestTests.m; sourceTree = "<group>"; };
 		B5731AE60E430AC30008024F /* Tests.octest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Tests.octest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B5731AE70E430AC30008024F /* Tests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Tests-Info.plist"; sourceTree = "<group>"; };
 		B5731AFA0E430B1F0008024F /* ASIHTTPRequestTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIHTTPRequestTests.h; sourceTree = "<group>"; };
-		B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = ASIHTTPRequestTests; sourceTree = "<group>"; };
 		B5731B620E430F430008024F /* SenTestingKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SenTestingKit.framework; path = Library/Frameworks/SenTestingKit.framework; sourceTree = DEVELOPER_DIR; };
 		B5731BCF0E4319940008024F /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
+		B58610B70F4F31E600159EBD /* libz.1.2.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.1.2.3.dylib; path = usr/lib/libz.1.2.3.dylib; sourceTree = SDKROOT; };
 		B5ABC7B90E24C5620072F422 /* ASIHTTPRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIHTTPRequest.m; sourceTree = "<group>"; };
 		B5ABC7BA0E24C5620072F422 /* ASIHTTPRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIHTTPRequest.h; sourceTree = "<group>"; };
 		B5ABC80D0E24CB100072F422 /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
@@ -129,6 +131,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B58610B80F4F31E600159EBD /* libz.1.2.3.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -195,6 +198,7 @@
 				B5B5314D0F0B59A1007E2A5C /* CoreServices.framework */,
 				B5B532560F0B5CA9007E2A5C /* UploadProgress.xib */,
 				B568AFFB0F49D7AE00FA13C8 /* libz.1.2.3.dylib */,
+				B58610B70F4F31E600159EBD /* libz.1.2.3.dylib */,
 			);
 			name = "asi-http-request";
 			sourceTree = "<group>";
@@ -231,7 +235,7 @@
 				B5B03DA50EC5D0930089D01F /* ASINetworkQueueTests.h */,
 				B5B03DA60EC5D0930089D01F /* ASINetworkQueueTests.m */,
 				B5731AFA0E430B1F0008024F /* ASIHTTPRequestTests.h */,
-				B5731AFB0E430B1F0008024F /* ASIHTTPRequestTests */,
+				B568B0D10F49FC7900FA13C8 /* ASIHTTPRequestTests.m */,
 			);
 			name = Tests;
 			sourceTree = "<group>";
@@ -406,13 +410,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B5731C300E431B340008024F /* ASIHTTPRequestTests in Sources */,
 				B5F4C3470EC47B0400D4F31C /* ASIHTTPRequest.m in Sources */,
 				B5F4C3490EC47B1700D4F31C /* NSHTTPCookieAdditions.m in Sources */,
 				B5B03D520EC5C0330089D01F /* ASINetworkQueue.m in Sources */,
 				B5B03DA70EC5D0930089D01F /* ASINetworkQueueTests.m in Sources */,
 				B5B03F130EC5DB0E0089D01F /* ASIFormDataRequest.m in Sources */,
 				B5B03F9C0EC5DEF80089D01F /* ASIFormDataRequestTests.m in Sources */,
+				B568B0E50F49FCB900FA13C8 /* ASIHTTPRequestTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -543,7 +547,7 @@
 				);
 				PREBINDING = NO;
 				PRODUCT_NAME = "AHR Sample";
-				SDKROOT = iphonesimulator2.1;
+				SDKROOT = iphonesimulator2.2;
 			};
 			name = Debug;
 		};
@@ -571,7 +575,7 @@
 				PREBINDING = NO;
 				PRODUCT_NAME = "AHR Sample";
 				PROVISIONING_PROFILE = "117D7881-B33E-4AFD-9EB2-E32F1E6033D8";
-				SDKROOT = iphoneos2.1;
+				SDKROOT = iphonesimulator2.2;
 				ZERO_LINK = NO;
 			};
 			name = Release;

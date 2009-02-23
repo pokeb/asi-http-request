@@ -12,6 +12,7 @@
 
 #import "ASIHTTPRequest.h"
 #import "NSHTTPCookieAdditions.h"
+#import <zlib.h>
 
 // We use our own custom run loop mode as CoreAnimation seems to want to hijack our threads otherwise
 static CFStringRef ASIHTTPRequestRunMode = CFSTR("ASIHTTPRequest");
@@ -105,6 +106,7 @@ static NSError *ASIUnableToCreateRequestError;
 	[requestHeaders release];
 	[requestCookies release];
 	[downloadDestinationPath release];
+	[temporaryFileDownloadPath release];
 	[outputStream release];
 	[username release];
 	[password release];
@@ -178,11 +180,15 @@ static NSError *ASIUnableToCreateRequestError;
 	return [[[NSString alloc] initWithBytes:[data bytes] length:[data length] encoding:[self responseEncoding]] autorelease];
 }
 
+- (BOOL)isResponseCompressed
+{
+	NSString *encoding = [[self responseHeaders] objectForKey:@"Content-Encoding"];
+	return encoding && [encoding rangeOfString:@"gzip"].location != NSNotFound;
+}
 
 - (NSData *)responseData
 {	
-	NSString *encoding = [[self responseHeaders] objectForKey:@"Content-Encoding"];
-	if(encoding && [encoding rangeOfString:@"gzip"].location != NSNotFound) {
+	if ([self isResponseCompressed]) {
 		return [ASIHTTPRequest uncompressZippedData:[self rawResponseData]];
 	} else {
 		return [self rawResponseData];
@@ -417,9 +423,9 @@ static NSError *ASIUnableToCreateRequestError;
 		[self setRawResponseData:nil];
 	
 	// If we were downloading to a file, let's remove it
-	} else if (downloadDestinationPath) {
+	} else if (temporaryFileDownloadPath) {
 		[outputStream close];
-		[[NSFileManager defaultManager] removeItemAtPath:downloadDestinationPath error:NULL];
+		[[NSFileManager defaultManager] removeItemAtPath:temporaryFileDownloadPath error:NULL];
 	}
 	
 	[self setResponseHeaders:nil];
@@ -1036,7 +1042,9 @@ static NSError *ASIUnableToCreateRequestError;
 		// Are we downloading to a file?
 		if (downloadDestinationPath) {
 			if (!outputStream) {
-				outputStream = [[NSOutputStream alloc] initToFileAtPath:downloadDestinationPath append:NO];
+				[temporaryFileDownloadPath release];
+				temporaryFileDownloadPath = [[NSTemporaryDirectory() stringByAppendingPathComponent:[[NSProcessInfo processInfo] globallyUniqueString]] retain];
+				outputStream = [[NSOutputStream alloc] initToFileAtPath:temporaryFileDownloadPath append:NO];
 				[outputStream open];
 			}
 			[outputStream write:buffer maxLength:bytesRead];
@@ -1046,15 +1054,10 @@ static NSError *ASIUnableToCreateRequestError;
 			[rawResponseData appendBytes:buffer length:bytesRead];
 		}
     }
-	
-	
 }
-
 
 - (void)handleStreamComplete
 {
-	
-	
 	//Try to read the headers (if this is a HEAD request handleBytesAvailable available may not be called)
 	if (!responseHeaders) {
 		if ([self readResponseHeadersReturningAuthenticationFailure]) {
@@ -1074,13 +1077,51 @@ static NSError *ASIUnableToCreateRequestError;
         readStream = NULL;
     }
 	
+	NSError *fileError = nil;
+	
 	// Close the output stream as we're done writing to the file
-	if (downloadDestinationPath) {
+	if (temporaryFileDownloadPath) {
 		[outputStream close];
+		
+		// Decompress the file (if necessary) directly to the destination path
+		if ([self isResponseCompressed]) {
+			int decompressionStatus = [ASIHTTPRequest uncompressZippedDataFromFile:temporaryFileDownloadPath toFile:downloadDestinationPath];
+			if (decompressionStatus != Z_OK) {
+				fileError = [NSError errorWithDomain:NetworkRequestErrorDomain code:ASIFileManagementError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Decompression of %@ failed with code %hi",temporaryFileDownloadPath,decompressionStatus],NSLocalizedDescriptionKey,nil]];
+			}
+				
+			//Remove the temporary file
+			NSError *removeError = nil;
+			[[NSFileManager defaultManager] removeItemAtPath:temporaryFileDownloadPath error:&removeError];
+			if (removeError) {
+				fileError = [NSError errorWithDomain:NetworkRequestErrorDomain code:ASIFileManagementError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Failed to delete file at %@ with error: %@",temporaryFileDownloadPath,removeError],NSLocalizedDescriptionKey,removeError,NSUnderlyingErrorKey,nil]];
+			}			
+		} else {
+					
+			//Remove any file at the destination path
+			NSError *moveError = nil;
+			if ([[NSFileManager defaultManager] fileExistsAtPath:downloadDestinationPath]) {
+				[[NSFileManager defaultManager] removeItemAtPath:downloadDestinationPath error:&moveError];
+				if (moveError) {
+					fileError = [NSError errorWithDomain:NetworkRequestErrorDomain code:ASIFileManagementError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Unable to remove file at path '%@'",downloadDestinationPath],NSLocalizedDescriptionKey,moveError,NSUnderlyingErrorKey,nil]];
+				}
+			}
+					
+			//Move the temporary file to the destination path
+			if (!fileError) {
+				[[NSFileManager defaultManager] moveItemAtPath:temporaryFileDownloadPath toPath:downloadDestinationPath error:&moveError];
+				if (moveError) {
+					fileError = [NSError errorWithDomain:NetworkRequestErrorDomain code:ASIFileManagementError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Failed to move file from '%@' to '%@'",temporaryFileDownloadPath,downloadDestinationPath],NSLocalizedDescriptionKey,moveError,NSUnderlyingErrorKey,nil]];
+				}
+			}
+		}
 	}
 	[progressLock unlock];
-	[self requestFinished];
-	
+	if (fileError) {
+		[self failWithError:fileError];
+	} else {
+		[self requestFinished];
+	}
 }
 
 
@@ -1235,6 +1276,91 @@ static NSError *ASIUnableToCreateRequestError;
 	}
 }
 
+
++ (int)uncompressZippedDataFromFile:(NSString *)sourcePath toFile:(NSString *)destinationPath
+{
+	// Get a FILE struct for the source file
+	FILE *source = fdopen([[NSFileHandle fileHandleForReadingAtPath:sourcePath] fileDescriptor], "r");
+	
+	// Create an empty file at the destination path
+	[[NSFileManager defaultManager] createFileAtPath:destinationPath contents:[NSData data] attributes:nil];
+	
+	// Get a FILE struct for the destination path
+	FILE *dest = fdopen([[NSFileHandle fileHandleForWritingAtPath:destinationPath] fileDescriptor], "w");
+	
+	// Uncompress data in source and save in destination
+	int status = [ASIHTTPRequest uncompressZippedDataFromSource:source toDestination:dest];
+	
+	// Close the files
+	fclose(source);
+	fclose(dest);
+	return status;
+}
+
+//
+// From the zlib sample code by Mark Adler, code here:
+//	http://www.zlib.net/zpipe.c
+//
+#define CHUNK 16384
++ (int)uncompressZippedDataFromSource:(FILE *)source toDestination:(FILE *)dest
+{
+    int ret;
+    unsigned have;
+    z_stream strm;
+    unsigned char in[CHUNK];
+    unsigned char out[CHUNK];
+	
+    /* allocate inflate state */
+    strm.zalloc = Z_NULL;
+    strm.zfree = Z_NULL;
+    strm.opaque = Z_NULL;
+    strm.avail_in = 0;
+    strm.next_in = Z_NULL;
+    ret = inflateInit2(&strm, (15+32));
+    if (ret != Z_OK)
+        return ret;
+	
+    /* decompress until deflate stream ends or end of file */
+    do {
+        strm.avail_in = fread(in, 1, CHUNK, source);
+        if (ferror(source)) {
+            (void)inflateEnd(&strm);
+            return Z_ERRNO;
+        }
+        if (strm.avail_in == 0)
+            break;
+        strm.next_in = in;
+		
+        /* run inflate() on input until output buffer not full */
+        do {
+            strm.avail_out = CHUNK;
+            strm.next_out = out;
+            ret = inflate(&strm, Z_NO_FLUSH);
+            assert(ret != Z_STREAM_ERROR);  /* state not clobbered */
+            switch (ret) {
+				case Z_NEED_DICT:
+					ret = Z_DATA_ERROR;     /* and fall through */
+				case Z_DATA_ERROR:
+				case Z_MEM_ERROR:
+					(void)inflateEnd(&strm);
+					return ret;
+            }
+            have = CHUNK - strm.avail_out;
+            if (fwrite(&out, 1, have, dest) != have || ferror(dest)) {
+                (void)inflateEnd(&strm);
+                return Z_ERRNO;
+            }
+        } while (strm.avail_out == 0);
+		
+        /* done when inflate() says it's done */
+    } while (ret != Z_STREAM_END);
+	
+    /* clean up and return */
+    (void)inflateEnd(&strm);
+    return ret == Z_STREAM_END ? Z_OK : Z_DATA_ERROR;
+}
+	
+
 @synthesize username;
 @synthesize password;
 @synthesize domain;
@@ -1246,6 +1372,7 @@ static NSError *ASIUnableToCreateRequestError;
 @synthesize useSessionPersistance;
 @synthesize useCookiePersistance;
 @synthesize downloadDestinationPath;
+@synthesize temporaryFileDownloadPath;
 @synthesize didFinishSelector;
 @synthesize didFailSelector;
 @synthesize authenticationRealm;

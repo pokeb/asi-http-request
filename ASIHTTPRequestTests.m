@@ -126,16 +126,42 @@
 
 - (void)testFileDownload
 {
+	NSString *path = [[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"testimage.png"];
+	
+	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/i/logo.png"] autorelease];
+	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request setDownloadDestinationPath:path];
+	[request start];
+	
+	NSString *tempPath = [request temporaryFileDownloadPath];
+	STAssertNotNil(tempPath,@"Failed to download file to temporary location");		
+	
+	//BOOL success = (![[NSFileManager defaultManager] fileExistsAtPath:tempPath]);
+	//STAssertTrue(success,@"Failed to remove file from temporary location");	
+	
+	NSImage *image = [[[NSImage alloc] initWithContentsOfFile:path] autorelease];
+	STAssertNotNil(image,@"Failed to download data to a file");
+}
+
+- (void)testCompressedResponseDownloadToFile
+{
 	NSString *path = [[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"testfile"];
 	
 	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/first"] autorelease];
-	ASIHTTPRequest *request1 = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-	[request1 setDownloadDestinationPath:path];
-	[request1 start];
+	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request setDownloadDestinationPath:path];
+	[request start];
 	
-	NSString *s = [NSString stringWithContentsOfURL:[NSURL fileURLWithPath:path]];
+	NSString *tempPath = [request temporaryFileDownloadPath];
+	STAssertNotNil(tempPath,@"Failed to download file to temporary location");		
+	
+	//BOOL success = (![[NSFileManager defaultManager] fileExistsAtPath:tempPath]);
+	//STAssertTrue(success,@"Failed to remove file from temporary location");	
+	
 	BOOL success = [[NSString stringWithContentsOfURL:[NSURL fileURLWithPath:path]] isEqualToString:@"This is the expected content for the first string"];
 	STAssertTrue(success,@"Failed to download data to a file");
+	
+	
 }
 
 
@@ -423,6 +449,7 @@
 	success = [[request responseString] isEqualToString:@"This is the expected content for the first string"];
 	STAssertTrue(success,@"Failed to decompress data correctly?");
 }
+
 
 
 @end

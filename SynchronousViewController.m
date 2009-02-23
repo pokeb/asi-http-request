@@ -19,8 +19,8 @@
 	[request addRequestHeader:@"User-Agent" value:@"ASIHTTPRequest"];
 	
 	[request start];
-	if ([request dataString]) {
-		[htmlSource setText:[request dataString]];
+	if ([request responseString]) {
+		[htmlSource setText:[request responseString]];
 	}
 }
 

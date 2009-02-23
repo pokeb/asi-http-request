@@ -46,7 +46,7 @@
 
 - (void)imageFetchComplete:(ASIHTTPRequest *)request
 {
-	UIImage *img = [UIImage imageWithData:[request receivedData]];
+	UIImage *img = [UIImage imageWithData:[request responseData]];
 	if (img) {
 		if ([imageView1 image]) {
 			if ([imageView2 image]) {
