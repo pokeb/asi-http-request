@@ -1395,7 +1395,6 @@ static NSError *ASIUnableToCreateRequestError;
 @synthesize mainRequest;
 @synthesize totalBytesRead;
 @synthesize showAccurateProgress;
-@synthesize totalBytesRead;
 @synthesize uploadBufferSize;
 @synthesize defaultResponseEncoding;
 @synthesize responseEncoding;
