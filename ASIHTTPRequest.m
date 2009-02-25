@@ -769,8 +769,17 @@ static NSError *ASIUnableToCreateRequestError;
 			NSString *contentType = [[self responseHeaders] objectForKey:@"Content-Type"];
 			NSStringEncoding encoding = [self defaultResponseEncoding];
 			if (contentType) {
-				NSArray *parts = [contentType componentsSeparatedByString:@"="];
-				NSString *IANAEncoding = [parts objectAtIndex:[parts count]-1];
+
+				NSString *charsetSeparator = @"charset=";
+				NSScanner *charsetScanner = [NSScanner scannerWithString: contentType];
+				NSString *IANAEncoding = nil;
+
+				if ([charsetScanner scanUpToString: charsetSeparator intoString: NULL])
+				{
+					[charsetScanner setScanLocation: [charsetScanner scanLocation] + [charsetSeparator length]];
+					[charsetScanner scanUpToString: @";" intoString: &IANAEncoding];
+				}
+
 				if (IANAEncoding) {
 					CFStringEncoding cfEncoding = CFStringConvertIANACharSetNameToEncoding((CFStringRef)IANAEncoding);
 					if (cfEncoding != kCFStringEncodingInvalidId) {
