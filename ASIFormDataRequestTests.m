@@ -25,7 +25,7 @@
 	ASIFormDataRequest *request = [[[ASIFormDataRequest alloc] initWithURL:url] autorelease];
 	
 	NSDate *d = [NSDate new];
-	NSValue *v = [NSValue valueWithRect:NSMakeRect(0, 0, 200, 200)];
+	NSValue *v = [NSValue valueWithCGRect:CGRectMake(0, 0, 200, 200)];
 	[request setPostValue:@"foo" forKey:@"post_var"];
 	[request setPostValue:d forKey:@"post_var2"];
 	[request setPostValue:v forKey:@"post_var3"];
@@ -33,7 +33,7 @@
 	[request start];
 
 	BOOL success = ([[request responseString] isEqualToString:[NSString stringWithFormat:@"post_var: %@\r\npost_var2: %@\r\npost_var3: %@\r\nfile_name: %@\r\nfile_size: %hu",@"foo",d,v,@"bigfile",size]]);
-	STAssertTrue(success,@"Failed to upload the correct data (using local file)");	
+	GHAssertTrue(success,@"Failed to upload the correct data (using local file)");	
 	
 	//Try the same with the raw data
 	request = [[[ASIFormDataRequest alloc] initWithURL:url] autorelease];
@@ -44,7 +44,7 @@
 	[request start];
 	
 	success = ([[request responseString] isEqualToString:[NSString stringWithFormat:@"post_var: %@\r\npost_var2: %@\r\npost_var3: %@\r\nfile_name: %@\r\nfile_size: %hu",@"foo",d,v,@"file",size]]);
-	STAssertTrue(success,@"Failed to upload the correct data (using NSData)");	
+	GHAssertTrue(success,@"Failed to upload the correct data (using NSData)");	
 }
  
 

@@ -6,12 +6,12 @@
 //  Copyright 2008 All-Seeing Interactive. All rights reserved.
 //
 
-#import <SenTestingKit/SenTestingKit.h>
+#import "GHUnit.h"
 
 @class ASIHTTPRequest;
 @class ASINetworkQueue;
 
-@interface ASINetworkQueueTests : SenTestCase {
+@interface ASINetworkQueueTests : GHTestCase {
 	ASIHTTPRequest *requestThatShouldFail;
 	ASINetworkQueue *networkQueue;
 	BOOL complete;

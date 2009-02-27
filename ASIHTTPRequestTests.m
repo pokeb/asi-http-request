@@ -21,36 +21,36 @@
 	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request start];
 	NSString *html = [request responseString];
-	STAssertNotNil(html,@"Basic synchronous request failed");
+	GHAssertNotNil(html,@"Basic synchronous request failed");
 
 	// Check we're getting the correct response headers
 	NSString *pingBackHeader = [[request responseHeaders] objectForKey:@"X-Pingback"];
 	BOOL success = [pingBackHeader isEqualToString:@"http://allseeing-i.com/Ping-Back"];
-	STAssertTrue(success,@"Failed to populate response headers");
+	GHAssertTrue(success,@"Failed to populate response headers");
 	
 	// Check we're getting back the correct status code
 	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/a-page-that-does-not-exist"] autorelease];
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request start];
 	success = ([request responseStatusCode] == 404);
-	STAssertTrue(success,@"Didn't get correct status code");	
+	GHAssertTrue(success,@"Didn't get correct status code");	
 	
 	// Check data is as expected
 	NSRange notFound = NSMakeRange(NSNotFound, 0);
 	success = !NSEqualRanges([html rangeOfString:@"All-Seeing Interactive"],notFound);
-	STAssertTrue(success,@"Failed to download the correct data");
+	GHAssertTrue(success,@"Failed to download the correct data");
 	
 	// Attempt to grab from bad url
 	url = [[[NSURL alloc] initWithString:@""] autorelease];
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request start];
 	success = [[request error] code] == ASIInternalErrorWhileBuildingRequestType;
-	STAssertTrue(success,@"Failed to generate an error for a bad host");
+	GHAssertTrue(success,@"Failed to generate an error for a bad host");
 	
 	request = [[[ASIHTTPRequest alloc] initWithURL:nil] autorelease];
 	[request start];
 	success = [[request error] code] == ASIUnableToCreateRequestErrorType;
-	STAssertTrue(success,@"Failed to generate an error for a bad host");
+	GHAssertTrue(success,@"Failed to generate an error for a bad host");
 }
 
 - (void)testCharacterEncoding
@@ -65,7 +65,7 @@
 		ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 		[request start];
 		BOOL success = [request responseEncoding] == NSStringEncodings[i];
-		STAssertTrue(success,[NSString stringWithFormat:@"Failed to use the correct text encoding for %@i",[IANAEncodings objectAtIndex:i]]);
+		GHAssertTrue(success,[NSString stringWithFormat:@"Failed to use the correct text encoding for %@i",[IANAEncodings objectAtIndex:i]]);
 	}
 					 
 	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/Character-Encoding/Something-else"] autorelease];
@@ -73,7 +73,7 @@
 	[request setDefaultResponseEncoding:NSWindowsCP1251StringEncoding];
 	[request start];
 	BOOL success = [request responseEncoding] == [request defaultResponseEncoding];
-	STAssertTrue(success,[NSString stringWithFormat:@"Failed to use the default string encoding"]);
+	GHAssertTrue(success,[NSString stringWithFormat:@"Failed to use the default string encoding"]);
 }
 
 - (void)testTimeOut
@@ -84,7 +84,7 @@
 	[request start];
 	
 	BOOL success = [[request error] code] == ASIRequestTimedOutErrorType;
-	STAssertTrue(success,@"Timeout didn't generate the correct error");
+	GHAssertTrue(success,@"Timeout didn't generate the correct error");
 	
 }
 
@@ -98,7 +98,7 @@
 		[request setRequestMethod:method];
 		[request start];
 		BOOL success = [[request responseString] isEqualToString:method];
-		STAssertTrue(success,@"Failed to set the request method correctly");	
+		GHAssertTrue(success,@"Failed to set the request method correctly");	
 	}
 }
 
@@ -111,7 +111,7 @@
 	[request start];
 	
 	BOOL success = ([[request responseString] isEqualToString:[NSString stringWithFormat:@"%hu",(1024*32)]]);
-	STAssertTrue(success,@"Sent wrong content length");
+	GHAssertTrue(success,@"Sent wrong content length");
 }
 
 - (void)testDownloadContentLength
@@ -121,7 +121,7 @@
 	[request start];
 	
 	BOOL success = ([request contentLength] == 18443);
-	STAssertTrue(success,@"Got wrong content length");
+	GHAssertTrue(success,@"Got wrong content length");
 }
 
 - (void)testFileDownload
@@ -134,10 +134,10 @@
 	[request start];
 	
 	NSString *tempPath = [request temporaryFileDownloadPath];
-	STAssertNotNil(tempPath,@"Failed to download file to temporary location");		
+	GHAssertNotNil(tempPath,@"Failed to download file to temporary location");		
 	
 	//BOOL success = (![[NSFileManager defaultManager] fileExistsAtPath:tempPath]);
-	//STAssertTrue(success,@"Failed to remove file from temporary location");	
+	//GHAssertTrue(success,@"Failed to remove file from temporary location");	
 	
 #if TARGET_OS_IPHONE
 	UIImage *image = [[[UIImage alloc] initWithContentsOfFile:path] autorelease];
@@ -145,7 +145,7 @@
 	NSImage *image = [[[NSImage alloc] initWithContentsOfFile:path] autorelease];	
 #endif
 	
-	STAssertNotNil(image,@"Failed to download data to a file");
+	GHAssertNotNil(image,@"Failed to download data to a file");
 }
 
 - (void)testCompressedResponseDownloadToFile
@@ -158,13 +158,13 @@
 	[request start];
 	
 	NSString *tempPath = [request temporaryFileDownloadPath];
-	STAssertNotNil(tempPath,@"Failed to download file to temporary location");		
+	GHAssertNotNil(tempPath,@"Failed to download file to temporary location");		
 	
 	//BOOL success = (![[NSFileManager defaultManager] fileExistsAtPath:tempPath]);
-	//STAssertTrue(success,@"Failed to remove file from temporary location");	
+	//GHAssertTrue(success,@"Failed to remove file from temporary location");	
 	
 	BOOL success = [[NSString stringWithContentsOfURL:[NSURL fileURLWithPath:path]] isEqualToString:@"This is the expected content for the first string"];
-	STAssertTrue(success,@"Failed to download data to a file");
+	GHAssertTrue(success,@"Failed to download data to a file");
 	
 	
 }
@@ -179,7 +179,7 @@
 	[request start];
 	
 	BOOL success = (progress == 1);
-	STAssertTrue(success,@"Failed to properly increment download progress %f != 1.0",progress);	
+	GHAssertTrue(success,@"Failed to properly increment download progress %f != 1.0",progress);	
 }
 
 
@@ -192,7 +192,7 @@
 	[request start];
 	
 	BOOL success = (progress == 1);
-	STAssertTrue(success,@"Failed to properly increment upload progress %f != 1.0",progress);	
+	GHAssertTrue(success,@"Failed to properly increment upload progress %f != 1.0",progress);	
 }
 
 
@@ -214,11 +214,11 @@
 	[request start];
 	NSString *html = [request responseString];
 	success = [html isEqualToString:@"I have set a cookie"];
-	STAssertTrue(success,@"Failed to set a cookie");
+	GHAssertTrue(success,@"Failed to set a cookie");
 	
 	// Test a cookie is stored in responseCookies
 	NSArray *cookies = [request responseCookies];
-	STAssertNotNil(cookies,@"Failed to store cookie data in responseCookies");
+	GHAssertNotNil(cookies,@"Failed to store cookie data in responseCookies");
 	
 
 	// Test the cookie contains the correct data
@@ -228,15 +228,15 @@
 		if ([[cookie name] isEqualToString:@"ASIHTTPRequestTestCookie"]) {
 			foundCookie = YES;
 			success = [[cookie decodedValue] isEqualToString:@"This is the value"];
-			STAssertTrue(success,@"Failed to store the correct value for a cookie");
+			GHAssertTrue(success,@"Failed to store the correct value for a cookie");
 			success = [[cookie domain] isEqualToString:@"allseeing-i.com"];
-			STAssertTrue(success,@"Failed to store the correct domain for a cookie");
+			GHAssertTrue(success,@"Failed to store the correct domain for a cookie");
 			success = [[cookie path] isEqualToString:@"/ASIHTTPRequest/tests"];
-			STAssertTrue(success,@"Failed to store the correct path for a cookie");
+			GHAssertTrue(success,@"Failed to store the correct path for a cookie");
 			break;
 		}
 	}
-	STAssertTrue(foundCookie,@"Failed store a particular cookie - can't continue with the rest of the tests");
+	GHAssertTrue(foundCookie,@"Failed store a particular cookie - can't continue with the rest of the tests");
 	
 	if (!foundCookie) {
 		return;
@@ -250,7 +250,7 @@
 	[request start];
 	html = [request responseString];
 	success = [html isEqualToString:@"I have 'This is the value' as the value of 'ASIHTTPRequestTestCookie'"];
-	STAssertTrue(success,@"Cookie not presented to the server with cookie persistance OFF");
+	GHAssertTrue(success,@"Cookie not presented to the server with cookie persistance OFF");
 
 	// Test a cookie is presented from the persistent store
 	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/read_cookie"] autorelease];
@@ -259,7 +259,7 @@
 	[request start];
 	html = [request responseString];
 	success = [html isEqualToString:@"I have 'This is the value' as the value of 'ASIHTTPRequestTestCookie'"];
-	STAssertTrue(success,@"Cookie not presented to the server with cookie persistance ON");
+	GHAssertTrue(success,@"Cookie not presented to the server with cookie persistance ON");
 	
 	// Test removing a cookie
 	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/remove_cookie"] autorelease];
@@ -267,7 +267,7 @@
 	[request start];
 	html = [request responseString];
 	success = [html isEqualToString:@"I have removed a cookie"];
-	STAssertTrue(success,@"Failed to remove a cookie");
+	GHAssertTrue(success,@"Failed to remove a cookie");
 
 	// Test making sure cookie was properly removed
 	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/read_cookie"] autorelease];
@@ -275,7 +275,7 @@
 	[request start];
 	html = [request responseString];
 	success = [html isEqualToString:@"No cookie exists"];
-	STAssertTrue(success,@"Cookie presented to the server when it should have been removed");
+	GHAssertTrue(success,@"Cookie presented to the server when it should have been removed");
 	
 	// Test setting a custom cookie works
 	NSDictionary *cookieProperties = [[[NSMutableDictionary alloc] init] autorelease];
@@ -293,7 +293,7 @@
 	[request start];
 	html = [request responseString];
 	success = [html isEqualToString:@"I have 'Test Value' as the value of 'ASIHTTPRequestTestCookie'"];
-	STAssertTrue(success,@"Custom cookie not presented to the server with cookie persistance OFF");
+	GHAssertTrue(success,@"Custom cookie not presented to the server with cookie persistance OFF");
 	
 	
 
@@ -301,7 +301,7 @@
 	[ASIHTTPRequest clearSession];
 	NSArray *sessionCookies = [ASIHTTPRequest sessionCookies];
 	success = ([sessionCookies count] == 0);
-	STAssertTrue(success,@"Cookies not removed");
+	GHAssertTrue(success,@"Cookies not removed");
 
 	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/read_cookie"] autorelease];
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
@@ -309,7 +309,7 @@
 	[request start];
 	html = [request responseString];
 	success = [html isEqualToString:@"No cookie exists"];
-	STAssertTrue(success,@"Cookie presented to the server when it should have been removed");
+	GHAssertTrue(success,@"Cookie presented to the server when it should have been removed");
 }
 
 
@@ -326,7 +326,7 @@
 	[request start];
 	
 	success = [[request error] code] == ASIAuthenticationErrorType;
-	STAssertTrue(success,@"Failed to generate permission denied error with no credentials");
+	GHAssertTrue(success,@"Failed to generate permission denied error with no credentials");
 	
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUseKeychainPersistance:NO];
@@ -334,7 +334,7 @@
 	[request setPassword:@"wrong"];
 	[request start];
 	success = [[request error] code] == ASIAuthenticationErrorType;
-	STAssertTrue(success,@"Failed to generate permission denied error with wrong credentials");
+	GHAssertTrue(success,@"Failed to generate permission denied error with wrong credentials");
 	
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUseSessionPersistance:YES];
@@ -343,21 +343,21 @@
 	[request setPassword:@"secret_password"];
 	[request start];
 	err = [request error];
-	STAssertNil(err,@"Failed to supply correct username and password");
+	GHAssertNil(err,@"Failed to supply correct username and password");
 	
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUseSessionPersistance:NO];
 	[request setUseKeychainPersistance:NO];
 	[request start];
 	success = [[request error] code] == ASIAuthenticationErrorType;
-	STAssertTrue(success,@"Reused credentials when we shouldn't have");
+	GHAssertTrue(success,@"Reused credentials when we shouldn't have");
 
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUseSessionPersistance:YES];
 	[request setUseKeychainPersistance:NO];
 	[request start];
 	err = [request error];
-	STAssertNil(err,@"Failed to reuse credentials");
+	GHAssertNil(err,@"Failed to reuse credentials");
 	
 	[ASIHTTPRequest clearSession];
 	
@@ -365,14 +365,14 @@
 	[request setUseKeychainPersistance:NO];
 	[request start];
 	success = [[request error] code] == ASIAuthenticationErrorType;
-	STAssertTrue(success,@"Failed to clear credentials");
+	GHAssertTrue(success,@"Failed to clear credentials");
 	
 	// This test may show a dialog!
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUseKeychainPersistance:YES];
 	[request start];
 	err = [request error];
-	STAssertNil(err,@"Failed to use stored credentials");
+	GHAssertNil(err,@"Failed to use stored credentials");
 }
 
 
@@ -390,7 +390,7 @@
 	[request setUseKeychainPersistance:NO];
 	[request start];
 	success = [[request error] code] == ASIAuthenticationErrorType;
-	STAssertTrue(success,@"Failed to generate permission denied error with no credentials");
+	GHAssertTrue(success,@"Failed to generate permission denied error with no credentials");
 	
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUseKeychainPersistance:NO];
@@ -398,7 +398,7 @@
 	[request setPassword:@"wrong"];
 	[request start];
 	success = [[request error] code] == ASIAuthenticationErrorType;
-	STAssertTrue(success,@"Failed to generate permission denied error with wrong credentials");
+	GHAssertTrue(success,@"Failed to generate permission denied error with wrong credentials");
 	
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUseSessionPersistance:YES];
@@ -407,21 +407,21 @@
 	[request setPassword:@"secret_password"];
 	[request start];
 	err = [request error];
-	STAssertNil(err,@"Failed to supply correct username and password");
+	GHAssertNil(err,@"Failed to supply correct username and password");
 	
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUseSessionPersistance:NO];
 	[request setUseKeychainPersistance:NO];
 	[request start];
 	success = [[request error] code] == ASIAuthenticationErrorType;
-	STAssertTrue(success,@"Reused credentials when we shouldn't have");
+	GHAssertTrue(success,@"Reused credentials when we shouldn't have");
 	
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUseSessionPersistance:YES];
 	[request setUseKeychainPersistance:NO];
 	[request start];
 	err = [request error];
-	STAssertNil(err,@"Failed to reuse credentials");
+	GHAssertNil(err,@"Failed to reuse credentials");
 	
 	[ASIHTTPRequest clearSession];
 	
@@ -429,7 +429,7 @@
 	[request setUseKeychainPersistance:NO];
 	[request start];
 	success = [[request error] code] == ASIAuthenticationErrorType;
-	STAssertTrue(success,@"Failed to clear credentials");
+	GHAssertTrue(success,@"Failed to clear credentials");
 }
 
 - (void)testCompressedResponse
@@ -440,19 +440,19 @@
 	[request start];
 	NSString *encoding = [[request responseHeaders] objectForKey:@"Content-Encoding"];
 	BOOL success = (!encoding || [encoding rangeOfString:@"gzip"].location != NSNotFound);
-	STAssertTrue(success,@"Got incorrect request headers from server");
+	GHAssertTrue(success,@"Got incorrect request headers from server");
 	
 	success = ([request rawResponseData] == [request responseData]);
-	STAssertTrue(success,@"Attempted to uncompress data that was not compressed");	
+	GHAssertTrue(success,@"Attempted to uncompress data that was not compressed");	
 	
 	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/first"] autorelease];
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request start];
 	success = ([request rawResponseData] != [request responseData]);
-	STAssertTrue(success,@"Uncompressed data is the same as compressed data");	
+	GHAssertTrue(success,@"Uncompressed data is the same as compressed data");	
 	
 	success = [[request responseString] isEqualToString:@"This is the expected content for the first string"];
-	STAssertTrue(success,@"Failed to decompress data correctly?");
+	GHAssertTrue(success,@"Failed to decompress data correctly?");
 }
 
 

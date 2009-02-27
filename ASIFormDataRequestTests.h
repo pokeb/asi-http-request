@@ -6,9 +6,9 @@
 //  Copyright 2008 All-Seeing Interactive. All rights reserved.
 //
 
-#import <SenTestingKit/SenTestingKit.h>
+#import "GHUnit.h"
 
-@interface ASIFormDataRequestTests : SenTestCase {
+@interface ASIFormDataRequestTests : GHTestCase {
 	float progress;
 }
 

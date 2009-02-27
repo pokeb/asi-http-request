@@ -45,7 +45,7 @@ static CFStringRef ASIHTTPRequestTestsRunMode = CFSTR("ASIHTTPRequestTestsRunMod
 	}
 	
 	BOOL success = (progress == 1.0);
-	STAssertTrue(success,@"Failed to increment progress properly");
+	GHAssertTrue(success,@"Failed to increment progress properly");
 	
 	//Now test again with accurate progress
 	[networkQueue cancelAllOperations];
@@ -69,7 +69,7 @@ static CFStringRef ASIHTTPRequestTestsRunMode = CFSTR("ASIHTTPRequestTestsRunMod
 	
 	// Progress maths are inexact for queues
 	success = (progress > 0.95);
-	STAssertTrue(success,@"Failed to increment progress properly");
+	GHAssertTrue(success,@"Failed to increment progress properly");
 	
 	
 	[networkQueue release];
@@ -126,31 +126,31 @@ static CFStringRef ASIHTTPRequestTestsRunMode = CFSTR("ASIHTTPRequestTestsRunMod
 	
 	BOOL success;
 	success = ([request1 error] == nil);
-	STAssertTrue(success,@"Request 1 failed");
+	GHAssertTrue(success,@"Request 1 failed");
 	
 	success = [[request1 responseString] isEqualToString:@"This is the expected content for the first string"];
-	STAssertTrue(success,@"Failed to download the correct data for request 1");
+	GHAssertTrue(success,@"Failed to download the correct data for request 1");
 	
 	success = ([request2 error] == nil);
-	STAssertTrue(success,@"Request 2 failed");
+	GHAssertTrue(success,@"Request 2 failed");
 	
 	success = [[request2 responseString] isEqualToString:@"This is the expected content for the second string"];
-	STAssertTrue(success,@"Failed to download the correct data for request 2");
+	GHAssertTrue(success,@"Failed to download the correct data for request 2");
 	
 	success = ([request3 error] == nil);
-	STAssertTrue(success,@"Request 3 failed");
+	GHAssertTrue(success,@"Request 3 failed");
 	
 	success = [[request3 responseString] isEqualToString:@"This is the expected content for the third string"];
-	STAssertTrue(success,@"Failed to download the correct data for request 3");
+	GHAssertTrue(success,@"Failed to download the correct data for request 3");
 	
 	success = ([requestThatShouldFail error] != nil);
-	STAssertTrue(success,@"Request 4 succeed when it should have failed");
+	GHAssertTrue(success,@"Request 4 succeed when it should have failed");
 	
 	success = ([request5 error] == nil);
-	STAssertTrue(success,@"Request 5 failed");
+	GHAssertTrue(success,@"Request 5 failed");
 	
 	success = ([request5 responseStatusCode] == 404);
-	STAssertTrue(success,@"Failed to obtain the correct status code for request 5");
+	GHAssertTrue(success,@"Failed to obtain the correct status code for request 5");
 
 
 	
@@ -203,7 +203,7 @@ static CFStringRef ASIHTTPRequestTestsRunMode = CFSTR("ASIHTTPRequestTestsRunMod
 - (void)requestFailed:(ASIHTTPRequest *)request
 {
 	BOOL success = (request == requestThatShouldFail);
-	STAssertTrue(success,@"Wrong request failed");
+	GHAssertTrue(success,@"Wrong request failed");
 }
 
 - (void)queueFinished:(ASINetworkQueue *)queue
@@ -237,7 +237,7 @@ static CFStringRef ASIHTTPRequestTestsRunMode = CFSTR("ASIHTTPRequestTestsRunMod
 	}
 
 	NSError *error = [request error];
-	STAssertNotNil(error,@"The HEAD request failed, but it didn't tell the main request to fail");	
+	GHAssertNotNil(error,@"The HEAD request failed, but it didn't tell the main request to fail");	
 	[networkQueue release];
 	
 	
@@ -259,7 +259,7 @@ static CFStringRef ASIHTTPRequestTestsRunMode = CFSTR("ASIHTTPRequestTestsRunMod
 	}
 	
 	error = [request error];
-	STAssertNil(error,@"Failed to use authentication in a queue");	
+	GHAssertNil(error,@"Failed to use authentication in a queue");	
 	[networkQueue release];
 	
 }

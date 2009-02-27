@@ -1006,7 +1006,7 @@
 				);
 				PREBINDING = NO;
 				PRODUCT_NAME = "iPhone Tests (GHUnit)";
-				SDKROOT = iphoneos2.2.1;
+				SDKROOT = iphonesimulator2.2.1;
 			};
 			name = Debug;
 		};
@@ -1040,7 +1040,7 @@
 				);
 				PREBINDING = NO;
 				PRODUCT_NAME = "iPhone Tests (GHUnit)";
-				SDKROOT = iphoneos2.2.1;
+				SDKROOT = iphonesimulator2.2.1;
 				ZERO_LINK = NO;
 			};
 			name = Release;

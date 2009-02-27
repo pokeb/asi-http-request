@@ -17,6 +17,6 @@
 	<key>CFBundleVersion</key>
 	<string>1.0</string>
 	<key>NSMainNibFile</key>
-	<string>GHUnitIPhone.xib</string>
+	<string>GHUnitIPhone</string>
 </dict>
 </plist>

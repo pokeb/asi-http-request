@@ -6,10 +6,9 @@
 //  Copyright 2008 All-Seeing Interactive. All rights reserved.
 //
 
-#import <SenTestingKit/SenTestingKit.h>
+#import "GHUnit.h"
 
-
-@interface ASIHTTPRequestTests : SenTestCase {
+@interface ASIHTTPRequestTests : GHTestCase {
 	float progress;
 }
 
