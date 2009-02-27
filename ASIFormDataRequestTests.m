@@ -24,7 +24,7 @@
 	
 	ASIFormDataRequest *request = [[[ASIFormDataRequest alloc] initWithURL:url] autorelease];
 	
-	NSDate *d = [NSDate new];
+	NSDate *d = [NSDate date];
 #if TARGET_OS_IPHONE
 	NSValue *v = [NSValue valueWithCGRect:CGRectMake(0, 0, 200, 200)];
 #else
