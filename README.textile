@@ -13,6 +13,6 @@ It provides:
 * Cookie support
 * GZIP support for response data
 * Based on NSOperation to make queuing requests and background operation easy
-* Basic unit tests (more to come!)
+* Comes with a broad range of unit tests
 
 Documentation is available "here":http://allseeing-i.com/ASIHTTPRequest.
