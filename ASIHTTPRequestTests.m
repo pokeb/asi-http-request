@@ -74,6 +74,13 @@
 	[request start];
 	BOOL success = [request responseEncoding] == [request defaultResponseEncoding];
 	GHAssertTrue(success,[NSString stringWithFormat:@"Failed to use the default string encoding"]);
+	
+	// Will return a Content-Type header with charset in the middle of the value (Fix contributed by Roman Busyghin)
+	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/Character-Encoding/utf-16-with-type-header"] autorelease];
+	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request start];
+	success = [request responseEncoding] == NSUnicodeStringEncoding;
+	GHAssertTrue(success,[NSString stringWithFormat:@"Failed to parse the content type header correctly"]);
 }
 
 - (void)testTimeOut
@@ -136,8 +143,8 @@
 	NSString *tempPath = [request temporaryFileDownloadPath];
 	GHAssertNotNil(tempPath,@"Failed to download file to temporary location");		
 	
-	//BOOL success = (![[NSFileManager defaultManager] fileExistsAtPath:tempPath]);
-	//GHAssertTrue(success,@"Failed to remove file from temporary location");	
+	BOOL success = (![[NSFileManager defaultManager] fileExistsAtPath:tempPath]);
+	GHAssertTrue(success,@"Failed to remove file from temporary location");	
 	
 #if TARGET_OS_IPHONE
 	UIImage *image = [[[UIImage alloc] initWithContentsOfFile:path] autorelease];
