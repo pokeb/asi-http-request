@@ -139,7 +139,12 @@
 	//BOOL success = (![[NSFileManager defaultManager] fileExistsAtPath:tempPath]);
 	//STAssertTrue(success,@"Failed to remove file from temporary location");	
 	
-	NSImage *image = [[[NSImage alloc] initWithContentsOfFile:path] autorelease];
+#if TARGET_OS_IPHONE
+	UIImage *image = [[[UIImage alloc] initWithContentsOfFile:path] autorelease];
+#else
+	NSImage *image = [[[NSImage alloc] initWithContentsOfFile:path] autorelease];	
+#endif
+	
 	STAssertNotNil(image,@"Failed to download data to a file");
 }
 
