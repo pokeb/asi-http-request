@@ -778,7 +778,6 @@ static NSError *ASIUnableToCreateRequestError;
 
 				if ([charsetScanner scanUpToString: charsetSeparator intoString: NULL] && [charsetScanner scanLocation] < [contentType length])
 				{
-					NSLog(@"%hi %hi",[charsetScanner scanLocation],[charsetSeparator length]);
 					[charsetScanner setScanLocation: [charsetScanner scanLocation] + [charsetSeparator length]];
 					[charsetScanner scanUpToString: @";" intoString: &IANAEncoding];
 				}
