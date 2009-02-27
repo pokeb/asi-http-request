@@ -9,9 +9,7 @@
 /* Begin PBXBuildFile section */
 		8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
 		8D11072D0486CEB800E47090 /* Mac-OS-Sample-main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* Mac-OS-Sample-main.m */; settings = {ATTRIBUTES = (); }; };
-		B568AFFC0F49D7AE00FA13C8 /* libz.1.2.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B568AFFB0F49D7AE00FA13C8 /* libz.1.2.3.dylib */; };
 		B568B0050F49D7CE00FA13C8 /* libz.1.2.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B568AFFB0F49D7AE00FA13C8 /* libz.1.2.3.dylib */; };
-		B568B0E50F49FCB900FA13C8 /* ASIHTTPRequestTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B568B0D10F49FC7900FA13C8 /* ASIHTTPRequestTests.m */; };
 		B56DBB160F57FCC300963BC5 /* ASIHTTPRequestTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B568B0D10F49FC7900FA13C8 /* ASIHTTPRequestTests.m */; };
 		B56DBB170F57FCC600963BC5 /* ASINetworkQueueTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B5B03DA60EC5D0930089D01F /* ASINetworkQueueTests.m */; };
 		B56DBB180F57FCC900963BC5 /* ASIFormDataRequestTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B5B03F9B0EC5DEF80089D01F /* ASIFormDataRequestTests.m */; };
@@ -42,14 +40,31 @@
 		B56DBBCB0F58004F00963BC5 /* ASIHTTPRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5ABC7B90E24C5620072F422 /* ASIHTTPRequest.m */; };
 		B56DBBE30F58006100963BC5 /* libz.1.2.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B56DBBE20F58006100963BC5 /* libz.1.2.3.dylib */; };
 		B56DBBE50F58006B00963BC5 /* CFNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B56DBBE40F58006B00963BC5 /* CFNetwork.framework */; };
-		B5731BD00E4319940008024F /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B5731BCF0E4319940008024F /* Cocoa.framework */; };
+		B56DBD0E0F581BDE00963BC5 /* GHUnitTestMain.m in Sources */ = {isa = PBXBuildFile; fileRef = B56DBD010F581BDE00963BC5 /* GHUnitTestMain.m */; };
+		B56DBD0F0F581BDE00963BC5 /* GHTestApp.m in Sources */ = {isa = PBXBuildFile; fileRef = B56DBD040F581BDE00963BC5 /* GHTestApp.m */; };
+		B56DBD100F581BDE00963BC5 /* GHTestApp.xib in Resources */ = {isa = PBXBuildFile; fileRef = B56DBD050F581BDE00963BC5 /* GHTestApp.xib */; };
+		B56DBD110F581BDE00963BC5 /* GHTestAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = B56DBD070F581BDE00963BC5 /* GHTestAppDelegate.m */; };
+		B56DBD120F581BDE00963BC5 /* GHTestView.xib in Resources */ = {isa = PBXBuildFile; fileRef = B56DBD080F581BDE00963BC5 /* GHTestView.xib */; };
+		B56DBD130F581BDE00963BC5 /* GHTestViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B56DBD0A0F581BDE00963BC5 /* GHTestViewController.m */; };
+		B56DBD140F581BDE00963BC5 /* GHTestWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = B56DBD0B0F581BDE00963BC5 /* GHTestWindow.xib */; };
+		B56DBD150F581BDE00963BC5 /* GHTestWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = B56DBD0D0F581BDE00963BC5 /* GHTestWindowController.m */; };
 		B58610B80F4F31E600159EBD /* libz.1.2.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B58610B70F4F31E600159EBD /* libz.1.2.3.dylib */; };
 		B5ABC7BB0E24C5620072F422 /* ASIHTTPRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5ABC7B90E24C5620072F422 /* ASIHTTPRequest.m */; };
 		B5ABC80F0E24CB100072F422 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = B5ABC80E0E24CB100072F422 /* AppDelegate.m */; };
-		B5B03D520EC5C0330089D01F /* ASINetworkQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = B5F4C4370EC49EAB00D4F31C /* ASINetworkQueue.m */; };
-		B5B03DA70EC5D0930089D01F /* ASINetworkQueueTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B5B03DA60EC5D0930089D01F /* ASINetworkQueueTests.m */; };
-		B5B03F130EC5DB0E0089D01F /* ASIFormDataRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5CFFA3F0EC45D49009ADE56 /* ASIFormDataRequest.m */; };
-		B5B03F9C0EC5DEF80089D01F /* ASIFormDataRequestTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B5B03F9B0EC5DEF80089D01F /* ASIFormDataRequestTests.m */; };
+		B5ACA6270F581C6F00CF5E19 /* GHTest.m in Sources */ = {isa = PBXBuildFile; fileRef = B56DBB810F57FF1400963BC5 /* GHTest.m */; };
+		B5ACA6280F581C7200CF5E19 /* GHTestCase.m in Sources */ = {isa = PBXBuildFile; fileRef = B56DBB830F57FF1400963BC5 /* GHTestCase.m */; };
+		B5ACA6290F581C7500CF5E19 /* GHTestGroup.m in Sources */ = {isa = PBXBuildFile; fileRef = B56DBB850F57FF1400963BC5 /* GHTestGroup.m */; };
+		B5ACA62A0F581C7900CF5E19 /* GHTestMacros.m in Sources */ = {isa = PBXBuildFile; fileRef = B56DBB870F57FF1400963BC5 /* GHTestMacros.m */; };
+		B5ACA62B0F581C7C00CF5E19 /* GHTestRunner.m in Sources */ = {isa = PBXBuildFile; fileRef = B56DBB890F57FF1400963BC5 /* GHTestRunner.m */; };
+		B5ACA62C0F581C7F00CF5E19 /* GHTestSuite.m in Sources */ = {isa = PBXBuildFile; fileRef = B56DBB8B0F57FF1400963BC5 /* GHTestSuite.m */; };
+		B5ACA62D0F581C8200CF5E19 /* GHTestUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = B56DBB8D0F57FF1400963BC5 /* GHTestUtils.m */; };
+		B5ACA62E0F581C8C00CF5E19 /* GHLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = B56DBB6F0F57FF1400963BC5 /* GHLogger.m */; };
+		B5ACA62F0F581C8F00CF5E19 /* GHNSInvocation+Utils.m in Sources */ = {isa = PBXBuildFile; fileRef = B56DBB710F57FF1400963BC5 /* GHNSInvocation+Utils.m */; };
+		B5ACA6300F581C9200CF5E19 /* GHNSObject+Invocation.m in Sources */ = {isa = PBXBuildFile; fileRef = B56DBB730F57FF1400963BC5 /* GHNSObject+Invocation.m */; };
+		B5ACA6310F581C9700CF5E19 /* GTMLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = B56DBB780F57FF1400963BC5 /* GTMLogger.m */; };
+		B5ACA6320F581C9A00CF5E19 /* GTMObjC2Runtime.m in Sources */ = {isa = PBXBuildFile; fileRef = B56DBB7A0F57FF1400963BC5 /* GTMObjC2Runtime.m */; };
+		B5ACA6330F581C9D00CF5E19 /* GTMStackTrace.m in Sources */ = {isa = PBXBuildFile; fileRef = B56DBB7C0F57FF1400963BC5 /* GTMStackTrace.m */; };
+		B5ACA6380F581CCF00CF5E19 /* GHTestViewModel.m in Sources */ = {isa = PBXBuildFile; fileRef = B56DBB920F57FF1400963BC5 /* GHTestViewModel.m */; };
 		B5B041810EC5F2850089D01F /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = B5B0417F0EC5F2850089D01F /* MainMenu.xib */; };
 		B5B3BC480E62D4790071D39F /* NSHTTPCookieAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = B5B3BC470E62D4790071D39F /* NSHTTPCookieAdditions.m */; };
 		B5B532450F0B5BD7007E2A5C /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B5731BCF0E4319940008024F /* Cocoa.framework */; };
@@ -65,7 +80,6 @@
 		B5CFFBCF0EC46E20009ADE56 /* Synchronous.xib in Resources */ = {isa = PBXBuildFile; fileRef = B5CFFBCC0EC46E20009ADE56 /* Synchronous.xib */; };
 		B5CFFBD00EC46E20009ADE56 /* Queue.xib in Resources */ = {isa = PBXBuildFile; fileRef = B5CFFBCD0EC46E20009ADE56 /* Queue.xib */; };
 		B5CFFBD30EC46E41009ADE56 /* iPhoneSampleAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = B5CFFBD20EC46E41009ADE56 /* iPhoneSampleAppDelegate.m */; };
-		B5E3D9E90F5305C30098F087 /* GHUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B5E3D9E80F5305C30098F087 /* GHUnit.framework */; };
 		B5E3D9EE0F5305D80098F087 /* ASIFormDataRequestTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B5B03F9B0EC5DEF80089D01F /* ASIFormDataRequestTests.m */; };
 		B5E3D9EF0F5305D80098F087 /* ASINetworkQueueTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B5B03DA60EC5D0930089D01F /* ASINetworkQueueTests.m */; };
 		B5E3D9F00F5305D80098F087 /* ASIHTTPRequestTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B568B0D10F49FC7900FA13C8 /* ASIHTTPRequestTests.m */; };
@@ -76,29 +90,10 @@
 		B5E3DA230F5306890098F087 /* libz.1.2.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B58610B70F4F31E600159EBD /* libz.1.2.3.dylib */; };
 		B5F4C23A0EC4742C00D4F31C /* SynchronousViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B5F4C2390EC4742C00D4F31C /* SynchronousViewController.m */; };
 		B5F4C2A30EC4768500D4F31C /* QueueViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B5F4C2A20EC4768500D4F31C /* QueueViewController.m */; };
-		B5F4C3470EC47B0400D4F31C /* ASIHTTPRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5ABC7B90E24C5620072F422 /* ASIHTTPRequest.m */; };
-		B5F4C3490EC47B1700D4F31C /* NSHTTPCookieAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = B5B3BC470E62D4790071D39F /* NSHTTPCookieAdditions.m */; };
 		B5F4C3C50EC47F6C00D4F31C /* iphone-icon.png in Resources */ = {isa = PBXBuildFile; fileRef = B5F4C3C40EC47F6C00D4F31C /* iphone-icon.png */; };
 		B5F4C4380EC49EAB00D4F31C /* ASINetworkQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = B5F4C4370EC49EAB00D4F31C /* ASINetworkQueue.m */; };
 		B5F4C7140EC4C9DE00D4F31C /* ASINetworkQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = B5F4C4370EC49EAB00D4F31C /* ASINetworkQueue.m */; };
 /* End PBXBuildFile section */
-
-/* Begin PBXContainerItemProxy section */
-		B5731C2D0E431B210008024F /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 8D1107260486CEB800E47090;
-			remoteInfo = "asi-http-request";
-		};
-		B5E3D9EC0F5305CB0098F087 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 8D1107260486CEB800E47090;
-			remoteInfo = "Mac OS Sample Application";
-		};
-/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		089C165DFE840E0CC02AAC07 /* English */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
@@ -157,7 +152,18 @@
 		B56DBBB60F57FF4700963BC5 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		B56DBBE20F58006100963BC5 /* libz.1.2.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.1.2.3.dylib; path = usr/lib/libz.1.2.3.dylib; sourceTree = SDKROOT; };
 		B56DBBE40F58006B00963BC5 /* CFNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CFNetwork.framework; path = System/Library/Frameworks/CFNetwork.framework; sourceTree = SDKROOT; };
-		B5731AE60E430AC30008024F /* Tests.octest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Tests.octest; sourceTree = BUILT_PRODUCTS_DIR; };
+		B56DBD010F581BDE00963BC5 /* GHUnitTestMain.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GHUnitTestMain.m; sourceTree = "<group>"; };
+		B56DBD030F581BDE00963BC5 /* GHTestApp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GHTestApp.h; sourceTree = "<group>"; };
+		B56DBD040F581BDE00963BC5 /* GHTestApp.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GHTestApp.m; sourceTree = "<group>"; };
+		B56DBD050F581BDE00963BC5 /* GHTestApp.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = GHTestApp.xib; sourceTree = "<group>"; };
+		B56DBD060F581BDE00963BC5 /* GHTestAppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GHTestAppDelegate.h; sourceTree = "<group>"; };
+		B56DBD070F581BDE00963BC5 /* GHTestAppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GHTestAppDelegate.m; sourceTree = "<group>"; };
+		B56DBD080F581BDE00963BC5 /* GHTestView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = GHTestView.xib; sourceTree = "<group>"; };
+		B56DBD090F581BDE00963BC5 /* GHTestViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GHTestViewController.h; sourceTree = "<group>"; };
+		B56DBD0A0F581BDE00963BC5 /* GHTestViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GHTestViewController.m; sourceTree = "<group>"; };
+		B56DBD0B0F581BDE00963BC5 /* GHTestWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = GHTestWindow.xib; sourceTree = "<group>"; };
+		B56DBD0C0F581BDE00963BC5 /* GHTestWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GHTestWindowController.h; sourceTree = "<group>"; };
+		B56DBD0D0F581BDE00963BC5 /* GHTestWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GHTestWindowController.m; sourceTree = "<group>"; };
 		B5731AE70E430AC30008024F /* Tests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Tests-Info.plist"; sourceTree = "<group>"; };
 		B5731AFA0E430B1F0008024F /* ASIHTTPRequestTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIHTTPRequestTests.h; sourceTree = "<group>"; };
 		B5731B620E430F430008024F /* SenTestingKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SenTestingKit.framework; path = Library/Frameworks/SenTestingKit.framework; sourceTree = DEVELOPER_DIR; };
@@ -215,15 +221,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		B5731AE30E430AC30008024F /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				B5731BD00E4319940008024F /* Cocoa.framework in Frameworks */,
-				B568AFFC0F49D7AE00FA13C8 /* libz.1.2.3.dylib in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		B5CFFAC70EC464D1009ADE56 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -236,7 +233,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B5E3D9E90F5305C30098F087 /* GHUnit.framework in Frameworks */,
 				B5E3DA230F5306890098F087 /* libz.1.2.3.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -291,7 +287,6 @@
 			isa = PBXGroup;
 			children = (
 				8D1107320486CEB800E47090 /* asi-http-request.app */,
-				B5731AE60E430AC30008024F /* Tests.octest */,
 				B5CFFAC90EC464D2009ADE56 /* AHR Sample.app */,
 				B5E3D9E20F5305B50098F087 /* Tests (GHUnit).app */,
 				B5E3DAE00F5312320098F087 /* iPhone Tests (GHUnit).app */,
@@ -356,6 +351,7 @@
 		B56DBB620F57FEEF00963BC5 /* GHUnit */ = {
 			isa = PBXGroup;
 			children = (
+				B56DBD000F581BDE00963BC5 /* Classes-MacOSX */,
 				B56DBB6C0F57FF1400963BC5 /* Libraries */,
 				B56DBB7F0F57FF1400963BC5 /* Classes */,
 				B56DBB930F57FF1400963BC5 /* Classes-IPhone */,
@@ -460,6 +456,34 @@
 			path = "GHUnit/Classes-IPhone";
 			sourceTree = "<group>";
 		};
+		B56DBD000F581BDE00963BC5 /* Classes-MacOSX */ = {
+			isa = PBXGroup;
+			children = (
+				B56DBD010F581BDE00963BC5 /* GHUnitTestMain.m */,
+				B56DBD020F581BDE00963BC5 /* UI */,
+			);
+			name = "Classes-MacOSX";
+			path = "GHUnit/Classes-MacOSX";
+			sourceTree = "<group>";
+		};
+		B56DBD020F581BDE00963BC5 /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				B56DBD030F581BDE00963BC5 /* GHTestApp.h */,
+				B56DBD040F581BDE00963BC5 /* GHTestApp.m */,
+				B56DBD050F581BDE00963BC5 /* GHTestApp.xib */,
+				B56DBD060F581BDE00963BC5 /* GHTestAppDelegate.h */,
+				B56DBD070F581BDE00963BC5 /* GHTestAppDelegate.m */,
+				B56DBD080F581BDE00963BC5 /* GHTestView.xib */,
+				B56DBD090F581BDE00963BC5 /* GHTestViewController.h */,
+				B56DBD0A0F581BDE00963BC5 /* GHTestViewController.m */,
+				B56DBD0B0F581BDE00963BC5 /* GHTestWindow.xib */,
+				B56DBD0C0F581BDE00963BC5 /* GHTestWindowController.h */,
+				B56DBD0D0F581BDE00963BC5 /* GHTestWindowController.m */,
+			);
+			path = UI;
+			sourceTree = "<group>";
+		};
 		B5731AF70E430B020008024F /* Tests */ = {
 			isa = PBXGroup;
 			children = (
@@ -522,25 +546,6 @@
 			productReference = 8D1107320486CEB800E47090 /* asi-http-request.app */;
 			productType = "com.apple.product-type.application";
 		};
-		B5731AE50E430AC30008024F /* Tests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = B5731AEA0E430AC40008024F /* Build configuration list for PBXNativeTarget "Tests" */;
-			buildPhases = (
-				B5731AE10E430AC30008024F /* Resources */,
-				B5731AE20E430AC30008024F /* Sources */,
-				B5731AE30E430AC30008024F /* Frameworks */,
-				B5731AE40E430AC30008024F /* ShellScript */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				B5731C2E0E431B210008024F /* PBXTargetDependency */,
-			);
-			name = Tests;
-			productName = Tests;
-			productReference = B5731AE60E430AC30008024F /* Tests.octest */;
-			productType = "com.apple.product-type.bundle";
-		};
 		B5CFFAC80EC464D1009ADE56 /* iPhone Sample Application */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = B5CFFACE0EC464D2009ADE56 /* Build configuration list for PBXNativeTarget "iPhone Sample Application" */;
@@ -569,7 +574,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				B5E3D9ED0F5305CB0098F087 /* PBXTargetDependency */,
 			);
 			name = "Tests (GHUnit)";
 			productName = "Tests (GHUnit)";
@@ -606,7 +610,6 @@
 			projectRoot = "";
 			targets = (
 				8D1107260486CEB800E47090 /* Mac OS Sample Application */,
-				B5731AE50E430AC30008024F /* Tests */,
 				B5CFFAC80EC464D1009ADE56 /* iPhone Sample Application */,
 				B5E3D9E10F5305B50098F087 /* Tests (GHUnit) */,
 				B5E3DADF0F5312320098F087 /* iPhone Tests (GHUnit) */,
@@ -621,13 +624,6 @@
 			files = (
 				8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */,
 				B5B041810EC5F2850089D01F /* MainMenu.xib in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		B5731AE10E430AC30008024F /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -648,6 +644,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B56DBD100F581BDE00963BC5 /* GHTestApp.xib in Resources */,
+				B56DBD120F581BDE00963BC5 /* GHTestView.xib in Resources */,
+				B56DBD140F581BDE00963BC5 /* GHTestWindow.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -663,22 +662,6 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
-/* Begin PBXShellScriptBuildPhase section */
-		B5731AE40E430AC30008024F /* ShellScript */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "# Run the unit tests in this test bundle.\n\"${SYSTEM_DEVELOPER_DIR}/Tools/RunUnitTests\"\n";
-		};
-/* End PBXShellScriptBuildPhase section */
-
 /* Begin PBXSourcesBuildPhase section */
 		8D11072C0486CEB800E47090 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -690,20 +673,6 @@
 				B5B3BC480E62D4790071D39F /* NSHTTPCookieAdditions.m in Sources */,
 				B5CFFA400EC45D49009ADE56 /* ASIFormDataRequest.m in Sources */,
 				B5F4C4380EC49EAB00D4F31C /* ASINetworkQueue.m in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		B5731AE20E430AC30008024F /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				B5F4C3470EC47B0400D4F31C /* ASIHTTPRequest.m in Sources */,
-				B5F4C3490EC47B1700D4F31C /* NSHTTPCookieAdditions.m in Sources */,
-				B5B03D520EC5C0330089D01F /* ASINetworkQueue.m in Sources */,
-				B5B03DA70EC5D0930089D01F /* ASINetworkQueueTests.m in Sources */,
-				B5B03F130EC5DB0E0089D01F /* ASIFormDataRequest.m in Sources */,
-				B5B03F9C0EC5DEF80089D01F /* ASIFormDataRequestTests.m in Sources */,
-				B568B0E50F49FCB900FA13C8 /* ASIHTTPRequestTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -734,6 +703,25 @@
 				B5E3DA1C0F5306720098F087 /* NSHTTPCookieAdditions.m in Sources */,
 				B5E3DA1D0F5306720098F087 /* ASIFormDataRequest.m in Sources */,
 				B5E3DA1E0F5306720098F087 /* ASIHTTPRequest.m in Sources */,
+				B56DBD0E0F581BDE00963BC5 /* GHUnitTestMain.m in Sources */,
+				B56DBD0F0F581BDE00963BC5 /* GHTestApp.m in Sources */,
+				B56DBD110F581BDE00963BC5 /* GHTestAppDelegate.m in Sources */,
+				B56DBD130F581BDE00963BC5 /* GHTestViewController.m in Sources */,
+				B56DBD150F581BDE00963BC5 /* GHTestWindowController.m in Sources */,
+				B5ACA6270F581C6F00CF5E19 /* GHTest.m in Sources */,
+				B5ACA6280F581C7200CF5E19 /* GHTestCase.m in Sources */,
+				B5ACA6290F581C7500CF5E19 /* GHTestGroup.m in Sources */,
+				B5ACA62A0F581C7900CF5E19 /* GHTestMacros.m in Sources */,
+				B5ACA62B0F581C7C00CF5E19 /* GHTestRunner.m in Sources */,
+				B5ACA62C0F581C7F00CF5E19 /* GHTestSuite.m in Sources */,
+				B5ACA62D0F581C8200CF5E19 /* GHTestUtils.m in Sources */,
+				B5ACA62E0F581C8C00CF5E19 /* GHLogger.m in Sources */,
+				B5ACA62F0F581C8F00CF5E19 /* GHNSInvocation+Utils.m in Sources */,
+				B5ACA6300F581C9200CF5E19 /* GHNSObject+Invocation.m in Sources */,
+				B5ACA6310F581C9700CF5E19 /* GTMLogger.m in Sources */,
+				B5ACA6320F581C9A00CF5E19 /* GTMObjC2Runtime.m in Sources */,
+				B5ACA6330F581C9D00CF5E19 /* GTMStackTrace.m in Sources */,
+				B5ACA6380F581CCF00CF5E19 /* GHTestViewModel.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -771,19 +759,6 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
-/* Begin PBXTargetDependency section */
-		B5731C2E0E431B210008024F /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 8D1107260486CEB800E47090 /* Mac OS Sample Application */;
-			targetProxy = B5731C2D0E431B210008024F /* PBXContainerItemProxy */;
-		};
-		B5E3D9ED0F5305CB0098F087 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 8D1107260486CEB800E47090 /* Mac OS Sample Application */;
-			targetProxy = B5E3D9EC0F5305CB0098F087 /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
-
 /* Begin PBXVariantGroup section */
 		089C165CFE840E0CC02AAC07 /* InfoPlist.strings */ = {
 			isa = PBXVariantGroup;
@@ -804,64 +779,6 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
-		B5731AE80E430AC40008024F /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
-				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/asi-http-request.app/Contents/MacOS/asi-http-request";
-				COPY_PHASE_STRIP = NO;
-				FRAMEWORK_SEARCH_PATHS = "$(DEVELOPER_LIBRARY_DIR)/Frameworks";
-				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
-				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
-				GCC_MODEL_TUNING = G5;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/Cocoa.framework/Headers/Cocoa.h";
-				INFOPLIST_FILE = "Tests-Info.plist";
-				INSTALL_PATH = "$(USER_LIBRARY_DIR)/Bundles";
-				OTHER_LDFLAGS = (
-					"-framework",
-					Cocoa,
-					"-framework",
-					SenTestingKit,
-				);
-				PREBINDING = NO;
-				PRODUCT_NAME = Tests;
-				TEST_HOST = "$(BUNDLE_LOADER)";
-				WRAPPER_EXTENSION = octest;
-			};
-			name = Debug;
-		};
-		B5731AE90E430AC40008024F /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
-				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/asi-http-request.app/Contents/MacOS/asi-http-request";
-				COPY_PHASE_STRIP = YES;
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				FRAMEWORK_SEARCH_PATHS = "$(DEVELOPER_LIBRARY_DIR)/Frameworks";
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
-				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
-				GCC_MODEL_TUNING = G5;
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/Cocoa.framework/Headers/Cocoa.h";
-				INFOPLIST_FILE = "Tests-Info.plist";
-				INSTALL_PATH = "$(USER_LIBRARY_DIR)/Bundles";
-				OTHER_LDFLAGS = (
-					"-framework",
-					Cocoa,
-					"-framework",
-					SenTestingKit,
-				);
-				PREBINDING = NO;
-				PRODUCT_NAME = Tests;
-				TEST_HOST = "$(BUNDLE_LOADER)";
-				WRAPPER_EXTENSION = octest;
-				ZERO_LINK = NO;
-			};
-			name = Release;
-		};
 		B5CFFACC0EC464D2009ADE56 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -927,6 +844,7 @@
 					"$(inherited)",
 					"\"$(DEVELOPER_FRAMEWORKS_DIR)\"",
 				);
+				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_FIX_AND_CONTINUE = YES;
 				GCC_MODEL_TUNING = G5;
@@ -935,12 +853,10 @@
 				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/Cocoa.framework/Headers/Cocoa.h";
 				INFOPLIST_FILE = "Tests (GHUnit)-Info.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
-				LD_RUNPATH_SEARCH_PATHS = /Developer/Library/Frameworks;
+				LD_RUNPATH_SEARCH_PATHS = "";
 				OTHER_LDFLAGS = (
 					"-framework",
 					Cocoa,
-					"-framework",
-					SenTestingKit,
 				);
 				PREBINDING = NO;
 				PRODUCT_NAME = "Tests (GHUnit)";
@@ -957,18 +873,17 @@
 					"$(inherited)",
 					"\"$(DEVELOPER_FRAMEWORKS_DIR)\"",
 				);
+				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_MODEL_TUNING = G5;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/Cocoa.framework/Headers/Cocoa.h";
 				INFOPLIST_FILE = "Tests (GHUnit)-Info.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
-				LD_RUNPATH_SEARCH_PATHS = /Developer/Library/Frameworks;
+				LD_RUNPATH_SEARCH_PATHS = "";
 				OTHER_LDFLAGS = (
 					"-framework",
 					Cocoa,
-					"-framework",
-					SenTestingKit,
 				);
 				PREBINDING = NO;
 				PRODUCT_NAME = "Tests (GHUnit)";
@@ -1106,15 +1021,6 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		B5731AEA0E430AC40008024F /* Build configuration list for PBXNativeTarget "Tests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				B5731AE80E430AC40008024F /* Debug */,
-				B5731AE90E430AC40008024F /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		B5CFFACE0EC464D2009ADE56 /* Build configuration list for PBXNativeTarget "iPhone Sample Application" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

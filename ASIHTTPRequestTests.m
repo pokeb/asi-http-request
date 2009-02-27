@@ -166,7 +166,6 @@
 	BOOL success = [[NSString stringWithContentsOfURL:[NSURL fileURLWithPath:path]] isEqualToString:@"This is the expected content for the first string"];
 	GHAssertTrue(success,@"Failed to download data to a file");
 	
-	
 }
 
 
@@ -183,6 +182,12 @@
 }
 
 
+- (void)setProgress:(float)newProgress;
+{
+	progress = newProgress;
+}
+
+
 - (void)testUploadProgress
 {
 	progress = 0;
@@ -195,11 +200,6 @@
 	GHAssertTrue(success,@"Failed to properly increment upload progress %f != 1.0",progress);	
 }
 
-
-- (void)setProgress:(float)newProgress;
-{
-	progress = newProgress;
-}
 
 
 

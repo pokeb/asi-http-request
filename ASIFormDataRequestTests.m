@@ -25,7 +25,11 @@
 	ASIFormDataRequest *request = [[[ASIFormDataRequest alloc] initWithURL:url] autorelease];
 	
 	NSDate *d = [NSDate new];
+#if TARGET_OS_IPHONE
 	NSValue *v = [NSValue valueWithCGRect:CGRectMake(0, 0, 200, 200)];
+#else
+	NSValue *v = [NSValue valueWithRect:NSMakeRect(0, 0, 200, 200)];	
+#endif
 	[request setPostValue:@"foo" forKey:@"post_var"];
 	[request setPostValue:d forKey:@"post_var2"];
 	[request setPostValue:v forKey:@"post_var3"];

@@ -593,10 +593,12 @@ static NSError *ASIUnableToCreateRequestError;
 
 - (void)updateDownloadProgress
 {
-	unsigned long long bytesReadSoFar = totalBytesRead;
+	
 	
 	// We won't update download progress until we've examined the headers, since we might need to authenticate
 	if (responseHeaders) {
+		
+		unsigned long long bytesReadSoFar = totalBytesRead;
 		
 		if (bytesReadSoFar > lastBytesRead) {
 			[self setLastActivityTime:[NSDate date]];
@@ -774,8 +776,9 @@ static NSError *ASIUnableToCreateRequestError;
 				NSScanner *charsetScanner = [NSScanner scannerWithString: contentType];
 				NSString *IANAEncoding = nil;
 
-				if ([charsetScanner scanUpToString: charsetSeparator intoString: NULL])
+				if ([charsetScanner scanUpToString: charsetSeparator intoString: NULL] && [charsetScanner scanLocation] < [contentType length])
 				{
+					NSLog(@"%hi %hi",[charsetScanner scanLocation],[charsetSeparator length]);
 					[charsetScanner setScanLocation: [charsetScanner scanLocation] + [charsetSeparator length]];
 					[charsetScanner scanUpToString: @";" intoString: &IANAEncoding];
 				}
