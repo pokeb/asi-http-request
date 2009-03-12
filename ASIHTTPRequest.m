@@ -520,7 +520,7 @@ static NSError *ASIUnableToCreateRequestError;
 		[cancelledLock unlock];
 		return;
 	}
-	unsigned long long byteCount = [[(NSNumber *)CFReadStreamCopyProperty (readStream, kCFStreamPropertyHTTPRequestBytesWrittenCount) autorelease] unsignedLongLongValue];
+	unsigned long long byteCount = [[(NSNumber *)CFReadStreamCopyProperty(readStream, kCFStreamPropertyHTTPRequestBytesWrittenCount) autorelease] unsignedLongLongValue];
 	
 	// If this is the first time we've written to the buffer, byteCount will be the size of the buffer (currently seems to be 128KB on both Mac and iPhone)
 	// We will remove this from any progress display, as kCFStreamPropertyHTTPRequestBytesWrittenCount does not tell us how much data has actually be written
@@ -755,7 +755,9 @@ static NSError *ASIUnableToCreateRequestError;
 	BOOL isAuthenticationChallenge = NO;
 	CFHTTPMessageRef headers = (CFHTTPMessageRef)CFReadStreamCopyProperty(readStream, kCFStreamPropertyHTTPResponseHeader);
 	if (CFHTTPMessageIsHeaderComplete(headers)) {
-		[self setResponseHeaders:(NSDictionary *)CFHTTPMessageCopyAllHeaderFields(headers)];
+		CFDictionaryRef headerFields = CFHTTPMessageCopyAllHeaderFields(headers);
+		[self setResponseHeaders:(NSDictionary *)headerFields];
+		CFRelease(headerFields);
 		[self setResponseStatusCode:CFHTTPMessageGetResponseStatusCode(headers)];
 		
 		// Is the server response a challenge for credentials?
@@ -1028,7 +1030,7 @@ static NSError *ASIUnableToCreateRequestError;
 
 
 - (void)handleNetworkEvent:(CFStreamEventType)type
-{
+{	
     // Dispatch the stream events.
     switch (type) {
         case kCFStreamEventHasBytesAvailable:
@@ -1058,8 +1060,14 @@ static NSError *ASIUnableToCreateRequestError;
 			return;
 		}
 	}
+	int bufferSize = 2048;
+	if (contentLength > 262144) {
+		bufferSize = 65536;
+	} else if (contentLength > 65536) {
+		bufferSize = 16384;
+	}
 	
-    UInt8 buffer[2048];
+    UInt8 buffer[bufferSize];
     CFIndex bytesRead = CFReadStreamRead(readStream, buffer, sizeof(buffer));
 	
 	
