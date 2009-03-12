@@ -113,6 +113,8 @@ typedef enum _ASINetworkErrorType {
 	// Authentication currently being used for prompting and resuming
     CFHTTPAuthenticationRef requestAuthentication; 
 	NSMutableDictionary *requestCredentials;
+	int authenticationRetryCount;
+	NSString *authenticationMethod;
 	
 	// HTTP status code, eg: 200 = OK, 404 = Not found etc
 	int responseStatusCode;
@@ -204,8 +206,11 @@ typedef enum _ASINetworkErrorType {
 
 #pragma mark request logic
 
-// Start loading the request
+// Main request loop is in here
 - (void)loadRequest;
+
+// Start the read stream. Called by loadRequest, and again to restart the request when authentication is needed
+- (void)startRequest;
 
 // Cancel loading and clean up
 - (void)cancelLoad;

@@ -61,6 +61,7 @@ static NSError *ASIUnableToCreateRequestError;
 	self = [super init];
 	[self setRequestMethod:@"GET"];
 	lastBytesSent = 0;
+
 	showAccurateProgress = YES;
 	shouldResetProgressIndicators = YES;
 	updatedProgress = NO;
@@ -68,6 +69,8 @@ static NSError *ASIUnableToCreateRequestError;
 	[self setPassword:nil];
 	[self setUsername:nil];
 	[self setRequestHeaders:nil];
+	authenticationRetryCount = 0;
+	authenticationMethod = nil;
 	authenticationRealm = nil;
 	outputStream = nil;
 	requestAuthentication = NULL;
@@ -120,6 +123,7 @@ static NSError *ASIUnableToCreateRequestError;
 	[responseHeaders release];
 	[requestMethod release];
 	[cancelledLock release];
+	[authenticationMethod release];
 	[super dealloc];
 }
 
@@ -291,11 +295,8 @@ static NSError *ASIUnableToCreateRequestError;
 	
 }
 
-
-// Start the request
-- (void)loadRequest
+- (void)startRequest
 {
-
 	[cancelledLock lock];
 	
 	if ([self isCancelled]) {
@@ -362,8 +363,15 @@ static NSError *ASIUnableToCreateRequestError;
 			amount = postLength;
 		}
 		[self resetUploadProgress:amount];
-	}
-	
+	}	
+}
+
+// Start the request
+- (void)loadRequest
+{
+
+
+	[self startRequest];
 	
 	
 	// Record when the request started, so we can timeout if nothing happens
@@ -831,7 +839,8 @@ static NSError *ASIUnableToCreateRequestError;
 
 - (BOOL)applyCredentials:(NSMutableDictionary *)newCredentials
 {
-	
+	authenticationRetryCount++;
+
 	if (newCredentials && requestAuthentication && request) {
 		// Apply whatever credentials we've built up to the old request
 		if (CFHTTPMessageApplyCredentialDictionary(request, requestAuthentication, (CFMutableDictionaryRef)newCredentials, NULL)) {
@@ -846,10 +855,10 @@ static NSError *ASIUnableToCreateRequestError;
 				[ASIHTTPRequest setSessionCredentials:newCredentials];
 			}
 			[self setRequestCredentials:newCredentials];
-			return TRUE;
+			return YES;
 		}
 	}
-	return FALSE;
+	return NO;
 }
 
 - (NSMutableDictionary *)findCredentials
@@ -858,6 +867,9 @@ static NSError *ASIUnableToCreateRequestError;
 	
 	// Is an account domain needed? (used currently for NTLM only)
 	if (CFHTTPAuthenticationRequiresAccountDomain(requestAuthentication)) {
+		if (!domain) {
+			[self setDomain:@""];
+		}
 		[newCredentials setObject:domain forKey:(NSString *)kCFHTTPAuthenticationAccountDomain];
 	}
 	
@@ -925,7 +937,9 @@ static NSError *ASIUnableToCreateRequestError;
 		CFHTTPMessageRef responseHeader = (CFHTTPMessageRef) CFReadStreamCopyProperty(readStream,kCFStreamPropertyHTTPResponseHeader);
 		requestAuthentication = CFHTTPAuthenticationCreateFromResponse(NULL, responseHeader);
 		CFRelease(responseHeader);
-	}	
+		authenticationMethod = (NSString *)CFHTTPAuthenticationCopyMethod(requestAuthentication);
+	}
+
 	
 	if (!requestAuthentication) {
 		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIInternalErrorWhileApplyingCredentialsType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Failed to get authentication object from response headers",NSLocalizedDescriptionKey,nil]]];
@@ -963,8 +977,14 @@ static NSError *ASIUnableToCreateRequestError;
 	[self cancelLoad];
 	
 	if (requestCredentials) {
-		if ([self applyCredentials:requestCredentials]) {
-			[self loadRequest];
+		NSLog(@"%hi",authenticationRetryCount);
+		if (((authenticationMethod != (NSString *)kCFHTTPAuthenticationSchemeNTLM) || authenticationRetryCount < 2) && [self applyCredentials:requestCredentials]) {
+			[self startRequest];
+			
+		// We've failed NTLM authentication twice, we should assume our credentials are wrong
+		} else if (authenticationMethod == (NSString *)kCFHTTPAuthenticationSchemeNTLM && authenticationRetryCount == 2) {
+			[self failWithError:ASIAuthenticationError];
+	
 		} else {
 			[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIInternalErrorWhileApplyingCredentialsType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Failed to apply credentials to request",NSLocalizedDescriptionKey,nil]]];
 		}
@@ -978,7 +998,7 @@ static NSError *ASIUnableToCreateRequestError;
 		if (newCredentials) {
 			
 			if ([self applyCredentials:newCredentials]) {
-				[self loadRequest];
+				[self startRequest];
 			} else {
 				[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIInternalErrorWhileApplyingCredentialsType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Failed to apply credentials to request",NSLocalizedDescriptionKey,nil]]];
 			}

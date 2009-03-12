@@ -24,4 +24,5 @@
 - (void)testProgressWithAuthentication;
 
 - (void)setProgress:(float)newProgress;
+
 @end

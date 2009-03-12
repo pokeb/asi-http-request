@@ -439,6 +439,48 @@
 	GHAssertTrue(success,@"Failed to clear credentials");
 }
 
+
+- (void)testNTLMAuthentication
+{
+	/*
+	 If you want to run this test, set your hostname, username, password and domain below.
+	*/	
+	NSString *theURL = @"";
+	NSString *username = @"";
+	NSString *password = @"";
+	NSString *domain = @"";
+	
+	if ([theURL isEqualToString:@""] || [username isEqualToString:@""] || [password isEqualToString:@""]) {
+		GHAssertFalse(true,@"Skipping NTLM test because no server details were supplied");
+	}
+	
+	[ASIHTTPRequest clearSession];
+	
+	NSURL *url = [[[NSURL alloc] initWithString:theURL] autorelease];
+	ASIHTTPRequest *request;
+	BOOL success;
+	NSError *err;
+	
+	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request setUseKeychainPersistance:NO];
+	[request setUseSessionPersistance:NO];
+	[request start];
+	success = [[request error] code] == ASIAuthenticationErrorType;
+	GHAssertTrue(success,@"Failed to generate permission denied error with no credentials");
+
+
+	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request setUseSessionPersistance:YES];
+	[request setUseKeychainPersistance:NO];
+	[request setUsername:username];
+	[request setPassword:password];
+	[request setDomain:domain];
+	[request start];
+	err = [request error];
+	GHAssertNil(err,@"Got an error when correct credentials were supplied");
+	NSLog([request responseString]);
+}
+
 - (void)testCompressedResponse
 {
 	// allseeing-i.com does not gzip png images
