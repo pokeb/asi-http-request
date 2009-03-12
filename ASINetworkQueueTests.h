@@ -22,6 +22,7 @@
 - (void)testFailureCancelsOtherRequests;
 - (void)testProgress;
 - (void)testProgressWithAuthentication;
+- (void)testWithNoListener;
 
 - (void)setProgress:(float)newProgress;
 

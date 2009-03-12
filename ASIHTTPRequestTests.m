@@ -99,7 +99,7 @@
 - (void)testRequestMethod
 {
 	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/request-method"] autorelease];
-	NSArray *methods = [[[NSArray alloc] initWithObjects:@"GET",@"POST",@"PUT",@"DELETE"] autorelease];
+	NSArray *methods = [[[NSArray alloc] initWithObjects:@"GET",@"POST",@"PUT",@"DELETE", nil] autorelease];
 	for (NSString *method in methods) {
 		ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 		[request setRequestMethod:method];
@@ -442,9 +442,8 @@
 
 - (void)testNTLMAuthentication
 {
-	/*
-	 If you want to run this test, set your hostname, username, password and domain below.
-	*/	
+	
+	// If you want to run this test, set your hostname, username, password and domain below.	
 	NSString *theURL = @"";
 	NSString *username = @"";
 	NSString *password = @"";

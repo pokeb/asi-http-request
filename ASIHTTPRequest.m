@@ -166,10 +166,11 @@ static NSError *ASIUnableToCreateRequestError;
 
 - (void)cancel
 {
+	[super cancel];
 	[self failWithError:ASIRequestCancelledError];
 	[self cancelLoad];
 	complete = YES;
-	[super cancel];
+
 }
 
 
@@ -516,6 +517,7 @@ static NSError *ASIUnableToCreateRequestError;
 {
 	[cancelledLock lock];
 	if ([self isCancelled]) {
+		[cancelledLock unlock];
 		return;
 	}
 	unsigned long long byteCount = [[(NSNumber *)CFReadStreamCopyProperty (readStream, kCFStreamPropertyHTTPRequestBytesWrittenCount) autorelease] unsignedLongLongValue];
@@ -1160,7 +1162,9 @@ static NSError *ASIUnableToCreateRequestError;
 {
 	NSError *underlyingError = [(NSError *)CFReadStreamCopyError(readStream) autorelease];
 	
+	[super cancel];
 	[self cancelLoad];
+	complete = YES;
 	
 	if (!error) { // We may already have handled this error
 		
