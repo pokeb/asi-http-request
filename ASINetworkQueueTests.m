@@ -265,32 +265,41 @@ static CFStringRef ASIHTTPRequestTestsRunMode = CFSTR("ASIHTTPRequestTestsRunMod
 	
 }
 
+- (void)requestFailedExpectedly:(ASIHTTPRequest *)request
+{
+    request_didfail = YES;
+    BOOL success = (request == requestThatShouldFail);
+    GHAssertTrue(success,@"Wrong request failed");
+}
+
+- (void)requestSucceededUnexpectedly:(ASIHTTPRequest *)request
+{
+    request_succeeded = YES;
+}
+
 //Connect to a port the server isn't listening on, and the read stream won't be created (Test + Fix contributed by Michael Krause)
 - (void)testWithNoListener
 {
-	complete = NO;	
+    request_succeeded = NO;
+    request_didfail = NO;
 	networkQueue = [[ASINetworkQueue alloc] init];
 	[networkQueue setDownloadProgressDelegate:self];
 	[networkQueue setDelegate:self];
 	[networkQueue setShowAccurateProgress:YES];
+    [networkQueue setRequestDidFailSelector:@selector(requestFailedExpectedly:)];
+    [networkQueue setRequestDidFinishSelector:@selector(requestSucceededUnexpectedly:)];
 	[networkQueue setQueueDidFinishSelector:@selector(queueFinished:)];	
 	
 	NSURL *url;	
 	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com:9999/i/logo.png"] autorelease];
-	ASIHTTPRequest *request1 = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-	[networkQueue addOperation:request1];
+	requestThatShouldFail = [[ASIHTTPRequest alloc] initWithURL:url];
+	[networkQueue addOperation:requestThatShouldFail];
 	
 	[networkQueue go];
-	
-	while (!complete) {
-		CFRunLoopRunInMode(ASIHTTPRequestTestsRunMode,0.25,YES);
-	}
-	
 	[networkQueue waitUntilAllOperationsAreFinished];
-	
-	BOOL success = YES;
-	GHAssertTrue(success,@"Should not have crashed");
-	
+    
+	GHAssertTrue(!request_succeeded && request_didfail,@"Request to resource without listener succeeded but should have failed");
+    
 	[networkQueue release];
 }
 

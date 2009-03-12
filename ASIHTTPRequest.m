@@ -166,8 +166,8 @@ static NSError *ASIUnableToCreateRequestError;
 
 - (void)cancel
 {
-	[super cancel];
 	[self failWithError:ASIRequestCancelledError];
+	[super cancel];
 	[self cancelLoad];
 	complete = YES;
 
@@ -1170,7 +1170,6 @@ static NSError *ASIUnableToCreateRequestError;
 {
 	NSError *underlyingError = [(NSError *)CFReadStreamCopyError(readStream) autorelease];
 	
-	[super cancel];
 	[self cancelLoad];
 	complete = YES;
 	
@@ -1178,6 +1177,7 @@ static NSError *ASIUnableToCreateRequestError;
 		
 		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIConnectionFailureErrorType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"A connection failure occurred",NSLocalizedDescriptionKey,underlyingError,NSUnderlyingErrorKey,nil]]];
 	}
+    [super cancel];
 }
 
 #pragma mark managing the session

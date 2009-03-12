@@ -15,6 +15,8 @@
 	ASIHTTPRequest *requestThatShouldFail;
 	ASINetworkQueue *networkQueue;
 	BOOL complete;
+	BOOL request_didfail;
+	BOOL request_succeeded;
 	float progress;
 }
 
