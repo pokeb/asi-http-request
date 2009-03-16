@@ -504,5 +504,29 @@
 }
 
 
+- (void)testPartialFetch
+{
+	NSString *downloadPath = [[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"testfile.txt"];
+	NSString *tempPath = [[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"tempfile.txt"];
+	NSString *partialContent = @"This file should be exactly 163 bytes long when encoded as UTF8, Unix line breaks with no BOM.\n";
+	[partialContent writeToFile:tempPath atomically:NO encoding:NSASCIIStringEncoding error:nil];
+	
+	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/Tests/test_partial_download.txt"] autorelease];
+	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request setDownloadDestinationPath:downloadPath];
+	[request setTemporaryFileDownloadPath:tempPath];
+	[request setAllowResumeForFileDownloads:YES];
+	[request start];
+	
+	BOOL success = ([request contentLength] == 68);
+	GHAssertTrue(success,@"Failed to download a segment of the data");
+	
+	NSString *content = [NSString stringWithContentsOfFile:downloadPath];
+	
+	NSString *newPartialContent = [content substringFromIndex:95];
+	success = ([newPartialContent isEqualToString:@"This is the content we ought to be getting if we start from byte 95."]);
+	GHAssertTrue(success,@"Failed to append the correct data to the end of the file?");
+	
+}
 
 @end

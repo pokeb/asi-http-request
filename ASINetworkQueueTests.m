@@ -303,5 +303,73 @@ static CFStringRef ASIHTTPRequestTestsRunMode = CFSTR("ASIHTTPRequestTestsRunMod
 	[networkQueue release];
 }
 
+- (void)testPartialResume
+{
+	complete = NO;
+	
+	NSString *temporaryPath = [[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"MemexTrails_1.0b1.zip.download"];
+	if ([[NSFileManager defaultManager] fileExistsAtPath:temporaryPath]) {
+		[[NSFileManager defaultManager] removeItemAtPath:temporaryPath error:nil];
+	}
+	
+	NSString *downloadPath = [[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"MemexTrails_1.0b1.zip"];
+	if ([[NSFileManager defaultManager] fileExistsAtPath:downloadPath]) {
+		[[NSFileManager defaultManager] removeItemAtPath:downloadPath error:nil];
+	}
+	
+	NSURL *downloadURL = [NSURL URLWithString:@"http://trails-network.net/Downloads/MemexTrails_1.0b1.zip"];
+	networkQueue = [[ASINetworkQueue alloc] init];	
+
+	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:downloadURL] autorelease];
+	[request setDownloadDestinationPath:downloadPath];
+	[request setTemporaryFileDownloadPath:temporaryPath];
+	[request setAllowResumeForFileDownloads:YES];
+	[networkQueue addOperation:request];
+	[networkQueue go];
+	 
+	// Let the download run for 5 seconds, which hopefully won't be enough time to grab this file. If you have a super fast connection, this test may fail, serves you right for being so smug. :)
+	NSTimer *timeoutTimer = [NSTimer scheduledTimerWithTimeInterval:5 target:self selector:@selector(stopQueue:) userInfo:nil repeats:NO];
+	
+	while (!complete) {
+		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1]];
+	}
+	
+	// 5 seconds is up, let's tell the queue to stop
+	[networkQueue cancelAllOperations];
+	
+	[networkQueue release];
+	networkQueue = [[ASINetworkQueue alloc] init];
+	
+	
+	unsigned long long downloadedSoFar = [[[NSFileManager defaultManager] fileAttributesAtPath:temporaryPath traverseLink:NO] fileSize];
+	BOOL success = (downloadedSoFar > 0);
+	GHAssertTrue(success,@"Failed to download part of the file, so we can't proceed with this test");
+	
+	request = [[[ASIHTTPRequest alloc] initWithURL:downloadURL] autorelease];
+	[request setDownloadDestinationPath:downloadPath];
+	[request setTemporaryFileDownloadPath:temporaryPath];
+	[request setAllowResumeForFileDownloads:YES];
+	
+	[networkQueue addOperation:request];
+	[networkQueue go];
+	
+	[networkQueue waitUntilAllOperationsAreFinished];
+	
+	unsigned long long amountDownloaded = [[[NSFileManager defaultManager] fileAttributesAtPath:downloadPath traverseLink:NO] fileSize];
+	success = (amountDownloaded == 9145357);
+	GHAssertTrue(success,@"Failed to complete the download");
+	
+	
+	[networkQueue release];
+	
+	timeoutTimer = nil;
+	
+}
+
+- (void)stopQueue:(id)sender
+{
+	complete = YES;
+}
+
 
 @end

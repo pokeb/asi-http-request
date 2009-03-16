@@ -81,9 +81,11 @@ static NSError *ASIUnableToCreateRequestError;
 	[self setUploadBufferSize:0];
 	[self setResponseHeaders:nil];
 	[self setTimeOutSeconds:10];
+	[self setAllowResumeForFileDownloads:NO];
 	[self setUseKeychainPersistance:NO];
 	[self setUseSessionPersistance:YES];
 	[self setUseCookiePersistance:YES];
+	[self setRawResponseData:nil];
 	[self setRequestCookies:[[[NSMutableArray alloc] init] autorelease]];
 	[self setDidFinishSelector:@selector(requestFinished:)];
 	[self setDidFailSelector:@selector(requestFailed:)];
@@ -272,6 +274,12 @@ static NSError *ASIUnableToCreateRequestError;
 		[self addRequestHeader:@"Accept-Encoding" value:@"gzip"];
 	}
 	
+	// Should this request resume an existing download?
+	if ([self allowResumeForFileDownloads] && [self downloadDestinationPath] && [self temporaryFileDownloadPath] && [[NSFileManager defaultManager] fileExistsAtPath:[self temporaryFileDownloadPath]]) {
+		unsigned long long downloadedSoFar = [[[NSFileManager defaultManager] fileAttributesAtPath:[self temporaryFileDownloadPath] traverseLink:NO] fileSize];
+		[self addRequestHeader:@"Range" value:[NSString stringWithFormat:@"bytes=%llu-",downloadedSoFar]];
+	}
+	
 	// Add custom headers
 	NSDictionary *headers;
 	
@@ -322,8 +330,9 @@ static NSError *ASIUnableToCreateRequestError;
 		contentLength = 0;
 	}
 	[self setResponseHeaders:nil];
-    [self setRawResponseData:[[[NSMutableData alloc] init] autorelease]];
-    
+	if (![self downloadDestinationPath]) {
+		[self setRawResponseData:[[[NSMutableData alloc] init] autorelease]];
+    }
     // Create the stream for the request.
     readStream = CFReadStreamCreateForStreamedHTTPRequest(kCFAllocatorDefault, request,readStream);
     if (!readStream) {
@@ -431,10 +440,14 @@ static NSError *ASIUnableToCreateRequestError;
     if (rawResponseData) {
 		[self setRawResponseData:nil];
 	
-	// If we were downloading to a file, let's remove it
+	// If we were downloading to a file
 	} else if (temporaryFileDownloadPath) {
 		[outputStream close];
-		[[NSFileManager defaultManager] removeItemAtPath:temporaryFileDownloadPath error:NULL];
+		
+		// If we haven't said we might want to resume, let's remove the temporary file too
+		if (![self allowResumeForFileDownloads]) {
+			[[NSFileManager defaultManager] removeItemAtPath:temporaryFileDownloadPath error:NULL];
+		}
 	}
 	
 	[self setResponseHeaders:nil];
@@ -755,6 +768,7 @@ static NSError *ASIUnableToCreateRequestError;
 	BOOL isAuthenticationChallenge = NO;
 	CFHTTPMessageRef headers = (CFHTTPMessageRef)CFReadStreamCopyProperty(readStream, kCFStreamPropertyHTTPResponseHeader);
 	if (CFHTTPMessageIsHeaderComplete(headers)) {
+		
 		CFDictionaryRef headerFields = CFHTTPMessageCopyAllHeaderFields(headers);
 		[self setResponseHeaders:(NSDictionary *)headerFields];
 		CFRelease(headerFields);
@@ -1083,9 +1097,14 @@ static NSError *ASIUnableToCreateRequestError;
 		// Are we downloading to a file?
 		if (downloadDestinationPath) {
 			if (!outputStream) {
-				[temporaryFileDownloadPath release];
-				temporaryFileDownloadPath = [[NSTemporaryDirectory() stringByAppendingPathComponent:[[NSProcessInfo processInfo] globallyUniqueString]] retain];
-				outputStream = [[NSOutputStream alloc] initToFileAtPath:temporaryFileDownloadPath append:NO];
+				BOOL append = NO;
+				if (![self temporaryFileDownloadPath]) {
+					[self setTemporaryFileDownloadPath:[NSTemporaryDirectory() stringByAppendingPathComponent:[[NSProcessInfo processInfo] globallyUniqueString]]];
+				} else if ([self allowResumeForFileDownloads]) {
+					append = YES;
+				}
+				
+				outputStream = [[NSOutputStream alloc] initToFileAtPath:temporaryFileDownloadPath append:append];
 				[outputStream open];
 			}
 			[outputStream write:buffer maxLength:bytesRead];
@@ -1108,7 +1127,7 @@ static NSError *ASIUnableToCreateRequestError;
 	}
 	[progressLock lock];	
 	complete = YES;
-	[self updateProgressIndicators];	
+	[self updateProgressIndicators];
 	
     if (readStream) {
         CFReadStreamClose(readStream);
@@ -1442,4 +1461,5 @@ static NSError *ASIUnableToCreateRequestError;
 @synthesize defaultResponseEncoding;
 @synthesize responseEncoding;
 @synthesize allowCompressedResponse;
+@synthesize allowResumeForFileDownloads;
 @end

@@ -25,6 +25,7 @@
 - (void)testProgress;
 - (void)testProgressWithAuthentication;
 - (void)testWithNoListener;
+- (void)testPartialResume;
 
 - (void)setProgress:(float)newProgress;
 

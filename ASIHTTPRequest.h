@@ -179,6 +179,8 @@ typedef enum _ASINetworkErrorType {
 	
 	NSStringEncoding defaultResponseEncoding;
 	NSStringEncoding responseEncoding;
+	
+	BOOL allowResumeForFileDownloads;
 }
 
 #pragma mark init / dealloc
@@ -311,7 +313,7 @@ typedef enum _ASINetworkErrorType {
 @property (assign) BOOL useKeychainPersistance;
 @property (assign) BOOL useSessionPersistance;
 @property (retain) NSString *downloadDestinationPath;
-@property (retain,readonly) NSString *temporaryFileDownloadPath;
+@property (retain) NSString *temporaryFileDownloadPath;
 @property (assign) SEL didFinishSelector;
 @property (assign) SEL didFailSelector;
 @property (retain,readonly) NSString *authenticationRealm;
@@ -339,4 +341,5 @@ typedef enum _ASINetworkErrorType {
 @property (assign) NSStringEncoding defaultResponseEncoding;
 @property (assign) NSStringEncoding responseEncoding;
 @property (assign) BOOL allowCompressedResponse;
+@property (assign) BOOL allowResumeForFileDownloads;
 @end
