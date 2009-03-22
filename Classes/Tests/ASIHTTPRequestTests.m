@@ -511,12 +511,15 @@
 	NSString *partialContent = @"This file should be exactly 163 bytes long when encoded as UTF8, Unix line breaks with no BOM.\n";
 	[partialContent writeToFile:tempPath atomically:NO encoding:NSASCIIStringEncoding error:nil];
 	
+	progress = 0;
 	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/Tests/test_partial_download.txt"] autorelease];
 	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setDownloadDestinationPath:downloadPath];
 	[request setTemporaryFileDownloadPath:tempPath];
 	[request setAllowResumeForFileDownloads:YES];
+	[request setDownloadProgressDelegate:self];
 	[request start];
+
 	
 	BOOL success = ([request contentLength] == 68);
 	GHAssertTrue(success,@"Failed to download a segment of the data");
@@ -527,6 +530,9 @@
 	success = ([newPartialContent isEqualToString:@"This is the content we ought to be getting if we start from byte 95."]);
 	GHAssertTrue(success,@"Failed to append the correct data to the end of the file?");
 	
+	success = (progress == 1);
+	GHAssertTrue(success,@"Failed to correctly display increment progress for a partial download");
 }
+
 
 @end

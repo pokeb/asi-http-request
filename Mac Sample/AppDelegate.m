@@ -42,6 +42,32 @@
 
 - (IBAction)URLFetchWithProgress:(id)sender
 {
+	[startButton setTitle:@"Stop"];
+	[startButton setAction:@selector(stopURLFetchWithProgress:)];
+	
+	NSString *tempFile = [[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"MemexTrails_1.0b1.zip.download"];
+	if ([[NSFileManager defaultManager] fileExistsAtPath:tempFile]) {
+		[[NSFileManager defaultManager] removeItemAtPath:tempFile error:nil];
+	}
+	
+	[self resumeURLFetchWithProgress:self];
+}
+
+
+- (IBAction)stopURLFetchWithProgress:(id)sender
+{
+	[startButton setTitle:@"Start"];
+	[startButton setAction:@selector(URLFetchWithProgress:)];
+	[networkQueue cancelAllOperations];
+	[resumeButton setEnabled:YES];
+}
+
+- (IBAction)resumeURLFetchWithProgress:(id)sender
+{
+	[resumeButton setEnabled:NO];
+	[startButton setTitle:@"Stop"];
+	[startButton setAction:@selector(stopURLFetchWithProgress:)];
+	
 	[networkQueue cancelAllOperations];
 	[networkQueue setShowAccurateProgress:YES];
 	[networkQueue setDownloadProgressDelegate:progressIndicator];
@@ -50,6 +76,8 @@
 	
 	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://trails-network.net/Downloads/MemexTrails_1.0b1.zip"]] autorelease];
 	[request setDownloadDestinationPath:[[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"MemexTrails_1.0b1.zip"]];
+	[request setTemporaryFileDownloadPath:[[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"MemexTrails_1.0b1.zip.download"]];
+	[request setAllowResumeForFileDownloads:YES];
 	[networkQueue addOperation:request];
 	[networkQueue go];
 }
@@ -61,6 +89,8 @@
 	} else {
 		[fileLocation setStringValue:[NSString stringWithFormat:@"File downloaded to %@",[request downloadDestinationPath]]];
 	}
+	[startButton setTitle:@"Start"];
+	[startButton setAction:@selector(URLFetchWithProgress:)];
 }
 
 - (IBAction)fetchThreeImages:(id)sender

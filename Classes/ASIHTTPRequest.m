@@ -79,6 +79,8 @@ static NSError *ASIUnableToCreateRequestError;
 	[self setAllowCompressedResponse:YES];
 	[self setDefaultResponseEncoding:NSISOLatin1StringEncoding];
 	[self setUploadBufferSize:0];
+	[self setContentLength:0];
+	[self setPartialDownloadSize:0];
 	[self setResponseHeaders:nil];
 	[self setTimeOutSeconds:10];
 	[self setAllowResumeForFileDownloads:NO];
@@ -277,8 +279,8 @@ static NSError *ASIUnableToCreateRequestError;
 	
 	// Should this request resume an existing download?
 	if ([self allowResumeForFileDownloads] && [self downloadDestinationPath] && [self temporaryFileDownloadPath] && [[NSFileManager defaultManager] fileExistsAtPath:[self temporaryFileDownloadPath]]) {
-		unsigned long long downloadedSoFar = [[[NSFileManager defaultManager] fileAttributesAtPath:[self temporaryFileDownloadPath] traverseLink:NO] fileSize];
-		[self addRequestHeader:@"Range" value:[NSString stringWithFormat:@"bytes=%llu-",downloadedSoFar]];
+		[self setPartialDownloadSize:[[[NSFileManager defaultManager] fileAttributesAtPath:[self temporaryFileDownloadPath] traverseLink:NO] fileSize]];
+		[self addRequestHeader:@"Range" value:[NSString stringWithFormat:@"bytes=%llu-",partialDownloadSize]];
 	}
 	
 	// Add custom headers
@@ -622,7 +624,7 @@ static NSError *ASIUnableToCreateRequestError;
 	// We won't update download progress until we've examined the headers, since we might need to authenticate
 	if (responseHeaders) {
 		
-		unsigned long long bytesReadSoFar = totalBytesRead;
+		unsigned long long bytesReadSoFar = totalBytesRead+partialDownloadSize;
 		
 		if (bytesReadSoFar > lastBytesRead) {
 			[self setLastActivityTime:[NSDate date]];
@@ -644,8 +646,6 @@ static NSError *ASIUnableToCreateRequestError;
 					updatedProgress = YES;
 				}
 				
-				
-				
 				SEL selector = @selector(incrementDownloadProgressBy:);
 				NSMethodSignature *signature = [[downloadProgressDelegate class] instanceMethodSignatureForSelector:selector];
 				NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
@@ -658,7 +658,7 @@ static NSError *ASIUnableToCreateRequestError;
 				
 				// We aren't using a queue, we should just set progress of the indicator to 0
 			} else if (contentLength > 0)  {
-				[ASIHTTPRequest setProgress:(double)(1.0*bytesReadSoFar/contentLength) forProgressIndicator:downloadProgressDelegate];
+				[ASIHTTPRequest setProgress:(double)(1.0*bytesReadSoFar/(contentLength+partialDownloadSize)) forProgressIndicator:downloadProgressDelegate];
 			}
 		}
 		
@@ -789,7 +789,7 @@ static NSError *ASIUnableToCreateRequestError;
 					[mainRequest setContentLength:contentLength];
 				}
 				if (downloadProgressDelegate && showAccurateProgress && shouldResetProgressIndicators) {
-					[self resetDownloadProgress:contentLength];
+					[self resetDownloadProgress:contentLength+partialDownloadSize];
 				}
 			}
 			
@@ -1453,6 +1453,7 @@ static NSError *ASIUnableToCreateRequestError;
 @synthesize requestMethod;
 @synthesize postBody;
 @synthesize contentLength;
+@synthesize partialDownloadSize;
 @synthesize postLength;
 @synthesize shouldResetProgressIndicators;
 @synthesize mainRequest;

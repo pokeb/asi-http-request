@@ -29,11 +29,15 @@
 	IBOutlet NSImageView *imageView1;
 	IBOutlet NSImageView *imageView2;
 	IBOutlet NSImageView *imageView3;
+	
+	IBOutlet NSButton *startButton;
+	IBOutlet NSButton *resumeButton;
 }
 
 - (IBAction)simpleURLFetch:(id)sender;
 - (IBAction)URLFetchWithProgress:(id)sender;
-
+- (IBAction)stopURLFetchWithProgress:(id)sender;
+- (IBAction)resumeURLFetchWithProgress:(id)sender;
 
 - (IBAction)fetchThreeImages:(id)sender;
 

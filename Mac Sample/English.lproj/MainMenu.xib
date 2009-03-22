@@ -8,7 +8,7 @@
 		<string key="IBDocument.HIToolboxVersion">353.00</string>
 		<object class="NSMutableArray" key="IBDocument.EditedObjectIDs">
 			<bool key="EncodedWithXMLCoder">YES</bool>
-			<integer value="444"/>
+			<integer value="372"/>
 		</object>
 		<object class="NSArray" key="IBDocument.PluginDependencies">
 			<bool key="EncodedWithXMLCoder">YES</bool>
@@ -998,22 +998,42 @@ cmVhZC4</string>
 								<object class="NSTabViewItem" id="851846996">
 									<string key="NSIdentifier">2</string>
 									<object class="NSView" key="NSView" id="439832260">
-										<nil key="NSNextResponder"/>
+										<reference key="NSNextResponder" ref="495298985"/>
 										<int key="NSvFlags">256</int>
 										<object class="NSMutableArray" key="NSSubviews">
 											<bool key="EncodedWithXMLCoder">YES</bool>
 											<object class="NSButton" id="965613416">
 												<reference key="NSNextResponder" ref="439832260"/>
 												<int key="NSvFlags">268</int>
-												<string key="NSFrame">{{11, 161}, {62, 32}}</string>
+												<string key="NSFrame">{{11, 98}, {74, 32}}</string>
 												<reference key="NSSuperview" ref="439832260"/>
 												<bool key="NSEnabled">YES</bool>
 												<object class="NSButtonCell" key="NSCell" id="621876787">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">134217728</int>
-													<string key="NSContents">Go!</string>
+													<string key="NSContents">Start</string>
 													<reference key="NSSupport" ref="584670792"/>
 													<reference key="NSControlView" ref="965613416"/>
+													<int key="NSButtonFlags">-2038284033</int>
+													<int key="NSButtonFlags2">129</int>
+													<string key="NSAlternateContents"/>
+													<string key="NSKeyEquivalent"/>
+													<int key="NSPeriodicDelay">200</int>
+													<int key="NSPeriodicInterval">25</int>
+												</object>
+											</object>
+											<object class="NSButton" id="108683710">
+												<reference key="NSNextResponder" ref="439832260"/>
+												<int key="NSvFlags">268</int>
+												<string key="NSFrame">{{85, 98}, {90, 32}}</string>
+												<reference key="NSSuperview" ref="439832260"/>
+												<bool key="NSEnabled">YES</bool>
+												<object class="NSButtonCell" key="NSCell" id="492130991">
+													<int key="NSCellFlags">604110336</int>
+													<int key="NSCellFlags2">134217728</int>
+													<string key="NSContents">Resume</string>
+													<reference key="NSSupport" ref="584670792"/>
+													<reference key="NSControlView" ref="108683710"/>
 													<int key="NSButtonFlags">-2038284033</int>
 													<int key="NSButtonFlags2">129</int>
 													<string key="NSAlternateContents"/>
@@ -1025,13 +1045,16 @@ cmVhZC4</string>
 											<object class="NSTextField" id="908965746">
 												<reference key="NSNextResponder" ref="439832260"/>
 												<int key="NSvFlags">268</int>
-												<string key="NSFrame">{{14, 196}, {405, 40}}</string>
+												<string key="NSFrame">{{14, 144}, {405, 92}}</string>
 												<reference key="NSSuperview" ref="439832260"/>
 												<bool key="NSEnabled">YES</bool>
 												<object class="NSTextFieldCell" key="NSCell" id="1014251870">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">272629760</int>
-													<string key="NSContents">Demonstrates fetching a large file directly to disk, updating the progress bar below to show how much has been downloaded.</string>
+													<string type="base64-UTF8" key="NSContents">RGVtb25zdHJhdGVzIGZldGNoaW5nIGEgbGFyZ2UgZmlsZSBkaXJlY3RseSB0byBkaXNrLCB1cGRhdGlu
+ZyB0aGUgcHJvZ3Jlc3MgYmFyIGJlbG93IHRvIHNob3cgaG93IG11Y2ggaGFzIGJlZW4gZG93bmxvYWRl
+ZC4KCklmIHRoZSByZXF1ZXN0IGlzIHN0b3BwZWQgcGFydCB3YXkgdGhyb3VnaCwgdXNlIHRoZSByZXN1
+bWUgYnV0dG9uIHRvIHBpY2sgdXAgd2hlcmUgd2UgbGVmdCBvZmYuA</string>
 													<reference key="NSSupport" ref="584670792"/>
 													<reference key="NSControlView" ref="908965746"/>
 													<reference key="NSBackgroundColor" ref="482475293"/>
@@ -1041,7 +1064,7 @@ cmVhZC4</string>
 											<object class="NSTextField" id="530508561">
 												<reference key="NSNextResponder" ref="439832260"/>
 												<int key="NSvFlags">268</int>
-												<string key="NSFrame">{{14, 112}, {405, 40}}</string>
+												<string key="NSFrame">{{14, 52}, {405, 40}}</string>
 												<reference key="NSSuperview" ref="439832260"/>
 												<bool key="NSEnabled">YES</bool>
 												<object class="NSTextFieldCell" key="NSCell" id="117831065">
@@ -1056,6 +1079,7 @@ cmVhZC4</string>
 											</object>
 										</object>
 										<string key="NSFrame">{{10, 33}, {441, 243}}</string>
+										<reference key="NSSuperview" ref="495298985"/>
 									</object>
 									<string key="NSLabel">File</string>
 									<reference key="NSColor" ref="482475293"/>
@@ -1331,7 +1355,7 @@ c3N3b3JkLCBlbnRlciAndG9wc2VjcmV0JyBmb3IgYm90aC4</string>
 								<object class="NSTabViewItem" id="409502867">
 									<string key="NSIdentifier">Item 4</string>
 									<object class="NSView" key="NSView" id="408528501">
-										<reference key="NSNextResponder" ref="495298985"/>
+										<nil key="NSNextResponder"/>
 										<int key="NSvFlags">256</int>
 										<object class="NSMutableArray" key="NSSubviews">
 											<bool key="EncodedWithXMLCoder">YES</bool>
@@ -1373,21 +1397,20 @@ c3N3b3JkLCBlbnRlciAndG9wc2VjcmV0JyBmb3IgYm90aC4</string>
 											</object>
 										</object>
 										<string key="NSFrame">{{10, 33}, {441, 243}}</string>
-										<reference key="NSSuperview" ref="495298985"/>
 									</object>
 									<string key="NSLabel">Upload</string>
 									<reference key="NSColor" ref="482475293"/>
 									<reference key="NSTabView" ref="495298985"/>
 								</object>
 							</object>
-							<reference key="NSSelectedTabViewItem" ref="409502867"/>
+							<reference key="NSSelectedTabViewItem" ref="851846996"/>
 							<reference key="NSFont" ref="584670792"/>
 							<int key="NSTvFlags">0</int>
 							<bool key="NSAllowTruncatedLabels">YES</bool>
 							<bool key="NSDrawsBackground">YES</bool>
 							<object class="NSMutableArray" key="NSSubviews">
 								<bool key="EncodedWithXMLCoder">YES</bool>
-								<reference ref="408528501"/>
+								<reference ref="439832260"/>
 							</object>
 						</object>
 					</object>
@@ -2092,6 +2115,30 @@ c3N3b3JkLCBlbnRlciAndG9wc2VjcmV0JyBmb3IgYm90aC4</string>
 						<reference key="destination" ref="986741348"/>
 					</object>
 					<int key="connectionID">515</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBOutletConnection" key="connection">
+						<string key="label">resumeButton</string>
+						<reference key="source" ref="1010338297"/>
+						<reference key="destination" ref="108683710"/>
+					</object>
+					<int key="connectionID">522</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBOutletConnection" key="connection">
+						<string key="label">startButton</string>
+						<reference key="source" ref="1010338297"/>
+						<reference key="destination" ref="965613416"/>
+					</object>
+					<int key="connectionID">523</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBActionConnection" key="connection">
+						<string key="label">resumeURLFetchWithProgress:</string>
+						<reference key="source" ref="1010338297"/>
+						<reference key="destination" ref="108683710"/>
+					</object>
+					<int key="connectionID">524</int>
 				</object>
 			</object>
 			<object class="IBMutableOrderedSet" key="objectRecords">
@@ -2918,8 +2965,9 @@ c3N3b3JkLCBlbnRlciAndG9wc2VjcmV0JyBmb3IgYm90aC4</string>
 						<object class="NSMutableArray" key="children">
 							<bool key="EncodedWithXMLCoder">YES</bool>
 							<reference ref="908965746"/>
-							<reference ref="965613416"/>
 							<reference ref="530508561"/>
+							<reference ref="965613416"/>
+							<reference ref="108683710"/>
 						</object>
 						<reference key="parent" ref="851846996"/>
 					</object>
@@ -3285,6 +3333,20 @@ c3N3b3JkLCBlbnRlciAndG9wc2VjcmV0JyBmb3IgYm90aC4</string>
 						<reference key="object" ref="588048761"/>
 						<reference key="parent" ref="986741348"/>
 					</object>
+					<object class="IBObjectRecord">
+						<int key="objectID">520</int>
+						<reference key="object" ref="108683710"/>
+						<object class="NSMutableArray" key="children">
+							<bool key="EncodedWithXMLCoder">YES</bool>
+							<reference ref="492130991"/>
+						</object>
+						<reference key="parent" ref="439832260"/>
+					</object>
+					<object class="IBObjectRecord">
+						<int key="objectID">521</int>
+						<reference key="object" ref="492130991"/>
+						<reference key="parent" ref="108683710"/>
+					</object>
 				</object>
 			</object>
 			<object class="NSMutableDictionary" key="flattenedProperties">
@@ -3513,6 +3575,8 @@ c3N3b3JkLCBlbnRlciAndG9wc2VjcmV0JyBmb3IgYm90aC4</string>
 					<string>505.IBPluginDependency</string>
 					<string>513.IBPluginDependency</string>
 					<string>514.IBPluginDependency</string>
+					<string>520.IBPluginDependency</string>
+					<string>521.IBPluginDependency</string>
 					<string>56.IBPluginDependency</string>
 					<string>56.ImportedFromIB2</string>
 					<string>57.IBPluginDependency</string>
@@ -3771,6 +3835,8 @@ c3N3b3JkLCBlbnRlciAndG9wc2VjcmV0JyBmb3IgYm90aC4</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
+					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
+					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<reference ref="9"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<reference ref="9"/>
@@ -3824,7 +3890,7 @@ c3N3b3JkLCBlbnRlciAndG9wc2VjcmV0JyBmb3IgYm90aC4</string>
 				</object>
 			</object>
 			<nil key="sourceID"/>
-			<int key="maxID">515</int>
+			<int key="maxID">524</int>
 		</object>
 		<object class="IBClassDescriber" key="IBDocument.Classes">
 			<object class="NSMutableArray" key="referencedPartialClassDescriptions">
@@ -3841,10 +3907,14 @@ c3N3b3JkLCBlbnRlciAndG9wc2VjcmV0JyBmb3IgYm90aC4</string>
 							<string>fetchThreeImages:</string>
 							<string>fetchTopSecretInformation:</string>
 							<string>postWithProgress:</string>
+							<string>resumeURLFetchWithProgress:</string>
 							<string>simpleURLFetch:</string>
+							<string>stopURLFetchWithProgress:</string>
 						</object>
 						<object class="NSMutableArray" key="dict.values">
 							<bool key="EncodedWithXMLCoder">YES</bool>
+							<string>id</string>
+							<string>id</string>
 							<string>id</string>
 							<string>id</string>
 							<string>id</string>
@@ -3868,7 +3938,9 @@ c3N3b3JkLCBlbnRlciAndG9wc2VjcmV0JyBmb3IgYm90aC4</string>
 							<string>password</string>
 							<string>progressIndicator</string>
 							<string>realm</string>
+							<string>resumeButton</string>
 							<string>showAccurateProgress</string>
+							<string>startButton</string>
 							<string>topSecretInfo</string>
 							<string>username</string>
 							<string>window</string>
@@ -3887,6 +3959,8 @@ c3N3b3JkLCBlbnRlciAndG9wc2VjcmV0JyBmb3IgYm90aC4</string>
 							<string>NSProgressIndicator</string>
 							<string>NSTextField</string>
 							<string>NSButton</string>
+							<string>NSButton</string>
+							<string>NSButton</string>
 							<string>NSTextField</string>
 							<string>NSTextField</string>
 							<string>NSWindow</string>
@@ -3894,13 +3968,57 @@ c3N3b3JkLCBlbnRlciAndG9wc2VjcmV0JyBmb3IgYm90aC4</string>
 					</object>
 					<object class="IBClassDescriptionSource" key="sourceIdentifier">
 						<string key="majorKey">IBProjectSource</string>
-						<string key="minorKey">AppDelegate.h</string>
+						<string key="minorKey">Mac Sample/AppDelegate.h</string>
+					</object>
+				</object>
+				<object class="IBPartialClassDescription">
+					<string key="className">GHTestViewController</string>
+					<string key="superclassName">NSViewController</string>
+					<object class="NSMutableDictionary" key="actions">
+						<string key="NS.key.0">copy:</string>
+						<string key="NS.object.0">id</string>
+					</object>
+					<object class="NSMutableDictionary" key="outlets">
+						<bool key="EncodedWithXMLCoder">YES</bool>
+						<object class="NSMutableArray" key="dict.sortedKeys">
+							<bool key="EncodedWithXMLCoder">YES</bool>
+							<string>detailsView</string>
+							<string>outlineView</string>
+							<string>progressIndicator</string>
+							<string>splitView</string>
+							<string>statusLabel</string>
+							<string>statusView</string>
+							<string>textSegmentedControl</string>
+							<string>textView</string>
+						</object>
+						<object class="NSMutableArray" key="dict.values">
+							<bool key="EncodedWithXMLCoder">YES</bool>
+							<string>NSView</string>
+							<string>NSOutlineView</string>
+							<string>NSProgressIndicator</string>
+							<string>NSSplitView</string>
+							<string>NSTextField</string>
+							<string>NSView</string>
+							<string>NSSegmentedControl</string>
+							<string>NSTextView</string>
+						</object>
+					</object>
+					<object class="IBClassDescriptionSource" key="sourceIdentifier">
+						<string key="majorKey">IBProjectSource</string>
+						<string key="minorKey">../Downloads/gabriel-gh-unit-02ab4e28177c2b63a9aaddafbd9b43a5c53f042b/Classes-MacOSX/UI/GHTestViewController.h</string>
+					</object>
+				</object>
+				<object class="IBPartialClassDescription">
+					<string key="className">NSObject</string>
+					<object class="IBClassDescriptionSource" key="sourceIdentifier">
+						<string key="majorKey">IBProjectSource</string>
+						<string key="minorKey">../Downloads/gabriel-gh-unit-02ab4e28177c2b63a9aaddafbd9b43a5c53f042b/Libraries/GHKit/GHNSObject+Invocation.h</string>
 					</object>
 				</object>
 			</object>
 		</object>
 		<int key="IBDocument.localizationMode">0</int>
-		<string key="IBDocument.LastKnownRelativeProjectPath">../asi-http-request.xcodeproj</string>
+		<string key="IBDocument.LastKnownRelativeProjectPath">../../Mac.xcodeproj</string>
 		<int key="IBDocument.defaultPropertyAccessControl">3</int>
 	</data>
 </archive>

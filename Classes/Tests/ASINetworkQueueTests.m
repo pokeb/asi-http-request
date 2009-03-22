@@ -13,8 +13,6 @@
 @implementation ASINetworkQueueTests
 
 
-static CFStringRef ASIHTTPRequestTestsRunMode = CFSTR("ASIHTTPRequestTestsRunMode");
-
 - (void)testProgress
 {
 	complete = NO;
@@ -40,10 +38,10 @@ static CFStringRef ASIHTTPRequestTestsRunMode = CFSTR("ASIHTTPRequestTestsRunMod
 	[networkQueue addOperation:request3];
 	
 	[networkQueue go];
-	
-	while (!complete) {
-		CFRunLoopRunInMode(ASIHTTPRequestTestsRunMode,0.25,YES);
-	}
+		
+	 while (!complete) {
+		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1]];
+	 }
 	
 	BOOL success = (progress == 1.0);
 	GHAssertTrue(success,@"Failed to increment progress properly");
@@ -80,7 +78,7 @@ static CFStringRef ASIHTTPRequestTestsRunMode = CFSTR("ASIHTTPRequestTestsRunMod
 	
 }
 
- 
+
 
 - (void)setProgress:(float)newProgress
 {
@@ -213,6 +211,7 @@ static CFStringRef ASIHTTPRequestTestsRunMode = CFSTR("ASIHTTPRequestTestsRunMod
 }
 
 
+
 - (void)testProgressWithAuthentication
 {
 	complete = NO;
@@ -234,7 +233,7 @@ static CFStringRef ASIHTTPRequestTestsRunMode = CFSTR("ASIHTTPRequestTestsRunMod
 	
 
 	while (!complete) {
-		CFRunLoopRunInMode(ASIHTTPRequestTestsRunMode,0.25,YES);
+		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1]];
 	}
 
 	NSError *error = [request error];
@@ -256,7 +255,7 @@ static CFStringRef ASIHTTPRequestTestsRunMode = CFSTR("ASIHTTPRequestTestsRunMod
 	[networkQueue go];
 	
 	while (!complete) {
-		CFRunLoopRunInMode(ASIHTTPRequestTestsRunMode,0.25,YES);
+		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1]];
 	}
 	
 	error = [request error];
@@ -264,6 +263,8 @@ static CFStringRef ASIHTTPRequestTestsRunMode = CFSTR("ASIHTTPRequestTestsRunMod
 	[networkQueue release];
 	
 }
+
+
 
 - (void)requestFailedExpectedly:(ASIHTTPRequest *)request
 {
@@ -306,6 +307,7 @@ static CFStringRef ASIHTTPRequestTestsRunMode = CFSTR("ASIHTTPRequestTestsRunMod
 - (void)testPartialResume
 {
 	complete = NO;
+	progress = 0;
 	
 	NSString *temporaryPath = [[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"MemexTrails_1.0b1.zip.download"];
 	if ([[NSFileManager defaultManager] fileExistsAtPath:temporaryPath]) {
@@ -339,8 +341,13 @@ static CFStringRef ASIHTTPRequestTestsRunMode = CFSTR("ASIHTTPRequestTestsRunMod
 	
 	[networkQueue release];
 	networkQueue = [[ASINetworkQueue alloc] init];
+	[networkQueue setDownloadProgressDelegate:self];
+	[networkQueue setShowAccurateProgress:YES];
+	[networkQueue setDelegate:self];
+	[networkQueue setQueueDidFinishSelector:@selector(queueFinished:)];	
 	
-	
+	complete = NO;
+	progress = 0;	
 	unsigned long long downloadedSoFar = [[[NSFileManager defaultManager] fileAttributesAtPath:temporaryPath traverseLink:NO] fileSize];
 	BOOL success = (downloadedSoFar > 0);
 	GHAssertTrue(success,@"Failed to download part of the file, so we can't proceed with this test");
@@ -351,14 +358,19 @@ static CFStringRef ASIHTTPRequestTestsRunMode = CFSTR("ASIHTTPRequestTestsRunMod
 	[request setAllowResumeForFileDownloads:YES];
 	
 	[networkQueue addOperation:request];
+
 	[networkQueue go];
-	
-	[networkQueue waitUntilAllOperationsAreFinished];
+
+	while (!complete) {
+		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1]];
+	}
 	
 	unsigned long long amountDownloaded = [[[NSFileManager defaultManager] fileAttributesAtPath:downloadPath traverseLink:NO] fileSize];
 	success = (amountDownloaded == 9145357);
 	GHAssertTrue(success,@"Failed to complete the download");
 	
+	success = (progress == 1.0);
+	GHAssertTrue(success,@"Failed to increment progress properly");
 	
 	[networkQueue release];
 	
@@ -372,4 +384,5 @@ static CFStringRef ASIHTTPRequestTestsRunMode = CFSTR("ASIHTTPRequestTestsRunMod
 }
 
 
+ 
 @end

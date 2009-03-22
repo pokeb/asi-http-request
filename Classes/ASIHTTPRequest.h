@@ -122,6 +122,9 @@ typedef enum _ASINetworkErrorType {
 	// Size of the response
 	unsigned long long contentLength;
 	
+	// Size of the partially downloaded content
+	unsigned long long partialDownloadSize;
+	
 	// Size of the POST payload
 	unsigned long long postLength;	
 	
@@ -335,6 +338,7 @@ typedef enum _ASINetworkErrorType {
 @property (retain) NSString *requestMethod;
 @property (retain,setter=setPostBody:) NSData *postBody;
 @property (assign) unsigned long long contentLength;
+@property (assign) unsigned long long partialDownloadSize;
 @property (assign) unsigned long long postLength;
 @property (assign) BOOL shouldResetProgressIndicators;
 @property (retain) ASIHTTPRequest *mainRequest;

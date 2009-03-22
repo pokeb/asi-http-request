@@ -140,13 +140,6 @@ static ASINetworkQueue *sharedNetworkQueue = nil;
 			if ([[request requestMethod] isEqualToString:@"GET"]) {
 				ASIHTTPRequest *HEADRequest = [[[ASIHTTPRequest alloc] initWithURL:[request url]] autorelease];
 				[HEADRequest setMainRequest:request];
-				
-				//If we're downloading to a file, and we already have a partial download to start from
-				if ([request allowResumeForFileDownloads] && [request downloadDestinationPath] && [request temporaryFileDownloadPath] && [[NSFileManager defaultManager] fileExistsAtPath:[request temporaryFileDownloadPath]]) {
-					unsigned long long downloadedSoFar = [[[NSFileManager defaultManager] fileAttributesAtPath:[request temporaryFileDownloadPath] traverseLink:NO] fileSize];
-					[HEADRequest addRequestHeader:@"Range" value:[NSString stringWithFormat:@"bytes=%llu-",downloadedSoFar]];
-				}
-				
 				[self addHEADOperation:HEADRequest];
 				
 				//Tell the request not to reset the progress indicator when it gets a content-length, as we will get the length from the HEAD request
@@ -289,13 +282,6 @@ static ASINetworkQueue *sharedNetworkQueue = nil;
 }
 
 
-+ (ASINetworkQueue *)sharedNetworkQueue
-{
-	if (!sharedNetworkQueue) {
-		sharedNetworkQueue = [[ASINetworkQueue alloc] init];
-	}
-	return sharedNetworkQueue;
-}
 
 
 @synthesize uploadProgressDelegate;
