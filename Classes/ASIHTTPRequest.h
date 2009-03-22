@@ -181,6 +181,9 @@ typedef enum _ASINetworkErrorType {
 	NSStringEncoding responseEncoding;
 	
 	BOOL allowResumeForFileDownloads;
+	
+	// Custom user information assosiated with the request
+	NSDictionary *userInfo;
 }
 
 #pragma mark init / dealloc
@@ -342,4 +345,5 @@ typedef enum _ASINetworkErrorType {
 @property (assign) NSStringEncoding responseEncoding;
 @property (assign) BOOL allowCompressedResponse;
 @property (assign) BOOL allowResumeForFileDownloads;
+@property (retain) NSDictionary *userInfo;
 @end

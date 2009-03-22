@@ -90,6 +90,7 @@ static NSError *ASIUnableToCreateRequestError;
 	[self setDidFinishSelector:@selector(requestFinished:)];
 	[self setDidFailSelector:@selector(requestFailed:)];
 	[self setDelegate:nil];
+	[self setUserInfo:nil];
 	url = [newURL retain];
 	cancelledLock = [[NSLock alloc] init];
 	return self;
@@ -1462,4 +1463,5 @@ static NSError *ASIUnableToCreateRequestError;
 @synthesize responseEncoding;
 @synthesize allowCompressedResponse;
 @synthesize allowResumeForFileDownloads;
+@synthesize userInfo;
 @end
