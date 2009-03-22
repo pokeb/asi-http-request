@@ -302,7 +302,6 @@
 	success = [html isEqualToString:@"I have 'Test Value' as the value of 'ASIHTTPRequestTestCookie'"];
 	GHAssertTrue(success,@"Custom cookie not presented to the server with cookie persistance OFF");
 	
-	
 
 	// Test removing all cookies works
 	[ASIHTTPRequest clearSession];
@@ -533,5 +532,6 @@
 	success = (progress == 1);
 	GHAssertTrue(success,@"Failed to correctly display increment progress for a partial download");
 }
+
 
 @end

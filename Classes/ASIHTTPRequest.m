@@ -830,18 +830,25 @@ static NSError *ASIUnableToCreateRequestError;
 			
 			// Handle cookies
 			NSArray *cookies = [NSHTTPCookie cookiesWithResponseHeaderFields:responseHeaders forURL:url];
-			[self setResponseCookies:cookies];
+			NSMutableArray *newCookies = [[[NSMutableArray alloc] init] autorelease];
+			for (NSHTTPCookie *cookie in cookies) {
+				NSMutableDictionary *properties = [[[NSMutableDictionary alloc] initWithDictionary:[cookie properties]] autorelease];
+				[properties setValue:[cookie decodedValue] forKey:NSHTTPCookieValue];
+				[newCookies addObject:[NSHTTPCookie cookieWithProperties:properties]];
+			}
+
+			[self setResponseCookies:newCookies];
 			
 			if (useCookiePersistance) {
 				
 				// Store cookies in global persistent store
-				[[NSHTTPCookieStorage sharedHTTPCookieStorage] setCookies:cookies forURL:url mainDocumentURL:nil];
+				[[NSHTTPCookieStorage sharedHTTPCookieStorage] setCookies:newCookies forURL:url mainDocumentURL:nil];
 				
 				// We also keep any cookies in the sessionCookies array, so that we have a reference to them if we need to remove them later
 				if (!sessionCookies) {
 					[ASIHTTPRequest setSessionCookies:[[[NSMutableArray alloc] init] autorelease]];
 					NSHTTPCookie *cookie;
-					for (cookie in cookies) {
+					for (cookie in newCookies) {
 						[[ASIHTTPRequest sessionCookies] addObject:cookie];
 					}
 				}
