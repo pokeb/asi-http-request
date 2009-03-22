@@ -3,6 +3,7 @@
 //
 
 #ifdef __OBJC__
+#import <CoreFoundation/CoreFoundation.h>
 #import <Foundation/Foundation.h>
 #import <CFNetwork/CFNetwork.h>
 #import <UIKit/UIKit.h>
