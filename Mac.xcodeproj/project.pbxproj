@@ -79,7 +79,6 @@
 		B55B5ED00F76588D0064029C /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = "Mac Sample/AppDelegate.h"; sourceTree = "<group>"; };
 		B55B5ED10F76588D0064029C /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AppDelegate.m; path = "Mac Sample/AppDelegate.m"; sourceTree = "<group>"; };
 		B55B5EDF0F7658C70064029C /* Unit Tests (GHUnit).app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Unit Tests (GHUnit).app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		B55B5EE10F7658C70064029C /* Unit Tests (GHUnit)-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Unit Tests (GHUnit)-Info.plist"; sourceTree = "<group>"; };
 		B55B5FAB0F76594D0064029C /* GHTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GHTest.h; sourceTree = "<group>"; };
 		B55B5FAC0F76594D0064029C /* GHTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GHTest.m; sourceTree = "<group>"; };
 		B55B5FAD0F76594D0064029C /* GHTestCase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GHTestCase.h; sourceTree = "<group>"; };
@@ -125,6 +124,7 @@
 		B55B5FDC0F76594D0064029C /* GHTestWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = GHTestWindow.xib; sourceTree = "<group>"; };
 		B55B5FDD0F76594D0064029C /* GHTestWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GHTestWindowController.h; sourceTree = "<group>"; };
 		B55B5FDE0F76594D0064029C /* GHTestWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GHTestWindowController.m; sourceTree = "<group>"; };
+		B5E3858B0F76606B00FD7857 /* Tests-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "Tests-Info.plist"; path = "Mac Sample/Tests-Info.plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -184,7 +184,6 @@
 				29B97323FDCFA39411CA2CEA /* Frameworks */,
 				19C28FACFE9D520D11CA2CBB /* Products */,
 				B55B5EB70F7658200064029C /* libz.1.2.3.dylib */,
-				B55B5EE10F7658C70064029C /* Unit Tests (GHUnit)-Info.plist */,
 			);
 			name = Mac;
 			sourceTree = "<group>";
@@ -203,6 +202,7 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				B5E3858B0F76606B00FD7857 /* Tests-Info.plist */,
 				B55B5E760F7656DF0064029C /* InfoPlist.strings */,
 				B55B5E730F7656DA0064029C /* MainMenu.xib */,
 				B55B5E710F7656C60064029C /* Info.plist */,
@@ -527,7 +527,7 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/AppKit.framework/Headers/AppKit.h";
-				INFOPLIST_FILE = "Unit Tests (GHUnit)-Info.plist";
+				INFOPLIST_FILE = "Mac Sample/Tests-Info.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
 				OTHER_LDFLAGS = (
 					"-framework",
@@ -550,7 +550,7 @@
 				GCC_MODEL_TUNING = G5;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/AppKit.framework/Headers/AppKit.h";
-				INFOPLIST_FILE = "Unit Tests (GHUnit)-Info.plist";
+				INFOPLIST_FILE = "Mac Sample/Tests-Info.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
 				OTHER_LDFLAGS = (
 					"-framework",
