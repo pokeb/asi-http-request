@@ -534,5 +534,4 @@
 	GHAssertTrue(success,@"Failed to correctly display increment progress for a partial download");
 }
 
-
 @end

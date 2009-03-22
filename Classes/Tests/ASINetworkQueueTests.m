@@ -192,7 +192,6 @@
 	[requestThatShouldFail release];	
 }
 
-
  
 - (void)requestFailedCancellingOthers:(ASIHTTPRequest *)request
 {
@@ -372,9 +371,42 @@
 	success = (progress == 1.0);
 	GHAssertTrue(success,@"Failed to increment progress properly");
 	
-	[networkQueue release];
+	[networkQueue release];	
+	
+	
+	//Test the temporary file cleanup
+	complete = NO;
+	progress = 0;
+	networkQueue = [[ASINetworkQueue alloc] init];	
+	[networkQueue setDownloadProgressDelegate:self];
+	[networkQueue setShowAccurateProgress:YES];
+	[networkQueue setDelegate:self];
+	[networkQueue setQueueDidFinishSelector:@selector(queueFinished:)];	
+	
+	request = [[[ASIHTTPRequest alloc] initWithURL:downloadURL] autorelease];
+	[request setDownloadDestinationPath:downloadPath];
+	[request setTemporaryFileDownloadPath:temporaryPath];
+	[request setAllowResumeForFileDownloads:YES];
+	[networkQueue addOperation:request];
+	[networkQueue go];
+	
+	// Let the download run for 5 seconds
+	timeoutTimer = [NSTimer scheduledTimerWithTimeInterval:5 target:self selector:@selector(stopQueue:) userInfo:nil repeats:NO];
+	while (!complete) {
+		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1]];
+	}
+	[networkQueue cancelAllOperations];
+	
+	success = ([[NSFileManager defaultManager] fileExistsAtPath:temporaryPath]);
+	GHAssertTrue(success,@"Temporary download file doesn't exist");	
+	
+	[request removeTemporaryDownloadFile];
+	
+	success = (![[NSFileManager defaultManager] fileExistsAtPath:temporaryPath]);
+	GHAssertTrue(success,@"Temporary download file should have been deleted");		
 	
 	timeoutTimer = nil;
+	[networkQueue release];	
 	
 }
 

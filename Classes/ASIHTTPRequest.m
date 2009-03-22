@@ -458,6 +458,16 @@ static NSError *ASIUnableToCreateRequestError;
 }
 
 
+- (void)removeTemporaryDownloadFile
+{
+	//Remove the temporary file
+	NSError *removeError = nil;
+	[[NSFileManager defaultManager] removeItemAtPath:temporaryFileDownloadPath error:&removeError];
+	if (removeError) {
+		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIFileManagementError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Failed to delete file at %@ with error: %@",temporaryFileDownloadPath,removeError],NSLocalizedDescriptionKey,removeError,NSUnderlyingErrorKey,nil]]];
+	}		
+}
+
 
 #pragma mark upload/download progress
 
@@ -1151,12 +1161,7 @@ static NSError *ASIUnableToCreateRequestError;
 				fileError = [NSError errorWithDomain:NetworkRequestErrorDomain code:ASIFileManagementError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Decompression of %@ failed with code %hi",temporaryFileDownloadPath,decompressionStatus],NSLocalizedDescriptionKey,nil]];
 			}
 				
-			//Remove the temporary file
-			NSError *removeError = nil;
-			[[NSFileManager defaultManager] removeItemAtPath:temporaryFileDownloadPath error:&removeError];
-			if (removeError) {
-				fileError = [NSError errorWithDomain:NetworkRequestErrorDomain code:ASIFileManagementError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Failed to delete file at %@ with error: %@",temporaryFileDownloadPath,removeError],NSLocalizedDescriptionKey,removeError,NSUnderlyingErrorKey,nil]];
-			}			
+			[self removeTemporaryDownloadFile];
 		} else {
 					
 			//Remove any file at the destination path

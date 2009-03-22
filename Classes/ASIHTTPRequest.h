@@ -223,6 +223,10 @@ typedef enum _ASINetworkErrorType {
 // Cancel loading and clean up
 - (void)cancelLoad;
 
+// Call to delete the temporary file used during a file download (if it exists)
+// No need to call this if the request succeeds - it is removed automatically
+- (void)removeTemporaryDownloadFile;
+
 #pragma mark upload/download progress
 
 // Called on main thread to update progress delegates
