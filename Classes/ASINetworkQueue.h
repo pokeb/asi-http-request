@@ -83,6 +83,9 @@
 // This method will start the queue
 - (void)go;
 
+// A globally available network queue, created the first time it is requested
++ (ASINetworkQueue *)sharedNetworkQueue;
+
 @property (assign,setter=setUploadProgressDelegate:) id uploadProgressDelegate;
 @property (assign,setter=setDownloadProgressDelegate:) id downloadProgressDelegate;
 

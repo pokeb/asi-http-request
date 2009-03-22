@@ -9,6 +9,7 @@
 #import "ASINetworkQueue.h"
 #import "ASIHTTPRequest.h"
 
+static ASINetworkQueue *sharedNetworkQueue = nil;
 
 @implementation ASINetworkQueue
 
@@ -287,6 +288,14 @@
 	return [super respondsToSelector:selector];
 }
 
+
++ (ASINetworkQueue *)sharedNetworkQueue
+{
+	if (!sharedNetworkQueue) {
+		sharedNetworkQueue = [[ASINetworkQueue alloc] init];
+	}
+	return sharedNetworkQueue;
+}
 
 
 @synthesize uploadProgressDelegate;
