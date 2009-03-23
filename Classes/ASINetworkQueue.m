@@ -9,7 +9,6 @@
 #import "ASINetworkQueue.h"
 #import "ASIHTTPRequest.h"
 
-static ASINetworkQueue *sharedNetworkQueue = nil;
 
 @implementation ASINetworkQueue
 
