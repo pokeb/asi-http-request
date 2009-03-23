@@ -145,6 +145,7 @@ static NSError *ASIUnableToCreateRequestError;
 
 -(void)setPostBody:(NSData *)body
 {
+	[postBody release];
 	postBody = [body retain];
 	postLength = [postBody length];
 	[self addRequestHeader:@"Content-Length" value:[NSString stringWithFormat:@"%llu",postLength]];
