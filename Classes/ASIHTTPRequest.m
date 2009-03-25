@@ -107,6 +107,7 @@ static NSError *ASIUnableToCreateRequestError;
 		CFRelease(request);
 	}
 	[self cancelLoad];
+	[userInfo release];
 	[mainRequest release];
 	[postBody release];
 	[requestCredentials release];
