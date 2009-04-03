@@ -23,6 +23,7 @@
 - (void)testFailure;
 - (void)testFailureCancelsOtherRequests;
 - (void)testProgress;
+- (void)testUploadProgress;
 - (void)testProgressWithAuthentication;
 - (void)testWithNoListener;
 - (void)testPartialResume;

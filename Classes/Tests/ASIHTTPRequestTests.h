@@ -23,7 +23,7 @@
 - (void)testCookies;
 - (void)testBasicAuthentication;
 - (void)testDigestAuthentication;
-- (void)testNTLMAuthentication;
+//- (void)testNTLMAuthentication;
 - (void)testCharacterEncoding;
 - (void)testCompressedResponse;
 - (void)testCompressedResponseDownloadToFile;

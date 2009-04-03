@@ -131,8 +131,12 @@ typedef enum _ASINetworkErrorType {
 	// The total amount of downloaded data
 	unsigned long long totalBytesRead;
 	
+	// The total amount of uploaded data
+	unsigned long long totalBytesSent;
+	
 	// Last amount of data read (used for incrementing progress)
 	unsigned long long lastBytesRead;
+	
 	// Last amount of data sent (used for incrementing progress)
 	unsigned long long lastBytesSent;
 	
@@ -348,6 +352,7 @@ typedef enum _ASINetworkErrorType {
 @property (retain) ASIHTTPRequest *mainRequest;
 @property (assign) BOOL showAccurateProgress;
 @property (assign,readonly) unsigned long long totalBytesRead;
+@property (assign,readonly) unsigned long long totalBytesSent;
 @property (assign) unsigned long long uploadBufferSize;
 @property (assign) NSStringEncoding defaultResponseEncoding;
 @property (assign) NSStringEncoding responseEncoding;

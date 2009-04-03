@@ -407,7 +407,7 @@ static NSError *ASIUnableToCreateRequestError;
 			// Prevent timeouts before 128KB has been sent when the size of data to upload is greater than 128KB
 			// This is to workaround the fact that kCFStreamPropertyHTTPRequestBytesWrittenCount is the amount written to the buffer, not the amount actually sent
 			// This workaround prevents erroneous timeouts in low bandwidth situations (eg iPhone)
-			if (contentLength <= uploadBufferSize || (uploadBufferSize > 0 && lastBytesSent > uploadBufferSize)) {
+			if (contentLength <= uploadBufferSize || (uploadBufferSize > 0 && totalBytesSent > uploadBufferSize)) {
 				[self failWithError:ASIRequestTimedOutError];
 				[self cancelLoad];
 				complete = YES;
@@ -420,6 +420,15 @@ static NSError *ASIUnableToCreateRequestError;
 			break;
 		}
 		
+		// Find out if we've sent any more data than last time, and reset the timeout if so
+		if (totalBytesSent > lastBytesSent) {
+			[self setLastActivityTime:[NSDate date]];
+			lastBytesSent = totalBytesSent;
+		}
+		
+		// Find out how much data we've uploaded so far
+		totalBytesSent = [[(NSNumber *)CFReadStreamCopyProperty(readStream, kCFStreamPropertyHTTPRequestBytesWrittenCount) autorelease] unsignedLongLongValue];
+
 		[self updateProgressIndicators];
 		
 		// This thread should wait for 1/4 second for the stream to do something. We'll stop early if it does.
@@ -548,12 +557,11 @@ static NSError *ASIUnableToCreateRequestError;
 		[cancelledLock unlock];
 		return;
 	}
-	unsigned long long byteCount = [[(NSNumber *)CFReadStreamCopyProperty(readStream, kCFStreamPropertyHTTPRequestBytesWrittenCount) autorelease] unsignedLongLongValue];
 	
 	// If this is the first time we've written to the buffer, byteCount will be the size of the buffer (currently seems to be 128KB on both Mac and iPhone)
 	// We will remove this from any progress display, as kCFStreamPropertyHTTPRequestBytesWrittenCount does not tell us how much data has actually be written
-	if (byteCount > 0 && uploadBufferSize == 0 && byteCount != postLength) {
-		[self setUploadBufferSize:byteCount];
+	if (totalBytesSent > 0 && uploadBufferSize == 0 && totalBytesSent != postLength) {
+		[self setUploadBufferSize:totalBytesSent];
 		SEL selector = @selector(setUploadBufferSize:);
 		if ([uploadProgressDelegate respondsToSelector:selector]) {
 			NSMethodSignature *signature = nil;
@@ -561,7 +569,7 @@ static NSError *ASIUnableToCreateRequestError;
 			NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
 			[invocation setTarget:uploadProgressDelegate];
 			[invocation setSelector:selector];
-			[invocation setArgument:&byteCount atIndex:2];
+			[invocation setArgument:&totalBytesSent atIndex:2];
 			[invocation invoke];
 		}
 	}
@@ -569,9 +577,7 @@ static NSError *ASIUnableToCreateRequestError;
 
 	
 	[cancelledLock unlock];
-	if (byteCount > lastBytesSent) {
-		[self setLastActivityTime:[NSDate date]];		
-	}
+
 	
 	if (uploadProgressDelegate) {
 		
@@ -579,10 +585,8 @@ static NSError *ASIUnableToCreateRequestError;
 		if ([uploadProgressDelegate respondsToSelector:@selector(incrementUploadProgressBy:)]) {
 			unsigned long long value = 0;
 			if (showAccurateProgress) {
-				if (byteCount == postLength) {
-					value = byteCount+uploadBufferSize;
-				} else if (lastBytesSent > 0) {
-					value = ((byteCount-uploadBufferSize)-(lastBytesSent-uploadBufferSize));
+				if (totalBytesSent == postLength || lastBytesSent > 0) {
+					value = totalBytesSent-lastBytesSent;
 				} else {
 					value = 0;
 				}
@@ -601,11 +605,11 @@ static NSError *ASIUnableToCreateRequestError;
 			
 			// We aren't using a queue, we should just set progress of the indicator
 		} else {
-			[ASIHTTPRequest setProgress:(double)(1.0*(byteCount-uploadBufferSize)/(postLength-uploadBufferSize)) forProgressIndicator:uploadProgressDelegate];
+			[ASIHTTPRequest setProgress:(double)(1.0*(totalBytesSent-uploadBufferSize)/(postLength-uploadBufferSize)) forProgressIndicator:uploadProgressDelegate];
 		}
 		
 	}
-	lastBytesSent = byteCount;
+
 	
 }
 
@@ -1015,7 +1019,7 @@ static NSError *ASIUnableToCreateRequestError;
 	[self cancelLoad];
 	
 	if (requestCredentials) {
-		NSLog(@"%hi",authenticationRetryCount);
+
 		if (((authenticationMethod != (NSString *)kCFHTTPAuthenticationSchemeNTLM) || authenticationRetryCount < 2) && [self applyCredentials:requestCredentials]) {
 			[self startRequest];
 			
@@ -1472,6 +1476,7 @@ static NSError *ASIUnableToCreateRequestError;
 @synthesize shouldResetProgressIndicators;
 @synthesize mainRequest;
 @synthesize totalBytesRead;
+@synthesize totalBytesSent;
 @synthesize showAccurateProgress;
 @synthesize uploadBufferSize;
 @synthesize defaultResponseEncoding;
