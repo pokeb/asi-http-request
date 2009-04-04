@@ -214,13 +214,13 @@
 		29B97315FDCFA39411CA2CEA /* Other Sources */ = {
 			isa = PBXGroup;
 			children = (
-				B55B60670F765A930064029C /* QueueViewController.m */,
-				B55B60680F765A930064029C /* QueueViewController.h */,
-				B55B60690F765A930064029C /* UploadViewController.h */,
-				B55B606A0F765A930064029C /* SynchronousViewController.m */,
-				B55B606B0F765A930064029C /* iPhoneSampleAppDelegate.m */,
-				B55B606C0F765A930064029C /* UploadViewController.m */,
 				B55B606D0F765A930064029C /* SynchronousViewController.h */,
+				B55B606A0F765A930064029C /* SynchronousViewController.m */,
+				B55B60680F765A930064029C /* QueueViewController.h */,
+				B55B60670F765A930064029C /* QueueViewController.m */,
+				B55B60690F765A930064029C /* UploadViewController.h */,
+				B55B606C0F765A930064029C /* UploadViewController.m */,
+				B55B606B0F765A930064029C /* iPhoneSampleAppDelegate.m */,
 				B55B606E0F765A930064029C /* iPhoneSampleAppDelegate.h */,
 				B55B605F0F765A750064029C /* iPhone_Prefix.pch */,
 				B55B60600F765A750064029C /* main.m */,

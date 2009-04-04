@@ -30,7 +30,17 @@
 	[request setPostValue:@"test" forKey:@"value2"];
 	[request setPostValue:@"test" forKey:@"value3"];
 	[request setTimeOutSeconds:20];
-	[request setData:[NSMutableData dataWithLength:1024*1024] forKey:@"1mb-of-crap"];
+	
+	//Create a 256KB file
+	NSData *data = [[[NSMutableData alloc] initWithLength:256*1024] autorelease];
+	NSString *path = [[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"file"];
+	[data writeToFile:path atomically:NO];
+	
+	//Add the file 8 times to the request, for a total request size around 4MB
+	int i;
+	for (i=0; i<16; i++) {
+		[request setFile:path forKey:[NSString stringWithFormat:@"file-%hi",i]];
+	}
 	
 	[networkQueue addOperation:request];
 	[networkQueue go];

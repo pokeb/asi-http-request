@@ -213,18 +213,18 @@ static NSError *ASIUnableToCreateRequestError;
 	[self setupPostBody];
 	NSInputStream *stream = [[[NSInputStream alloc] initWithFileAtPath:file] autorelease];
 	[stream open];
-	NSMutableData *d;
+	int bytesRead;
 	while ([stream hasBytesAvailable]) {
-		d = [NSMutableData dataWithLength:256*1024];
-		int bytesRead = [stream read:[d mutableBytes] maxLength:256*1024];
+		
+		unsigned char buffer[1024*256];
+		bytesRead = [stream read:buffer maxLength:sizeof(buffer)];
 		if (bytesRead == 0) {
 			break;
 		}
-		[d setLength:bytesRead];
 		if ([self shouldStreamPostDataFromDisk]) {
-			[[self postBodyWriteStream] write:[d mutableBytes] maxLength:bytesRead];
+			[[self postBodyWriteStream] write:buffer maxLength:bytesRead];
 		} else {
-			[[self postBody] appendData:[NSData dataWithBytes:[d mutableBytes] length:bytesRead]];
+			[[self postBody] appendData:[NSData dataWithBytes:buffer length:bytesRead]];
 		}
 	}
 	[stream close];
