@@ -196,10 +196,19 @@
 
 - (IBAction)postWithProgress:(id)sender
 {	
-	//Create a 1mb file
-	NSMutableData *data = [NSMutableData dataWithLength:1024*1024];
+	//Create a 10MB file
+	NSMutableData *data = [NSMutableData dataWithLength:1024];
 	NSString *path = [[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"bigfile"];
-	[data writeToFile:path atomically:NO];
+	
+	NSOutputStream *stream = [[[NSOutputStream alloc] initToFileAtPath:path append:NO] autorelease];
+	[stream open];
+	int i;
+	for (i=0; i<1024*10; i++) {
+		[stream write:[data mutableBytes] maxLength:[data length]];
+	}
+	
+	[stream close];
+	
 	
 	[networkQueue cancelAllOperations];
 	[networkQueue setShowAccurateProgress:YES];

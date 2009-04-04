@@ -144,23 +144,76 @@ static NSError *ASIUnableToCreateRequestError;
 	[requestHeaders setObject:value forKey:header];
 }
 
--(void)setPostBody:(NSData *)body
-{
-	[postBody release];
-	postBody = [body retain];
-	postLength = [postBody length];
-	[self addRequestHeader:@"Content-Length" value:[NSString stringWithFormat:@"%llu",postLength]];
-	if (postBody && postLength > 0 && ![requestMethod isEqualToString:@"POST"] && ![requestMethod isEqualToString:@"PUT"]) {
-		[self setRequestMethod:@"POST"];
-	}
-}
 
 // Subclasses should override this method if they need to create POST content for this request
 // This function will be called either just before a request starts, or when postLength is needed, whichever comes first
 // postLength must be set by the time this function is complete - calling setPostBody: will do this for you
 - (void)buildPostBody
 {
+	if ([self postBodyFilePath] && [self postBodyWriteStream]) {
+		[[self postBodyWriteStream] close];
+		[self setPostBodyWriteStream:nil];
+		[self setPostLength:[[[NSFileManager defaultManager] fileAttributesAtPath:[self postBodyFilePath] traverseLink:NO] fileSize]];
+		[self addRequestHeader:@"Content-Length" value:[NSString stringWithFormat:@"%llu",postLength]];
+		if (postBody && postLength > 0 && ![requestMethod isEqualToString:@"POST"] && ![requestMethod isEqualToString:@"PUT"]) {
+			[self setRequestMethod:@"POST"];
+		}
+	} else {
+		[self setPostLength:[postBody length]];
+		[self addRequestHeader:@"Content-Length" value:[NSString stringWithFormat:@"%llu",postLength]];
+		if (postBody && postLength > 0 && ![requestMethod isEqualToString:@"POST"] && ![requestMethod isEqualToString:@"PUT"]) {
+			[self setRequestMethod:@"POST"];
+		}
+	}
 	haveBuiltPostBody = YES;
+}
+
+- (void)setupPostBody
+{
+	if ([self shouldStreamPostDataFromDisk]) {
+		if (![self postBodyFilePath]) {
+			[self setPostBodyFilePath:[NSTemporaryDirectory() stringByAppendingPathComponent:[[NSProcessInfo processInfo] globallyUniqueString]]];
+		}
+		if (![self postBodyWriteStream]) {
+			[self setPostBodyWriteStream:[[[NSOutputStream alloc] initToFileAtPath:[self postBodyFilePath] append:NO] autorelease]];
+			[[self postBodyWriteStream] open];
+		}
+	} else {
+		if (![self postBody]) {
+			[self setPostBody:[[[NSMutableData alloc] init] autorelease]];
+		}
+	}	
+}
+
+- (void)appendPostData:(NSData *)data
+{
+	[self setupPostBody];
+	if ([self shouldStreamPostDataFromDisk]) {
+		[[self postBodyWriteStream] write:[data bytes] maxLength:[data length]];
+	} else {
+		[[self postBody] appendData:data];
+	}
+}
+
+- (void)appendPostDataFromFile:(NSString *)file
+{
+	[self setupPostBody];
+	NSInputStream *stream = [[[NSInputStream alloc] initWithFileAtPath:file] autorelease];
+	[stream open];
+	
+	NSMutableData *d;
+	while ([stream hasBytesAvailable]) {
+		d = [[NSMutableData alloc] initWithLength:256*1024];
+		int bytesRead = [stream read:[d mutableBytes] maxLength:256*1024];
+		if ([self shouldStreamPostDataFromDisk]) {
+			[[self postBodyWriteStream] write:[d mutableBytes] maxLength:bytesRead];
+		} else {
+			NSLog(@"foo");
+			[[self postBody] appendData:[NSData dataWithBytes:[d mutableBytes] length:bytesRead]];
+		}
+		[d release];
+	}
+	[stream close];
 }
 
 #pragma mark get information about this request
@@ -300,7 +353,7 @@ static NSError *ASIUnableToCreateRequestError;
 	}
 	
 	
-	// If this is a post request and we have data to send, add it to the request
+	// If this is a post request and we have data in memory send, add it to the request
 	if ([self postBody]) {
 		CFHTTPMessageSetBody(request, (CFDataRef)postBody);
 	}
@@ -339,8 +392,14 @@ static NSError *ASIUnableToCreateRequestError;
 		[self setRawResponseData:[[[NSMutableData alloc] init] autorelease]];
     }
     // Create the stream for the request.
-    readStream = CFReadStreamCreateForStreamedHTTPRequest(kCFAllocatorDefault, request,readStream);
-    if (!readStream) {
+	if ([self shouldStreamPostDataFromDisk] && [self postBodyFilePath] && [[NSFileManager defaultManager] fileExistsAtPath:[self postBodyFilePath]]) {
+		[self setPostBodyReadStream:[[[NSInputStream alloc] initWithFileAtPath:[self postBodyFilePath]] autorelease]];
+		[[self postBodyReadStream] open];
+		readStream = CFReadStreamCreateForStreamedHTTPRequest(kCFAllocatorDefault, request,(CFReadStreamRef)[self postBodyReadStream]);
+    } else {
+		readStream = CFReadStreamCreateForHTTPRequest(kCFAllocatorDefault, request);
+	}
+	if (!readStream) {
 		[cancelledLock unlock];
 		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIInternalErrorWhileBuildingRequestType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Unable to create read stream",NSLocalizedDescriptionKey,nil]]];
         return;
@@ -1484,4 +1543,8 @@ static NSError *ASIUnableToCreateRequestError;
 @synthesize allowCompressedResponse;
 @synthesize allowResumeForFileDownloads;
 @synthesize userInfo;
+@synthesize postBodyFilePath;
+@synthesize postBodyWriteStream;
+@synthesize postBodyReadStream;
+@synthesize shouldStreamPostDataFromDisk;
 @end

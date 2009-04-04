@@ -41,7 +41,7 @@ typedef enum _ASINetworkErrorType {
 	NSString *requestMethod;
 	
 	// Request body
-	NSData *postBody;
+	NSMutableData *postBody;
 	
 	// Dictionary for custom HTTP request headers
 	NSMutableDictionary *requestHeaders;
@@ -191,6 +191,11 @@ typedef enum _ASINetworkErrorType {
 	
 	// Custom user information assosiated with the request
 	NSDictionary *userInfo;
+	
+	NSString *postBodyFilePath;
+	NSOutputStream *postBodyWriteStream;
+	NSInputStream *postBodyReadStream;
+	BOOL shouldStreamPostDataFromDisk;
 }
 
 #pragma mark init / dealloc
@@ -204,6 +209,9 @@ typedef enum _ASINetworkErrorType {
 - (void)addRequestHeader:(NSString *)header value:(NSString *)value;
 
 - (void)buildPostBody;
+
+- (void)appendPostData:(NSData *)data;
+- (void)appendPostDataFromFile:(NSString *)file;
 
 #pragma mark get information about this request
 
@@ -344,7 +352,7 @@ typedef enum _ASINetworkErrorType {
 @property (retain) NSDate *lastActivityTime;
 @property (assign) NSTimeInterval timeOutSeconds;
 @property (retain) NSString *requestMethod;
-@property (retain,setter=setPostBody:) NSData *postBody;
+@property (retain) NSMutableData *postBody;
 @property (assign) unsigned long long contentLength;
 @property (assign) unsigned long long partialDownloadSize;
 @property (assign) unsigned long long postLength;
@@ -359,4 +367,8 @@ typedef enum _ASINetworkErrorType {
 @property (assign) BOOL allowCompressedResponse;
 @property (assign) BOOL allowResumeForFileDownloads;
 @property (retain) NSDictionary *userInfo;
+@property (retain) NSString *postBodyFilePath;
+@property (retain) NSOutputStream *postBodyWriteStream;
+@property (retain) NSInputStream *postBodyReadStream;
+@property (assign) BOOL shouldStreamPostDataFromDisk;
 @end
