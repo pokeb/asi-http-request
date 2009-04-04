@@ -2,7 +2,7 @@
 //  ASIHTTPRequest.h
 //
 //  Created by Ben Copsey on 04/10/2007.
-//  Copyright 2007-2008 All-Seeing Interactive. All rights reserved.
+//  Copyright 2007-2009 All-Seeing Interactive. All rights reserved.
 //
 //  A guide to the main features is available at:
 //  http://allseeing-i.com/ASIHTTPRequest
@@ -40,8 +40,25 @@ typedef enum _ASINetworkErrorType {
 	// HTTP method to use (GET / POST / PUT / DELETE). Defaults to GET
 	NSString *requestMethod;
 	
-	// Request body
+	// Request body - only used when the whole body is stored in memory (shouldStreamPostDataFromDisk is false)
 	NSMutableData *postBody;
+	
+	// When true, post body will be streamed from a file on disk, rather than loaded into memory at once (useful for large uploads)
+	// Automatically set to true in ASIFormDataRequests when using setFile:forKey:
+	BOOL shouldStreamPostDataFromDisk;
+	
+	// Path to file used to store post body (when shouldStreamPostDataFromDisk is true)
+	// You can set this yourself - useful if you want to PUT a file from local disk 
+	NSString *postBodyFilePath;
+	
+	// Set to true when ASIHTTPRequest automatically created a temporary file containing the request body (when true, the file at postBodyFilePath will be deleted at the end of the request)
+	BOOL didCreateTemporaryPostDataFile;
+	
+	// Used when writing to the post body when shouldStreamPostDataFromDisk is true (via appendPostData: or appendPostDataFromFile:)
+	NSOutputStream *postBodyWriteStream;
+	
+	// Used for reading from the post body when sending the request
+	NSInputStream *postBodyReadStream;
 	
 	// Dictionary for custom HTTP request headers
 	NSMutableDictionary *requestHeaders;
@@ -192,10 +209,7 @@ typedef enum _ASINetworkErrorType {
 	// Custom user information assosiated with the request
 	NSDictionary *userInfo;
 	
-	NSString *postBodyFilePath;
-	NSOutputStream *postBodyWriteStream;
-	NSInputStream *postBodyReadStream;
-	BOOL shouldStreamPostDataFromDisk;
+
 }
 
 #pragma mark init / dealloc
@@ -210,6 +224,7 @@ typedef enum _ASINetworkErrorType {
 
 - (void)buildPostBody;
 
+// Called to add data to the post body. Will append to postBody when shouldStreamPostDataFromDisk is false, or write to postBodyWriteStream when true
 - (void)appendPostData:(NSData *)data;
 - (void)appendPostDataFromFile:(NSString *)file;
 
@@ -238,6 +253,10 @@ typedef enum _ASINetworkErrorType {
 // Call to delete the temporary file used during a file download (if it exists)
 // No need to call this if the request succeeds - it is removed automatically
 - (void)removeTemporaryDownloadFile;
+
+// Call to remove the file used as the request body
+// No need to call this if the request succeeds and you didn't specify postBodyFilePath manually - it is removed automatically
+- (void)removePostDataFile;
 
 #pragma mark upload/download progress
 
@@ -371,4 +390,5 @@ typedef enum _ASINetworkErrorType {
 @property (retain) NSOutputStream *postBodyWriteStream;
 @property (retain) NSInputStream *postBodyReadStream;
 @property (assign) BOOL shouldStreamPostDataFromDisk;
+@property (assign) BOOL didCreateTemporaryPostDataFile;
 @end

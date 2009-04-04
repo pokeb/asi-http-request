@@ -13,7 +13,7 @@
 
 
 @implementation ASIHTTPRequestTests
-
+/*
 
 - (void)testBasicDownload
 {
@@ -188,6 +188,8 @@
 	GHAssertTrue(success,@"Failed to properly increment download progress %f != 1.0",progress);	
 }
 
+*/
+
 
 - (void)setProgress:(float)newProgress;
 {
@@ -207,7 +209,49 @@
 	GHAssertTrue(success,@"Failed to properly increment upload progress %f != 1.0",progress);	
 }
 
+- (void)testPostBodyStreamedFromDisk
+{
+	NSURL *url = [NSURL URLWithString:@"http://allseeing-i.com/ignore"];
+	NSString *requestContentPath = [[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"testfile.txt"];
+	[[NSMutableData dataWithLength:1024*32] writeToFile:requestContentPath atomically:NO];
+	
+	// Test using a user-specified file as the request body (useful for PUT)
+	progress = 0;
+	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request setRequestMethod:@"PUT"];
+	[request setShouldStreamPostDataFromDisk:YES];
+	[request setUploadProgressDelegate:self];
+	[request setPostBodyFilePath:requestContentPath];
+	//[request start];
+	
+	
+	//Wait for 1 second
+	//[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1]];
+	
+	BOOL success = (progress > 0.95);
+	//GHAssertTrue(success,@"Failed to properly increment upload progress %f != 1.0",progress);
+	
+	
+	// Test building a request body by appending data
+	progress = 0;
+	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request setShouldStreamPostDataFromDisk:YES];
+	[request setUploadProgressDelegate:self];
+	
+	NSData *d = [@"Below this will be the file I am posting:\r\n" dataUsingEncoding:NSUTF8StringEncoding];
+	[request appendPostData:[NSData dataWithBytes:[d bytes] length:[d length]]];
+	[request appendPostDataFromFile:requestContentPath];
+	[request start];
+	
+	
+	//Wait for 1 second
+	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1]];
+	
+	success = (progress > 0.95);
+	GHAssertTrue(success,@"Failed to properly increment upload progress %f != 1.0",progress);
+}
 
+/*
 
 
 - (void)testCookies
@@ -530,6 +574,6 @@
 	success = success = (progress > 0.95);
 	GHAssertTrue(success,@"Failed to correctly display increment progress for a partial download");
 }
-
+*/
 
 @end

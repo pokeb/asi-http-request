@@ -3,7 +3,7 @@
 //  asi-http-request
 //
 //  Created by Ben Copsey on 07/11/2008.
-//  Copyright 2008 All-Seeing Interactive. All rights reserved.
+//  Copyright 2008-2009 All-Seeing Interactive. All rights reserved.
 //
 
 #import "ASINetworkQueue.h"
