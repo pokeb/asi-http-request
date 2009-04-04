@@ -14,7 +14,7 @@
 
 @implementation ASIHTTPRequestTests
 
-/*
+
 - (void)testBasicDownload
 {
 	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com"] autorelease];
@@ -531,5 +531,5 @@
 	GHAssertTrue(success,@"Failed to correctly display increment progress for a partial download");
 }
 
-*/
+
 @end

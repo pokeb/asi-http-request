@@ -152,7 +152,7 @@
 }
 
 
-/*
+
 - (void)testFailure
 {
 	complete = NO;
@@ -257,7 +257,7 @@
 	
 	[requestThatShouldFail release];	
 }
-*/
+
  
 - (void)requestFailedCancellingOthers:(ASIHTTPRequest *)request
 {
@@ -276,7 +276,7 @@
 }
 
 
-/*
+
 - (void)testProgressWithAuthentication
 {
 	complete = NO;
@@ -329,7 +329,7 @@
 	[networkQueue release];
 	
 }
-*/
+
 
 
 - (void)requestFailedExpectedly:(ASIHTTPRequest *)request
@@ -343,7 +343,7 @@
 {
     request_succeeded = YES;
 }
-/*
+
 //Connect to a port the server isn't listening on, and the read stream won't be created (Test + Fix contributed by Michael Krause)
 - (void)testWithNoListener
 {
@@ -476,7 +476,7 @@
 	[networkQueue release];	
 	
 }
-*/
+
 - (void)stopQueue:(id)sender
 {
 	complete = YES;
