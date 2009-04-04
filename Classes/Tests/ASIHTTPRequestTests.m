@@ -13,7 +13,7 @@
 
 
 @implementation ASIHTTPRequestTests
-/*
+
 
 - (void)testBasicDownload
 {
@@ -165,7 +165,7 @@
 	[request start];
 	
 	NSString *tempPath = [request temporaryFileDownloadPath];
-	GHAssertNotNil(tempPath,@"Failed to download file to temporary location");		
+	GHAssertNil(tempPath,@"Failed to clean up temporary download file");		
 	
 	//BOOL success = (![[NSFileManager defaultManager] fileExistsAtPath:tempPath]);
 	//GHAssertTrue(success,@"Failed to remove file from temporary location");	
@@ -188,7 +188,7 @@
 	GHAssertTrue(success,@"Failed to properly increment download progress %f != 1.0",progress);	
 }
 
-*/
+
 
 
 - (void)setProgress:(float)newProgress;
@@ -201,7 +201,7 @@
 {
 	progress = 0;
 	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ignore"]] autorelease];
-	[request setPostBody:[NSMutableData dataWithLength:1024*32]];
+	[request setPostBody:(NSMutableData *)[@"This is the request body" dataUsingEncoding:NSUTF8StringEncoding]];
 	[request setUploadProgressDelegate:self];
 	[request start];
 	
@@ -211,9 +211,11 @@
 
 - (void)testPostBodyStreamedFromDisk
 {
-	NSURL *url = [NSURL URLWithString:@"http://allseeing-i.com/ignore"];
+	NSURL *url = [NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/print_request_body"];
+	NSString *requestBody = @"This is the request body";
 	NSString *requestContentPath = [[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"testfile.txt"];
-	[[NSMutableData dataWithLength:1024*32] writeToFile:requestContentPath atomically:NO];
+	[[requestBody dataUsingEncoding:NSUTF8StringEncoding] writeToFile:requestContentPath atomically:NO];
+
 	
 	// Test using a user-specified file as the request body (useful for PUT)
 	progress = 0;
@@ -222,36 +224,32 @@
 	[request setShouldStreamPostDataFromDisk:YES];
 	[request setUploadProgressDelegate:self];
 	[request setPostBodyFilePath:requestContentPath];
-	//[request start];
-	
-	
-	//Wait for 1 second
-	//[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1]];
+	[request start];
 	
 	BOOL success = (progress > 0.95);
-	//GHAssertTrue(success,@"Failed to properly increment upload progress %f != 1.0",progress);
+	GHAssertTrue(success,@"Failed to properly increment upload progress %f != 1.0",progress);
+	
+	success = [[request responseString] isEqualToString:requestBody];
+	GHAssertTrue(success,@"Failed upload the correct request body");
 	
 	
 	// Test building a request body by appending data
 	progress = 0;
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setShouldStreamPostDataFromDisk:YES];
+	[request setRequestMethod:@"PUT"];
 	[request setUploadProgressDelegate:self];
-	
-	NSData *d = [@"Below this will be the file I am posting:\r\n" dataUsingEncoding:NSUTF8StringEncoding];
-	[request appendPostData:[NSData dataWithBytes:[d bytes] length:[d length]]];
 	[request appendPostDataFromFile:requestContentPath];
 	[request start];
 	
-	
-	//Wait for 1 second
-	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1]];
-	
 	success = (progress > 0.95);
 	GHAssertTrue(success,@"Failed to properly increment upload progress %f != 1.0",progress);
+	
+	success = [[request responseString] isEqualToString:requestBody];
+	GHAssertTrue(success,@"Failed upload the correct request body");
 }
 
-/*
+
 
 
 - (void)testCookies
@@ -571,9 +569,8 @@
 	success = ([newPartialContent isEqualToString:@"This is the content we ought to be getting if we start from byte 95."]);
 	GHAssertTrue(success,@"Failed to append the correct data to the end of the file?");
 	
-	success = success = (progress > 0.95);
+	success = (progress > 0.95);
 	GHAssertTrue(success,@"Failed to correctly display increment progress for a partial download");
 }
-*/
 
 @end

@@ -53,10 +53,7 @@
 	if (!fileData) {
 		fileData = [[NSMutableDictionary alloc] init];
 	}
-	NSMutableDictionary *file = [[[NSMutableDictionary alloc] init] autorelease];
-	[file setObject:data forKey:@"data"];
-	[file setObject:@"file" forKey:@"filename"];
-	[fileData setValue:file forKey:key];
+	[fileData setObject:data forKey:key];
 	[self setRequestMethod:@"POST"];	
 }
 
@@ -97,10 +94,18 @@
 	e = [fileData keyEnumerator];
 	i=0;
 	while (key = [e nextObject]) {
-		NSString *filePath = [fileData objectForKey:key];
-		[self appendPostData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"; filename=\"%@\"\r\n",key,[filePath lastPathComponent]] dataUsingEncoding:NSUTF8StringEncoding]];
+		NSString *fileName = @"file";
+		id file =  [fileData objectForKey:key];
+		if ([file isKindOfClass:[NSString class]]) {
+			fileName = (NSString *)file;
+		}
+		[self appendPostData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"; filename=\"%@\"\r\n",key,fileName] dataUsingEncoding:NSUTF8StringEncoding]];
 		[self appendPostData:contentTypeHeader];
-		[self appendPostDataFromFile:filePath];
+		if ([file isKindOfClass:[NSString class]]) {
+			[self appendPostDataFromFile:fileName];
+		} else {
+			[self appendPostData:file];
+		}
 		i++;
 		// Only add the boundary if this is not the last item in the post body
 		if (i != [fileData count]) { 

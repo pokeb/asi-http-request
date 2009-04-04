@@ -91,9 +91,9 @@
 	
 	NSURL *url = [NSURL URLWithString:@"http://allseeing-i.com/ignore"];
 	
-	int fileSizes[4] = {16,64,128,512};
+	int fileSizes[3] = {16,64,257};
 	int i;
-	for (i=0; i<4; i++) {
+	for (i=0; i<3; i++) {
 		NSData *data = [[[NSMutableData alloc] initWithLength:fileSizes[i]*1024] autorelease];
 		NSString *path = [[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:[NSString stringWithFormat:@"file%hi",i]];
 		[data writeToFile:path atomically:NO];
@@ -117,7 +117,7 @@
 	[networkQueue cancelAllOperations];
 	[networkQueue setShowAccurateProgress:YES];
 	
-	for (i=0; i<4; i++) {
+	for (i=0; i<3; i++) {
 		NSData *data = [[[NSMutableData alloc] initWithLength:fileSizes[i]*1024] autorelease];
 		NSString *path = [[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:[NSString stringWithFormat:@"file%hi",i]];
 		[data writeToFile:path atomically:NO];
@@ -135,11 +135,7 @@
 	success = (progress > 0.95);
 	GHAssertTrue(success,@"Failed to increment progress properly");
 	
-	
 	[networkQueue release];
-	
-	
-	
 	
 }
 

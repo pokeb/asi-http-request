@@ -391,4 +391,5 @@ typedef enum _ASINetworkErrorType {
 @property (retain) NSInputStream *postBodyReadStream;
 @property (assign) BOOL shouldStreamPostDataFromDisk;
 @property (assign) BOOL didCreateTemporaryPostDataFile;
+
 @end

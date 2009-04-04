@@ -213,18 +213,19 @@ static NSError *ASIUnableToCreateRequestError;
 	[self setupPostBody];
 	NSInputStream *stream = [[[NSInputStream alloc] initWithFileAtPath:file] autorelease];
 	[stream open];
-	
 	NSMutableData *d;
 	while ([stream hasBytesAvailable]) {
-		d = [[NSMutableData alloc] initWithLength:256*1024];
+		d = [NSMutableData dataWithLength:256*1024];
 		int bytesRead = [stream read:[d mutableBytes] maxLength:256*1024];
+		if (bytesRead == 0) {
+			break;
+		}
+		[d setLength:bytesRead];
 		if ([self shouldStreamPostDataFromDisk]) {
 			[[self postBodyWriteStream] write:[d mutableBytes] maxLength:bytesRead];
 		} else {
-			NSLog(@"foo");
 			[[self postBody] appendData:[NSData dataWithBytes:[d mutableBytes] length:bytesRead]];
 		}
-		[d release];
 	}
 	[stream close];
 }
@@ -273,6 +274,7 @@ static NSError *ASIUnableToCreateRequestError;
 	}
 }
 
+
 #pragma mark request logic
 
 // Create the request
@@ -287,6 +289,10 @@ static NSError *ASIUnableToCreateRequestError;
 	if (!url) {
 		[self failWithError:ASIUnableToCreateRequestError];
 		return;		
+	}
+	
+	if (!haveBuiltPostBody) {
+		[self buildPostBody];
 	}
 	
     // Create a new HTTP request.
@@ -332,11 +338,6 @@ static NSError *ASIUnableToCreateRequestError;
 		if (cookieHeader) {
 			[self addRequestHeader:@"Cookie" value:cookieHeader];
 		}
-	}
-	
-	
-	if (!haveBuiltPostBody) {
-		[self buildPostBody];
 	}
 	
 	
@@ -545,21 +546,26 @@ static NSError *ASIUnableToCreateRequestError;
 
 - (void)removeTemporaryDownloadFile
 {
-	//Remove the temporary file
-	NSError *removeError = nil;
-	[[NSFileManager defaultManager] removeItemAtPath:temporaryFileDownloadPath error:&removeError];
-	if (removeError) {
-		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIFileManagementError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Failed to delete file at %@ with error: %@",temporaryFileDownloadPath,removeError],NSLocalizedDescriptionKey,removeError,NSUnderlyingErrorKey,nil]]];
-	}		
+	if (temporaryFileDownloadPath) {
+		NSError *removeError = nil;
+		[[NSFileManager defaultManager] removeItemAtPath:temporaryFileDownloadPath error:&removeError];
+		if (removeError) {
+			[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIFileManagementError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Failed to delete file at %@ with error: %@",temporaryFileDownloadPath,removeError],NSLocalizedDescriptionKey,removeError,NSUnderlyingErrorKey,nil]]];
+		}
+		[self setTemporaryFileDownloadPath:nil];
+	}
 }
 
 - (void)removePostDataFile
 {
-	NSError *removeError = nil;
-	[[NSFileManager defaultManager] removeItemAtPath:postBodyFilePath error:&removeError];
-	if (removeError) {
-		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIFileManagementError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Failed to delete file at %@ with error: %@",postBodyFilePath,removeError],NSLocalizedDescriptionKey,removeError,NSUnderlyingErrorKey,nil]]];
-	}			
+	if (postBodyFilePath) {
+		NSError *removeError = nil;
+		[[NSFileManager defaultManager] removeItemAtPath:postBodyFilePath error:&removeError];
+		if (removeError) {
+			[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIFileManagementError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Failed to delete file at %@ with error: %@",postBodyFilePath,removeError],NSLocalizedDescriptionKey,removeError,NSUnderlyingErrorKey,nil]]];
+		}
+		[self setPostBodyFilePath:nil];
+	}
 }
 
 
@@ -819,7 +825,7 @@ static NSError *ASIUnableToCreateRequestError;
 		[invocation setSelector:selector];
 		[invocation setArgument:&progress atIndex:2];
 		
-		// If we're running in the main thread, update the progress straight away. Otherwise, it's not that urgent
+
 		[invocation performSelectorOnMainThread:@selector(invokeWithTarget:) withObject:indicator waitUntilDone:[NSThread isMainThread]];
 		
 	}
@@ -837,8 +843,6 @@ static NSError *ASIUnableToCreateRequestError;
 		[delegate performSelectorOnMainThread:didFinishSelector withObject:self waitUntilDone:[NSThread isMainThread]];		
 	}
 }
-
-
 
 // Subclasses can override this method to perform error handling in the same thread
 // If not overidden, it will call the didFailSelector on the delegate (by default requestFailed:)`
@@ -1533,7 +1537,6 @@ static NSError *ASIUnableToCreateRequestError;
     (void)inflateEnd(&strm);
     return ret == Z_STREAM_END ? Z_OK : Z_DATA_ERROR;
 }
-	
 
 @synthesize username;
 @synthesize password;
