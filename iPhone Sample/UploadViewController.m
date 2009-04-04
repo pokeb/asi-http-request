@@ -33,12 +33,12 @@
 	
 	//Create a 256KB file
 	NSData *data = [[[NSMutableData alloc] initWithLength:256*1024] autorelease];
-	NSString *path = [[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"file"];
+	NSString *path = [[NSHomeDirectory() stringByAppendingPathComponent:@"Documents"] stringByAppendingPathComponent:@"file"];
 	[data writeToFile:path atomically:NO];
 	
-	//Add the file 8 times to the request, for a total request size around 4MB
+	//Add the file 8 times to the request, for a total request size around 2MB
 	int i;
-	for (i=0; i<16; i++) {
+	for (i=0; i<8; i++) {
 		[request setFile:path forKey:[NSString stringWithFormat:@"file-%hi",i]];
 	}
 	

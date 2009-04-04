@@ -220,8 +220,8 @@
 				B55B60670F765A930064029C /* QueueViewController.m */,
 				B55B60690F765A930064029C /* UploadViewController.h */,
 				B55B606C0F765A930064029C /* UploadViewController.m */,
-				B55B606B0F765A930064029C /* iPhoneSampleAppDelegate.m */,
 				B55B606E0F765A930064029C /* iPhoneSampleAppDelegate.h */,
+				B55B606B0F765A930064029C /* iPhoneSampleAppDelegate.m */,
 				B55B605F0F765A750064029C /* iPhone_Prefix.pch */,
 				B55B60600F765A750064029C /* main.m */,
 			);
@@ -508,6 +508,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Don't Code Sign";
 				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -515,6 +516,8 @@
 				GCC_PREFIX_HEADER = "iPhone Sample/iPhone_Prefix.pch";
 				INFOPLIST_FILE = "iPhone Sample/Info.plist";
 				PRODUCT_NAME = ASIHTTPRequest;
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
+				SDKROOT = iphoneos2.2.1;
 			};
 			name = Debug;
 		};
@@ -522,11 +525,14 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Don't Code Sign";
 				COPY_PHASE_STRIP = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "iPhone Sample/iPhone_Prefix.pch";
 				INFOPLIST_FILE = "iPhone Sample/Info.plist";
 				PRODUCT_NAME = ASIHTTPRequest;
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
+				SDKROOT = iphoneos2.2.1;
 			};
 			name = Release;
 		};
