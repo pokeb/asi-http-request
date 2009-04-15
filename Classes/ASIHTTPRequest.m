@@ -172,9 +172,13 @@ static NSError *ASIUnableToCreateRequestError;
 	} else {
 		[self setPostLength:[postBody length]];
 	}
-	[self addRequestHeader:@"Content-Length" value:[NSString stringWithFormat:@"%llu",postLength]];
-	if (postLength > 0 && ![requestMethod isEqualToString:@"POST"] && ![requestMethod isEqualToString:@"PUT"]) {
-		[self setRequestMethod:@"POST"];
+		
+	if (postLength > 0) 
+	{
+		if (![requestMethod isEqualToString:@"POST"] && ![requestMethod isEqualToString:@"PUT"]) {
+			[self setRequestMethod:@"POST"];
+		}
+		[self addRequestHeader:@"Content-Length" value:[NSString stringWithFormat:@"%llu",postLength]];
 	}
 	haveBuiltPostBody = YES;
 }
