@@ -13,7 +13,7 @@
 
 - (void)testPostWithFileUpload
 {
-	NSURL *url = [NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/post"];
+	NSURL *url = [NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/post"];
 	
 	//Create a 32kb file
 	unsigned int size = 1024*32;

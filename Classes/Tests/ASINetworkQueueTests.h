@@ -6,7 +6,11 @@
 //  Copyright 2008 All-Seeing Interactive. All rights reserved.
 //
 
-#import "GHUnit.h"
+#if TARGET_OS_IPHONE
+	#import "GHUnit.h"
+#else
+	#import <GHUnit/GHUnit.h>
+#endif
 
 @class ASIHTTPRequest;
 @class ASINetworkQueue;
