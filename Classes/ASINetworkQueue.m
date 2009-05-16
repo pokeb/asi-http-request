@@ -137,6 +137,7 @@
 				
 				//Tell the request not to reset the progress indicator when it gets a content-length, as we will get the length from the HEAD request
 				[request setShouldResetProgressIndicators:NO];
+				
 				[request addDependency:HEADRequest];
 			
 			// If we want to track uploading for this request accurately, we need to add the size of the post content to the total
@@ -146,6 +147,7 @@
 			}
 		}
 		[request setShowAccurateProgress:showAccurateProgress];
+
 		
 		[request setQueue:self];
 		[super addOperation:request];

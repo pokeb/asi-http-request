@@ -398,16 +398,14 @@ static NSError *ASIUnableToCreateRequestError;
 	lastBytesRead = 0;
 	
 	// If we're retrying a request after an authentication failure, let's remove any progress we made
-	if (lastBytesSent > 0 && uploadProgressDelegate) {
+	if (lastBytesSent > 0) {
 		[self removeUploadProgressSoFar];
 	}
 	
 	lastBytesSent = 0;
 	if (shouldResetProgressIndicators) {
 		contentLength = 0;
-		if (downloadProgressDelegate) {
-			[self resetDownloadProgress:0];
-		}
+		[self resetDownloadProgress:0];
 	}
 	[self setResponseHeaders:nil];
 	if (![self downloadDestinationPath]) {
@@ -632,17 +630,6 @@ static NSError *ASIUnableToCreateRequestError;
 - (void)resetUploadProgress:(unsigned long long)value
 {
 	[progressLock lock];
-	
-	//We're using a progress queue or compatible controller to handle progress
-	SEL selector = @selector(incrementUploadSizeBy:);
-	if ([queue respondsToSelector:selector]) {
-		NSMethodSignature *signature = [[queue class] instanceMethodSignatureForSelector:selector];
-		NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
-		[invocation setTarget:queue];
-		[invocation setSelector:selector];
-		[invocation setArgument:&value atIndex:2];
-		[invocation invoke];
-	}
 	
 	// Request this request's own upload progress delegate
 	if (uploadProgressDelegate) {
