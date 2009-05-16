@@ -29,6 +29,9 @@
 	IBOutlet NSImageView *imageView1;
 	IBOutlet NSImageView *imageView2;
 	IBOutlet NSImageView *imageView3;
+	IBOutlet NSProgressIndicator *imageProgress1;
+	IBOutlet NSProgressIndicator *imageProgress2;
+	IBOutlet NSProgressIndicator *imageProgress3;
 	
 	IBOutlet NSButton *startButton;
 	IBOutlet NSButton *resumeButton;

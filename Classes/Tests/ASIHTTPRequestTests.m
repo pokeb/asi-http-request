@@ -516,7 +516,6 @@
 //	[request start];
 //	err = [request error];
 //	GHAssertNil(err,@"Got an error when correct credentials were supplied");
-//	NSLog([request responseString]);
 //}
 
 - (void)testCompressedResponse
@@ -551,7 +550,7 @@
 	[partialContent writeToFile:tempPath atomically:NO encoding:NSASCIIStringEncoding error:nil];
 	
 	progress = 0;
-	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/Tests/test_partial_download.txt"] autorelease];
+	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/test_partial_download.txt"] autorelease];
 	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setDownloadDestinationPath:downloadPath];
 	[request setTemporaryFileDownloadPath:tempPath];

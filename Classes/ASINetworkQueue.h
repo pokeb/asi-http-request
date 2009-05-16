@@ -9,7 +9,7 @@
 
 @interface ASINetworkQueue : NSOperationQueue {
 	
-	// Delegate will get didFail + didFinish messages (if set), as well as authorizationNeededForRequest messages
+	// Delegate will get didFail + didFinish messages (if set)
 	id delegate;
 
 	// Will be called when a request completes with the request as the argument

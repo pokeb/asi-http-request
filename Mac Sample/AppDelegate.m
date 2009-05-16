@@ -101,22 +101,30 @@
 	
 	[networkQueue cancelAllOperations];
 	[networkQueue setDownloadProgressDelegate:progressIndicator];
-	[networkQueue setRequestDidFinishSelector:@selector(imageFetchComplete:)];
 	[networkQueue setDelegate:self];
 	[networkQueue setShowAccurateProgress:([showAccurateProgress state] == NSOnState)];
 	
 	ASIHTTPRequest *request;
 	
-	request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com/i/logo.png"]] autorelease];
+	request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/images/small-image.jpg"]] autorelease];
 	[request setDownloadDestinationPath:[[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"1.png"]];
+	[request setDownloadProgressDelegate:imageProgress1];
+	[request setDidFinishSelector:@selector(imageFetch1Complete:)];
+	[request setDelegate:self];
 	[networkQueue addOperation:request];
 	
-	request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com/i/trailsnetwork.png"]] autorelease];
+	request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/images/medium-image.jpg"]] autorelease];
 	[request setDownloadDestinationPath:[[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"2.png"]];
+	[request setDownloadProgressDelegate:imageProgress2];
+	[request setDidFinishSelector:@selector(imageFetch2Complete:)];
+	[request setDelegate:self];
 	[networkQueue addOperation:request];
 	
-	request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com/i/sharedspace20.png"]] autorelease];
+	request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/images/large-image.jpg"]] autorelease];
 	[request setDownloadDestinationPath:[[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"3.png"]];
+	[request setDownloadProgressDelegate:imageProgress3];
+	[request setDidFinishSelector:@selector(imageFetch3Complete:)];
+	[request setDelegate:self];
 	[networkQueue addOperation:request];
 	
 	
@@ -124,22 +132,31 @@
 }
 
 
-- (void)imageFetchComplete:(ASIHTTPRequest *)request
+- (void)imageFetch1Complete:(ASIHTTPRequest *)request
 {
 	NSImage *img = [[[NSImage alloc] initWithContentsOfFile:[request downloadDestinationPath]] autorelease];
 	if (img) {
-		if ([imageView1 image]) {
-			if ([imageView2 image]) {
-				[imageView3 setImage:img];
-			} else {
-				[imageView2 setImage:img];
-			}
-		} else {
-			[imageView1 setImage:img];
-		}
+		[imageView1 setImage:img];
 	}
-
 }
+
+- (void)imageFetch2Complete:(ASIHTTPRequest *)request
+{
+	NSImage *img = [[[NSImage alloc] initWithContentsOfFile:[request downloadDestinationPath]] autorelease];
+	if (img) {
+		[imageView2 setImage:img];
+	}
+}
+
+
+- (void)imageFetch3Complete:(ASIHTTPRequest *)request
+{
+	NSImage *img = [[[NSImage alloc] initWithContentsOfFile:[request downloadDestinationPath]] autorelease];
+	if (img) {
+		[imageView3 setImage:img];
+	}
+}
+
 
 
 - (IBAction)fetchTopSecretInformation:(id)sender

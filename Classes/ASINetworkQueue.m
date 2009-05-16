@@ -16,7 +16,7 @@
 {
 	self = [super init];
 	
-	delegate = NULL;
+	delegate = nil;
 	requestDidFinishSelector = NULL;
 	requestDidFailSelector = NULL;
 	queueDidFinishSelector = NULL;
@@ -113,17 +113,7 @@
 		[request setRequestMethod:@"HEAD"];
 		[request setQueuePriority:10];
 		[request setShowAccurateProgress:YES];
-		if (uploadProgressDelegate) {
-			[request setUploadProgressDelegate:self];
-		} else {
-			[request setUploadProgressDelegate:NULL];
-		}
-		if (downloadProgressDelegate) {
-			[request setDownloadProgressDelegate:self];
-		} else {
-			[request setDownloadProgressDelegate:NULL];	
-		}
-		[request setDelegate:self];
+		[request setQueue:self];
 		[super addOperation:request];
 	}
 }
@@ -157,22 +147,7 @@
 		}
 		[request setShowAccurateProgress:showAccurateProgress];
 		
-		if (uploadProgressDelegate) {
-			
-			// For uploads requests, we always work out the total upload size before the queue starts, so we tell the request not to reset the progress indicator when starting each request
-			[request setShouldResetProgressIndicators:NO];
-			[request setUploadProgressDelegate:self];
-		} else {
-			[request setUploadProgressDelegate:NULL];
-		}
-		if (downloadProgressDelegate) {
-			[request setDownloadProgressDelegate:self];
-		} else {
-			[request setDownloadProgressDelegate:NULL];	
-		}
-		[request setDelegate:self];
-		[request setDidFailSelector:@selector(requestDidFail:)];
-		[request setDidFinishSelector:@selector(requestDidFinish:)];
+		[request setQueue:self];
 		[super addOperation:request];
 	}
 	

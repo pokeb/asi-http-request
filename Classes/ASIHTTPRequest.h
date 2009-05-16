@@ -37,6 +37,9 @@ typedef enum _ASINetworkErrorType {
 	// The delegate, you need to manage setting and talking to your delegate in your subclasses
 	id delegate;
 	
+	// A queue delegate that should *ALSO* be notified of delegate message
+	id queue;
+	
 	// HTTP method to use (GET / POST / PUT / DELETE). Defaults to GET
 	NSString *requestMethod;
 	
@@ -349,6 +352,7 @@ typedef enum _ASINetworkErrorType {
 
 @property (retain,readonly) NSURL *url;
 @property (assign) id delegate;
+@property (assign) id queue;
 @property (assign) id uploadProgressDelegate;
 @property (assign) id downloadProgressDelegate;
 @property (assign) BOOL useKeychainPersistance;

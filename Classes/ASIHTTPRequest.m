@@ -98,6 +98,7 @@ static NSError *ASIUnableToCreateRequestError;
 	[self setDidFinishSelector:@selector(requestFinished:)];
 	[self setDidFailSelector:@selector(requestFailed:)];
 	[self setDelegate:nil];
+	[self setQueue:nil];
 	[self setUserInfo:nil];
 	url = [newURL retain];
 	cancelledLock = [[NSLock alloc] init];
@@ -404,6 +405,9 @@ static NSError *ASIUnableToCreateRequestError;
 	lastBytesSent = 0;
 	if (shouldResetProgressIndicators) {
 		contentLength = 0;
+		if (downloadProgressDelegate) {
+			[self resetDownloadProgress:0];
+		}
 	}
 	[self setResponseHeaders:nil];
 	if (![self downloadDestinationPath]) {
@@ -449,7 +453,7 @@ static NSError *ASIUnableToCreateRequestError;
 	[cancelledLock unlock];
 	
 	
-	if (uploadProgressDelegate && shouldResetProgressIndicators) {
+	if (shouldResetProgressIndicators) {
 		double amount = 1;
 		if (showAccurateProgress) {
 			amount = postLength;
@@ -628,16 +632,20 @@ static NSError *ASIUnableToCreateRequestError;
 - (void)resetUploadProgress:(unsigned long long)value
 {
 	[progressLock lock];
+	
 	//We're using a progress queue or compatible controller to handle progress
-	if ([uploadProgressDelegate respondsToSelector:@selector(incrementUploadSizeBy:)]) {
-		SEL selector = @selector(incrementUploadSizeBy:);
-		NSMethodSignature *signature = [[uploadProgressDelegate class] instanceMethodSignatureForSelector:selector];
+	SEL selector = @selector(incrementUploadSizeBy:);
+	if ([queue respondsToSelector:selector]) {
+		NSMethodSignature *signature = [[queue class] instanceMethodSignatureForSelector:selector];
 		NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
-		[invocation setTarget:uploadProgressDelegate];
+		[invocation setTarget:queue];
 		[invocation setSelector:selector];
 		[invocation setArgument:&value atIndex:2];
 		[invocation invoke];
-	} else {
+	}
+	
+	// Request this request's own upload progress delegate
+	if (uploadProgressDelegate) {
 		[ASIHTTPRequest setProgress:0 forProgressIndicator:uploadProgressDelegate];
 	}
 	[progressLock unlock];
@@ -657,11 +665,11 @@ static NSError *ASIUnableToCreateRequestError;
 	if (totalBytesSent > 0 && uploadBufferSize == 0 && totalBytesSent != postLength) {
 		[self setUploadBufferSize:totalBytesSent];
 		SEL selector = @selector(setUploadBufferSize:);
-		if ([uploadProgressDelegate respondsToSelector:selector]) {
+		if ([queue respondsToSelector:selector]) {
 			NSMethodSignature *signature = nil;
-			signature = [[uploadProgressDelegate class] instanceMethodSignatureForSelector:selector];
+			signature = [[queue class] instanceMethodSignatureForSelector:selector];
 			NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
-			[invocation setTarget:uploadProgressDelegate];
+			[invocation setTarget:queue];
 			[invocation setSelector:selector];
 			[invocation setArgument:&totalBytesSent atIndex:2];
 			[invocation invoke];
@@ -676,56 +684,57 @@ static NSError *ASIUnableToCreateRequestError;
 		return;
 	}
 	
-	
-	if (uploadProgressDelegate) {
 		
-		// We're using a progress queue or compatible controller to handle progress
-		if ([uploadProgressDelegate respondsToSelector:@selector(incrementUploadProgressBy:)]) {
-			unsigned long long value = 0;
-			if (showAccurateProgress) {
-				if (totalBytesSent == postLength || lastBytesSent > 0) {
-					value = totalBytesSent-lastBytesSent;
-				} else {
-					value = 0;
-				}
+	// Update the progress queue, if we have one
+	SEL selector = @selector(incrementUploadProgressBy:);
+	if ([queue respondsToSelector:selector]) {
+		unsigned long long value = 0;
+		if (showAccurateProgress) {
+			if (totalBytesSent == postLength || lastBytesSent > 0) {
+				value = totalBytesSent-lastBytesSent;
 			} else {
-				value = 1;
-				updatedProgress = YES;
+				value = 0;
 			}
-			SEL selector = @selector(incrementUploadProgressBy:);
-			NSMethodSignature *signature = nil;
-			signature = [[uploadProgressDelegate class] instanceMethodSignatureForSelector:selector];
-			NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
-			[invocation setTarget:uploadProgressDelegate];
-			[invocation setSelector:selector];
-			[invocation setArgument:&value atIndex:2];
-			[invocation invoke];
-			
-			// We aren't using a queue, we should just set progress of the indicator
 		} else {
-			[ASIHTTPRequest setProgress:(double)(1.0*(totalBytesSent-uploadBufferSize)/(postLength-uploadBufferSize)) forProgressIndicator:uploadProgressDelegate];
+			value = 1;
+			updatedProgress = YES;
 		}
+		
+		NSMethodSignature *signature = nil;
+		signature = [[queue class] instanceMethodSignatureForSelector:selector];
+		NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
+		[invocation setTarget:queue];
+		[invocation setSelector:selector];
+		[invocation setArgument:&value atIndex:2];
+		[invocation invoke];
+	}
+
+	// Update this request's own upload progress delegate
+	if (uploadProgressDelegate) {
+		[ASIHTTPRequest setProgress:(double)(1.0*(totalBytesSent-uploadBufferSize)/(postLength-uploadBufferSize)) forProgressIndicator:uploadProgressDelegate];
 		
 	}
 
-	
 }
 
 
 - (void)resetDownloadProgress:(unsigned long long)value
 {
 	[progressLock lock];	
-	// We're using a progress queue or compatible controller to handle progress
-	if ([downloadProgressDelegate respondsToSelector:@selector(incrementDownloadSizeBy:)]) {
-		SEL selector = @selector(incrementDownloadSizeBy:);
-		NSMethodSignature *signature = [[downloadProgressDelegate class] instanceMethodSignatureForSelector:selector];
+	
+	// Reset download progress for this request in the queue
+	SEL selector = @selector(incrementDownloadSizeBy:);
+	if ([queue respondsToSelector:selector]) {
+		NSMethodSignature *signature = [[queue class] instanceMethodSignatureForSelector:selector];
 		NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
-		[invocation setTarget:downloadProgressDelegate];
+		[invocation setTarget:queue];
 		[invocation setSelector:selector];
 		[invocation setArgument:&value atIndex:2];
 		[invocation invoke];
-		
-	} else {
+	}
+	
+	// Request this request's own download progress delegate
+	if (downloadProgressDelegate) {
 		[ASIHTTPRequest setProgress:0 forProgressIndicator:downloadProgressDelegate];
 	}
 	[progressLock unlock];
@@ -744,36 +753,34 @@ static NSError *ASIUnableToCreateRequestError;
 			[self setLastActivityTime:[NSDate date]];
 		}
 		
-		if (downloadProgressDelegate) {
+
+		// We're using a progress queue or compatible controller to handle progress
+		SEL selector = @selector(incrementDownloadProgressBy:);
+		if ([queue respondsToSelector:@selector(incrementDownloadProgressBy:)]) {
 			
+			NSAutoreleasePool *thePool = [[NSAutoreleasePool alloc] init];
 			
-			// We're using a progress queue or compatible controller to handle progress
-			if ([downloadProgressDelegate respondsToSelector:@selector(incrementDownloadProgressBy:)]) {
-				
-				NSAutoreleasePool *thePool = [[NSAutoreleasePool alloc] init];
-				
-				unsigned long long value = 0;
-				if (showAccurateProgress) {
-					value = bytesReadSoFar-lastBytesRead;
-				} else {
-					value = 1;
-					updatedProgress = YES;
-				}
-				
-				SEL selector = @selector(incrementDownloadProgressBy:);
-				NSMethodSignature *signature = [[downloadProgressDelegate class] instanceMethodSignatureForSelector:selector];
-				NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
-				[invocation setTarget:downloadProgressDelegate];
-				[invocation setSelector:selector];
-				[invocation setArgument:&value atIndex:2];
-				[invocation invoke];
-				
-				[thePool release];
-				
-				// We aren't using a queue, we should just set progress of the indicator to 0
-			} else if (contentLength > 0)  {
-				[ASIHTTPRequest setProgress:(double)(1.0*bytesReadSoFar/(contentLength+partialDownloadSize)) forProgressIndicator:downloadProgressDelegate];
+			unsigned long long value = 0;
+			if (showAccurateProgress) {
+				value = bytesReadSoFar-lastBytesRead;
+			} else {
+				value = 1;
+				updatedProgress = YES;
 			}
+			
+			
+			NSMethodSignature *signature = [[queue class] instanceMethodSignatureForSelector:selector];
+			NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
+			[invocation setTarget:queue];
+			[invocation setSelector:selector];
+			[invocation setArgument:&value atIndex:2];
+			[invocation invoke];
+			
+			[thePool release];
+		}
+			
+		if (downloadProgressDelegate && contentLength > 0)  {
+			[ASIHTTPRequest setProgress:(double)(1.0*bytesReadSoFar/(contentLength+partialDownloadSize)) forProgressIndicator:downloadProgressDelegate];
 		}
 		
 		lastBytesRead = bytesReadSoFar;
@@ -785,18 +792,20 @@ static NSError *ASIUnableToCreateRequestError;
 {
 	
 	// We're using a progress queue or compatible controller to handle progress
-	if ([uploadProgressDelegate respondsToSelector:@selector(decrementUploadProgressBy:)]) {
+	SEL selector = @selector(decrementUploadProgressBy:);
+	if ([queue respondsToSelector:selector]) {
 		unsigned long long value = 0-lastBytesSent;
-		SEL selector = @selector(decrementUploadProgressBy:);
-		NSMethodSignature *signature = [[uploadProgressDelegate class] instanceMethodSignatureForSelector:selector];
+		
+		NSMethodSignature *signature = [[queue class] instanceMethodSignatureForSelector:selector];
 		NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
-		[invocation setTarget:uploadProgressDelegate];
+		[invocation setTarget:queue];
 		[invocation setSelector:selector];
 		[invocation setArgument:&value atIndex:2];
 		[invocation invoke];
 		
-		// We aren't using a queue, we should just set progress of the indicator to 0
-	} else {
+	}
+	
+	if (uploadProgressDelegate) {
 		[ASIHTTPRequest setProgress:0 forProgressIndicator:uploadProgressDelegate];
 	}
 }
@@ -839,33 +848,56 @@ static NSError *ASIUnableToCreateRequestError;
 
 #pragma mark handling request complete / failure
 
-// Subclasses can override this method to process the result in the same thread
-// If not overidden, it will call the didFinishSelector on the delegate, if one has been setup
+// Subclasses might override this method to process the result in the same thread
+// If you do this, don't forget to call [super requestFinished] to let the queue / delegate know we're done
 - (void)requestFinished
 {
-	if (didFinishSelector && ![self isCancelled] && [delegate respondsToSelector:didFinishSelector]) {
+	if ([self isCancelled] || [self mainRequest]) {
+		return;
+	}
+	// Let the queue know we are done
+	if ([queue respondsToSelector:@selector(requestDidFinish:)]) {
+		[queue performSelectorOnMainThread:@selector(requestDidFinish:) withObject:self waitUntilDone:[NSThread isMainThread]];		
+	}
+	
+	// Let the delegate know we are done
+	if (didFinishSelector && [delegate respondsToSelector:didFinishSelector]) {
 		[delegate performSelectorOnMainThread:didFinishSelector withObject:self waitUntilDone:[NSThread isMainThread]];		
 	}
 }
 
-// Subclasses can override this method to perform error handling in the same thread
-// If not overidden, it will call the didFailSelector on the delegate (by default requestFailed:)`
+// Subclasses might override this method to perform error handling in the same thread
+// If you do this, don't forget to call [super failWithError:] to let the queue / delegate know we're done
 - (void)failWithError:(NSError *)theError
 {
 	complete = YES;
+	
+	if ([self isCancelled]) {
+		return;
+	}
+	
 	if (!error) {
 		
-		// If this is a HEAD request created by an ASINetworkQueue, make the main request fail
+		// If this is a HEAD request created by an ASINetworkQueue or compatible queue delegate, make the main request fail
 		if ([self mainRequest]) {
 			ASIHTTPRequest *mRequest = [self mainRequest];
 			[mRequest setError:theError];
-			if ([mRequest didFailSelector] && ![self isCancelled] && [[mRequest delegate] respondsToSelector:[mRequest didFailSelector]]) {
-				[[mRequest delegate] performSelectorOnMainThread:[mRequest didFailSelector] withObject:mRequest waitUntilDone:[NSThread isMainThread]];	
+
+			// Let the queue know something went wrong
+			if ([queue respondsToSelector:@selector(requestDidFail:)]) {
+				[queue performSelectorOnMainThread:@selector(requestDidFail:) withObject:mRequest waitUntilDone:[NSThread isMainThread]];		
 			}
 		
 		} else {
 			[self setError:theError];
-			if (didFailSelector && ![self isCancelled] && [delegate respondsToSelector:didFailSelector]) {
+			
+			// Let the queue know something went wrong
+			if ([queue respondsToSelector:@selector(requestDidFail:)]) {
+				[queue performSelectorOnMainThread:@selector(requestDidFail:) withObject:self waitUntilDone:[NSThread isMainThread]];		
+			}
+			
+			// Let the delegate know something went wrong
+			if (didFailSelector && [delegate respondsToSelector:didFailSelector]) {
 				[delegate performSelectorOnMainThread:didFailSelector withObject:self waitUntilDone:[NSThread isMainThread]];	
 			}
 		}
@@ -900,7 +932,7 @@ static NSError *ASIUnableToCreateRequestError;
 				if (mainRequest) {
 					[mainRequest setContentLength:contentLength];
 				}
-				if (downloadProgressDelegate && showAccurateProgress && shouldResetProgressIndicators) {
+				if (showAccurateProgress && shouldResetProgressIndicators) {
 					[self resetDownloadProgress:contentLength+partialDownloadSize];
 				}
 			}
@@ -1098,8 +1130,16 @@ static NSError *ASIUnableToCreateRequestError;
 			
 			ignoreError = YES;	
 			[self setLastActivityTime:nil];
-			if ([delegate respondsToSelector:@selector(authorizationNeededForRequest:)]) {
-				[delegate performSelectorOnMainThread:@selector(authorizationNeededForRequest:) withObject:self waitUntilDone:[NSThread isMainThread]];
+			
+			// If we have a delegate, we'll see if it can handle authorizationNeededForRequest.
+			// Otherwise, we'll try the queue (if this request is part of one) and it will pass the message on to its own delegate
+			id authorizationDelegate = delegate;
+			if (!delegate) {
+				authorizationDelegate = queue;
+			}
+			
+			if ([authorizationDelegate respondsToSelector:@selector(authorizationNeededForRequest:)]) {
+				[authorizationDelegate performSelectorOnMainThread:@selector(authorizationNeededForRequest:) withObject:self waitUntilDone:[NSThread isMainThread]];
 				[authenticationLock lockWhenCondition:2];
 				[authenticationLock unlock];
 				
@@ -1145,8 +1185,16 @@ static NSError *ASIUnableToCreateRequestError;
 		
 		// We've got no credentials, let's ask the delegate to sort this out
 		ignoreError = YES;	
-		if ([delegate respondsToSelector:@selector(authorizationNeededForRequest:)]) {
-			[delegate performSelectorOnMainThread:@selector(authorizationNeededForRequest:) withObject:self waitUntilDone:[NSThread isMainThread]];
+		
+		// If we have a delegate, we'll see if it can handle authorizationNeededForRequest.
+		// Otherwise, we'll try the queue (if this request is part of one) and it will pass the message on to its own delegate
+		id authorizationDelegate = delegate;
+		if (!delegate) {
+			authorizationDelegate = queue;
+		}
+		
+		if ([authorizationDelegate respondsToSelector:@selector(authorizationNeededForRequest:)]) {
+			[authorizationDelegate performSelectorOnMainThread:@selector(authorizationNeededForRequest:) withObject:self waitUntilDone:[NSThread isMainThread]];
 			[authenticationLock lockWhenCondition:2];
 			[authenticationLock unlock];
 			[self attemptToApplyCredentialsAndResume];
@@ -1547,6 +1595,7 @@ static NSError *ASIUnableToCreateRequestError;
 @synthesize domain;
 @synthesize url;
 @synthesize delegate;
+@synthesize queue;
 @synthesize uploadProgressDelegate;
 @synthesize downloadProgressDelegate;
 @synthesize useKeychainPersistance;
