@@ -301,7 +301,7 @@ static NSError *ASIUnableToCreateRequestError;
 	}
 	
     // Create a new HTTP request.
-	request = CFHTTPMessageCreateRequest(kCFAllocatorDefault, (CFStringRef)requestMethod, (CFURLRef)url, kCFHTTPVersion1_1);
+	request = CFHTTPMessageCreateRequest(kCFAllocatorDefault, (CFStringRef)requestMethod, (CFURLRef)url, self.HTTPVersionOne ? kCFHTTPVersion1_0 : kCFHTTPVersion1_1);
     if (!request) {
 		[self failWithError:ASIUnableToCreateRequestError];
 		return;
@@ -1625,4 +1625,5 @@ static NSError *ASIUnableToCreateRequestError;
 @synthesize postBodyReadStream;
 @synthesize shouldStreamPostDataFromDisk;
 @synthesize didCreateTemporaryPostDataFile;
+@synthesize HTTPVersionOne;
 @end
