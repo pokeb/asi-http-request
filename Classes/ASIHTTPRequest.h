@@ -10,7 +10,7 @@
 //  Portions are based on the ImageClient example from Apple:
 //  See: http://developer.apple.com/samplecode/ImageClient/listing37.html
 
-
+#import <Foundation/Foundation.h>
 // Dammit, importing frameworks when you are targetting two platforms is a PITA
 #if TARGET_OS_IPHONE
 	#import <CFNetwork/CFNetwork.h>
