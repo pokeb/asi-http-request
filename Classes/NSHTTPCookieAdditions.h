@@ -6,6 +6,7 @@
 //  Copyright 2008 All-Seeing Interactive. All rights reserved.
 //
 
+#import <Foundation/Foundation.h>
 
 @interface NSHTTPCookie (ValueEncodingAdditions)
 
