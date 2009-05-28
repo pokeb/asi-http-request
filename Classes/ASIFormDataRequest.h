@@ -6,6 +6,7 @@
 //  Copyright 2008-2009 All-Seeing Interactive. All rights reserved.
 //
 
+#import <Foundation/Foundation.h>
 #import "ASIHTTPRequest.h"
 
 @interface ASIFormDataRequest : ASIHTTPRequest {
