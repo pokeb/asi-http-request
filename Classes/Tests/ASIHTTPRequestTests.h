@@ -19,6 +19,7 @@
 - (void)testBasicDownload;
 - (void)testTimeOut;
 - (void)testRequestMethod;
+- (void)testHTTPVersion;
 - (void)testUploadContentLength;
 - (void)testDownloadContentLength;
 - (void)testFileDownload;

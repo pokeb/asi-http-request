@@ -109,6 +109,23 @@
 	}
 }
 
+- (void)testHTTPVersion
+{
+	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/http-version"] autorelease];
+	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request start];
+	
+	BOOL success = [[request responseString] isEqualToString:@"HTTP/1.1"];
+	GHAssertTrue(success,@"Wrong HTTP version used");
+	
+	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request setUseHTTPVersionOne:YES];
+	[request start];
+	
+	success = [[request responseString] isEqualToString:@"HTTP/1.0"];
+	GHAssertTrue(success,@"Wrong HTTP version used");	
+}
+
 - (void)testUploadContentLength
 {
 	//This url will return the contents of the Content-Length request header

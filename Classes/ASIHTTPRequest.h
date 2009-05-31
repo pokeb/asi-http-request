@@ -212,7 +212,8 @@ typedef enum _ASINetworkErrorType {
 	// Custom user information assosiated with the request
 	NSDictionary *userInfo;
 	
-	BOOL HTTPVersionOne;
+	// Use HTTP 1.0 rather than 1.1 (defaults to false)
+	BOOL useHTTPVersionOne;
 
 }
 
@@ -396,6 +397,6 @@ typedef enum _ASINetworkErrorType {
 @property (retain) NSInputStream *postBodyReadStream;
 @property (assign) BOOL shouldStreamPostDataFromDisk;
 @property (assign) BOOL didCreateTemporaryPostDataFile;
-@property (assign) BOOL HTTPVersionOne;
+@property (assign) BOOL useHTTPVersionOne;
 
 @end
