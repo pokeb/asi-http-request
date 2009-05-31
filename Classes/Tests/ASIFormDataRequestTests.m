@@ -21,7 +21,7 @@
 	NSString *path = [[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"bigfile"];
 	[data writeToFile:path atomically:NO];
 	
-	ASIFormDataRequest *request = [[[ASIFormDataRequest alloc] initWithURL:url] autorelease];
+	ASIFormDataRequest *request = [ASIFormDataRequest requestWithURL:url];
 	
 	NSDate *d = [NSDate date];
 #if TARGET_OS_IPHONE

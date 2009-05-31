@@ -57,6 +57,9 @@
 	
 }
 
+// Convenience constructor
++ (id)queue;
+
 // Used internally to manage HEAD requests when showAccurateProgress is YES, do not use!
 - (void)addHEADOperation:(NSOperation *)operation;
 

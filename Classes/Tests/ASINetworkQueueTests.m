@@ -19,7 +19,7 @@
 	complete = NO;
 	progress = 0;
 	
-	networkQueue = [[ASINetworkQueue alloc] init];
+	networkQueue = [[ASINetworkQueue queue] retain];
 	[networkQueue setDownloadProgressDelegate:self];
 	[networkQueue setDelegate:self];
 	[networkQueue setShowAccurateProgress:NO];

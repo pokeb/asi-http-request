@@ -222,6 +222,9 @@ extern NSString* const NetworkRequestErrorDomain;
 // Should be an HTTP or HTTPS url, may include username and password if appropriate
 - (id)initWithURL:(NSURL *)newURL;
 
+// Convenience constructor
++ (id)requestWithURL:(NSURL *)newURL;
+
 #pragma mark setup request
 
 // Add a custom header to the request

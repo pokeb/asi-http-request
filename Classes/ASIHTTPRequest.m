@@ -104,6 +104,11 @@ static NSError *ASIUnableToCreateRequestError;
 	return self;
 }
 
++ (id)requestWithURL:(NSURL *)newURL
+{
+	return [[[ASIHTTPRequest alloc] initWithURL:newURL] autorelease];
+}
+
 - (void)dealloc
 {
 	if (requestAuthentication) {

@@ -40,6 +40,11 @@
 	return self;
 }
 
++ (id)queue
+{
+	return [[[ASINetworkQueue alloc] init] autorelease];
+}
+
 - (void)dealloc
 {
 	//We need to clear the delegate on any requests that haven't got around to cleaning up yet, as otherwise they'll try to let us know if something goes wrong, and we'll be long gone by then

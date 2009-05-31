@@ -17,8 +17,8 @@
 
 - (void)testBasicDownload
 {
-	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com"] autorelease];
-	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	NSURL *url = [NSURL URLWithString:@"http://allseeing-i.com"];
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:url];
 	[request start];
 	NSString *html = [request responseString];
 	GHAssertNotNil(html,@"Basic synchronous request failed");

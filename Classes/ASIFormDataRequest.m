@@ -21,6 +21,11 @@
 	return self;
 }
 
++ (id)requestWithURL:(NSURL *)newURL
+{
+	return [[[ASIFormDataRequest alloc] initWithURL:newURL] autorelease];
+}
+
 - (void)dealloc
 {
 	[postData release];
