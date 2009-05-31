@@ -136,7 +136,6 @@
 		request = [ASIHTTPRequest requestWithURL:url];
 		[request setShouldRedirect:NO];
 		[request start];
-		NSLog([request responseString]);
 		if (i == 304) { // 304s will not contain a body, as per rfc2616. Will test 304 handling in a future test when we have etag support
 			continue;
 		}
@@ -145,7 +144,6 @@
 	
 		request = [ASIHTTPRequest requestWithURL:url];
 		[request start];
-		NSLog([request responseString]);
 		success = [[request responseString] isEqualToString:[NSString stringWithFormat:@"Redirected content after a %hi status code",i]];
 		GHAssertTrue(success,[NSString stringWithFormat:@"Got the wrong content when redirecting after a %hi",i]);
 	
