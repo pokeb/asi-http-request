@@ -5,7 +5,9 @@ It is suitable performing basic HTTP requests and interacting with REST-based se
 It provides:
 * A straightforward interface for submitting data to and fetching data from webservers
 * Download data to memory or directly to a file on disk
-* The ability to submit files on local drives as part of POST data, compatible with the HTML file input mechanism
+* Submit files on local drives as part of POST data, compatible with the HTML file input mechanism
+* Stream request bodies directly from disk to the server, to conserve memory
+* Resume for partial downloads
 * Easy access to request and response HTTP headers
 * Progress delegates (NSProgressIndicators and UIProgressViews) to show information about download AND upload progress
 * Auto-magic management of upload and download progress indicators for operation queues
