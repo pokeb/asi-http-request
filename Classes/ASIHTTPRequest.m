@@ -17,7 +17,7 @@
 // We use our own custom run loop mode as CoreAnimation seems to want to hijack our threads otherwise
 static CFStringRef ASIHTTPRequestRunMode = CFSTR("ASIHTTPRequest");
 
-static NSString *NetworkRequestErrorDomain = @"com.Your-Company.Your-Product.NetworkError.";
+NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
 static const CFOptionFlags kNetworkEvents = kCFStreamEventOpenCompleted | kCFStreamEventHasBytesAvailable | kCFStreamEventEndEncountered | kCFStreamEventErrorOccurred;
 

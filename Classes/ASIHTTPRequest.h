@@ -17,6 +17,7 @@
 #endif
 #import <stdio.h>
 
+
 typedef enum _ASINetworkErrorType {
     ASIConnectionFailureErrorType = 1,
     ASIRequestTimedOutErrorType = 2,
@@ -28,6 +29,8 @@ typedef enum _ASINetworkErrorType {
 	ASIFileManagementError = 8
 	
 } ASINetworkErrorType;
+
+extern NSString* const NetworkRequestErrorDomain;
 
 @interface ASIHTTPRequest : NSOperation {
 	
