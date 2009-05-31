@@ -88,6 +88,7 @@ static NSError *ASIUnableToCreateRequestError;
 	self = [super init];
 	[self setRequestMethod:@"GET"];
 
+	[self setShouldRedirect:YES];
 	[self setShowAccurateProgress:YES];
 	[self setShouldResetProgressIndicators:YES];
 	[self setAllowCompressedResponse:YES];
@@ -305,11 +306,12 @@ static NSError *ASIUnableToCreateRequestError;
 	}
 	
     // Create a new HTTP request.
-	request = CFHTTPMessageCreateRequest(kCFAllocatorDefault, (CFStringRef)requestMethod, (CFURLRef)url, self.useHTTPVersionOne ? kCFHTTPVersion1_0 : kCFHTTPVersion1_1);
+	request = CFHTTPMessageCreateRequest(kCFAllocatorDefault, (CFStringRef)requestMethod, (CFURLRef)url, [self useHTTPVersionOne] ? kCFHTTPVersion1_0 : kCFHTTPVersion1_1);
     if (!request) {
 		[self failWithError:ASIUnableToCreateRequestError];
 		return;
     }
+	
 	
 	// If we've already talked to this server and have valid credentials, let's apply them to the request
 	if (useSessionPersistance && sessionCredentials && sessionAuthentication) {
@@ -428,6 +430,9 @@ static NSError *ASIUnableToCreateRequestError;
 		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIInternalErrorWhileBuildingRequestType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Unable to create read stream",NSLocalizedDescriptionKey,nil]]];
         return;
     }
+	
+	// Tell CFNetwork to automatically redirect for 30x status codes
+	CFReadStreamSetProperty(readStream, kCFStreamPropertyHTTPShouldAutoredirect, [self shouldRedirect] ? kCFBooleanTrue : kCFBooleanFalse);
     
     // Set the client
 	CFStreamClientContext ctxt = {0, self, NULL, NULL, NULL};
@@ -1634,4 +1639,5 @@ static NSError *ASIUnableToCreateRequestError;
 @synthesize fileDownloadOutputStream;
 @synthesize authenticationRetryCount;
 @synthesize updatedProgress;
+@synthesize shouldRedirect;
 @end

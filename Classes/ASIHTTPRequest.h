@@ -214,6 +214,9 @@ extern NSString* const NetworkRequestErrorDomain;
 	
 	// Use HTTP 1.0 rather than 1.1 (defaults to false)
 	BOOL useHTTPVersionOne;
+	
+	// When YES, requests will automatically redirect when they get a HTTP 30x header (defaults to YES)
+	BOOL shouldRedirect;
 
 }
 
@@ -397,5 +400,5 @@ extern NSString* const NetworkRequestErrorDomain;
 @property (assign) BOOL didCreateTemporaryPostDataFile;
 @property (assign) BOOL useHTTPVersionOne;
 @property (assign, readonly) unsigned long long partialDownloadSize;
-
+@property (assign) BOOL shouldRedirect;
 @end
