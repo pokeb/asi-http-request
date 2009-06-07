@@ -97,6 +97,7 @@ static NSError *ASIUnableToCreateRequestError;
 	[self setTimeOutSeconds:10];
 	[self setUseSessionPersistance:YES];
 	[self setUseCookiePersistance:YES];
+	[self setValidatesSecureCertificate:YES];
 	[self setRequestCookies:[[[NSMutableArray alloc] init] autorelease]];
 	[self setDidFinishSelector:@selector(requestFinished:)];
 	[self setDidFailSelector:@selector(requestFailed:)];
@@ -434,6 +435,11 @@ static NSError *ASIUnableToCreateRequestError;
 	// Tell CFNetwork to automatically redirect for 30x status codes
 	CFReadStreamSetProperty(readStream, kCFStreamPropertyHTTPShouldAutoredirect, [self shouldRedirect] ? kCFBooleanTrue : kCFBooleanFalse);
     
+	// Tell CFNetwork not to validate SSL certificates
+	if (!validatesSecureCertificate) {
+		CFReadStreamSetProperty(readStream, kCFStreamPropertySSLSettings, [NSMutableDictionary dictionaryWithObject:(NSString *)kCFBooleanFalse forKey:(NSString *)kCFStreamSSLValidatesCertificateChain]); 
+	}
+	
     // Set the client
 	CFStreamClientContext ctxt = {0, self, NULL, NULL, NULL};
     if (!CFReadStreamSetClient(readStream, kNetworkEvents, ReadStreamClientCallBack, &ctxt)) {
@@ -1350,12 +1356,28 @@ static NSError *ASIUnableToCreateRequestError;
 {
 	NSError *underlyingError = [(NSError *)CFReadStreamCopyError(readStream) autorelease];
 	
+	
+	
 	[self cancelLoad];
 	[self setComplete:YES];
 	
 	if (![self error]) { // We may already have handled this error
 		
-		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIConnectionFailureErrorType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"A connection failure occurred",NSLocalizedDescriptionKey,underlyingError,NSUnderlyingErrorKey,nil]]];
+		
+		NSString *reason = @"A connection failure occurred";
+		
+		// We'll use a custom error message for common SSL errors, but you should always check underlying error if you want more details
+		if ([[underlyingError domain] isEqualToString:NSOSStatusErrorDomain]) {
+			if ([underlyingError code] == errSSLUnknownRootCert) {
+				reason = [NSString stringWithFormat:@"%@: Secure certificate had an untrusted root",reason];
+			} else if ([underlyingError code] == errSSLCertExpired) {
+				reason = [NSString stringWithFormat:@"%@: Secure certificate expired",reason];
+			} else if ([underlyingError code] >= -9807 || [underlyingError code] <= -9818) {
+				reason = [NSString stringWithFormat:@"%@: SSL problem (probably a bad certificate)",reason];
+			}
+		}
+		
+		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIConnectionFailureErrorType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:reason,NSLocalizedDescriptionKey,underlyingError,NSUnderlyingErrorKey,nil]]];
 	}
     [super cancel];
 }
@@ -1640,4 +1662,5 @@ static NSError *ASIUnableToCreateRequestError;
 @synthesize authenticationRetryCount;
 @synthesize updatedProgress;
 @synthesize shouldRedirect;
+@synthesize validatesSecureCertificate;
 @end

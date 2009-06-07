@@ -32,5 +32,5 @@
 - (void)testCharacterEncoding;
 - (void)testCompressedResponse;
 - (void)testCompressedResponseDownloadToFile;
-
+- (void)testSSL;
 @end

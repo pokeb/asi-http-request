@@ -616,4 +616,24 @@
 	GHAssertTrue(success,@"Failed to correctly display increment progress for a partial download");
 }
 
+- (void)testSSL
+{
+	NSURL *url = [NSURL URLWithString:@"https://selfsigned.allseeing-i.com"];
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:url];
+	[request start];
+	
+	GHAssertNotNil([request error],@"Failed to generate an error for a self-signed certificate");		
+	
+	// Just for testing the request generated a custom error description - don't do this! You should look at the domain / code of the underlyingError in your own programs.
+	BOOL success = ([[[request error] localizedDescription] isEqualToString:@"A connection failure occurred: Secure certificate had an untrusted root"]);
+	GHAssertTrue(success,@"Basic synchronous request failed");
+	
+	// Turn off certificate validation, and try again
+	request = [ASIHTTPRequest requestWithURL:url];
+	[request setValidatesSecureCertificate:NO];
+	[request start];
+	
+	GHAssertNil([request error],@"Failed to accept a self-signed certificate");	
+}
+
 @end
