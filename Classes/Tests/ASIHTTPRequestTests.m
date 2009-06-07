@@ -626,7 +626,7 @@
 	
 	// Just for testing the request generated a custom error description - don't do this! You should look at the domain / code of the underlyingError in your own programs.
 	BOOL success = ([[[request error] localizedDescription] isEqualToString:@"A connection failure occurred: Secure certificate had an untrusted root"]);
-	GHAssertTrue(success,@"Basic synchronous request failed");
+	GHAssertTrue(success,@"Generated the wrong error for a self signed cert");
 	
 	// Turn off certificate validation, and try again
 	request = [ASIHTTPRequest requestWithURL:url];
