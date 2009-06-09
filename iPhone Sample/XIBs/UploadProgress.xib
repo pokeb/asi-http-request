@@ -2,9 +2,9 @@
 <archive type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="7.03">
 	<data>
 		<int key="IBDocument.SystemTarget">528</int>
-		<string key="IBDocument.SystemVersion">9G55</string>
+		<string key="IBDocument.SystemVersion">9J61</string>
 		<string key="IBDocument.InterfaceBuilderVersion">677</string>
-		<string key="IBDocument.AppKitVersion">949.43</string>
+		<string key="IBDocument.AppKitVersion">949.46</string>
 		<string key="IBDocument.HIToolboxVersion">353.00</string>
 		<object class="NSMutableArray" key="IBDocument.EditedObjectIDs">
 			<bool key="EncodedWithXMLCoder">YES</bool>
@@ -39,14 +39,14 @@
 					<object class="IBUILabel" id="652745716">
 						<reference key="NSNextResponder" ref="191373211"/>
 						<int key="NSvFlags">292</int>
-						<string key="NSFrame">{{20, 20}, {280, 91}}</string>
+						<string key="NSFrame">{{20, 20}, {280, 127}}</string>
 						<reference key="NSSuperview" ref="191373211"/>
 						<bool key="IBUIOpaque">NO</bool>
 						<bool key="IBUIClipsSubviews">YES</bool>
 						<bool key="IBUIUserInteractionEnabled">NO</bool>
 						<string type="base64-UTF8" key="IBUIText">RGVtb25zdHJhdGVzIFBPU1RpbmcgY29udGVudCB0byBhIFVSTCwgc2hvd2luZyB1cGxvYWQgcHJvZ3Jl
 c3MuCgpZb3UnbGwgb25seSBzZWUgYWNjdXJhdGUgcHJvZ3Jlc3MgZm9yIHVwbG9hZHMgd2hlbiB0aGUg
-cmVxdWVzdCBib2R5IGlzIGxhcmdlciB0aGFuIDEyOEtCLg</string>
+cmVxdWVzdCBib2R5IGlzIGxhcmdlciB0aGFuIDEyOEtCIChpbiAyLjIuMSBTREspA</string>
 						<object class="NSFont" key="IBUIFont">
 							<string key="NSName">Helvetica</string>
 							<double key="NSSize">1.400000e+01</double>
@@ -65,7 +65,7 @@ cmVxdWVzdCBib2R5IGlzIGxhcmdlciB0aGFuIDEyOEtCLg</string>
 					<object class="IBUIButton" id="117120328">
 						<reference key="NSNextResponder" ref="191373211"/>
 						<int key="NSvFlags">292</int>
-						<string key="NSFrame">{{20, 136}, {72, 37}}</string>
+						<string key="NSFrame">{{20, 161}, {72, 37}}</string>
 						<reference key="NSSuperview" ref="191373211"/>
 						<bool key="IBUIOpaque">NO</bool>
 						<bool key="IBUIClearsContextBeforeDrawing">NO</bool>
@@ -89,11 +89,15 @@ cmVxdWVzdCBib2R5IGlzIGxhcmdlciB0aGFuIDEyOEtCLg</string>
 							<int key="NSColorSpace">1</int>
 							<bytes key="NSRGB">MC4xOTYwNzg0MyAwLjMwOTgwMzkzIDAuNTIxNTY4NjYAA</bytes>
 						</object>
+						<object class="NSColor" key="IBUINormalTitleShadowColor">
+							<int key="NSColorSpace">3</int>
+							<bytes key="NSWhite">MAA</bytes>
+						</object>
 					</object>
 					<object class="IBUIProgressView" id="975702463">
 						<reference key="NSNextResponder" ref="191373211"/>
 						<int key="NSvFlags">292</int>
-						<string key="NSFrame">{{20, 190}, {280, 9}}</string>
+						<string key="NSFrame">{{20, 215}, {280, 9}}</string>
 						<reference key="NSSuperview" ref="191373211"/>
 						<bool key="IBUIOpaque">NO</bool>
 						<bool key="IBUIClipsSubviews">YES</bool>
@@ -239,6 +243,13 @@ cmVxdWVzdCBib2R5IGlzIGxhcmdlciB0aGFuIDEyOEtCLg</string>
 			<object class="NSMutableArray" key="referencedPartialClassDescriptions">
 				<bool key="EncodedWithXMLCoder">YES</bool>
 				<object class="IBPartialClassDescription">
+					<string key="className">NSObject</string>
+					<object class="IBClassDescriptionSource" key="sourceIdentifier">
+						<string key="majorKey">IBProjectSource</string>
+						<string key="minorKey">Frameworks/libGHUnitIPhone/GHUNSObject+Swizzle.h</string>
+					</object>
+				</object>
+				<object class="IBPartialClassDescription">
 					<string key="className">UploadViewController</string>
 					<string key="superclassName">UIViewController</string>
 					<object class="NSMutableDictionary" key="actions">
@@ -251,13 +262,14 @@ cmVxdWVzdCBib2R5IGlzIGxhcmdlciB0aGFuIDEyOEtCLg</string>
 					</object>
 					<object class="IBClassDescriptionSource" key="sourceIdentifier">
 						<string key="majorKey">IBProjectSource</string>
-						<string key="minorKey">UploadViewController.h</string>
+						<string key="minorKey">iPhone Sample/UploadViewController.h</string>
 					</object>
 				</object>
 			</object>
 		</object>
 		<int key="IBDocument.localizationMode">0</int>
-		<string key="IBDocument.LastKnownRelativeProjectPath">../asi-http-request.xcodeproj</string>
+		<string key="IBDocument.LastKnownRelativeProjectPath">../../iPhone.xcodeproj</string>
 		<int key="IBDocument.defaultPropertyAccessControl">3</int>
+		<string key="IBCocoaTouchPluginVersion">3.0</string>
 	</data>
 </archive>

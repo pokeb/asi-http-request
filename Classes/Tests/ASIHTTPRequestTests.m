@@ -625,7 +625,7 @@
 	GHAssertNotNil([request error],@"Failed to generate an error for a self-signed certificate");		
 	
 	// Just for testing the request generated a custom error description - don't do this! You should look at the domain / code of the underlyingError in your own programs.
-	BOOL success = ([[[request error] localizedDescription] isEqualToString:@"A connection failure occurred: Secure certificate had an untrusted root"]);
+	BOOL success = ([[[request error] localizedDescription] isEqualToString:@"A connection failure occurred: SSL problem (possibily a bad/expired/self-signed certificate)"]);
 	GHAssertTrue(success,@"Generated the wrong error for a self signed cert");
 	
 	// Turn off certificate validation, and try again

@@ -1366,14 +1366,12 @@ static NSError *ASIUnableToCreateRequestError;
 		
 		NSString *reason = @"A connection failure occurred";
 		
-		// We'll use a custom error message for common SSL errors, but you should always check underlying error if you want more details
+		// We'll use a custom error message for SSL errors, but you should always check underlying error if you want more details
+		// For some reason SecureTransport.h doesn't seem to be available on iphone, so error codes hard-coded
+		// Also, iPhone seems to handle errors differently from Mac OS X - a self-signed certificate returns a different error code on each platform, so we'll just provide a general error
 		if ([[underlyingError domain] isEqualToString:NSOSStatusErrorDomain]) {
-			if ([underlyingError code] == errSSLUnknownRootCert) {
-				reason = [NSString stringWithFormat:@"%@: Secure certificate had an untrusted root",reason];
-			} else if ([underlyingError code] == errSSLCertExpired) {
-				reason = [NSString stringWithFormat:@"%@: Secure certificate expired",reason];
-			} else if ([underlyingError code] >= -9807 || [underlyingError code] <= -9818) {
-				reason = [NSString stringWithFormat:@"%@: SSL problem (probably a bad certificate)",reason];
+			if ([underlyingError code] <= -9800 && [underlyingError code] >= -9818) {
+				reason = [NSString stringWithFormat:@"%@: SSL problem (possibily a bad/expired/self-signed certificate)",reason];
 			}
 		}
 		
