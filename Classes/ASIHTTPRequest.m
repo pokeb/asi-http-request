@@ -212,6 +212,9 @@ static NSError *ASIUnableToCreateRequestError;
 - (void)appendPostData:(NSData *)data
 {
 	[self setupPostBody];
+	if ([data length] == 0) {
+		return;
+	}
 	if ([self shouldStreamPostDataFromDisk]) {
 		[[self postBodyWriteStream] write:[data bytes] maxLength:[data length]];
 	} else {

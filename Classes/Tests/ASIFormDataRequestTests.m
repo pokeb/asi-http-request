@@ -51,6 +51,21 @@
 	GHAssertTrue(success,@"Failed to upload the correct data (using NSData)");	
 }
 
+// Test fix for bug where setting an empty string for a form post value would cause the rest of the post body to be ignored (because an NSOutputStream won't like it if you try to write 0 bytes)
+- (void)testEmptyData
+{
+	ASIFormDataRequest *request = [ASIFormDataRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/post-empty"]];
+	[request setPostValue:@"hello" forKey:@"a_non_empty_string"];
+	[request setPostValue:@"" forKey:@"zzz_empty_string"];
+	[request setPostValue:@"there" forKey:@"xxx_non_empty_string"];
+	[request setShouldStreamPostDataFromDisk:YES];
+	[request buildPostBody];
+	[request start];
+	
+	BOOL success = ([[request responseString] isEqualToString:@"a_non_empty_string: hello\r\nzzz_empty_string: \r\nxxx_non_empty_string: there"]);
+	GHAssertTrue(success,@"Failed to send the correct post data");		
+	
+}
 
 
 @end
