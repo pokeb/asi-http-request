@@ -13,7 +13,7 @@
 		B55B604D0F765A320064029C /* ASIFormDataRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B60460F765A320064029C /* ASIFormDataRequest.m */; };
 		B55B604E0F765A320064029C /* ASIHTTPRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B60480F765A320064029C /* ASIHTTPRequest.m */; };
 		B55B604F0F765A320064029C /* ASINetworkQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B604A0F765A320064029C /* ASINetworkQueue.m */; };
-		B55B60500F765A320064029C /* NSHTTPCookieAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B604C0F765A320064029C /* NSHTTPCookieAdditions.m */; };
+		B55B60500F765A320064029C /* ASINSStringAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B604C0F765A320064029C /* ASINSStringAdditions.m */; };
 		B55B60620F765A750064029C /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B60600F765A750064029C /* main.m */; };
 		B55B606F0F765A930064029C /* QueueViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B60670F765A930064029C /* QueueViewController.m */; };
 		B55B60700F765A930064029C /* SynchronousViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B606A0F765A930064029C /* SynchronousViewController.m */; };
@@ -29,7 +29,7 @@
 		B55B60CF0F765BBA0064029C /* ASIFormDataRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B60460F765A320064029C /* ASIFormDataRequest.m */; };
 		B55B60D00F765BBD0064029C /* ASIHTTPRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B60480F765A320064029C /* ASIHTTPRequest.m */; };
 		B55B60D10F765BC00064029C /* ASINetworkQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B604A0F765A320064029C /* ASINetworkQueue.m */; };
-		B55B60D20F765BC30064029C /* NSHTTPCookieAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B604C0F765A320064029C /* NSHTTPCookieAdditions.m */; };
+		B55B60D20F765BC30064029C /* ASINSStringAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B604C0F765A320064029C /* ASINSStringAdditions.m */; };
 		B55B60D30F765BC90064029C /* ASIFormDataRequestTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B60530F765A3C0064029C /* ASIFormDataRequestTests.m */; };
 		B55B60D40F765BCD0064029C /* ASIHTTPRequestTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B60550F765A3C0064029C /* ASIHTTPRequestTests.m */; };
 		B55B60D50F765BD00064029C /* ASINetworkQueueTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B60570F765A3C0064029C /* ASINetworkQueueTests.m */; };
@@ -53,8 +53,8 @@
 		B55B60480F765A320064029C /* ASIHTTPRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIHTTPRequest.m; sourceTree = "<group>"; };
 		B55B60490F765A320064029C /* ASINetworkQueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASINetworkQueue.h; sourceTree = "<group>"; };
 		B55B604A0F765A320064029C /* ASINetworkQueue.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASINetworkQueue.m; sourceTree = "<group>"; };
-		B55B604B0F765A320064029C /* NSHTTPCookieAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NSHTTPCookieAdditions.h; sourceTree = "<group>"; };
-		B55B604C0F765A320064029C /* NSHTTPCookieAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSHTTPCookieAdditions.m; sourceTree = "<group>"; };
+		B55B604B0F765A320064029C /* ASINSStringAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASINSStringAdditions.h; sourceTree = "<group>"; };
+		B55B604C0F765A320064029C /* ASINSStringAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASINSStringAdditions.m; sourceTree = "<group>"; };
 		B55B60520F765A3C0064029C /* ASIFormDataRequestTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIFormDataRequestTests.h; sourceTree = "<group>"; };
 		B55B60530F765A3C0064029C /* ASIFormDataRequestTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIFormDataRequestTests.m; sourceTree = "<group>"; };
 		B55B60540F765A3C0064029C /* ASIHTTPRequestTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIHTTPRequestTests.h; sourceTree = "<group>"; };
@@ -137,8 +137,8 @@
 				B55B60480F765A320064029C /* ASIHTTPRequest.m */,
 				B55B60490F765A320064029C /* ASINetworkQueue.h */,
 				B55B604A0F765A320064029C /* ASINetworkQueue.m */,
-				B55B604B0F765A320064029C /* NSHTTPCookieAdditions.h */,
-				B55B604C0F765A320064029C /* NSHTTPCookieAdditions.m */,
+				B55B604B0F765A320064029C /* ASINSStringAdditions.h */,
+				B55B604C0F765A320064029C /* ASINSStringAdditions.m */,
 				B55B60510F765A3C0064029C /* Tests */,
 			);
 			path = Classes;
@@ -328,7 +328,7 @@
 				B55B604D0F765A320064029C /* ASIFormDataRequest.m in Sources */,
 				B55B604E0F765A320064029C /* ASIHTTPRequest.m in Sources */,
 				B55B604F0F765A320064029C /* ASINetworkQueue.m in Sources */,
-				B55B60500F765A320064029C /* NSHTTPCookieAdditions.m in Sources */,
+				B55B60500F765A320064029C /* ASINSStringAdditions.m in Sources */,
 				B55B60620F765A750064029C /* main.m in Sources */,
 				B55B606F0F765A930064029C /* QueueViewController.m in Sources */,
 				B55B60700F765A930064029C /* SynchronousViewController.m in Sources */,
@@ -344,7 +344,7 @@
 				B55B60CF0F765BBA0064029C /* ASIFormDataRequest.m in Sources */,
 				B55B60D00F765BBD0064029C /* ASIHTTPRequest.m in Sources */,
 				B55B60D10F765BC00064029C /* ASINetworkQueue.m in Sources */,
-				B55B60D20F765BC30064029C /* NSHTTPCookieAdditions.m in Sources */,
+				B55B60D20F765BC30064029C /* ASINSStringAdditions.m in Sources */,
 				B55B60D30F765BC90064029C /* ASIFormDataRequestTests.m in Sources */,
 				B55B60D40F765BCD0064029C /* ASIHTTPRequestTests.m in Sources */,
 				B55B60D50F765BD00064029C /* ASINetworkQueueTests.m in Sources */,

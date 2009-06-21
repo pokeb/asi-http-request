@@ -8,7 +8,7 @@
 
 #import "ASIHTTPRequestTests.h"
 #import "ASIHTTPRequest.h"
-#import "NSHTTPCookieAdditions.h"
+#import "ASINSStringAdditions.h"
 #import "ASINetworkQueue.h"
 
 
@@ -320,7 +320,7 @@
 	for (cookie in cookies) {
 		if ([[cookie name] isEqualToString:@"ASIHTTPRequestTestCookie"]) {
 			foundCookie = YES;
-			success = [[cookie decodedValue] isEqualToString:@"This is the value"];
+			success = [[[cookie value] decodedCookieValue] isEqualToString:@"This is the value"];
 			GHAssertTrue(success,@"Failed to store the correct value for a cookie");
 			success = [[cookie domain] isEqualToString:@"allseeing-i.com"];
 			GHAssertTrue(success,@"Failed to store the correct domain for a cookie");

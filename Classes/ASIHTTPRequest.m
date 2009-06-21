@@ -11,7 +11,6 @@
 //  See: http://developer.apple.com/samplecode/ImageClient/listing37.html
 
 #import "ASIHTTPRequest.h"
-#import "NSHTTPCookieAdditions.h"
 #import <zlib.h>
 
 // We use our own custom run loop mode as CoreAnimation seems to want to hijack our threads otherwise
@@ -345,9 +344,9 @@ static NSError *ASIUnableToCreateRequestError;
 		NSString *cookieHeader = nil;
 		for (cookie in cookies) {
 			if (!cookieHeader) {
-				cookieHeader = [NSString stringWithFormat: @"%@=%@",[cookie name],[cookie encodedValue]];
+				cookieHeader = [NSString stringWithFormat: @"%@=%@",[cookie name],[cookie value]];
 			} else {
-				cookieHeader = [NSString stringWithFormat: @"%@; %@=%@",cookieHeader,[cookie name],[cookie encodedValue]];
+				cookieHeader = [NSString stringWithFormat: @"%@; %@=%@",cookieHeader,[cookie name],[cookie value]];
 			}
 		}
 		if (cookieHeader) {
@@ -968,14 +967,7 @@ static NSError *ASIUnableToCreateRequestError;
 			[self setResponseEncoding:encoding];
 			
 			// Handle cookies
-			NSArray *cookies = [NSHTTPCookie cookiesWithResponseHeaderFields:responseHeaders forURL:url];
-			NSMutableArray *newCookies = [[[NSMutableArray alloc] init] autorelease];
-			for (NSHTTPCookie *cookie in cookies) {
-				NSMutableDictionary *properties = [[[NSMutableDictionary alloc] initWithDictionary:[cookie properties]] autorelease];
-				[properties setValue:[cookie decodedValue] forKey:NSHTTPCookieValue];
-				[newCookies addObject:[NSHTTPCookie cookieWithProperties:properties]];
-			}
-
+			NSArray *newCookies = [NSHTTPCookie cookiesWithResponseHeaderFields:responseHeaders forURL:url];
 			[self setResponseCookies:newCookies];
 			
 			if (useCookiePersistance) {

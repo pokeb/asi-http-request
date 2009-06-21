@@ -1,5 +1,5 @@
 //
-//  NSHTTPCookieAdditions.h
+//  ASINSStringAdditions.h
 //  asi-http-request
 //
 //  Created by Ben Copsey on 12/09/2008.
@@ -8,9 +8,9 @@
 
 #import <Foundation/Foundation.h>
 
-@interface NSHTTPCookie (ValueEncodingAdditions)
+@interface NSString (CookieValueEncodingAdditions)
 
-- (NSString *)encodedValue;
-- (NSString *)decodedValue;
+- (NSString *)encodedCookieValue;
+- (NSString *)decodedCookieValue;
 
 @end
