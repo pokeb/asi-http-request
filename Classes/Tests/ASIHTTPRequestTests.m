@@ -372,12 +372,16 @@
 	
 	// Test setting a custom cookie works
 	NSDictionary *cookieProperties = [[[NSMutableDictionary alloc] init] autorelease];
-	[cookieProperties setValue:@"Test Value" forKey:NSHTTPCookieValue];
+	
+	// We'll add a line break to our cookie value to test it gets correctly encoded
+	[cookieProperties setValue:[@"Test\r\nValue" encodedCookieValue] forKey:NSHTTPCookieValue];
 	[cookieProperties setValue:@"ASIHTTPRequestTestCookie" forKey:NSHTTPCookieName];
 	[cookieProperties setValue:@"allseeing-i.com" forKey:NSHTTPCookieDomain];
 	[cookieProperties setValue:[NSDate dateWithTimeIntervalSinceNow:60*60*4] forKey:NSHTTPCookieExpires];
 	[cookieProperties setValue:@"/ASIHTTPRequest/tests" forKey:NSHTTPCookiePath];
 	cookie = [[[NSHTTPCookie alloc] initWithProperties:cookieProperties] autorelease];
+	
+	GHAssertNotNil(cookie,@"Failed to create a cookie - cookie value was not correctly encoded?");
 
 	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/read_cookie"] autorelease];
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
@@ -385,7 +389,7 @@
 	[request setRequestCookies:[NSMutableArray arrayWithObject:cookie]];
 	[request start];
 	html = [request responseString];
-	success = [html isEqualToString:@"I have 'Test Value' as the value of 'ASIHTTPRequestTestCookie'"];
+	success = [html isEqualToString:@"I have 'Test\r\nValue' as the value of 'ASIHTTPRequestTestCookie'"];
 	GHAssertTrue(success,@"Custom cookie not presented to the server with cookie persistance OFF");
 	
 
