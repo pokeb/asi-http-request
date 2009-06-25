@@ -447,7 +447,16 @@ static NSError *ASIUnableToCreateRequestError;
 	
 	// Detect proxy settings and apply them
 #if TARGET_OS_IPHONE
+	#if TARGET_IPHONE_SIMULATOR
+		#if __IPHONE_OS_VERSION_MIN_REQUIRED > __IPHONE_2_2
 	NSDictionary *proxySettings = [(NSDictionary *)CFNetworkCopySystemProxySettings() autorelease];
+		#else
+	// Can't detect proxies in 2.2.1 Simulator
+	NSDictionary *proxySettings = [NSMutableDictionary dictionary];	
+		#endif
+	#else
+	NSDictionary *proxySettings = [(NSDictionary *)CFNetworkCopySystemProxySettings() autorelease];
+	#endif
 #else
 	NSDictionary *proxySettings = [(NSDictionary *)SCDynamicStoreCopyProxies(NULL) autorelease];
 #endif

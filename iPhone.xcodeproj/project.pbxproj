@@ -359,7 +359,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Don't Code Sign";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer: Ben Copsey";
 				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -367,7 +367,7 @@
 				GCC_PREFIX_HEADER = "iPhone Sample/iPhone_Prefix.pch";
 				INFOPLIST_FILE = "iPhone Sample/Info.plist";
 				PRODUCT_NAME = ASIHTTPRequest;
-				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "DF9A6444-9A4F-4BAA-B338-0025D6F53459";
 				SDKROOT = iphoneos2.2.1;
 			};
 			name = Debug;
@@ -376,13 +376,13 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Don't Code Sign";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer: Ben Copsey";
 				COPY_PHASE_STRIP = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "iPhone Sample/iPhone_Prefix.pch";
 				INFOPLIST_FILE = "iPhone Sample/Info.plist";
 				PRODUCT_NAME = ASIHTTPRequest;
-				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "DF9A6444-9A4F-4BAA-B338-0025D6F53459";
 				SDKROOT = iphoneos2.2.1;
 			};
 			name = Release;
