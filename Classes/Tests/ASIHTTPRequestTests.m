@@ -334,7 +334,6 @@
 	if (!foundCookie) {
 		return;
 	}
-	
 	// Test a cookie is presented when manually added to the request
 	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/read_cookie"] autorelease];
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];

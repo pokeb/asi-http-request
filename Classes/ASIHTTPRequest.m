@@ -12,6 +12,9 @@
 
 #import "ASIHTTPRequest.h"
 #import <zlib.h>
+#ifndef TARGET_OS_IPHONE
+#import <SystemConfiguration/SystemConfiguration.h>
+#endif
 
 // We use our own custom run loop mode as CoreAnimation seems to want to hijack our threads otherwise
 static CFStringRef ASIHTTPRequestRunMode = CFSTR("ASIHTTPRequest");
@@ -441,6 +444,14 @@ static NSError *ASIUnableToCreateRequestError;
 	if (!validatesSecureCertificate) {
 		CFReadStreamSetProperty(readStream, kCFStreamPropertySSLSettings, [NSMutableDictionary dictionaryWithObject:(NSString *)kCFBooleanFalse forKey:(NSString *)kCFStreamSSLValidatesCertificateChain]); 
 	}
+	
+	// Detect proxy settings and apply them
+#if TARGET_OS_IPHONE
+	NSDictionary *proxySettings = [(NSDictionary *)CFNetworkCopySystemProxySettings() autorelease];
+#else
+	NSDictionary *proxySettings = [(NSDictionary *)SCDynamicStoreCopyProxies(NULL) autorelease];
+#endif
+	CFReadStreamSetProperty(readStream, kCFStreamPropertyHTTPProxy, proxySettings);
 	
     // Set the client
 	CFStreamClientContext ctxt = {0, self, NULL, NULL, NULL};

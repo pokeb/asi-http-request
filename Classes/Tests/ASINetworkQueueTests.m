@@ -361,6 +361,7 @@
 	[networkQueue go];
 	[networkQueue waitUntilAllOperationsAreFinished];
     
+	// This test may fail if you are using a proxy and it returns a page when you try to connect to a bad port.
 	GHAssertTrue(!request_succeeded && request_didfail,@"Request to resource without listener succeeded but should have failed");
     
 	[networkQueue release];
