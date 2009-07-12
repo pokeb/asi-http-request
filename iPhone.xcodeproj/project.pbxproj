@@ -40,6 +40,9 @@
 		B55B616A0F765CA40064029C /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1D30AB110D05D00D00671497 /* Foundation.framework */; };
 		B5B513CE0FBEE622002C74D0 /* GHUnitIPhoneTestMain.m in Sources */ = {isa = PBXBuildFile; fileRef = B5B513C20FBEE622002C74D0 /* GHUnitIPhoneTestMain.m */; };
 		B5B513CF0FBEE622002C74D0 /* libGHUnitIPhone.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B5B513C80FBEE622002C74D0 /* libGHUnitIPhone.a */; };
+		B5C66638100A82A2004F3C96 /* ASIS3Request.m in Sources */ = {isa = PBXBuildFile; fileRef = B5C66637100A82A2004F3C96 /* ASIS3Request.m */; };
+		B5C66639100A82A2004F3C96 /* ASIS3Request.m in Sources */ = {isa = PBXBuildFile; fileRef = B5C66637100A82A2004F3C96 /* ASIS3Request.m */; };
+		B5C6663E100A82D7004F3C96 /* ASIS3RequestTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B5C6663D100A82D7004F3C96 /* ASIS3RequestTests.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -96,6 +99,10 @@
 		B5B513CB0FBEE622002C74D0 /* GHTestGroup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GHTestGroup.h; path = Frameworks/libGHUnitIPhone/GHTestGroup.h; sourceTree = SOURCE_ROOT; };
 		B5B513CC0FBEE622002C74D0 /* GHTestCase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GHTestCase.h; path = Frameworks/libGHUnitIPhone/GHTestCase.h; sourceTree = SOURCE_ROOT; };
 		B5B513CD0FBEE622002C74D0 /* GHAsyncTestCase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GHAsyncTestCase.h; path = Frameworks/libGHUnitIPhone/GHAsyncTestCase.h; sourceTree = SOURCE_ROOT; };
+		B5C66636100A82A2004F3C96 /* ASIS3Request.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIS3Request.h; sourceTree = "<group>"; };
+		B5C66637100A82A2004F3C96 /* ASIS3Request.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIS3Request.m; sourceTree = "<group>"; };
+		B5C6663C100A82D7004F3C96 /* ASIS3RequestTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIS3RequestTests.h; sourceTree = "<group>"; };
+		B5C6663D100A82D7004F3C96 /* ASIS3RequestTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIS3RequestTests.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -130,7 +137,6 @@
 		080E96DDFE201D6D7F000001 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
-				B5B513BE0FBEE602002C74D0 /* GHUnit */,
 				B55B60450F765A320064029C /* ASIFormDataRequest.h */,
 				B55B60460F765A320064029C /* ASIFormDataRequest.m */,
 				B55B60470F765A320064029C /* ASIHTTPRequest.h */,
@@ -139,6 +145,9 @@
 				B55B604A0F765A320064029C /* ASINetworkQueue.m */,
 				B55B604B0F765A320064029C /* ASINSStringAdditions.h */,
 				B55B604C0F765A320064029C /* ASINSStringAdditions.m */,
+				B5C66636100A82A2004F3C96 /* ASIS3Request.h */,
+				B5C66637100A82A2004F3C96 /* ASIS3Request.m */,
+				B5B513BE0FBEE602002C74D0 /* GHUnit */,
 				B55B60510F765A3C0064029C /* Tests */,
 			);
 			path = Classes;
@@ -217,6 +226,8 @@
 				B55B60550F765A3C0064029C /* ASIHTTPRequestTests.m */,
 				B55B60560F765A3C0064029C /* ASINetworkQueueTests.h */,
 				B55B60570F765A3C0064029C /* ASINetworkQueueTests.m */,
+				B5C6663C100A82D7004F3C96 /* ASIS3RequestTests.h */,
+				B5C6663D100A82D7004F3C96 /* ASIS3RequestTests.m */,
 			);
 			path = Tests;
 			sourceTree = "<group>";
@@ -334,6 +345,7 @@
 				B55B60700F765A930064029C /* SynchronousViewController.m in Sources */,
 				B55B60710F765A930064029C /* iPhoneSampleAppDelegate.m in Sources */,
 				B55B60720F765A930064029C /* UploadViewController.m in Sources */,
+				B5C66639100A82A2004F3C96 /* ASIS3Request.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -349,6 +361,8 @@
 				B55B60D40F765BCD0064029C /* ASIHTTPRequestTests.m in Sources */,
 				B55B60D50F765BD00064029C /* ASINetworkQueueTests.m in Sources */,
 				B5B513CE0FBEE622002C74D0 /* GHUnitIPhoneTestMain.m in Sources */,
+				B5C66638100A82A2004F3C96 /* ASIS3Request.m in Sources */,
+				B5C6663E100A82D7004F3C96 /* ASIS3RequestTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
