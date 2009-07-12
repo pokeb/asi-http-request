@@ -1,6 +1,6 @@
 //
 //  ASIS3RequestTests.m
-//  Mac
+//  asi-http-request
 //
 //  Created by Ben Copsey on 12/07/2009.
 //  Copyright 2009 All-Seeing Interactive. All rights reserved.
@@ -57,9 +57,9 @@
 	GHAssertTrue(success,@"Failed to generate the correct authorisation header for a list request");
 	
 	// Test fetch ACL
-	path = @"";
+	path = @"?acl";
 	dateString = @"Tue, 27 Mar 2007 19:44:46 +0000";
-	request = [ASIS3Request ACLRequestWithBucket:bucket path:path];
+	request = [ASIS3Request requestWithBucket:bucket path:path];
 	[request setDateString:dateString];
 	[request setSecretAccessKey:secretAccessKey];
 	[request setAccessKey:accessKey];

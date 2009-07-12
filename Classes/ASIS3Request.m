@@ -1,6 +1,5 @@
 //
 //  ASIS3Request.m
-//  Mac
 //
 //  Created by Ben Copsey on 30/06/2009.
 //  Copyright 2009 All-Seeing Interactive. All rights reserved.
@@ -9,11 +8,32 @@
 #import "ASIS3Request.h"
 #import <CommonCrypto/CommonHMAC.h>
 
+NSString* const ASIS3AccessPolicyPrivate = @"private";
+NSString* const ASIS3AccessPolicyPublicRead = @"public-read";
+NSString* const ASIS3AccessPolicyPublicReadWrote = @"public-read-write";
+NSString* const ASIS3AccessPolicyAuthenticatedRead = @"authenticated-read";
+
 static NSString *sharedAccessKey = nil;
 static NSString *sharedSecretAccessKey = nil;
 
+// Private stuff
+@interface ASIHTTPRequest ()
+	+ (NSData *)HMACSHA1withKey:(NSString *)key forString:(NSString *)string;
+	+ (NSString *)base64forData:(NSData *)theData;
+@end
+
 @implementation ASIS3Request
 
+- (void)dealloc
+{
+	[bucket release];
+	[path release];
+	[dateString release];
+	[mimeType release];
+	[accessKey release];
+	[secretAccessKey release];
+	[super dealloc];
+}
 
 + (id)requestWithBucket:(NSString *)bucket path:(NSString *)path
 {
@@ -33,25 +53,11 @@ static NSString *sharedSecretAccessKey = nil;
 	return request;
 }
 
-+ (id)GETRequestWithBucket:(NSString *)bucket path:(NSString *)path
-{
-	ASIS3Request *request = [ASIS3Request requestWithBucket:bucket path:path];
-	[request setRequestMethod:@"GET"];
-	return request;
-}
-
-+ (id)ACLRequestWithBucket:(NSString *)bucket path:(NSString *)path
-{
-	ASIS3Request *request = [ASIS3Request requestWithBucket:bucket path:[NSString stringWithFormat:@"%@?acl",path]];
-	[request setRequestMethod:@"GET"];
-	return request;
-}
 
 + (id)listRequestWithBucket:(NSString *)bucket prefix:(NSString *)prefix maxResults:(int)maxResults marker:(NSString *)marker
 {
 	ASIS3Request *request =  [[[ASIS3Request alloc] initWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://%@.s3.amazonaws.com/?prefix=/%@&max-keys=%hi&marker=%@",bucket,prefix,maxResults,marker]]] autorelease];
 	[request setBucket:bucket];
-	[request setRequestMethod:@"GET"];
 	return request;
 }
 
@@ -60,6 +66,9 @@ static NSString *sharedSecretAccessKey = nil;
 // NSTask does seem to exist in the 2.2.1 SDK, though it's not in the 3.0 SDK. It's probably best if we just use a generic mime type on iPhone all the time.
 #if TARGET_OS_IPHONE
 	return @"application/octet-stream";
+	
+// Grab the mime type using an NSTask to run the 'file' program, with the Mac OS-specific parameters to grab the mime type
+// Perhaps there is a better way to do this?
 #else
 	NSTask *task = [[NSTask alloc] init];
 	[task setLaunchPath: @"/usr/bin/file"];
@@ -86,37 +95,51 @@ static NSString *sharedSecretAccessKey = nil;
 
 - (void)generateS3Headers
 {
+	// If an access key / secret access keyu haven't been set for this request, let's use the shared keys
 	if (![self accessKey]) {
 		[self setAccessKey:[ASIS3Request sharedAccessKey]];
 	}
 	if (![self secretAccessKey]) {
 		[self setAccessKey:[ASIS3Request sharedSecretAccessKey]];
 	}
+	// If a date string hasn't been set, we'll create one from the current time
 	if (![self dateString]) {
 		[self setDate:[NSDate date]];
 	}
+	[self addRequestHeader:@"Date" value:[self dateString]];
+	
+	// Ensure our formatted string doesn't use '(null)' for the empty path
 	if (![self path]) {
 		[self setPath:@""];
 	}
-	
-	[self addRequestHeader:@"Date" value:[self dateString]];
-	
-	[self addRequestHeader:@"x-amz-acl" value:@"private"];
 
-	NSString *stringToSign;
+	
 	NSString *canonicalizedResource = [NSString stringWithFormat:@"/%@/%@",[self bucket],[self path]];
-	NSString *canonicalizedAmzHeaders = @"x-amz-acl:private";
+	
+	// Add a header for the access policy if one was set, otherwise we won't add one (and S3 will default to private)
+	NSString *canonicalizedAmzHeaders = @"";
+	if ([self accessPolicy]) {
+		[self addRequestHeader:@"x-amz-acl" value:[self accessPolicy]];
+		canonicalizedAmzHeaders = [NSString stringWithFormat:@"x-amz-acl:%@\n",[self accessPolicy]];
+	}
+	
+	// Jump through hoops while eating hot food
+	NSString *stringToSign;
 	if ([[self requestMethod] isEqualToString:@"PUT"]) {
 		[self addRequestHeader:@"Content-Type" value:[self mimeType]];
-		stringToSign = [NSString stringWithFormat:@"PUT\n\n%@\n%@\n%@",[self mimeType],dateString,canonicalizedResource];
+		stringToSign = [NSString stringWithFormat:@"PUT\n\n%@\n%@\n%@%@",[self mimeType],dateString,canonicalizedAmzHeaders,canonicalizedResource];
 	} else {
-		stringToSign = [NSString stringWithFormat:@"%@\n\n\n%@\n%@",[self requestMethod],dateString,canonicalizedResource];
+		stringToSign = [NSString stringWithFormat:@"%@\n\n\n%@\n%@%@",[self requestMethod],dateString,canonicalizedAmzHeaders,canonicalizedResource];
 	}
-	NSLog(@"%@",stringToSign);
 	NSString *signature = [ASIS3Request base64forData:[ASIS3Request HMACSHA1withKey:[self secretAccessKey] forString:stringToSign]];
 	NSString *authorizationString = [NSString stringWithFormat:@"AWS %@:%@",[self accessKey],signature];
 	[self addRequestHeader:@"Authorization" value:authorizationString];
-	
+}
+
+- (void)startRequest
+{
+	[self generateS3Headers];
+	[super startRequest];
 }
 
 #pragma mark Shared access keys
@@ -203,4 +226,5 @@ static NSString *sharedSecretAccessKey = nil;
 @synthesize mimeType;
 @synthesize accessKey;
 @synthesize secretAccessKey;
+@synthesize accessPolicy;
 @end
