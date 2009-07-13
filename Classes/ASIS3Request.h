@@ -15,7 +15,7 @@ extern NSString *const ASIS3AccessPolicyPrivate; // This is the default in S3 wh
 extern NSString *const ASIS3AccessPolicyPublicRead;
 extern NSString *const ASIS3AccessPolicyPublicReadWrote;
 extern NSString *const ASIS3AccessPolicyAuthenticatedRead;
-
+bug report in lighthouse
 @interface ASIS3Request : ASIHTTPRequest {
 
 	// Your S3 access key. Set it on the request, or set it globally using [ASIS3Request setSharedAccessKey:]
@@ -27,7 +27,7 @@ extern NSString *const ASIS3AccessPolicyAuthenticatedRead;
 	// Name of the bucket to talk to
 	NSString *bucket;
 	
-	// path to the resource you want to access on S3. Leave empty for the bucket root
+	// Path to the resource you want to access on S3. Leave empty for the bucket root
 	NSString *path;
 	
 	// The string that will be used in the HTTP date header. Generally you'll want to ignore this and let the class add the current date for you, but the accessor is used by the tests

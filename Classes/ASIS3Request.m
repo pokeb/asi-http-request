@@ -113,7 +113,6 @@ static NSString *sharedSecretAccessKey = nil;
 		[self setPath:@""];
 	}
 
-	
 	NSString *canonicalizedResource = [NSString stringWithFormat:@"/%@/%@",[self bucket],[self path]];
 	
 	// Add a header for the access policy if one was set, otherwise we won't add one (and S3 will default to private)

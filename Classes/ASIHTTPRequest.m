@@ -683,8 +683,8 @@ static NSError *ASIUnableToCreateRequestError;
 		return;
 	}
 	
-	// If this is the first time we've written to the buffer, byteCount will be the size of the buffer (currently seems to be 128KB on both Mac and iPhone)
-	// If request body is less than 128KB, byteCount will be the total size of the request body
+	// If this is the first time we've written to the buffer, byteCount will be the size of the buffer (currently seems to be 128KB on both Mac and iPhone 2.2.1, 32KB on iPhone 3.0)
+	// If request body is less than the buffer size, byteCount will be the total size of the request body
 	// We will remove this from any progress display, as kCFStreamPropertyHTTPRequestBytesWrittenCount does not tell us how much data has actually be written
 	if (totalBytesSent > 0 && uploadBufferSize == 0 && totalBytesSent != postLength) {
 		[self setUploadBufferSize:totalBytesSent];
