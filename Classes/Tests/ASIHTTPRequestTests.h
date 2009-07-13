@@ -35,4 +35,5 @@
 - (void)testSSL;
 - (void)testRedirectPreservesSession;
 - (void)testTooMuchRedirection;
+- (void)testRedirectToNewDomain;
 @end
