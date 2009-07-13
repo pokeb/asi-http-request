@@ -37,7 +37,7 @@ static NSString *sharedSecretAccessKey = nil;
 
 + (id)requestWithBucket:(NSString *)bucket path:(NSString *)path
 {
-	ASIS3Request *request =  [[[ASIS3Request alloc] initWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://%@.s3.amazonaws.com/%@",bucket,path]]] autorelease];
+	ASIS3Request *request =  [[[ASIS3Request alloc] initWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://s3.amazonaws.com/%@/%@",bucket,path]]] autorelease];
 	[request setBucket:bucket];
 	[request setPath:path];
 	return request;
@@ -49,14 +49,14 @@ static NSString *sharedSecretAccessKey = nil;
 	[request setPostBodyFilePath:filePath];
 	[request setShouldStreamPostDataFromDisk:YES];
 	[request setRequestMethod:@"PUT"];
-	[request setMimeType:[ASIS3Request mimeTypeForFileAtPath:path]];
+	[request setMimeType:[ASIS3Request mimeTypeForFileAtPath:filePath]];
 	return request;
 }
 
 
 + (id)listRequestWithBucket:(NSString *)bucket prefix:(NSString *)prefix maxResults:(int)maxResults marker:(NSString *)marker
 {
-	ASIS3Request *request =  [[[ASIS3Request alloc] initWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://%@.s3.amazonaws.com/?prefix=/%@&max-keys=%hi&marker=%@",bucket,prefix,maxResults,marker]]] autorelease];
+	ASIS3Request *request =  [[[ASIS3Request alloc] initWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://s3.amazonaws.com/%@?prefix=/%@&max-keys=%hi&marker=%@",bucket,prefix,maxResults,marker]]] autorelease];
 	[request setBucket:bucket];
 	return request;
 }
@@ -74,12 +74,17 @@ static NSString *sharedSecretAccessKey = nil;
 	[task setLaunchPath: @"/usr/bin/file"];
 	[task setArguments:[NSMutableArray arrayWithObjects:@"-Ib",path,nil]];
 
-    NSPipe *pipe = [NSPipe pipe];
-    [task setStandardOutput:pipe];
+    NSPipe *outputPipe = [NSPipe pipe];
+    [task setStandardOutput:outputPipe];
 	
-    NSFileHandle *file = [pipe fileHandleForReading];
+    NSFileHandle *file = [outputPipe fileHandleForReading];
 	
 	[task launch];
+	[task waitUntilExit];
+	
+	if ([task terminationStatus] != 0) {
+		return @"application/octet-stream";	
+	}
 	
 	NSString *mimeTypeString = [[[NSString alloc] initWithData:[file readDataToEndOfFile] encoding: NSUTF8StringEncoding] autorelease];
 	return [[mimeTypeString componentsSeparatedByString:@";"] objectAtIndex:0];
@@ -89,7 +94,7 @@ static NSString *sharedSecretAccessKey = nil;
 - (void)setDate:(NSDate *)date
 {
 	NSDateFormatter *dateFormatter = [[[NSDateFormatter alloc] init] autorelease];
-	[dateFormatter setDateFormat:@"EEE, d MMM yyyy HH:mm:ss zzzz"];
+	[dateFormatter setDateFormat:@"EEE, d MMM yyyy HH:mm:ss Z"];
 	[self setDateString:[dateFormatter stringFromDate:date]];	
 }
 
@@ -135,10 +140,10 @@ static NSString *sharedSecretAccessKey = nil;
 	[self addRequestHeader:@"Authorization" value:authorizationString];
 }
 
-- (void)startRequest
+- (void)main
 {
 	[self generateS3Headers];
-	[super startRequest];
+	[super main];
 }
 
 #pragma mark Shared access keys

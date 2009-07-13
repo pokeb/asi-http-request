@@ -79,10 +79,49 @@
 	[request generateS3Headers];
 	success = [[[request requestHeaders] valueForKey:@"Authorization"] isEqualToString:@"AWS 0PN5J17HBGZHT7JJ3X82:dxhSBHoI6eVSPcXJqEghlUzZMnY="];
 	GHAssertTrue(success,@"Failed to generate the correct authorisation header for a list request");		
-	
 }
 
+// To run this test, uncomment and fill in your S3 access details
+/*
+- (void)testREST
+{
+	NSString *secretAccessKey = @"my-secret-key";
+	NSString *accessKey = @"my-access-key";
+	NSString *bucket = @"bucket-name";
+	NSString *path = @"path/to/file";
+	
+	// Create the fle
+	NSString *text = @"This is my content";
+	NSString *filePath = [[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"testfile.txt"];
+	[[text dataUsingEncoding:NSUTF8StringEncoding] writeToFile:filePath atomically:NO];
+	
+	// PUT the file
+	ASIS3Request *request = [ASIS3Request PUTRequestForFile:filePath withBucket:bucket path:path];
+	[request setRequestMethod:@"PUT"];
+	[request setSecretAccessKey:secretAccessKey];
+	[request setAccessKey:accessKey];
+	[request start];
+	BOOL success = [[request responseString] isEqualToString:@""];
+	GHAssertTrue(success,@"Failed to PUT a file to S3");	
 
+	// GET the file
+	request = [ASIS3Request requestWithBucket:bucket path:path];
+	[request setSecretAccessKey:secretAccessKey];
+	[request setAccessKey:accessKey];
+	[request start];
+	success = [[request responseString] isEqualToString:@"This is my content"];
+	GHAssertTrue(success,@"Failed to GET the correct data from S3");	
+
+	// DELETE the file
+	request = [ASIS3Request requestWithBucket:bucket path:path];
+	[request setSecretAccessKey:secretAccessKey];
+	[request setRequestMethod:@"DELETE"];
+	[request setAccessKey:accessKey];
+	[request start];
+	success = [[request responseString] isEqualToString:@""];
+	GHAssertTrue(success,@"Failed to DELETE the file from S3");	
+}
+*/
 
 
 @end

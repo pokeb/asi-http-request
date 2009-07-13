@@ -390,8 +390,7 @@ static NSError *ASITooMuchRedirectionError;
 	for (header in headers) {
 		CFHTTPMessageSetHeaderFieldValue(request, (CFStringRef)header, (CFStringRef)[requestHeaders objectForKey:header]);
 	}
-	
-	
+
 	// If this is a post request and we have data in memory send, add it to the request
 	if ([self postBody]) {
 		CFHTTPMessageSetBody(request, (CFDataRef)postBody);

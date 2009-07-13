@@ -15,7 +15,7 @@ extern NSString *const ASIS3AccessPolicyPrivate; // This is the default in S3 wh
 extern NSString *const ASIS3AccessPolicyPublicRead;
 extern NSString *const ASIS3AccessPolicyPublicReadWrote;
 extern NSString *const ASIS3AccessPolicyAuthenticatedRead;
-bug report in lighthouse
+
 @interface ASIS3Request : ASIHTTPRequest {
 
 	// Your S3 access key. Set it on the request, or set it globally using [ASIS3Request setSharedAccessKey:]
