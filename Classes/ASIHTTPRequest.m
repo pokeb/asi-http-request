@@ -549,7 +549,7 @@ static NSError *ASITooMuchRedirectionError;
 			break;
 		}
 		
-		// See if our NSOperationQueue told us to cancel or we need to redirect
+		// See if our NSOperationQueue told us to cancel
 		if ([self isCancelled]) {
 			break;
 		}
