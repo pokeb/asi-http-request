@@ -27,6 +27,8 @@ static CFHTTPAuthenticationRef sessionAuthentication = NULL;
 static NSMutableDictionary *sessionCredentials = nil;
 static NSMutableArray *sessionCookies = nil;
 
+// The number of times we will allow requests to redirect before we fail with a redirection error
+const int RedirectionLimit = 5;
 
 static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventType type, void *clientCallBackInfo) {
     [((ASIHTTPRequest*)clientCallBackInfo) handleNetworkEvent: type];
@@ -39,6 +41,8 @@ static NSError *ASIRequestCancelledError;
 static NSError *ASIRequestTimedOutError;
 static NSError *ASIAuthenticationError;
 static NSError *ASIUnableToCreateRequestError;
+static NSError *ASITooMuchRedirectionError;
+
 
 // Private stuff
 @interface ASIHTTPRequest ()
@@ -64,6 +68,8 @@ static NSError *ASIUnableToCreateRequestError;
 	@property (retain, nonatomic) NSOutputStream *fileDownloadOutputStream;
 	@property (assign, nonatomic) int authenticationRetryCount;
 	@property (assign, nonatomic) BOOL updatedProgress;
+	@property (assign, nonatomic) BOOL needsRedirect;
+	@property (assign, nonatomic) int redirectCount;
 @end
 
 @implementation ASIHTTPRequest
@@ -80,6 +86,8 @@ static NSError *ASIUnableToCreateRequestError;
 		ASIAuthenticationError = [[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIAuthenticationErrorType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Authentication needed",NSLocalizedDescriptionKey,nil]] retain];
 		ASIRequestCancelledError = [[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIRequestCancelledErrorType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"The request was cancelled",NSLocalizedDescriptionKey,nil]] retain];
 		ASIUnableToCreateRequestError = [[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIUnableToCreateRequestErrorType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Unable to create request (bad url?)",NSLocalizedDescriptionKey,nil]] retain];
+		ASITooMuchRedirectionError = [[NSError errorWithDomain:NetworkRequestErrorDomain code:ASITooMuchRedirectionErrorType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"The request failed because it redirected too many times",NSLocalizedDescriptionKey,nil]] retain];	
+
 	}
 	[super initialize];
 }
@@ -436,10 +444,7 @@ static NSError *ASIUnableToCreateRequestError;
 		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIInternalErrorWhileBuildingRequestType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Unable to create read stream",NSLocalizedDescriptionKey,nil]]];
         return;
     }
-	
-	// Tell CFNetwork to automatically redirect for 30x status codes
-	CFReadStreamSetProperty(readStream, kCFStreamPropertyHTTPShouldAutoredirect, [self shouldRedirect] ? kCFBooleanTrue : kCFBooleanFalse);
-    
+
 	// Tell CFNetwork not to validate SSL certificates
 	if (!validatesSecureCertificate) {
 		CFReadStreamSetProperty(readStream, kCFStreamPropertySSLSettings, [NSMutableDictionary dictionaryWithObject:(NSString *)kCFBooleanFalse forKey:(NSString *)kCFStreamSSLValidatesCertificateChain]); 
@@ -517,7 +522,7 @@ static NSError *ASIUnableToCreateRequestError;
 		// See if we need to timeout
 		if (lastActivityTime && timeOutSeconds > 0 && [now timeIntervalSinceDate:lastActivityTime] > timeOutSeconds) {
 			
-			// Prevent timeouts before 128KB has been sent when the size of data to upload is greater than 128KB
+			// Prevent timeouts before 128KB* has been sent when the size of data to upload is greater than 128KB* (*32KB on iPhone 3.0 SDK)
 			// This is to workaround the fact that kCFStreamPropertyHTTPRequestBytesWrittenCount is the amount written to the buffer, not the amount actually sent
 			// This workaround prevents erroneous timeouts in low bandwidth situations (eg iPhone)
 			if (contentLength <= uploadBufferSize || (uploadBufferSize > 0 && totalBytesSent > uploadBufferSize)) {
@@ -528,7 +533,23 @@ static NSError *ASIUnableToCreateRequestError;
 			}
 		}
 		
-		// See if our NSOperationQueue told us to cancel
+		// Do we need to redirect?
+		if ([self needsRedirect]) {
+			[self cancelLoad];
+			[self setNeedsRedirect:NO];
+			[self setRedirectCount:[self redirectCount]+1];
+			if ([self redirectCount] > RedirectionLimit) {
+				// Some naughty / badly coded website is trying to force us into a redirection loop. This is not cool.
+				[self failWithError:ASITooMuchRedirectionError];
+				[self setComplete:YES];
+			} else {
+				// Go all the way back to the beginning and build the request again, so that we can apply any new cookies
+				[self main];
+			}
+			break;
+		}
+		
+		// See if our NSOperationQueue told us to cancel or we need to redirect
 		if ([self isCancelled]) {
 			break;
 		}
@@ -944,7 +965,7 @@ static NSError *ASIUnableToCreateRequestError;
 		[self setResponseStatusCode:CFHTTPMessageGetResponseStatusCode(headers)];
 		
 		// Is the server response a challenge for credentials?
-		isAuthenticationChallenge = (responseStatusCode == 401);
+		isAuthenticationChallenge = ([self responseStatusCode] == 401);
 		
 		// We won't reset the download progress delegate if we got an authentication challenge
 		if (!isAuthenticationChallenge) {
@@ -990,18 +1011,22 @@ static NSError *ASIUnableToCreateRequestError;
 			NSArray *newCookies = [NSHTTPCookie cookiesWithResponseHeaderFields:responseHeaders forURL:url];
 			[self setResponseCookies:newCookies];
 			
-			if (useCookiePersistance) {
+			if ([self useCookiePersistance]) {
 				
 				// Store cookies in global persistent store
 				[[NSHTTPCookieStorage sharedHTTPCookieStorage] setCookies:newCookies forURL:url mainDocumentURL:nil];
 				
 				// We also keep any cookies in the sessionCookies array, so that we have a reference to them if we need to remove them later
-				if (!sessionCookies) {
-					[ASIHTTPRequest setSessionCookies:[[[NSMutableArray alloc] init] autorelease]];
-					NSHTTPCookie *cookie;
-					for (cookie in newCookies) {
-						[[ASIHTTPRequest sessionCookies] addObject:cookie];
-					}
+				NSHTTPCookie *cookie;
+				for (cookie in newCookies) {
+					[ASIHTTPRequest addSessionCookie:cookie];
+				}
+			}
+			// Do we need to redirect?
+			if ([self shouldRedirect]) {
+				if ([self responseStatusCode] > 300 && [self responseStatusCode] < 308 && [self responseStatusCode] != 304) {
+					[self setURL:[[NSURL URLWithString:[responseHeaders valueForKey:@"Location"] relativeToURL:[self url]] absoluteURL]];
+					[self setNeedsRedirect:YES];
 				}
 			}
 			
@@ -1256,6 +1281,9 @@ static NSError *ASIUnableToCreateRequestError;
 			return;
 		}
 	}
+	if ([self needsRedirect]) {
+		return;
+	}
 	int bufferSize = 2048;
 	if (contentLength > 262144) {
 		bufferSize = 65536;
@@ -1306,6 +1334,9 @@ static NSError *ASIUnableToCreateRequestError;
 			[self attemptToApplyCredentialsAndResume];
 			return;
 		}
+	}
+	if ([self needsRedirect]) {
+		return;
 	}
 	[progressLock lock];	
 	[self setComplete:YES];
@@ -1370,8 +1401,6 @@ static NSError *ASIUnableToCreateRequestError;
 - (void)handleStreamError
 {
 	NSError *underlyingError = [(NSError *)CFReadStreamCopyError(readStream) autorelease];
-	
-	
 	
 	[self cancelLoad];
 	[self setComplete:YES];
@@ -1459,17 +1488,35 @@ static NSError *ASIUnableToCreateRequestError;
 
 + (NSMutableArray *)sessionCookies
 {
+	if (!sessionCookies) {
+		[ASIHTTPRequest setSessionCookies:[[[NSMutableArray alloc] init] autorelease]];
+	}
 	return sessionCookies;
 }
 
 + (void)setSessionCookies:(NSMutableArray *)newSessionCookies
 {
 	// Remove existing cookies from the persistent store
-	for (NSHTTPCookie *cookie in [ASIHTTPRequest sessionCookies]) {
+	for (NSHTTPCookie *cookie in sessionCookies) {
 		[[NSHTTPCookieStorage sharedHTTPCookieStorage] deleteCookie:cookie];
 	}
 	[sessionCookies release];
 	sessionCookies = [newSessionCookies retain];
+}
+
++ (void)addSessionCookie:(NSHTTPCookie *)newCookie
+{
+	NSHTTPCookie *cookie;
+	int i;
+	int max = [[ASIHTTPRequest sessionCookies] count];
+	for (i=0; i<max; i++) {
+		cookie = [[ASIHTTPRequest sessionCookies] objectAtIndex:i];
+		if ([[cookie domain] isEqualToString:[newCookie domain]] && [[cookie path] isEqualToString:[newCookie path]] && [[cookie name] isEqualToString:[newCookie name]]) {
+			[[ASIHTTPRequest sessionCookies] removeObjectAtIndex:i];
+			break;
+		}
+	}
+	[[ASIHTTPRequest sessionCookies] addObject:newCookie];
 }
 
 // Dump all session data (authentication and cookies)
@@ -1676,4 +1723,6 @@ static NSError *ASIUnableToCreateRequestError;
 @synthesize updatedProgress;
 @synthesize shouldRedirect;
 @synthesize validatesSecureCertificate;
+@synthesize needsRedirect;
+@synthesize redirectCount;
 @end
