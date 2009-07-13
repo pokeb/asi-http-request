@@ -26,7 +26,8 @@ typedef enum _ASINetworkErrorType {
     ASIUnableToCreateRequestErrorType = 5,
     ASIInternalErrorWhileBuildingRequestType  = 6,
     ASIInternalErrorWhileApplyingCredentialsType  = 7,
-	ASIFileManagementError = 8
+	ASIFileManagementError = 8,
+	ASITooMuchRedirectionErrorType = 9
 	
 } ASINetworkErrorType;
 
@@ -218,6 +219,12 @@ extern NSString* const NetworkRequestErrorDomain;
 	// When YES, requests will automatically redirect when they get a HTTP 30x header (defaults to YES)
 	BOOL shouldRedirect;
 	
+	// Used internally to tell the main loop we need to stop and retry with a new url
+	BOOL needsRedirect;
+	
+	// Incremented every time this request redirects. When it reaches 5, we give up
+	int redirectCount;
+	
 	// When NO, requests will not check the secure certificate is valid (use for self-signed cerficates during development, DO NOT USE IN PRODUCTION) Default is YES
 	BOOL validatesSecureCertificate;
 
@@ -297,7 +304,9 @@ extern NSString* const NetworkRequestErrorDomain;
 
 #pragma mark http authentication stuff
 
-// Reads the response headers to find the content length, and returns true if the request needs a username and password (or if those supplied were incorrect)
+// Reads the response headers to find the content length, encoding, cookies for the session 
+// Also initiates request redirection when shouldRedirect is true
+// Returns true if the request needs a username and password (or if those supplied were incorrect)
 - (BOOL)readResponseHeadersReturningAuthenticationFailure;
 
 // Apply credentials to this request
@@ -344,6 +353,9 @@ extern NSString* const NetworkRequestErrorDomain;
 // We keep track of any cookies we accept, so that we can remove them from the persistent store later
 + (void)setSessionCookies:(NSMutableArray *)newSessionCookies;
 + (NSMutableArray *)sessionCookies;
+
+// Adds a cookie to our list of cookies we've accepted, checking first for an old version of the same cookie and removing that
++ (void)addSessionCookie:(NSHTTPCookie *)newCookie;
 
 // Dump all session data (authentication and cookies)
 + (void)clearSession;

@@ -639,4 +639,24 @@
 	GHAssertNil([request error],@"Failed to accept a self-signed certificate");	
 }
 
+- (void)testRedirectPreservesSession
+{
+	// Remove any old session cookies
+	[ASIHTTPRequest clearSession];
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/session_redirect"]];
+	[request start];
+	BOOL success = [[request responseString] isEqualToString:@"Take me to your leader"];
+	GHAssertTrue(success,@"Failed to redirect preserving session cookies");	
+}
+
+- (void)testTooMuchRedirection
+{
+	// This url will simply send a 302 redirect back to itself
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/one_infinite_loop"]];
+	[request start];
+	GHAssertNotNil([request error],@"Failed to generate an error when redirection occurs too many times");
+	BOOL success = ([[request error] code] == ASITooMuchRedirectionErrorType);
+	GHAssertTrue(success,@"Generated the wrong error for a redirection loop");		
+}
+
 @end

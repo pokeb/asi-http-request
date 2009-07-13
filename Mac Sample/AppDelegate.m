@@ -100,6 +100,7 @@
 	[imageView3 setImage:nil];
 	
 	[networkQueue cancelAllOperations];
+	[networkQueue setRequestDidFinishSelector:NULL];
 	[networkQueue setDownloadProgressDelegate:progressIndicator];
 	[networkQueue setDelegate:self];
 	[networkQueue setShowAccurateProgress:([showAccurateProgress state] == NSOnState)];
