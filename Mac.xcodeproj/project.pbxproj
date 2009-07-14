@@ -8,6 +8,10 @@
 
 /* Begin PBXBuildFile section */
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
+		B51E5F3B100B829D004A300D /* ASIS3BucketObject.m in Sources */ = {isa = PBXBuildFile; fileRef = B51E5F3A100B829D004A300D /* ASIS3BucketObject.m */; };
+		B51E5F3C100B829D004A300D /* ASIS3BucketObject.m in Sources */ = {isa = PBXBuildFile; fileRef = B51E5F3A100B829D004A300D /* ASIS3BucketObject.m */; };
+		B51E5F56100B83F7004A300D /* ASIS3ListRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B51E5F55100B83F7004A300D /* ASIS3ListRequest.m */; };
+		B51E5F57100B83F7004A300D /* ASIS3ListRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B51E5F55100B83F7004A300D /* ASIS3ListRequest.m */; };
 		B53FADE80FF38B2A002E2DE6 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B53FADE70FF38B2A002E2DE6 /* SystemConfiguration.framework */; };
 		B53FADF90FF38BA9002E2DE6 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B53FADE70FF38B2A002E2DE6 /* SystemConfiguration.framework */; };
 		B55B5D200F76568E0064029C /* ASIFormDataRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B5D120F76568E0064029C /* ASIFormDataRequest.m */; };
@@ -53,6 +57,10 @@
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		8D1107320486CEB800E47090 /* Mac.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Mac.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B51E5F39100B829D004A300D /* ASIS3BucketObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIS3BucketObject.h; sourceTree = "<group>"; };
+		B51E5F3A100B829D004A300D /* ASIS3BucketObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIS3BucketObject.m; sourceTree = "<group>"; };
+		B51E5F54100B83F7004A300D /* ASIS3ListRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIS3ListRequest.h; sourceTree = "<group>"; };
+		B51E5F55100B83F7004A300D /* ASIS3ListRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIS3ListRequest.m; sourceTree = "<group>"; };
 		B53FADE70FF38B2A002E2DE6 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
 		B55B5D110F76568E0064029C /* ASIFormDataRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIFormDataRequest.h; sourceTree = "<group>"; };
 		B55B5D120F76568E0064029C /* ASIFormDataRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIFormDataRequest.m; sourceTree = "<group>"; };
@@ -183,6 +191,19 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		B51E61A2100BA84C004A300D /* S3 */ = {
+			isa = PBXGroup;
+			children = (
+				B5C66395100A4C24004F3C96 /* ASIS3Request.h */,
+				B5C66394100A4C24004F3C96 /* ASIS3Request.m */,
+				B51E5F54100B83F7004A300D /* ASIS3ListRequest.h */,
+				B51E5F55100B83F7004A300D /* ASIS3ListRequest.m */,
+				B51E5F39100B829D004A300D /* ASIS3BucketObject.h */,
+				B51E5F3A100B829D004A300D /* ASIS3BucketObject.m */,
+			);
+			name = S3;
+			sourceTree = "<group>";
+		};
 		B55B5D100F76568E0064029C /* Classes */ = {
 			isa = PBXGroup;
 			children = (
@@ -194,8 +215,7 @@
 				B55B5D160F76568E0064029C /* ASINetworkQueue.m */,
 				B564D0510FEE677F00A2098A /* ASINSStringAdditions.h */,
 				B564D0500FEE677F00A2098A /* ASINSStringAdditions.m */,
-				B5C66395100A4C24004F3C96 /* ASIS3Request.h */,
-				B5C66394100A4C24004F3C96 /* ASIS3Request.m */,
+				B51E61A2100BA84C004A300D /* S3 */,
 				B55B5D190F76568E0064029C /* Tests */,
 			);
 			path = Classes;
@@ -304,6 +324,8 @@
 				B55B5E700F7656A40064029C /* main.m in Sources */,
 				B564D0530FEE678C00A2098A /* ASINSStringAdditions.m in Sources */,
 				B5C66396100A4C24004F3C96 /* ASIS3Request.m in Sources */,
+				B51E5F3C100B829D004A300D /* ASIS3BucketObject.m in Sources */,
+				B51E5F57100B83F7004A300D /* ASIS3ListRequest.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -321,6 +343,8 @@
 				B564D0520FEE677F00A2098A /* ASINSStringAdditions.m in Sources */,
 				B5C66397100A4C24004F3C96 /* ASIS3Request.m in Sources */,
 				B5C664BC100A6220004F3C96 /* ASIS3RequestTests.m in Sources */,
+				B51E5F3B100B829D004A300D /* ASIS3BucketObject.m in Sources */,
+				B51E5F56100B83F7004A300D /* ASIS3ListRequest.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

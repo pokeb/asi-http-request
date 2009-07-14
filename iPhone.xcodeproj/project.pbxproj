@@ -43,6 +43,10 @@
 		B5C66638100A82A2004F3C96 /* ASIS3Request.m in Sources */ = {isa = PBXBuildFile; fileRef = B5C66637100A82A2004F3C96 /* ASIS3Request.m */; };
 		B5C66639100A82A2004F3C96 /* ASIS3Request.m in Sources */ = {isa = PBXBuildFile; fileRef = B5C66637100A82A2004F3C96 /* ASIS3Request.m */; };
 		B5C6663E100A82D7004F3C96 /* ASIS3RequestTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B5C6663D100A82D7004F3C96 /* ASIS3RequestTests.m */; };
+		B5E2A9AB100C89D900B70E26 /* ASIS3BucketObject.m in Sources */ = {isa = PBXBuildFile; fileRef = B5E2A9A7100C89D900B70E26 /* ASIS3BucketObject.m */; };
+		B5E2A9AC100C89D900B70E26 /* ASIS3ListRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5E2A9AA100C89D900B70E26 /* ASIS3ListRequest.m */; };
+		B5E2A9AD100C89D900B70E26 /* ASIS3BucketObject.m in Sources */ = {isa = PBXBuildFile; fileRef = B5E2A9A7100C89D900B70E26 /* ASIS3BucketObject.m */; };
+		B5E2A9AE100C89D900B70E26 /* ASIS3ListRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5E2A9AA100C89D900B70E26 /* ASIS3ListRequest.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -103,6 +107,10 @@
 		B5C66637100A82A2004F3C96 /* ASIS3Request.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIS3Request.m; sourceTree = "<group>"; };
 		B5C6663C100A82D7004F3C96 /* ASIS3RequestTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIS3RequestTests.h; sourceTree = "<group>"; };
 		B5C6663D100A82D7004F3C96 /* ASIS3RequestTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIS3RequestTests.m; sourceTree = "<group>"; };
+		B5E2A9A7100C89D900B70E26 /* ASIS3BucketObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIS3BucketObject.m; sourceTree = "<group>"; };
+		B5E2A9A8100C89D900B70E26 /* ASIS3ListRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIS3ListRequest.h; sourceTree = "<group>"; };
+		B5E2A9A9100C89D900B70E26 /* ASIS3BucketObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIS3BucketObject.h; sourceTree = "<group>"; };
+		B5E2A9AA100C89D900B70E26 /* ASIS3ListRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIS3ListRequest.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -145,8 +153,7 @@
 				B55B604A0F765A320064029C /* ASINetworkQueue.m */,
 				B55B604B0F765A320064029C /* ASINSStringAdditions.h */,
 				B55B604C0F765A320064029C /* ASINSStringAdditions.m */,
-				B5C66636100A82A2004F3C96 /* ASIS3Request.h */,
-				B5C66637100A82A2004F3C96 /* ASIS3Request.m */,
+				B5E2A99E100C89BC00B70E26 /* S3 */,
 				B5B513BE0FBEE602002C74D0 /* GHUnit */,
 				B55B60510F765A3C0064029C /* Tests */,
 			);
@@ -254,6 +261,19 @@
 			name = GHUnit;
 			sourceTree = "<group>";
 		};
+		B5E2A99E100C89BC00B70E26 /* S3 */ = {
+			isa = PBXGroup;
+			children = (
+				B5C66636100A82A2004F3C96 /* ASIS3Request.h */,
+				B5C66637100A82A2004F3C96 /* ASIS3Request.m */,
+				B5E2A9A8100C89D900B70E26 /* ASIS3ListRequest.h */,
+				B5E2A9AA100C89D900B70E26 /* ASIS3ListRequest.m */,
+				B5E2A9A7100C89D900B70E26 /* ASIS3BucketObject.m */,
+				B5E2A9A9100C89D900B70E26 /* ASIS3BucketObject.h */,
+			);
+			name = S3;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -346,6 +366,8 @@
 				B55B60710F765A930064029C /* iPhoneSampleAppDelegate.m in Sources */,
 				B55B60720F765A930064029C /* UploadViewController.m in Sources */,
 				B5C66639100A82A2004F3C96 /* ASIS3Request.m in Sources */,
+				B5E2A9AD100C89D900B70E26 /* ASIS3BucketObject.m in Sources */,
+				B5E2A9AE100C89D900B70E26 /* ASIS3ListRequest.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -363,6 +385,8 @@
 				B5B513CE0FBEE622002C74D0 /* GHUnitIPhoneTestMain.m in Sources */,
 				B5C66638100A82A2004F3C96 /* ASIS3Request.m in Sources */,
 				B5C6663E100A82D7004F3C96 /* ASIS3RequestTests.m in Sources */,
+				B5E2A9AB100C89D900B70E26 /* ASIS3BucketObject.m in Sources */,
+				B5E2A9AC100C89D900B70E26 /* ASIS3ListRequest.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

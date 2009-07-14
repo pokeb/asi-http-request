@@ -663,7 +663,7 @@
 {
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/redirect_to_new_domain"]];
 	[request start];
-	BOOL success = [[[request url] absoluteString] isEqualTo:@"http://www.apple.com/"];
+	BOOL success = [[[request url] absoluteString] isEqualToString:@"http://www.apple.com/"];
 	GHAssertTrue(success,@"Failed to redirect to a different domain");		
 }
 

@@ -4,8 +4,7 @@
 //  Created by Ben Copsey on 30/06/2009.
 //  Copyright 2009 All-Seeing Interactive. All rights reserved.
 //
-// A (basic) class for accessing data stored on Amazon's Simple Storage Service (http://aws.amazon.com/s3/)
-// It uses the REST API, with canned access policies rather than full support for ACLs (though if you build/parse them yourself you can still use ACLs)
+// A (basic) class for accessing data stored on Amazon's Simple Storage Service (http://aws.amazon.com/s3/) using the REST API
 
 #import <Foundation/Foundation.h>
 #import "ASIHTTPRequest.h"
@@ -15,6 +14,12 @@ extern NSString *const ASIS3AccessPolicyPrivate; // This is the default in S3 wh
 extern NSString *const ASIS3AccessPolicyPublicRead;
 extern NSString *const ASIS3AccessPolicyPublicReadWrote;
 extern NSString *const ASIS3AccessPolicyAuthenticatedRead;
+
+typedef enum _ASIS3ErrorType {
+    ASIS3ResponseParsingFailedType = 1,
+    ASIS3ResponseErrorType = 2
+	
+} ASIS3ErrorType;
 
 @interface ASIS3Request : ASIHTTPRequest {
 
@@ -38,7 +43,19 @@ extern NSString *const ASIS3AccessPolicyAuthenticatedRead;
 	// Will be set to 'application/octet-stream' otherwise in iPhone apps, or autodetected on Mac OS X
 	NSString *mimeType;
 	
+	// The access policy to use when PUTting a file (see the string constants at the top of this header)
 	NSString *accessPolicy;
+	
+	// Options for filtering list requests
+	// See http://docs.amazonwebservices.com/AmazonS3/2006-03-01/index.html?RESTBucketGET.html
+	NSString *listPrefix;
+	NSString *listMarker;
+	int listMaxResults;
+	NSString *listDelimiter;
+	
+	// Internally used while parsing errors
+	NSString *currentErrorString;
+	
 }
 
 #pragma mark Constructors
@@ -49,15 +66,14 @@ extern NSString *const ASIS3AccessPolicyAuthenticatedRead;
 // Create a PUT request using the file at filePath as the body
 + (id)PUTRequestForFile:(NSString *)filePath withBucket:(NSString *)bucket path:(NSString *)path;
 
-// Create a list request
-+ (id)listRequestWithBucket:(NSString *)bucket prefix:(NSString *)prefix maxResults:(int)maxResults marker:(NSString *)marker;
-
 // Generates the request headers S3 needs
 // Automatically called before the request begins in startRequest
 - (void)generateS3Headers;
 
 // Uses the supplied date to create a Date header string
 - (void)setDate:(NSDate *)date;
+
+#pragma mark Helper functions
 
 // Only works on Mac OS, will always return 'application/octet-stream' on iPhone
 + (NSString *)mimeTypeForFileAtPath:(NSString *)path;
@@ -77,5 +93,6 @@ extern NSString *const ASIS3AccessPolicyAuthenticatedRead;
 @property (retain) NSString *mimeType;
 @property (retain) NSString *accessKey;
 @property (retain) NSString *secretAccessKey;
-@property (assign) NSString *accessPolicy;
+@property (retain) NSString *accessPolicy;
+
 @end

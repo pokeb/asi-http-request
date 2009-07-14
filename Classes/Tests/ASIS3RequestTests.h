@@ -13,10 +13,11 @@
 #endif
 
 @interface ASIS3RequestTests : GHTestCase {
-
 }
 
 - (void)testAuthenticationHeaderGeneration;
-//- (void)testREST;
+- (void)testREST;
+- (void)testFailure;
+- (void)testListRequest;
 
 @end
