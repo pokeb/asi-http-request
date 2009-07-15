@@ -583,6 +583,8 @@ static NSError *ASITooMuchRedirectionError;
         readStream = NULL;
     }
 	
+	[[self postBodyReadStream] close];
+	
     if (rawResponseData) {
 		[self setRawResponseData:nil];
 	
@@ -1027,8 +1029,6 @@ static NSError *ASITooMuchRedirectionError;
 						[self setRequestMethod:@"GET"];
 						[self setPostBody:nil];
 						[self setPostLength:0];
-						[self setPostBodyFilePath:nil];
-						[self setPostBodyWriteStream:nil];
 						[self setRequestHeaders:nil];
 					}
 					[self setURL:[[NSURL URLWithString:[responseHeaders valueForKey:@"Location"] relativeToURL:[self url]] absoluteURL]];
@@ -1355,6 +1355,8 @@ static NSError *ASITooMuchRedirectionError;
         CFRelease(readStream);
         readStream = NULL;
     }
+	
+	[[self postBodyReadStream] close];
 	
 	NSError *fileError = nil;
 	
