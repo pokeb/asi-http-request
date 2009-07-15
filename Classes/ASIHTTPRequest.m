@@ -170,7 +170,6 @@ static NSError *ASITooMuchRedirectionError;
 	[requestHeaders setObject:value forKey:header];
 }
 
-
 // This function will be called either just before a request starts, or when postLength is needed, whichever comes first
 // postLength must be set by the time this function is complete
 - (void)buildPostBody
@@ -1022,8 +1021,16 @@ static NSError *ASITooMuchRedirectionError;
 				}
 			}
 			// Do we need to redirect?
-			if ([self shouldRedirect]) {
+			if ([self shouldRedirect] && [responseHeaders valueForKey:@"Location"]) {
 				if ([self responseStatusCode] > 300 && [self responseStatusCode] < 308 && [self responseStatusCode] != 304) {
+					if ([self responseStatusCode] == 303) {
+						[self setRequestMethod:@"GET"];
+						[self setPostBody:nil];
+						[self setPostLength:0];
+						[self setPostBodyFilePath:nil];
+						[self setPostBodyWriteStream:nil];
+						[self setRequestHeaders:nil];
+					}
 					[self setURL:[[NSURL URLWithString:[responseHeaders valueForKey:@"Location"] relativeToURL:[self url]] absoluteURL]];
 					[self setNeedsRedirect:YES];
 				}

@@ -36,4 +36,5 @@
 - (void)testRedirectPreservesSession;
 - (void)testTooMuchRedirection;
 - (void)testRedirectToNewDomain;
+- (void)test303Redirect;
 @end

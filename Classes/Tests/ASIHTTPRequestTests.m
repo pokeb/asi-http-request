@@ -667,4 +667,17 @@
 	GHAssertTrue(success,@"Failed to redirect to a different domain");		
 }
 
+// Ensure request method changes to get
+- (void)test303Redirect
+{
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/redirect_303"]];
+	[request setRequestMethod:@"PUT"];
+	[request appendPostData:[@"Fuzzy" dataUsingEncoding:NSUTF8StringEncoding]];
+	[request start];
+	BOOL success = [[[request url] absoluteString] isEqualToString:@"http://asi/ASIHTTPRequest/tests/request-method"];
+	GHAssertTrue(success,@"Failed to redirect to correct location");
+	success = [[request responseString] isEqualToString:@"GET"];
+	GHAssertTrue(success,@"Failed to use GET on new URL");
+}
+
 @end
