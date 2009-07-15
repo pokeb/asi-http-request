@@ -142,6 +142,30 @@ static NSString *bucket = @"";
 	success = [[request responseString] isEqualToString:@"This is my content"];
 	GHAssertTrue(success,@"Failed to GET the correct data from S3");
 	
+	// COPY the file
+	request = [ASIS3Request COPYRequestFromBucket:bucket path:path toBucket:bucket path:@"/test-copy"];
+	[request setSecretAccessKey:secretAccessKey];
+	[request setAccessKey:accessKey];
+	[request start];
+	GHAssertNil([request error],@"Failed to COPY a file");
+	
+	// GET the copy
+	request = [ASIS3Request requestWithBucket:bucket path:@"/test-copy"];
+	[request setSecretAccessKey:secretAccessKey];
+	[request setAccessKey:accessKey];
+	[request start];
+	success = [[request responseString] isEqualToString:@"This is my content"];
+	GHAssertTrue(success,@"Failed to GET the correct data from S3");	
+	
+	
+	// HEAD the copy
+	request = [ASIS3Request HEADRequestWithBucket:bucket path:@"/test-copy"];
+	[request setSecretAccessKey:secretAccessKey];
+	[request setAccessKey:accessKey];
+	[request start];
+	success = [[request responseString] isEqualToString:@""];
+	GHAssertTrue(success,@"Got a response body for a HEAD request");
+	
 	// Get a list of files
 	ASIS3ListRequest *listRequest = [ASIS3ListRequest listRequestWithBucket:bucket];
 	[listRequest setPrefix:@"test"];
@@ -160,6 +184,25 @@ static NSString *bucket = @"";
 	[request start];
 	success = [[request responseString] isEqualToString:@""];
 	GHAssertTrue(success,@"Failed to DELETE the file from S3");	
+	
+	// (Also DELETE the copy we made)
+	request = [ASIS3Request requestWithBucket:bucket path:@"/test-copy"];
+	[request setSecretAccessKey:secretAccessKey];
+	[request setRequestMethod:@"DELETE"];
+	[request setAccessKey:accessKey];
+	[request start];
+	success = [[request responseString] isEqualToString:@""];
+	GHAssertTrue(success,@"Failed to DELETE the copy from S3");	
+	
+	// Attempt to COPY the file, even though it is no longer there
+	request = [ASIS3Request COPYRequestFromBucket:bucket path:path toBucket:bucket path:@"/test-copy"];
+	[request setSecretAccessKey:secretAccessKey];
+	[request setAccessKey:accessKey];
+	[request start];
+	GHAssertNotNil([request error],@"Failed generate an error for what should have been a failed COPY");
+	
+	success = [[[request error] localizedDescription] isEqualToString:@"The specified key does not exist."];
+	GHAssertTrue(success, @"Got the wrong error message");	
 }
 
 - (void)testListRequest

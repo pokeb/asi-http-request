@@ -26,20 +26,11 @@ static NSString *sharedSecretAccessKey = nil;
 
 @implementation ASIS3Request
 
-- (void)dealloc
-{
-	[bucket release];
-	[path release];
-	[dateString release];
-	[mimeType release];
-	[accessKey release];
-	[secretAccessKey release];
-	[super dealloc];
-}
+#pragma mark Constructors
 
 + (id)requestWithBucket:(NSString *)bucket path:(NSString *)path
 {
-	ASIS3Request *request =  [[[ASIS3Request alloc] initWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://%@.s3.amazonaws.com%@",bucket,path]]] autorelease];
+	ASIS3Request *request = [[[ASIS3Request alloc] initWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://%@.s3.amazonaws.com%@",bucket,path]]] autorelease];
 	[request setBucket:bucket];
 	[request setPath:path];
 	return request;
@@ -54,6 +45,43 @@ static NSString *sharedSecretAccessKey = nil;
 	[request setMimeType:[ASIS3Request mimeTypeForFileAtPath:filePath]];
 	return request;
 }
+
++ (id)DELETERequestWithBucket:(NSString *)bucket path:(NSString *)path
+{
+	ASIS3Request *request = [ASIS3Request requestWithBucket:bucket path:path];
+	[request setRequestMethod:@"DELETE"];
+	return request;
+}
+
++ (id)COPYRequestFromBucket:(NSString *)sourceBucket path:(NSString *)sourcePath toBucket:(NSString *)bucket path:(NSString *)path
+{
+	ASIS3Request *request = [ASIS3Request requestWithBucket:bucket path:path];
+	[request setRequestMethod:@"PUT"];
+	[request setSourceBucket:sourceBucket];
+	[request setSourcePath:sourcePath];
+	return request;
+}
+
++ (id)HEADRequestWithBucket:(NSString *)bucket path:(NSString *)path
+{
+	ASIS3Request *request = [ASIS3Request requestWithBucket:bucket path:path];
+	[request setRequestMethod:@"HEAD"];
+	return request;
+}
+
+- (void)dealloc
+{
+	[bucket release];
+	[path release];
+	[dateString release];
+	[mimeType release];
+	[accessKey release];
+	[secretAccessKey release];
+	[sourcePath release];
+	[sourceBucket release];
+	[super dealloc];
+}
+
 
 - (void)setDate:(NSDate *)date
 {
@@ -88,15 +116,23 @@ static NSString *sharedSecretAccessKey = nil;
 	NSString *canonicalizedResource = [NSString stringWithFormat:@"/%@%@",[self bucket],[self path]];
 	
 	// Add a header for the access policy if one was set, otherwise we won't add one (and S3 will default to private)
+	NSMutableDictionary *amzHeaders = [[[NSMutableDictionary alloc] init] autorelease];
 	NSString *canonicalizedAmzHeaders = @"";
 	if ([self accessPolicy]) {
-		[self addRequestHeader:@"x-amz-acl" value:[self accessPolicy]];
-		canonicalizedAmzHeaders = [NSString stringWithFormat:@"x-amz-acl:%@\n",[self accessPolicy]];
+		[amzHeaders setObject:[self accessPolicy] forKey:@"x-amz-acl"];
 	}
+	if ([self sourcePath]) {
+		[amzHeaders setObject:[[self sourceBucket] stringByAppendingString:[self sourcePath]] forKey:@"x-amz-copy-source"];
+	}
+	for (NSString *key in [amzHeaders keyEnumerator]) {
+		canonicalizedAmzHeaders = [NSString stringWithFormat:@"%@%@:%@\n",canonicalizedAmzHeaders,[key lowercaseString],[amzHeaders objectForKey:key]];
+		[self addRequestHeader:key value:[amzHeaders objectForKey:key]];
+	}
+	
 	
 	// Jump through hoops while eating hot food
 	NSString *stringToSign;
-	if ([[self requestMethod] isEqualToString:@"PUT"]) {
+	if ([[self requestMethod] isEqualToString:@"PUT"] && ![self sourcePath]) {
 		[self addRequestHeader:@"Content-Type" value:[self mimeType]];
 		stringToSign = [NSString stringWithFormat:@"PUT\n\n%@\n%@\n%@%@",[self mimeType],dateString,canonicalizedAmzHeaders,canonicalizedResource];
 	} else {
@@ -115,6 +151,11 @@ static NSString *sharedSecretAccessKey = nil;
 
 - (void)requestFinished
 {
+	// COPY requests return a 200 whether they succeed or fail, so we need to look at the XML to see if we were successful.
+	if ([self responseStatusCode] == 200 && [self sourcePath] && [self sourceBucket]) {
+		[self parseError];
+		return;
+	}
 	if ([self responseStatusCode] < 207) {
 		[super requestFinished];
 		return;
@@ -155,14 +196,6 @@ static NSString *sharedSecretAccessKey = nil;
 - (void)parser:(NSXMLParser *)parser foundCharacters:(NSString *)string
 {
 	[self setCurrentErrorString:[[self currentErrorString] stringByAppendingString:string]];
-}
-
-- (void)parserDidEndDocument:(NSXMLParser *)parser
-{
-	// We've got to the end of the XML error, without encountering a <Message></Message>, I don't think this should happen, but anyway
-	if (![self error]) {
-		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIS3ResponseErrorType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"An unspecified S3 error ocurred",NSLocalizedDescriptionKey,nil]]];	
-	}
 }
 
 
@@ -284,5 +317,6 @@ static NSString *sharedSecretAccessKey = nil;
 @synthesize secretAccessKey;
 @synthesize accessPolicy;
 @synthesize currentErrorString;
-
+@synthesize sourceBucket;
+@synthesize sourcePath;
 @end

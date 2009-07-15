@@ -23,7 +23,12 @@
 	ASIS3BucketObject *currentObject;
 	NSMutableArray *objects;	
 	
-
+	// Options for filtering list requests
+	// See http://docs.amazonwebservices.com/AmazonS3/2006-03-01/index.html?RESTBucketGET.html
+	NSString *listPrefix;
+	NSString *listMarker;
+	int listMaxResults;
+	NSString *listDelimiter;
 }
 // Create a list request
 + (id)listRequestWithBucket:(NSString *)bucket;

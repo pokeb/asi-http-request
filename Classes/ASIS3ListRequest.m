@@ -38,9 +38,13 @@ static NSDateFormatter *dateFormatter = nil;
 
 - (void)dealloc
 {
-	[currentElement release];
 	[currentObject release];
+	[currentElement release];
+	[currentContent release];
 	[objects release];
+	[prefix release];
+	[marker release];
+	[delimiter release];
 	[super dealloc];
 }
 
@@ -118,10 +122,6 @@ static NSDateFormatter *dateFormatter = nil;
 - (void)parser:(NSXMLParser *)parser foundCharacters:(NSString *)string
 {
 	[self setCurrentContent:[[self currentContent] stringByAppendingString:string]];
-}
-
-- (void)parserDidEndDocument:(NSXMLParser *)parser
-{
 }
 
 

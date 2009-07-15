@@ -46,12 +46,9 @@ typedef enum _ASIS3ErrorType {
 	// The access policy to use when PUTting a file (see the string constants at the top of this header)
 	NSString *accessPolicy;
 	
-	// Options for filtering list requests
-	// See http://docs.amazonwebservices.com/AmazonS3/2006-03-01/index.html?RESTBucketGET.html
-	NSString *listPrefix;
-	NSString *listMarker;
-	int listMaxResults;
-	NSString *listDelimiter;
+	// The bucket + path of the object to be copied (used with COPYRequestFromBucket:path:toBucket:path:)
+	NSString *sourceBucket;
+	NSString *sourcePath;
 	
 	// Internally used while parsing errors
 	NSString *currentErrorString;
@@ -65,6 +62,17 @@ typedef enum _ASIS3ErrorType {
 
 // Create a PUT request using the file at filePath as the body
 + (id)PUTRequestForFile:(NSString *)filePath withBucket:(NSString *)bucket path:(NSString *)path;
+
+// Create a DELETE request for the object at path
++ (id)DELETERequestWithBucket:(NSString *)bucket path:(NSString *)path;
+
+// Create a PUT request to copy an object from one location to another
+// Clang will complain because it thinks this method should return an object with +1 retain :(
++ (id)COPYRequestFromBucket:(NSString *)sourceBucket path:(NSString *)sourcePath toBucket:(NSString *)bucket path:(NSString *)path;
+
+// Creates a HEAD request for the object at path
++ (id)HEADRequestWithBucket:(NSString *)bucket path:(NSString *)path;
+
 
 // Generates the request headers S3 needs
 // Automatically called before the request begins in startRequest
@@ -94,5 +102,6 @@ typedef enum _ASIS3ErrorType {
 @property (retain) NSString *accessKey;
 @property (retain) NSString *secretAccessKey;
 @property (retain) NSString *accessPolicy;
-
+@property (retain) NSString *sourceBucket;
+@property (retain) NSString *sourcePath;
 @end
