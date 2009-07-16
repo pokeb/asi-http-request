@@ -19,7 +19,7 @@
 	complete = NO;
 	progress = 0;
 	
-	networkQueue = [[ASINetworkQueue queue] retain];
+	ASINetworkQueue *networkQueue = [ASINetworkQueue queue];
 	[networkQueue setDownloadProgressDelegate:self];
 	[networkQueue setDelegate:self];
 	[networkQueue setShowAccurateProgress:NO];
@@ -73,9 +73,6 @@
 	success = (progress > 0.95);
 	GHAssertTrue(success,@"Failed to increment progress properly");
 	
-	
-	[networkQueue release];
-	
 }
 
 - (void)testUploadProgress
@@ -83,7 +80,7 @@
 	complete = NO;
 	progress = 0;
 	
-	networkQueue = [[ASINetworkQueue alloc] init];
+	ASINetworkQueue *networkQueue = [[[ASINetworkQueue alloc] init] autorelease];
 	[networkQueue setUploadProgressDelegate:self];
 	[networkQueue setDelegate:self];
 	[networkQueue setShowAccurateProgress:NO];
@@ -135,8 +132,6 @@
 	success = (progress > 0.95);
 	GHAssertTrue(success,@"Failed to increment progress properly");
 	
-	[networkQueue release];
-	
 }
 
 
@@ -153,7 +148,7 @@
 {
 	complete = NO;
 	
-	networkQueue = [[ASINetworkQueue alloc] init];
+	ASINetworkQueue *networkQueue = [ASINetworkQueue queue];
 	[networkQueue setDelegate:self];
 	[networkQueue setRequestDidFailSelector:@selector(requestFailed:)];
 	[networkQueue setQueueDidFinishSelector:@selector(queueFinished:)];
@@ -224,7 +219,7 @@
 {
 	complete = NO;
 	
-	networkQueue = [[ASINetworkQueue alloc] init];
+	ASINetworkQueue *networkQueue = [ASINetworkQueue queue];
 	[networkQueue setDelegate:self];
 	[networkQueue setRequestDidFailSelector:@selector(requestFailedCancellingOthers:)];
 	[networkQueue setQueueDidFinishSelector:@selector(queueFinished:)];	
@@ -278,7 +273,7 @@
 	complete = NO;
 	progress = 0;
 	
-	networkQueue = [[ASINetworkQueue alloc] init];
+	ASINetworkQueue *networkQueue = [ASINetworkQueue queue];
 	[networkQueue setDownloadProgressDelegate:self];
 	[networkQueue setDelegate:self];
 	[networkQueue setShowAccurateProgress:YES];
@@ -299,11 +294,10 @@
 
 	NSError *error = [request error];
 	GHAssertNotNil(error,@"The HEAD request failed, but it didn't tell the main request to fail");	
-	[networkQueue release];
 	
 	complete = NO;
 	progress = 0;	
-	networkQueue = [[ASINetworkQueue alloc] init];
+	networkQueue = [ASINetworkQueue queue];
 	[networkQueue setDownloadProgressDelegate:self];
 	[networkQueue setDelegate:self];
 	[networkQueue setShowAccurateProgress:YES];
@@ -322,7 +316,6 @@
 	
 	error = [request error];
 	GHAssertNil(error,@"Failed to use authentication in a queue");	
-	[networkQueue release];
 	
 }
 
@@ -345,7 +338,7 @@
 {
     request_succeeded = NO;
     request_didfail = NO;
-	networkQueue = [[ASINetworkQueue alloc] init];
+	ASINetworkQueue *networkQueue = [ASINetworkQueue queue];
 	[networkQueue setDownloadProgressDelegate:self];
 	[networkQueue setDelegate:self];
 	[networkQueue setShowAccurateProgress:YES];
@@ -364,7 +357,6 @@
 	// This test may fail if you are using a proxy and it returns a page when you try to connect to a bad port.
 	GHAssertTrue(!request_succeeded && request_didfail,@"Request to resource without listener succeeded but should have failed");
     
-	[networkQueue release];
 }
 
 - (void)testPartialResume
@@ -383,7 +375,7 @@
 	}
 	
 	NSURL *downloadURL = [NSURL URLWithString:@"http://trails-network.net/Downloads/MemexTrails_1.0b1.zip"];
-	networkQueue = [[ASINetworkQueue alloc] init];	
+	ASINetworkQueue *networkQueue = [ASINetworkQueue queue];	
 
 	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:downloadURL] autorelease];
 	[request setDownloadDestinationPath:downloadPath];
@@ -402,8 +394,7 @@
 	// 5 seconds is up, let's tell the queue to stop
 	[networkQueue cancelAllOperations];
 	
-	[networkQueue release];
-	networkQueue = [[ASINetworkQueue alloc] init];
+	networkQueue = [ASINetworkQueue queue];
 	[networkQueue setDownloadProgressDelegate:self];
 	[networkQueue setShowAccurateProgress:YES];
 	[networkQueue setDelegate:self];
@@ -435,13 +426,12 @@
 	success = (progress > 0.95);
 	GHAssertTrue(success,@"Failed to increment progress properly");
 	
-	[networkQueue release];	
-	
+
 	
 	//Test the temporary file cleanup
 	complete = NO;
 	progress = 0;
-	networkQueue = [[ASINetworkQueue alloc] init];	
+	networkQueue = [ASINetworkQueue queue];
 	[networkQueue setDownloadProgressDelegate:self];
 	[networkQueue setShowAccurateProgress:YES];
 	[networkQueue setDelegate:self];
@@ -470,7 +460,6 @@
 	GHAssertTrue(success,@"Temporary download file should have been deleted");		
 	
 	timeoutTimer = nil;
-	[networkQueue release];	
 	
 }
 
@@ -480,5 +469,55 @@
 }
 
 
+// Not strictly an ASINetworkQueue test, but queue related
+// As soon as one request finishes or fails, we'll cancel the others and ensure that no requests are both finished and failed
+- (void)testImmediateCancel
+{
+	[self setFailedRequests:[[[NSMutableArray alloc] init] autorelease]];
+	[self setFinishedRequests:[[[NSMutableArray alloc] init] autorelease]];
+	[self setImmediateCancelQueue:[[[NSOperationQueue alloc] init] autorelease]];
+	int i;
+	for (i=0; i<100; i++) {
+		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi"]];
+		[request setDelegate:self];
+		[request setDidFailSelector:@selector(immediateCancelFail:)];
+		[request setDidFinishSelector:@selector(immediateCancelFinish:)];
+		[[self immediateCancelQueue] addOperation:request];
+	}
+	
+}
+
+- (void)immediateCancelFail:(ASIHTTPRequest *)request
+{
+	[[self immediateCancelQueue] cancelAllOperations];
+	if ([[self failedRequests] containsObject:request]) {
+		GHFail(@"A request called its fail delegate method twice");
+	}
+	if ([[self finishedRequests] containsObject:request]) {
+		GHFail(@"A request that had already finished called its fail delegate method");
+	}
+	[[self failedRequests] addObject:request];
+	if ([[self failedRequests] count]+[[self finishedRequests] count] > 100) {
+		GHFail(@"We got more than 100 delegate fail/finish calls - this shouldn't happen!");
+	}
+}
+
+- (void)immediateCancelFinish:(ASIHTTPRequest *)request
+{
+	[[self immediateCancelQueue] cancelAllOperations];
+	if ([[self finishedRequests] containsObject:request]) {
+		GHFail(@"A request called its finish delegate method twice");
+	}
+	if ([[self failedRequests] containsObject:request]) {
+		GHFail(@"A request that had already failed called its finish delegate method");
+	}
+	[[self finishedRequests] addObject:request];
+	if ([[self failedRequests] count]+[[self finishedRequests] count] > 100) {
+		GHFail(@"We got more than 100 delegate fail/finish calls - this shouldn't happen!");
+	}
+}
  
+@synthesize immediateCancelQueue;
+@synthesize failedRequests;
+@synthesize finishedRequests;
 @end

@@ -263,6 +263,10 @@ static NSError *ASITooMuchRedirectionError;
 
 - (void)cancel
 {
+	// Request may already be complete
+	if ([self complete] || [self isCancelled]) {
+		return;
+	}
 	[self failWithError:ASIRequestCancelledError];
 	[super cancel];
 	[self cancelLoad];
@@ -897,7 +901,7 @@ static NSError *ASITooMuchRedirectionError;
 // If you do this, don't forget to call [super requestFinished] to let the queue / delegate know we're done
 - (void)requestFinished
 {
-	if ([self isCancelled] || [self mainRequest]) {
+	if ([self error] || [self mainRequest]) {
 		return;
 	}
 	// Let the queue know we are done
@@ -917,36 +921,32 @@ static NSError *ASITooMuchRedirectionError;
 {
 	[self setComplete:YES];
 	
-	if ([self isCancelled]) {
+	if ([self isCancelled] || [self error]) {
 		return;
 	}
 	
-	if (!error) {
-		
-		// If this is a HEAD request created by an ASINetworkQueue or compatible queue delegate, make the main request fail
-		if ([self mainRequest]) {
-			ASIHTTPRequest *mRequest = [self mainRequest];
-			[mRequest setError:theError];
+	// If this is a HEAD request created by an ASINetworkQueue or compatible queue delegate, make the main request fail
+	if ([self mainRequest]) {
+		ASIHTTPRequest *mRequest = [self mainRequest];
+		[mRequest setError:theError];
 
-			// Let the queue know something went wrong
-			if ([queue respondsToSelector:@selector(requestDidFail:)]) {
-				[queue performSelectorOnMainThread:@selector(requestDidFail:) withObject:mRequest waitUntilDone:[NSThread isMainThread]];		
-			}
-		
-		} else {
-			[self setError:theError];
-			
-			// Let the queue know something went wrong
-			if ([queue respondsToSelector:@selector(requestDidFail:)]) {
-				[queue performSelectorOnMainThread:@selector(requestDidFail:) withObject:self waitUntilDone:[NSThread isMainThread]];		
-			}
-			
-			// Let the delegate know something went wrong
-			if (didFailSelector && [delegate respondsToSelector:didFailSelector]) {
-				[delegate performSelectorOnMainThread:didFailSelector withObject:self waitUntilDone:[NSThread isMainThread]];	
-			}
+		// Let the queue know something went wrong
+		if ([queue respondsToSelector:@selector(requestDidFail:)]) {
+			[queue performSelectorOnMainThread:@selector(requestDidFail:) withObject:mRequest waitUntilDone:[NSThread isMainThread]];		
 		}
-
+	
+	} else {
+		[self setError:theError];
+		
+		// Let the queue know something went wrong
+		if ([queue respondsToSelector:@selector(requestDidFail:)]) {
+			[queue performSelectorOnMainThread:@selector(requestDidFail:) withObject:self waitUntilDone:[NSThread isMainThread]];		
+		}
+		
+		// Let the delegate know something went wrong
+		if (didFailSelector && [delegate respondsToSelector:didFailSelector]) {
+			[delegate performSelectorOnMainThread:didFailSelector withObject:self waitUntilDone:[NSThread isMainThread]];	
+		}
 	}
 }
 
