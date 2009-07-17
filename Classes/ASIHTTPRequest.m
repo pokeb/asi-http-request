@@ -70,6 +70,8 @@ static NSError *ASITooMuchRedirectionError;
 	@property (assign, nonatomic) BOOL updatedProgress;
 	@property (assign, nonatomic) BOOL needsRedirect;
 	@property (assign, nonatomic) int redirectCount;
+	@property (retain, nonatomic) NSData *compressedPostBody;
+	@property (retain, nonatomic) NSString *compressedPostBodyFilePath;
 @end
 
 @implementation ASIHTTPRequest
@@ -133,6 +135,7 @@ static NSError *ASITooMuchRedirectionError;
 	[userInfo release];
 	[mainRequest release];
 	[postBody release];
+	[compressedPostBody release];
 	[requestCredentials release];
 	[error release];
 	[requestHeaders release];
@@ -154,6 +157,7 @@ static NSError *ASITooMuchRedirectionError;
 	[cancelledLock release];
 	[authenticationMethod release];
 	[postBodyFilePath release];
+	[compressedPostBodyFilePath release];
 	[postBodyWriteStream release];
 	[postBodyReadStream release];
 	[super dealloc];
@@ -177,16 +181,28 @@ static NSError *ASITooMuchRedirectionError;
 	// Are we submitting the request body from a file on disk
 	if ([self postBodyFilePath]) {
 		
-		// If we were writing to the post body via appendPostData or appendPostDataFromFile, close the write tream
+		// If we were writing to the post body via appendPostData or appendPostDataFromFile, close the write stream
 		if ([self postBodyWriteStream]) {
 			[[self postBodyWriteStream] close];
 			[self setPostBodyWriteStream:nil];
 		}
-		[self setPostLength:[[[NSFileManager defaultManager] fileAttributesAtPath:[self postBodyFilePath] traverseLink:NO] fileSize]];
+
+		if ([self shouldCompressRequestBody]) {
+			[self setCompressedPostBodyFilePath:[NSTemporaryDirectory() stringByAppendingPathComponent:[[NSProcessInfo processInfo] globallyUniqueString]]];
+			[ASIHTTPRequest compressDataFromFile:[self postBodyFilePath] toFile:[self compressedPostBodyFilePath]];
+			[self setPostLength:[[[NSFileManager defaultManager] fileAttributesAtPath:[self compressedPostBodyFilePath] traverseLink:NO] fileSize]];
+		} else {
+			[self setPostLength:[[[NSFileManager defaultManager] fileAttributesAtPath:[self postBodyFilePath] traverseLink:NO] fileSize]];
+		}
 		
 	// Otherwise, we have an in-memory request body
 	} else {
-		[self setPostLength:[postBody length]];
+		if ([self shouldCompressRequestBody]) {
+			[self setCompressedPostBody:[ASIHTTPRequest compressData:[self postBody]]];
+			[self setPostLength:[[self compressedPostBody] length]];
+		} else {
+			[self setPostLength:[[self postBody] length]];
+		}
 	}
 		
 	if ([self postLength] > 0) 
@@ -194,7 +210,7 @@ static NSError *ASITooMuchRedirectionError;
 		if (![requestMethod isEqualToString:@"POST"] && ![requestMethod isEqualToString:@"PUT"]) {
 			[self setRequestMethod:@"POST"];
 		}
-		[self addRequestHeader:@"Content-Length" value:[NSString stringWithFormat:@"%llu",postLength]];
+		[self addRequestHeader:@"Content-Length" value:[NSString stringWithFormat:@"%llu",[self postLength]]];
 	}
 	[self setHaveBuiltPostBody:YES];
 }
@@ -374,6 +390,11 @@ static NSError *ASITooMuchRedirectionError;
 		[self addRequestHeader:@"Accept-Encoding" value:@"gzip"];
 	}
 	
+	// Configure a compressed request body
+	if ([self shouldCompressRequestBody]) {
+		[self addRequestHeader:@"Content-Encoding" value:@"gzip"];
+	}
+	
 	// Should this request resume an existing download?
 	if ([self allowResumeForFileDownloads] && [self downloadDestinationPath] && [self temporaryFileDownloadPath] && [[NSFileManager defaultManager] fileExistsAtPath:[self temporaryFileDownloadPath]]) {
 		[self setPartialDownloadSize:[[[NSFileManager defaultManager] fileAttributesAtPath:[self temporaryFileDownloadPath] traverseLink:NO] fileSize]];
@@ -394,9 +415,11 @@ static NSError *ASITooMuchRedirectionError;
 		CFHTTPMessageSetHeaderFieldValue(request, (CFStringRef)header, (CFStringRef)[requestHeaders objectForKey:header]);
 	}
 
-	// If this is a post request and we have data in memory send, add it to the request
-	if ([self postBody]) {
-		CFHTTPMessageSetBody(request, (CFDataRef)postBody);
+	// If this is a post/put request and we store the request body in memory, add it to the request
+	if ([self shouldCompressRequestBody] && [self compressedPostBody]) {
+		CFHTTPMessageSetBody(request, (CFDataRef)[self compressedPostBody]);
+	} else if ([self postBody]) {
+		CFHTTPMessageSetBody(request, (CFDataRef)[self postBody]);
 	}
 	
 	[self loadRequest];
@@ -435,8 +458,13 @@ static NSError *ASITooMuchRedirectionError;
     }
     // Create the stream for the request.
 	if ([self shouldStreamPostDataFromDisk] && [self postBodyFilePath] && [[NSFileManager defaultManager] fileExistsAtPath:[self postBodyFilePath]]) {
-		[self setPostBodyReadStream:[[[NSInputStream alloc] initWithFileAtPath:[self postBodyFilePath]] autorelease]];
-		[[self postBodyReadStream] open];
+		
+		// Are we gzipping the request body?
+		if ([self compressedPostBodyFilePath] && [[NSFileManager defaultManager] fileExistsAtPath:[self compressedPostBodyFilePath]]) {
+			[self setPostBodyReadStream:[[[NSInputStream alloc] initWithFileAtPath:[self compressedPostBodyFilePath]] autorelease]];
+		} else {
+			[self setPostBodyReadStream:[[[NSInputStream alloc] initWithFileAtPath:[self postBodyFilePath]] autorelease]];	
+		}
 		readStream = CFReadStreamCreateForStreamedHTTPRequest(kCFAllocatorDefault, request,(CFReadStreamRef)[self postBodyReadStream]);
     } else {
 		readStream = CFReadStreamCreateForHTTPRequest(kCFAllocatorDefault, request);
@@ -626,13 +654,21 @@ static NSError *ASITooMuchRedirectionError;
 
 - (void)removePostDataFile
 {
-	if (postBodyFilePath) {
+	if ([self postBodyFilePath]) {
 		NSError *removeError = nil;
-		[[NSFileManager defaultManager] removeItemAtPath:postBodyFilePath error:&removeError];
+		[[NSFileManager defaultManager] removeItemAtPath:[self postBodyFilePath] error:&removeError];
 		if (removeError) {
-			[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIFileManagementError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Failed to delete file at %@ with error: %@",postBodyFilePath,removeError],NSLocalizedDescriptionKey,removeError,NSUnderlyingErrorKey,nil]]];
+			[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIFileManagementError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Failed to delete file at %@ with error: %@",[self postBodyFilePath],removeError],NSLocalizedDescriptionKey,removeError,NSUnderlyingErrorKey,nil]]];
 		}
 		[self setPostBodyFilePath:nil];
+	}
+	if ([self compressedPostBodyFilePath]) {
+		NSError *removeError = nil;
+		[[NSFileManager defaultManager] removeItemAtPath:[self compressedPostBodyFilePath] error:&removeError];
+		if (removeError) {
+			[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIFileManagementError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Failed to delete file at %@ with error: %@",[self compressedPostBodyFilePath],removeError],NSLocalizedDescriptionKey,removeError,NSUnderlyingErrorKey,nil]]];
+		}
+		[self setCompressedPostBodyFilePath:nil];
 	}
 }
 
@@ -708,7 +744,7 @@ static NSError *ASITooMuchRedirectionError;
 		return;
 	}
 	
-	// If this is the first time we've written to the buffer, byteCount will be the size of the buffer (currently seems to be 128KB on both Mac and iPhone 2.2.1, 32KB on iPhone 3.0)
+	// If this is the first time we've written to the buffer, byteCount will be the size of the buffer (currently seems to be 128KB on both Leopard and iPhone 2.2.1, 32KB on iPhone 3.0)
 	// If request body is less than the buffer size, byteCount will be the total size of the request body
 	// We will remove this from any progress display, as kCFStreamPropertyHTTPRequestBytesWrittenCount does not tell us how much data has actually be written
 	if (totalBytesSent > 0 && uploadBufferSize == 0 && totalBytesSent != postLength) {
@@ -1258,6 +1294,7 @@ static NSError *ASITooMuchRedirectionError;
 
 - (void)handleNetworkEvent:(CFStreamEventType)type
 {	
+	NSLog(@"%hi",type);
     // Dispatch the stream events.
     switch (type) {
         case kCFStreamEventHasBytesAvailable:
@@ -1334,7 +1371,7 @@ static NSError *ASITooMuchRedirectionError;
 
 - (void)handleStreamComplete
 {
-	//Try to read the headers (if this is a HEAD request handleBytesAvailable available may not be called)
+	//Try to read the headers (if this is a HEAD request handleBytesAvailable may not be called)
 	if (![self responseHeaders]) {
 		if ([self readResponseHeadersReturningAuthenticationFailure]) {
 			[self attemptToApplyCredentialsAndResume];
@@ -1536,7 +1573,7 @@ static NSError *ASITooMuchRedirectionError;
 }
 
 
-#pragma mark gzip data handling
+#pragma mark gzip decompression
 
 //
 // Contributed by Shaun Harrison of Enormego, see: http://developers.enormego.com/view/asihttprequest_gzip
@@ -1589,24 +1626,29 @@ static NSError *ASITooMuchRedirectionError;
 	}
 }
 
-
+// NOTE: To debug this method, turn off Data Formatters in Xcode or you'll crash on closeFile
 + (int)uncompressZippedDataFromFile:(NSString *)sourcePath toFile:(NSString *)destinationPath
 {
-	// Get a FILE struct for the source file
-	FILE *source = fdopen([[NSFileHandle fileHandleForReadingAtPath:sourcePath] fileDescriptor], "r");
-	
 	// Create an empty file at the destination path
 	[[NSFileManager defaultManager] createFileAtPath:destinationPath contents:[NSData data] attributes:nil];
 	
+	// Get a FILE struct for the source file
+	NSFileHandle *inputFileHandle = [NSFileHandle fileHandleForReadingAtPath:sourcePath];
+	FILE *source = fdopen([inputFileHandle fileDescriptor], "r");
+	
 	// Get a FILE struct for the destination path
-	FILE *dest = fdopen([[NSFileHandle fileHandleForWritingAtPath:destinationPath] fileDescriptor], "w");
+	NSFileHandle *outputFileHandle = [NSFileHandle fileHandleForWritingAtPath:destinationPath];
+	FILE *dest = fdopen([outputFileHandle fileDescriptor], "w");
+	
 	
 	// Uncompress data in source and save in destination
 	int status = [ASIHTTPRequest uncompressZippedDataFromSource:source toDestination:dest];
 	
 	// Close the files
-	fclose(source);
 	fclose(dest);
+	fclose(source);
+	[inputFileHandle closeFile];
+	[outputFileHandle closeFile];	
 	return status;
 }
 
@@ -1615,6 +1657,7 @@ static NSError *ASITooMuchRedirectionError;
 //	http://www.zlib.net/zpipe.c
 //
 #define CHUNK 16384
+#define SET_BINARY_MODE(file)
 + (int)uncompressZippedDataFromSource:(FILE *)source toDestination:(FILE *)dest
 {
     int ret;
@@ -1673,6 +1716,134 @@ static NSError *ASITooMuchRedirectionError;
     return ret == Z_STREAM_END ? Z_OK : Z_DATA_ERROR;
 }
 
+
+#pragma mark gzip compression
+
+// Based on this from Robbie Hanson: http://deusty.blogspot.com/2007/07/gzip-compressiondecompression.html
+
++ (NSData *)compressData:(NSData*)uncompressedData
+{
+	if ([uncompressedData length] == 0) return uncompressedData;
+	
+	z_stream strm;
+	
+	strm.zalloc = Z_NULL;
+	strm.zfree = Z_NULL;
+	strm.opaque = Z_NULL;
+	strm.total_out = 0;
+	strm.next_in=(Bytef *)[uncompressedData bytes];
+	strm.avail_in = [uncompressedData length];
+	
+	// Compresssion Levels:
+	//   Z_NO_COMPRESSION
+	//   Z_BEST_SPEED
+	//   Z_BEST_COMPRESSION
+	//   Z_DEFAULT_COMPRESSION
+	
+	if (deflateInit2(&strm, Z_DEFAULT_COMPRESSION, Z_DEFLATED, (15+16), 8, Z_DEFAULT_STRATEGY) != Z_OK) return nil;
+	
+	NSMutableData *compressed = [NSMutableData dataWithLength:16384];  // 16K chunks for expansion
+	
+	do {
+		
+		if (strm.total_out >= [compressed length])
+			[compressed increaseLengthBy: 16384];
+		
+		strm.next_out = [compressed mutableBytes] + strm.total_out;
+		strm.avail_out = [compressed length] - strm.total_out;
+		
+		deflate(&strm, Z_FINISH);  
+		
+	} while (strm.avail_out == 0);
+	
+	deflateEnd(&strm);
+	
+	[compressed setLength: strm.total_out];
+	return [NSData dataWithData:compressed];
+}
+
+// NOTE: To debug this method, turn off Data Formatters in Xcode or you'll crash on closeFile
++ (int)compressDataFromFile:(NSString *)sourcePath toFile:(NSString *)destinationPath
+{
+	// Create an empty file at the destination path
+	[[NSFileManager defaultManager] createFileAtPath:destinationPath contents:[NSData data] attributes:nil];
+	
+	// Get a FILE struct for the source file
+	NSFileHandle *inputFileHandle = [NSFileHandle fileHandleForReadingAtPath:sourcePath];
+	FILE *source = fdopen([inputFileHandle fileDescriptor], "r");
+
+	// Get a FILE struct for the destination path
+	NSFileHandle *outputFileHandle = [NSFileHandle fileHandleForWritingAtPath:destinationPath];
+	FILE *dest = fdopen([outputFileHandle fileDescriptor], "w");
+
+	// compress data in source and save in destination
+	int status = [ASIHTTPRequest compressDataFromSource:source toDestination:dest];
+
+	// Close the files
+	fclose(dest);
+	fclose(source);
+	
+	// We have to close both of these explictly because CFReadStreamCreateForStreamedHTTPRequest() seems to go bonkers otherwise
+	[inputFileHandle closeFile];
+	[outputFileHandle closeFile];
+
+	return status;
+}
+
+//
+// Also from the zlib sample code  at http://www.zlib.net/zpipe.c
+// 
++ (int)compressDataFromSource:(FILE *)source toDestination:(FILE *)dest
+{
+    int ret, flush;
+    unsigned have;
+    z_stream strm;
+    unsigned char in[CHUNK];
+    unsigned char out[CHUNK];
+	
+    /* allocate deflate state */
+    strm.zalloc = Z_NULL;
+    strm.zfree = Z_NULL;
+    strm.opaque = Z_NULL;
+    ret = deflateInit2(&strm, Z_DEFAULT_COMPRESSION, Z_DEFLATED, (15+16), 8, Z_DEFAULT_STRATEGY);
+    if (ret != Z_OK)
+        return ret;
+	
+    /* compress until end of file */
+    do {
+        strm.avail_in = fread(in, 1, CHUNK, source);
+        if (ferror(source)) {
+            (void)deflateEnd(&strm);
+            return Z_ERRNO;
+        }
+        flush = feof(source) ? Z_FINISH : Z_NO_FLUSH;
+        strm.next_in = in;
+		
+        /* run deflate() on input until output buffer not full, finish
+		 compression if all of source has been read in */
+        do {
+            strm.avail_out = CHUNK;
+            strm.next_out = out;
+            ret = deflate(&strm, flush);    /* no bad return value */
+            assert(ret != Z_STREAM_ERROR);  /* state not clobbered */
+            have = CHUNK - strm.avail_out;
+            if (fwrite(out, 1, have, dest) != have || ferror(dest)) {
+                (void)deflateEnd(&strm);
+                return Z_ERRNO;
+            }
+        } while (strm.avail_out == 0);
+        assert(strm.avail_in == 0);     /* all input will be used */
+		
+        /* done when last data in file processed */
+    } while (flush != Z_FINISH);
+    assert(ret == Z_STREAM_END);        /* stream will be complete */
+	
+    /* clean up and return */
+    (void)deflateEnd(&strm);
+    return Z_OK;
+}
+
+
 @synthesize username;
 @synthesize password;
 @synthesize domain;
@@ -1702,6 +1873,7 @@ static NSError *ASITooMuchRedirectionError;
 @synthesize timeOutSeconds;
 @synthesize requestMethod;
 @synthesize postBody;
+@synthesize compressedPostBody;
 @synthesize contentLength;
 @synthesize partialDownloadSize;
 @synthesize postLength;
@@ -1717,6 +1889,7 @@ static NSError *ASITooMuchRedirectionError;
 @synthesize allowResumeForFileDownloads;
 @synthesize userInfo;
 @synthesize postBodyFilePath;
+@synthesize compressedPostBodyFilePath;
 @synthesize postBodyWriteStream;
 @synthesize postBodyReadStream;
 @synthesize shouldStreamPostDataFromDisk;
@@ -1733,4 +1906,5 @@ static NSError *ASITooMuchRedirectionError;
 @synthesize validatesSecureCertificate;
 @synthesize needsRedirect;
 @synthesize redirectCount;
+@synthesize shouldCompressRequestBody;
 @end

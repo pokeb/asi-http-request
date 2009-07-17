@@ -37,5 +37,6 @@
 - (void)testTooMuchRedirection;
 - (void)testRedirectToNewDomain;
 - (void)test303Redirect;
+- (void)testCompression;
 
 @end

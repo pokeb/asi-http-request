@@ -10,7 +10,7 @@
 #import "ASIHTTPRequest.h"
 #import "ASINSStringAdditions.h"
 #import "ASINetworkQueue.h"
-
+#import "ASIFormDataRequest.h"
 
 @implementation ASIHTTPRequestTests
 
@@ -680,6 +680,58 @@
 	GHAssertTrue(success,@"Failed to use GET on new URL");
 }
 
+- (void)testCompression
+{
+	NSString *content = @"This is the test content. This is the test content. This is the test content. This is the test content.";
+	
+	// Test in memory compression / decompression
+	NSData *data = [content dataUsingEncoding:NSUTF8StringEncoding];
+	NSData *compressedData = [ASIHTTPRequest compressData:data];
+	NSData *uncompressedData = [ASIHTTPRequest uncompressZippedData:compressedData];
+	NSString *newContent = [[[NSString alloc] initWithBytes:[uncompressedData bytes] length:[uncompressedData length] encoding:NSUTF8StringEncoding] autorelease];
+	
+	BOOL success = [newContent isEqualToString:content];
+	GHAssertTrue(success,@"Failed compress or decompress the correct data");	
+	
+	// Test file to file compression / decompression
+	NSString *basePath = [[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent];
+	NSString *sourcePath = [basePath stringByAppendingPathComponent:@"text.txt"];
+	NSString *destPath = [basePath stringByAppendingPathComponent:@"text.txt.compressed"];
+	NSString *newPath = [basePath stringByAppendingPathComponent:@"text2.txt"];
+	
+	[content writeToFile:sourcePath atomically:NO encoding:NSUTF8StringEncoding error:NULL];
+	[ASIHTTPRequest compressDataFromFile:sourcePath toFile:destPath];
+	[ASIHTTPRequest uncompressZippedDataFromFile:destPath toFile:newPath];
+	success = [[NSString stringWithContentsOfFile:newPath encoding:NSUTF8StringEncoding error:NULL] isEqualToString:content];
+	GHAssertTrue(success,@"Failed compress or decompress the correct data");
+	
+	// Test compressed body
+	// Body is deflated by ASIHTTPRequest, sent, inflated by the server, printed, deflated by mod_deflate, response is inflated by ASIHTTPRequest
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/compressed_post_body"]];
+	[request setRequestMethod:@"PUT"];
+	[request setShouldCompressRequestBody:YES];
+	[request appendPostData:data];
+	[request start];
+	
+	success = [[request responseString] isEqualToString:content];
+	GHAssertTrue(success,@"Failed to compress the body, or server failed to decompress it");	
+	
+	
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/compressed_post_body"]];
+	[request setRequestMethod:@"PUT"];
+	[request setShouldCompressRequestBody:YES];
+	[request setShouldStreamPostDataFromDisk:YES];
+	[request setUploadProgressDelegate:self];
+	[request setPostBodyFilePath:sourcePath];
+
+	[request start];
+	
+	success = [[request responseString] isEqualToString:content];
+	GHAssertTrue(success,@"Failed to compress the body, or server failed to decompress it");		
+	
+
+
+}
 
 
 @end
