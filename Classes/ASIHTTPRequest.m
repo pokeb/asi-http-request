@@ -1294,7 +1294,6 @@ static NSError *ASITooMuchRedirectionError;
 
 - (void)handleNetworkEvent:(CFStreamEventType)type
 {	
-	NSLog(@"%hi",type);
     // Dispatch the stream events.
     switch (type) {
         case kCFStreamEventHasBytesAvailable:

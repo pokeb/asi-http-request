@@ -716,16 +716,14 @@
 	success = [[request responseString] isEqualToString:content];
 	GHAssertTrue(success,@"Failed to compress the body, or server failed to decompress it");	
 	
-	
 	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/compressed_post_body"]];
 	[request setRequestMethod:@"PUT"];
 	[request setShouldCompressRequestBody:YES];
 	[request setShouldStreamPostDataFromDisk:YES];
 	[request setUploadProgressDelegate:self];
 	[request setPostBodyFilePath:sourcePath];
-
 	[request start];
-	
+
 	success = [[request responseString] isEqualToString:content];
 	GHAssertTrue(success,@"Failed to compress the body, or server failed to decompress it");		
 	
