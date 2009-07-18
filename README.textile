@@ -13,7 +13,7 @@ It provides:
 * Auto-magic management of upload and download progress indicators for operation queues
 * Basic, Digest + NTLM authentication support, credentials are automatically re-used for the duration of a session, and can be stored for later in the Keychain.
 * Cookie support
-* GZIP support for response data
+* GZIP support for response data AND request bodies
 * [NEW] Experimental support for Amazon S3
 * Based on NSOperation to make queuing requests and background operation easy
 * Comes with a broad range of unit tests
