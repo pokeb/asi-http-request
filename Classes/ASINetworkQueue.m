@@ -42,7 +42,7 @@
 
 + (id)queue
 {
-	return [[[ASINetworkQueue alloc] init] autorelease];
+	return [[[self alloc] init] autorelease];
 }
 
 - (void)dealloc
