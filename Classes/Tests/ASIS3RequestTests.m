@@ -121,7 +121,7 @@ static NSString *bucket = @"";
 	
 	NSString *path = @"/test";
 	
-	// Create the fle
+	// Create the file
 	NSString *text = @"This is my content";
 	NSString *filePath = [[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"testfile.txt"];
 	[[text dataUsingEncoding:NSUTF8StringEncoding] writeToFile:filePath atomically:NO];
@@ -204,6 +204,47 @@ static NSString *bucket = @"";
 	success = [[[request error] localizedDescription] isEqualToString:@"The specified key does not exist."];
 	GHAssertTrue(success, @"Got the wrong error message");	
 }
+
+// Will upload a file to S3, gzipping it before uploading
+// The file will be stored deflate, and automatically inflated when downloaded
+// This means the file will take up less storage space, and will upload and download faster
+// The file should still be accessible by any HTTP client that supports gzipped responses (eg browsers, NSURLConnection, etc)
+- (void)testGZippedContent
+{
+	// Create the file
+	NSString *text = @"This is my content This is my content This is my content This is my content This is my content This is my content";
+	NSString *filePath = [[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"testfile.txt"];
+	[[text dataUsingEncoding:NSUTF8StringEncoding] writeToFile:filePath atomically:NO];
+	
+	NSString *path = @"/gzipped-data";
+	ASIS3Request *request = [ASIS3Request PUTRequestForFile:filePath withBucket:bucket path:path];
+	[request setSecretAccessKey:secretAccessKey];
+	[request setAccessKey:accessKey];
+	[request setShouldCompressRequestBody:YES];
+	[request setAccessPolicy:ASIS3AccessPolicyPublicRead]; // We'll make it public
+	[request start];
+	BOOL success = [[request responseString] isEqualToString:@""];
+	GHAssertTrue(success,@"Failed to PUT the gzipped file");		
+	
+	// GET the file
+	request = [ASIS3Request requestWithBucket:bucket path:path];
+	[request setSecretAccessKey:secretAccessKey];
+	[request setAccessKey:accessKey];
+	[request start];
+	success = [[request responseString] isEqualToString:text];
+	GHAssertTrue(success,@"Failed to GET the correct data from S3");	
+	
+	success = [[[request responseHeaders] valueForKey:@"Content-Encoding"] isEqualToString:@"gzip"];
+	GHAssertTrue(success,@"Failed to GET the correct data from S3");	
+	
+	// Now grab the data using something other than ASIHTTPRequest to ensure other HTTP clients can parse the gzipped content
+	NSData *data = [NSURLConnection sendSynchronousRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://%@.s3.amazonaws.com/gzipped-data",bucket]]] returningResponse:NULL error:NULL];
+	NSString *string = [[[NSString alloc] initWithBytes:[data bytes] length:[data length] encoding:NSUTF8StringEncoding] autorelease];
+	success = [string isEqualToString:text];
+	GHAssertTrue(success,@"Failed to GET the correct data from S3");		
+	
+}
+
 
 - (void)testListRequest
 {	

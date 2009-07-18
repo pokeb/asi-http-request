@@ -72,6 +72,7 @@ static NSError *ASITooMuchRedirectionError;
 	@property (assign, nonatomic) int redirectCount;
 	@property (retain, nonatomic) NSData *compressedPostBody;
 	@property (retain, nonatomic) NSString *compressedPostBodyFilePath;
+	@property (retain) NSConditionLock *authenticationLock;
 @end
 
 @implementation ASIHTTPRequest
@@ -428,15 +429,14 @@ static NSError *ASITooMuchRedirectionError;
 
 - (void)startRequest
 {
-	[cancelledLock lock];
+	[[self cancelledLock] lock];
 	
 	if ([self isCancelled]) {
-		[cancelledLock unlock];
+		[[self cancelledLock] unlock];
 		return;
 	}
 	
-	[authenticationLock release];
-	authenticationLock = [[NSConditionLock alloc] initWithCondition:1];
+	[self setAuthenticationLock:[[[NSConditionLock alloc] initWithCondition:1] autorelease]];
 	
 	[self setComplete:NO];
 	[self setTotalBytesRead:0];
@@ -470,7 +470,7 @@ static NSError *ASITooMuchRedirectionError;
 		readStream = CFReadStreamCreateForHTTPRequest(kCFAllocatorDefault, request);
 	}
 	if (!readStream) {
-		[cancelledLock unlock];
+		[[self cancelledLock] unlock];
 		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIInternalErrorWhileBuildingRequestType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Unable to create read stream",NSLocalizedDescriptionKey,nil]]];
         return;
     }
@@ -502,7 +502,7 @@ static NSError *ASITooMuchRedirectionError;
     if (!CFReadStreamSetClient(readStream, kNetworkEvents, ReadStreamClientCallBack, &ctxt)) {
         CFRelease(readStream);
         readStream = NULL;
-		[cancelledLock unlock];
+		[[self cancelledLock] unlock];
 		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIInternalErrorWhileBuildingRequestType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Unable to setup read stream",NSLocalizedDescriptionKey,nil]]];
         return;
     }
@@ -516,11 +516,11 @@ static NSError *ASITooMuchRedirectionError;
         CFReadStreamUnscheduleFromRunLoop(readStream, CFRunLoopGetCurrent(), ASIHTTPRequestRunMode);
         CFRelease(readStream);
         readStream = NULL;
-		[cancelledLock unlock];
+		[[self cancelledLock] unlock];
 		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIInternalErrorWhileBuildingRequestType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Unable to start HTTP connection",NSLocalizedDescriptionKey,nil]]];
         return;
     }
-	[cancelledLock unlock];
+	[[self cancelledLock] unlock];
 	
 	
 	if (shouldResetProgressIndicators) {
@@ -606,7 +606,7 @@ static NSError *ASITooMuchRedirectionError;
 // Cancel loading and clean up
 - (void)cancelLoad
 {
-	[cancelledLock lock];
+	[[self cancelledLock] lock];
     if (readStream) {
         CFReadStreamClose(readStream);
         CFReadStreamSetClient(readStream, kCFStreamEventNone, NULL, NULL);
@@ -636,7 +636,7 @@ static NSError *ASITooMuchRedirectionError;
 	}
 	
 	[self setResponseHeaders:nil];
-	[cancelledLock unlock];
+	[[self cancelledLock] unlock];
 }
 
 
@@ -738,9 +738,9 @@ static NSError *ASITooMuchRedirectionError;
 
 - (void)updateUploadProgress
 {
-	[cancelledLock lock];
+	[[self cancelledLock] lock];
 	if ([self isCancelled]) {
-		[cancelledLock unlock];
+		[[self cancelledLock] unlock];
 		return;
 	}
 	
@@ -763,7 +763,7 @@ static NSError *ASITooMuchRedirectionError;
 	
 
 	
-	[cancelledLock unlock];
+	[[self cancelledLock] unlock];
 
 	if (totalBytesSent == 0) {
 		return;
@@ -1250,7 +1250,7 @@ static NSError *ASITooMuchRedirectionError;
 			[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIInternalErrorWhileApplyingCredentialsType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Failed to apply credentials to request",NSLocalizedDescriptionKey,nil]]];
 		}
 		
-		// Are a user name & password needed?
+	// Are a user name & password needed?
 	}  else if (CFHTTPAuthenticationRequiresUserNameAndPassword(requestAuthentication)) {
 		
 		NSMutableDictionary *newCredentials = [self findCredentials];
@@ -1341,7 +1341,7 @@ static NSError *ASITooMuchRedirectionError;
     if (bytesRead < 0) {
         [self handleStreamError];
 		
-		// If zero bytes were read, wait for the EOF to come.
+	// If zero bytes were read, wait for the EOF to come.
     } else if (bytesRead) {
 		
 		[self setTotalBytesRead:[self totalBytesRead]+bytesRead];
@@ -1361,7 +1361,7 @@ static NSError *ASITooMuchRedirectionError;
 			}
 			[fileDownloadOutputStream write:buffer maxLength:bytesRead];
 			
-			//Otherwise, let's add the data to our in-memory store
+		//Otherwise, let's add the data to our in-memory store
 		} else {
 			[rawResponseData appendBytes:buffer length:bytesRead];
 		}
@@ -1571,7 +1571,6 @@ static NSError *ASITooMuchRedirectionError;
 	[ASIHTTPRequest setSessionCookies:nil];
 }
 
-
 #pragma mark gzip decompression
 
 //
@@ -1656,7 +1655,7 @@ static NSError *ASITooMuchRedirectionError;
 //	http://www.zlib.net/zpipe.c
 //
 #define CHUNK 16384
-#define SET_BINARY_MODE(file)
+
 + (int)uncompressZippedDataFromSource:(FILE *)source toDestination:(FILE *)dest
 {
     int ret;
@@ -1906,4 +1905,5 @@ static NSError *ASITooMuchRedirectionError;
 @synthesize needsRedirect;
 @synthesize redirectCount;
 @synthesize shouldCompressRequestBody;
+@synthesize authenticationLock;
 @end
