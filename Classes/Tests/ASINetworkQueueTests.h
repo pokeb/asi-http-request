@@ -36,6 +36,7 @@
 - (void)testImmediateCancel;
 
 - (void)setProgress:(float)newProgress;
+- (void)testSubclass;
 
 @property (retain) NSOperationQueue *immediateCancelQueue;
 @property (retain) NSMutableArray *failedRequests;

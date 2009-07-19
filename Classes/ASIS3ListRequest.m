@@ -31,7 +31,7 @@ static NSDateFormatter *dateFormatter = nil;
 
 + (id)listRequestWithBucket:(NSString *)bucket
 {
-	ASIS3ListRequest *request = [[[ASIS3ListRequest alloc] initWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://%@.s3.amazonaws.com",bucket]]] autorelease];
+	ASIS3ListRequest *request = [[[self alloc] initWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://%@.s3.amazonaws.com",bucket]]] autorelease];
 	[request setBucket:bucket];
 	return request;
 }

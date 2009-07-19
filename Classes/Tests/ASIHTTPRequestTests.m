@@ -12,6 +12,12 @@
 #import "ASINetworkQueue.h"
 #import "ASIFormDataRequest.h"
 
+// Used for subclass test
+@interface ASIHTTPRequestSubclass : ASIHTTPRequest {}
+@end
+@implementation ASIHTTPRequestSubclass;
+@end
+
 @implementation ASIHTTPRequestTests
 
 
@@ -727,8 +733,17 @@
 	success = [[request responseString] isEqualToString:content];
 	GHAssertTrue(success,@"Failed to compress the body, or server failed to decompress it");		
 	
+}
 
 
+// Ensure class convenience constructor returns an instance of our subclass
+- (void)testSubclass
+{
+	ASIHTTPRequestSubclass *instance = [ASIHTTPRequestSubclass requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
+	BOOL success = [instance isKindOfClass:[ASIHTTPRequestSubclass class]];
+	GHAssertTrue(success,@"Convenience constructor failed to return an instance of the correct class");	
 }
 
 @end
+
+

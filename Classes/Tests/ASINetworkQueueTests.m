@@ -11,6 +11,12 @@
 #import "ASINetworkQueue.h"
 #import "ASIFormDataRequest.h"
 
+// Used for subclass test
+@interface ASINetworkQueueSubclass : ASINetworkQueue {}
+@end
+@implementation ASINetworkQueueSubclass;
+@end
+
 @implementation ASINetworkQueueTests
 
 
@@ -515,6 +521,14 @@
 	if ([[self failedRequests] count]+[[self finishedRequests] count] > 100) {
 		GHFail(@"We got more than 100 delegate fail/finish calls - this shouldn't happen!");
 	}
+}
+
+// Ensure class convenience constructor returns an instance of our subclass
+- (void)testSubclass
+{
+	ASINetworkQueueSubclass *instance = [ASINetworkQueueSubclass queue];
+	BOOL success = [instance isKindOfClass:[ASINetworkQueueSubclass class]];
+	GHAssertTrue(success,@"Convenience constructor failed to return an instance of the correct class");	
 }
  
 @synthesize immediateCancelQueue;

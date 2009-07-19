@@ -19,5 +19,5 @@
 - (void)testREST;
 - (void)testFailure;
 - (void)testListRequest;
-
+- (void)testSubclasses;
 @end

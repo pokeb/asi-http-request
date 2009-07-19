@@ -30,7 +30,7 @@ static NSString *sharedSecretAccessKey = nil;
 
 + (id)requestWithBucket:(NSString *)bucket path:(NSString *)path
 {
-	ASIS3Request *request = [[[ASIS3Request alloc] initWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://%@.s3.amazonaws.com%@",bucket,path]]] autorelease];
+	ASIS3Request *request = [[[self alloc] initWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://%@.s3.amazonaws.com%@",bucket,path]]] autorelease];
 	[request setBucket:bucket];
 	[request setPath:path];
 	return request;
@@ -38,7 +38,7 @@ static NSString *sharedSecretAccessKey = nil;
 
 + (id)PUTRequestForFile:(NSString *)filePath withBucket:(NSString *)bucket path:(NSString *)path
 {
-	ASIS3Request *request = [ASIS3Request requestWithBucket:bucket path:path];
+	ASIS3Request *request = [self requestWithBucket:bucket path:path];
 	[request setPostBodyFilePath:filePath];
 	[request setShouldStreamPostDataFromDisk:YES];
 	[request setRequestMethod:@"PUT"];
@@ -48,14 +48,14 @@ static NSString *sharedSecretAccessKey = nil;
 
 + (id)DELETERequestWithBucket:(NSString *)bucket path:(NSString *)path
 {
-	ASIS3Request *request = [ASIS3Request requestWithBucket:bucket path:path];
+	ASIS3Request *request = [self requestWithBucket:bucket path:path];
 	[request setRequestMethod:@"DELETE"];
 	return request;
 }
 
 + (id)COPYRequestFromBucket:(NSString *)sourceBucket path:(NSString *)sourcePath toBucket:(NSString *)bucket path:(NSString *)path
 {
-	ASIS3Request *request = [ASIS3Request requestWithBucket:bucket path:path];
+	ASIS3Request *request = [self requestWithBucket:bucket path:path];
 	[request setRequestMethod:@"PUT"];
 	[request setSourceBucket:sourceBucket];
 	[request setSourcePath:sourcePath];
@@ -64,7 +64,7 @@ static NSString *sharedSecretAccessKey = nil;
 
 + (id)HEADRequestWithBucket:(NSString *)bucket path:(NSString *)path
 {
-	ASIS3Request *request = [ASIS3Request requestWithBucket:bucket path:path];
+	ASIS3Request *request = [self requestWithBucket:bucket path:path];
 	[request setRequestMethod:@"HEAD"];
 	return request;
 }

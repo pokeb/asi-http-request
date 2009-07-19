@@ -121,7 +121,7 @@ static NSError *ASITooMuchRedirectionError;
 
 + (id)requestWithURL:(NSURL *)newURL
 {
-	return [[[ASIHTTPRequest alloc] initWithURL:newURL] autorelease];
+	return [[[self alloc] initWithURL:newURL] autorelease];
 }
 
 - (void)dealloc

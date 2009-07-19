@@ -13,7 +13,7 @@
 
 + (id)objectWithBucket:(NSString *)bucket
 {
-	ASIS3BucketObject *object = [[[ASIS3BucketObject alloc] init] autorelease];
+	ASIS3BucketObject *object = [[[self alloc] init] autorelease];
 	[object setBucket:bucket];
 	return object;
 }

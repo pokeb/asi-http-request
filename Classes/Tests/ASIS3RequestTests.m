@@ -11,12 +11,30 @@
 #import "ASINetworkQueue.h"
 #import "ASIS3BucketObject.h"
 
-@implementation ASIS3RequestTests
 
 // Fill in these to run the tests that actually connect and manipulate objects on S3
 static NSString *secretAccessKey = @"";
 static NSString *accessKey = @"";
 static NSString *bucket = @"";
+
+
+
+// Used for subclass test
+@interface ASIS3RequestSubclass : ASIS3Request {}
+@end
+@implementation ASIS3RequestSubclass;
+@end
+@interface ASIS3ListRequestSubclass : ASIS3ListRequest {}
+@end
+@implementation ASIS3ListRequestSubclass;
+@end
+@interface ASIS3BucketObjectSubclass : ASIS3BucketObject {}
+@end
+@implementation ASIS3BucketObjectSubclass;
+@end
+
+@implementation ASIS3RequestTests
+
 
 // All these tests are based on Amazon's examples at: http://docs.amazonwebservices.com/AmazonS3/2006-03-01/
 - (void)testAuthenticationHeaderGeneration
@@ -371,5 +389,37 @@ static NSString *bucket = @"";
 	GHAssertTrue(NO,@"DELETE request failed for one of the items in the list");
 }
 
+
+// Ensure class convenience constructors return an instance of our subclass
+- (void)testSubclasses
+{
+	ASIS3RequestSubclass *instance = [ASIS3RequestSubclass requestWithBucket:@"bucket" path:@"path"];
+	BOOL success = [instance isKindOfClass:[ASIS3RequestSubclass class]];
+	GHAssertTrue(success,@"Convenience constructor failed to return an instance of the correct class");	
+
+	instance = [ASIS3RequestSubclass PUTRequestForFile:@"/file" withBucket:@"bucket" path:@"path"];
+	success = [instance isKindOfClass:[ASIS3RequestSubclass class]];
+	GHAssertTrue(success,@"Convenience constructor failed to return an instance of the correct class");	
+	
+	instance = [ASIS3RequestSubclass DELETERequestWithBucket:@"bucket" path:@"path"];
+	success = [instance isKindOfClass:[ASIS3RequestSubclass class]];
+	GHAssertTrue(success,@"Convenience constructor failed to return an instance of the correct class");	
+	
+	instance = [ASIS3RequestSubclass COPYRequestFromBucket:@"bucket" path:@"path" toBucket:@"bucket" path:@"path2"];
+	success = [instance isKindOfClass:[ASIS3RequestSubclass class]];
+	GHAssertTrue(success,@"Convenience constructor failed to return an instance of the correct class");	
+	
+	instance = [ASIS3RequestSubclass HEADRequestWithBucket:@"bucket" path:@"path"];
+	success = [instance isKindOfClass:[ASIS3RequestSubclass class]];
+	GHAssertTrue(success,@"Convenience constructor failed to return an instance of the correct class");	
+	
+	ASIS3ListRequestSubclass *instance2 = [ASIS3ListRequestSubclass listRequestWithBucket:@"bucket"];
+	success = [instance2 isKindOfClass:[ASIS3ListRequestSubclass class]];
+	GHAssertTrue(success,@"Convenience constructor failed to return an instance of the correct class");	
+	
+	ASIS3BucketObjectSubclass *instance3 = [ASIS3BucketObjectSubclass objectWithBucket:@"bucket"];
+	success = [instance3 isKindOfClass:[ASIS3BucketObjectSubclass class]];
+	GHAssertTrue(success,@"Convenience constructor failed to return an instance of the correct class");	
+}
 
 @end

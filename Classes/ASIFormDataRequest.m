@@ -23,7 +23,7 @@
 
 + (id)requestWithURL:(NSURL *)newURL
 {
-	return [[[ASIFormDataRequest alloc] initWithURL:newURL] autorelease];
+	return [[[self alloc] initWithURL:newURL] autorelease];
 }
 
 - (void)dealloc

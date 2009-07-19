@@ -38,5 +38,6 @@
 - (void)testRedirectToNewDomain;
 - (void)test303Redirect;
 - (void)testCompression;
+- (void)testSubclass;
 
 @end

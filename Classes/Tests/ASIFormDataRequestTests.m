@@ -9,6 +9,12 @@
 #import "ASIFormDataRequestTests.h"
 #import "ASIFormDataRequest.h"
 
+// Used for subclass test
+@interface ASIFormDataRequestSubclass : ASIFormDataRequest {}
+@end
+@implementation ASIFormDataRequestSubclass;
+@end
+
 @implementation ASIFormDataRequestTests
 
 - (void)testPostWithFileUpload
@@ -65,6 +71,14 @@
 	BOOL success = ([[request responseString] isEqualToString:@"a_non_empty_string: hello\r\nzzz_empty_string: \r\nxxx_non_empty_string: there"]);
 	GHAssertTrue(success,@"Failed to send the correct post data");		
 	
+}
+
+// Ensure class convenience constructor returns an instance of our subclass
+- (void)testSubclass
+{
+	ASIFormDataRequestSubclass *instance = [ASIFormDataRequestSubclass requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
+	BOOL success = [instance isKindOfClass:[ASIFormDataRequestSubclass class]];
+	GHAssertTrue(success,@"Convenience constructor failed to return an instance of the correct class");	
 }
 
 

@@ -18,4 +18,5 @@
 
 - (void)testPostWithFileUpload;
 - (void)testEmptyData;
+- (void)testSubclass;
 @end
