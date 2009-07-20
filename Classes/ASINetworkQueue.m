@@ -177,18 +177,24 @@
 - (void)requestDidFail:(ASIHTTPRequest *)request
 {
 	[self setRequestsCount:[self requestsCount]-1];
+	[self updateNetworkActivityIndicator];
 	if ([self requestDidFailSelector]) {
 		[[self delegate] performSelector:[self requestDidFailSelector] withObject:request];
 	}
 	if ([self shouldCancelAllRequestsOnFailure] && [self requestsCount] > 0) {
 		[self cancelAllOperations];
 	}
-	[self updateNetworkActivityIndicator];
+	if ([self requestsCount] == 0) {
+		if ([self queueDidFinishSelector]) {
+			[[self delegate] performSelector:[self queueDidFinishSelector] withObject:self];
+		}
+	}
 }
 
 - (void)requestDidFinish:(ASIHTTPRequest *)request
 {
 	[self setRequestsCount:[self requestsCount]-1];
+	[self updateNetworkActivityIndicator];
 	if ([self requestDidFinishSelector]) {
 		[[self delegate] performSelector:[self requestDidFinishSelector] withObject:request];
 	}
@@ -197,7 +203,6 @@
 			[[self delegate] performSelector:[self queueDidFinishSelector] withObject:self];
 		}
 	}
-	[self updateNetworkActivityIndicator];
 }
 
 

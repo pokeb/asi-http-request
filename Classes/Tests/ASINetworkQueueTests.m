@@ -484,7 +484,7 @@
 	[self setImmediateCancelQueue:[[[NSOperationQueue alloc] init] autorelease]];
 	int i;
 	for (i=0; i<100; i++) {
-		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi"]];
+		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
 		[request setDelegate:self];
 		[request setDidFailSelector:@selector(immediateCancelFail:)];
 		[request setDidFinishSelector:@selector(immediateCancelFinish:)];
@@ -530,8 +530,56 @@
 	BOOL success = [instance isKindOfClass:[ASINetworkQueueSubclass class]];
 	GHAssertTrue(success,@"Convenience constructor failed to return an instance of the correct class");	
 }
+
+
+// Test releasing the queue in a couple of ways - the purpose of these tests is really just to ensure we don't crash
+- (void)testQueueReleaseOnRequestComplete
+{
+	[[self releaseTestQueue] cancelAllOperations];
+	[self setReleaseTestQueue:[ASINetworkQueue queue]];
+	int i;
+	for (i=0; i<5; i++) {
+		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
+		[request setDelegate:self];
+		[request setDidFailSelector:@selector(fail:)];
+		[request setDidFinishSelector:@selector(finish:)];
+		[[self releaseTestQueue] addOperation:request];
+	}
+}
+
+- (void)fail:(ASIHTTPRequest *)request
+{
+	if ([[self releaseTestQueue] requestsCount] == 0) {
+		[self setReleaseTestQueue:nil];
+	}
+}
  
+- (void)finish:(ASIHTTPRequest *)request
+{
+	if ([[self releaseTestQueue] requestsCount] == 0) {
+		[self setReleaseTestQueue:nil];
+	}	
+}
+
+- (void)testQueueReleaseOnQueueComplete
+{
+	[[self releaseTestQueue] cancelAllOperations];
+	[self setReleaseTestQueue:[ASINetworkQueue queue]];
+	[[self releaseTestQueue] setDelegate:self];
+	int i;
+	for (i=0; i<5; i++) {
+		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
+		[[self releaseTestQueue] addOperation:request];
+	}
+}
+
+- (void)queueComplete:(ASINetworkQueue *)queue
+{
+	[self setReleaseTestQueue:nil];
+}
+
 @synthesize immediateCancelQueue;
 @synthesize failedRequests;
 @synthesize finishedRequests;
+@synthesize releaseTestQueue;
 @end

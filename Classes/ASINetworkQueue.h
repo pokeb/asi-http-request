@@ -104,4 +104,5 @@
 @property (assign) BOOL shouldCancelAllRequestsOnFailure;
 @property (assign) id delegate;
 @property (assign) BOOL showAccurateProgress;
+@property (assign, readonly) int requestsCount;
 @end

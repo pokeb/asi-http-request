@@ -13,6 +13,7 @@
 #endif
 
 @class ASIHTTPRequest;
+@class ASINetworkQueue;
 
 @interface ASINetworkQueueTests : GHTestCase {
 	ASIHTTPRequest *requestThatShouldFail;
@@ -24,6 +25,8 @@
 	NSOperationQueue *immediateCancelQueue;
 	NSMutableArray *failedRequests;
 	NSMutableArray *finishedRequests;
+	
+	ASINetworkQueue *releaseTestQueue;
 }
 
 - (void)testFailure;
@@ -37,8 +40,11 @@
 
 - (void)setProgress:(float)newProgress;
 - (void)testSubclass;
+- (void)testQueueReleaseOnRequestComplete;
+- (void)testQueueReleaseOnQueueComplete;
 
 @property (retain) NSOperationQueue *immediateCancelQueue;
 @property (retain) NSMutableArray *failedRequests;
 @property (retain) NSMutableArray *finishedRequests;
+@property (retain) ASINetworkQueue *releaseTestQueue;
 @end
