@@ -744,6 +744,7 @@
 	GHAssertTrue(success,@"Convenience constructor failed to return an instance of the correct class");	
 }
 
+
 @end
 
 

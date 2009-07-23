@@ -319,12 +319,14 @@ extern NSString* const NetworkRequestErrorDomain;
 // Called when a request fails, and lets the delegate now via didFailSelector
 - (void)failWithError:(NSError *)theError;
 
-#pragma mark http authentication stuff
+#pragma mark parsing HTTP response headers
 
 // Reads the response headers to find the content length, encoding, cookies for the session 
 // Also initiates request redirection when shouldRedirect is true
 // Returns true if the request needs a username and password (or if those supplied were incorrect)
 - (BOOL)readResponseHeadersReturningAuthenticationFailure;
+
+#pragma mark http authentication stuff
 
 // Apply credentials to this request
 - (BOOL)applyCredentials:(NSMutableDictionary *)newCredentials;

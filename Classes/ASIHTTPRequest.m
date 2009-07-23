@@ -206,8 +206,7 @@ static NSError *ASITooMuchRedirectionError;
 		}
 	}
 		
-	if ([self postLength] > 0) 
-	{
+	if ([self postLength] > 0) {
 		if (![requestMethod isEqualToString:@"POST"] && ![requestMethod isEqualToString:@"PUT"]) {
 			[self setRequestMethod:@"POST"];
 		}
@@ -339,8 +338,13 @@ static NSError *ASITooMuchRedirectionError;
 		[self buildPostBody];
 	}
 	
+	// If we're redirecting, we'll already have a CFHTTPMessageRef
+	if (request) {
+		CFRelease(request);
+	}
+	
     // Create a new HTTP request.
-	request = CFHTTPMessageCreateRequest(kCFAllocatorDefault, (CFStringRef)requestMethod, (CFURLRef)url, [self useHTTPVersionOne] ? kCFHTTPVersion1_0 : kCFHTTPVersion1_1);
+	request = CFHTTPMessageCreateRequest(kCFAllocatorDefault, (CFStringRef)[self requestMethod], (CFURLRef)[self url], [self useHTTPVersionOne] ? kCFHTTPVersion1_0 : kCFHTTPVersion1_1);
     if (!request) {
 		[self failWithError:ASIUnableToCreateRequestError];
 		return;
@@ -348,7 +352,7 @@ static NSError *ASITooMuchRedirectionError;
 	
 	
 	// If we've already talked to this server and have valid credentials, let's apply them to the request
-	if (useSessionPersistance && sessionCredentials && sessionAuthentication) {
+	if ([self useSessionPersistance] && sessionCredentials && sessionAuthentication) {
 		if (!CFHTTPMessageApplyCredentialDictionary(request, sessionAuthentication, (CFMutableDictionaryRef)sessionCredentials, NULL)) {
 			[ASIHTTPRequest setSessionAuthentication:NULL];
 			[ASIHTTPRequest setSessionCredentials:nil];
@@ -356,10 +360,10 @@ static NSError *ASITooMuchRedirectionError;
 	}
 	
 	// Add cookies from the persistant (mac os global) store
-	if (useCookiePersistance) {
-		NSArray *cookies = [[NSHTTPCookieStorage sharedHTTPCookieStorage] cookiesForURL:url];
+	if ([self useCookiePersistance] ) {
+		NSArray *cookies = [[NSHTTPCookieStorage sharedHTTPCookieStorage] cookiesForURL:[self url]];
 		if (cookies) {
-			[requestCookies addObjectsFromArray:cookies];
+			[[self requestCookies] addObjectsFromArray:cookies];
 		}
 	}
 	
@@ -399,7 +403,7 @@ static NSError *ASITooMuchRedirectionError;
 	// Should this request resume an existing download?
 	if ([self allowResumeForFileDownloads] && [self downloadDestinationPath] && [self temporaryFileDownloadPath] && [[NSFileManager defaultManager] fileExistsAtPath:[self temporaryFileDownloadPath]]) {
 		[self setPartialDownloadSize:[[[NSFileManager defaultManager] fileAttributesAtPath:[self temporaryFileDownloadPath] traverseLink:NO] fileSize]];
-		[self addRequestHeader:@"Range" value:[NSString stringWithFormat:@"bytes=%llu-",partialDownloadSize]];
+		[self addRequestHeader:@"Range" value:[NSString stringWithFormat:@"bytes=%llu-",[self partialDownloadSize]]];
 	}
 	
 	// Add custom headers
@@ -413,7 +417,7 @@ static NSError *ASITooMuchRedirectionError;
 	}	
 	NSString *header;
 	for (header in headers) {
-		CFHTTPMessageSetHeaderFieldValue(request, (CFStringRef)header, (CFStringRef)[requestHeaders objectForKey:header]);
+		CFHTTPMessageSetHeaderFieldValue(request, (CFStringRef)header, (CFStringRef)[[self requestHeaders] objectForKey:header]);
 	}
 
 	// If this is a post/put request and we store the request body in memory, add it to the request
@@ -986,8 +990,7 @@ static NSError *ASITooMuchRedirectionError;
 	}
 }
 
-
-#pragma mark http authentication
+#pragma mark parsing HTTP response headers
 
 - (BOOL)readResponseHeadersReturningAuthenticationFailure
 {
@@ -1069,6 +1072,11 @@ static NSError *ASITooMuchRedirectionError;
 					}
 					[self setURL:[[NSURL URLWithString:[responseHeaders valueForKey:@"Location"] relativeToURL:[self url]] absoluteURL]];
 					[self setNeedsRedirect:YES];
+					
+					// Clear the request cookies
+					// This means manually added cookies will not be added to the redirect request - only those stored in the global persistent store
+					// But, this is probably the safest option - we might be redirecting to a different domain
+					[self setRequestCookies:[NSMutableArray array]];
 				}
 			}
 			
@@ -1079,6 +1087,7 @@ static NSError *ASITooMuchRedirectionError;
 	return isAuthenticationChallenge;
 }
 
+#pragma mark http authentication
 
 - (void)saveCredentialsToKeychain:(NSMutableDictionary *)newCredentials
 {
