@@ -389,6 +389,23 @@ static NSError *ASITooMuchRedirectionError;
 		}
 	}
 	
+	// Set a logical user agent (on iPhones, for now)
+#if TARGET_OS_IPHONE
+	UIDevice *device = [UIDevice currentDevice];
+	NSBundle *bundle = [NSBundle mainBundle];
+	NSLocale *locale = [NSLocale currentLocale];
+	
+	NSString *userAgent = [NSString stringWithFormat:@"%@ %@ (%@; %@ %@; %@)", 
+						   [bundle objectForInfoDictionaryKey:@"CFBundleDisplayName"],
+						   [bundle objectForInfoDictionaryKey:@"CFBundleVersion"],
+						   [device model],
+						   [device systemName],
+						   [device systemVersion],
+						   [locale localeIdentifier]
+						   ];
+	
+	[self addRequestHeader:@"User-Agent" value:userAgent];
+#endif
 	
 	// Accept a compressed response
 	if ([self allowCompressedResponse]) {
