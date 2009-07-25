@@ -18,5 +18,7 @@
 	<string>1.0</string>
 	<key>NSMainNibFile</key>
 	<string>GHUnitIPhone</string>
+	<key>CFBundleDisplayName</key>
+	<string>ASIHTTPRequest Unit Tests</string>
 </dict>
 </plist>

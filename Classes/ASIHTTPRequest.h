@@ -397,6 +397,12 @@ extern NSString* const NetworkRequestErrorDomain;
 + (int)compressDataFromFile:(NSString *)sourcePath toFile:(NSString *)destinationPath;
 + (int)compressDataFromSource:(FILE *)source toDestination:(FILE *)dest;
 
+#pragma mark get user agent
+
+// Will be used as a user agent if requests do not specify a custom user agent
+// Is only used when you have specified a Bundle Display Name (CFDisplayBundleName) or Bundle Name (CFBundleName) in your plist
++ (NSString *)defaultUserAgentString;
+
 @property (retain) NSString *username;
 @property (retain) NSString *password;
 @property (retain) NSString *domain;

@@ -20,6 +20,7 @@
 - (void)testTimeOut;
 - (void)testRequestMethod;
 - (void)testHTTPVersion;
+- (void)testUserAgent;
 - (void)testUploadContentLength;
 - (void)testDownloadContentLength;
 - (void)testFileDownload;

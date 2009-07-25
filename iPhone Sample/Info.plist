@@ -9,7 +9,7 @@
 	<key>CFBundleIconFile</key>
 	<string>iphone-icon.png</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.yourcompany.etc</string>
+	<string>com.yourcompany.${PRODUCT_NAME:identifier}</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundlePackageType</key>
@@ -20,5 +20,7 @@
 	<string>1.0</string>
 	<key>NSMainNibFile</key>
 	<string>MainWindow</string>
+	<key>CFBundleDisplayName</key>
+	<string>ASIHTTPRequest Demo</string>
 </dict>
 </plist>

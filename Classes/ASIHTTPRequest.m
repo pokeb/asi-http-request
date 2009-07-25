@@ -389,25 +389,14 @@ static NSError *ASITooMuchRedirectionError;
 		}
 	}
 	
-	// Set a logical user agent (on iPhones, for now)
-#if TARGET_OS_IPHONE
-	if ([[self requestHeaders] objectForKey:@"User-Agent"] == nil) {
-		UIDevice *device = [UIDevice currentDevice];
-		NSBundle *bundle = [NSBundle mainBundle];
-		NSLocale *locale = [NSLocale currentLocale];
-		
-		NSString *userAgent = [NSString stringWithFormat:@"%@ %@ (%@; %@ %@; %@)", 
-							   [bundle objectForInfoDictionaryKey:@"CFBundleDisplayName"],
-							   [bundle objectForInfoDictionaryKey:@"CFBundleVersion"],
-							   [device model],
-							   [device systemName],
-							   [device systemVersion],
-							   [locale localeIdentifier]
-							   ];
-		
-		[self addRequestHeader:@"User-Agent" value:userAgent];
+	// Build and set the user agent string if the request does not already have a custom user agent specified
+	if (![[self requestHeaders] objectForKey:@"User-Agent"]) {
+		NSString *userAgentString = [ASIHTTPRequest defaultUserAgentString];
+		if (userAgentString) {
+			[self addRequestHeader:@"User-Agent" value:userAgentString];
+		}
 	}
-#endif
+
 	
 	// Accept a compressed response
 	if ([self allowCompressedResponse]) {
@@ -1868,6 +1857,53 @@ static NSError *ASITooMuchRedirectionError;
     (void)deflateEnd(&strm);
     return Z_OK;
 }
+
+#pragma mark get user agent
+
++ (NSString *)defaultUserAgentString
+{
+	NSBundle *bundle = [NSBundle mainBundle];
+	
+	// Attempt to find a name for this application
+	NSString *appName = [bundle objectForInfoDictionaryKey:@"CFBundleDisplayName"];
+	if (!appName) {
+		appName = [bundle objectForInfoDictionaryKey:@"CFBundleName"];	
+	}
+	// If we couldn't find one, we'll give up (and ASIHTTPRequest will use the standard CFNetwork user agent)
+	if (!appName) {
+		return nil;
+	}
+	NSString *appVersion = [bundle objectForInfoDictionaryKey:@"CFBundleVersion"];
+	NSString *deviceName;;
+	NSString *OSName;
+	NSString *OSVersion;
+	
+	NSString *locale = [[NSLocale currentLocale] localeIdentifier];
+	
+#if TARGET_OS_IPHONE
+	UIDevice *device = [UIDevice currentDevice];
+	deviceName = [device model];
+	OSName = [device systemName];
+	OSVersion = [device systemVersion];
+	
+#else
+	deviceName = @"Macintosh";
+	OSName = @"Mac OS X";
+	
+	// From http://www.cocoadev.com/index.pl?DeterminingOSVersion
+	// We won't bother to check for systems prior to 10.4, since ASIHTTPRequest only works on 10.5+
+    OSErr err;
+    SInt32 versionMajor, versionMinor, versionBugFix;
+	if ((err = Gestalt(gestaltSystemVersionMajor, &versionMajor)) != noErr) return nil;
+	if ((err = Gestalt(gestaltSystemVersionMinor, &versionMinor)) != noErr) return nil;
+	if ((err = Gestalt(gestaltSystemVersionBugFix, &versionBugFix)) != noErr) return nil;
+	OSVersion = [NSString stringWithFormat:@"%u.%u.%u", versionMajor, versionMinor, versionBugFix];
+	
+#endif
+	// Takes the form "My Application 1.0 (Macintosh; Mac OS X 10.5.7; en_GB)"
+	return [NSString stringWithFormat:@"%@ %@ (%@; %@ %@; %@)", appName, appVersion, deviceName, OSName, OSVersion, locale];
+}
+
 
 
 @synthesize username;

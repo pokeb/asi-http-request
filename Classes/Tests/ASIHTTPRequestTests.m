@@ -132,6 +132,27 @@
 	GHAssertTrue(success,@"Wrong HTTP version used");	
 }
 
+- (void)testUserAgent
+{
+	// defaultUserAgentString will be nil if we haven't set a Bundle Name or Bundle Display Name
+	if ([ASIHTTPRequest defaultUserAgentString]) {
+		
+		// Returns the user agent it received in the response body
+		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/user-agent"]];
+		[request start];
+		BOOL success = [[request responseString] isEqualToString:[ASIHTTPRequest defaultUserAgentString]];
+		GHAssertTrue(success,@"Failed to set the correct user agent");
+	}
+	
+	// Now test specifying a custom user agent
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/user-agent"]];
+	[request addRequestHeader:@"User-Agent" value:@"Ferdinand Fuzzworth's Magic Tent of Mystery"];
+	[request start];
+	BOOL success = [[request responseString] isEqualToString:@"Ferdinand Fuzzworth's Magic Tent of Mystery"];
+	GHAssertTrue(success,@"Failed to set the correct user agent");
+	
+}
+
 - (void)testAutomaticRedirection
 {
 	ASIHTTPRequest *request;

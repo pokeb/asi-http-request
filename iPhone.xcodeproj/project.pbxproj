@@ -429,7 +429,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_IDENTITY = "Don't Code Sign";
 				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -450,6 +450,7 @@
 				);
 				PREBINDING = NO;
 				PRODUCT_NAME = "Unit Tests (GHUnit)";
+				PROVISIONING_PROFILE = "";
 				SDKROOT = iphoneos3.0;
 			};
 			name = Debug;
@@ -458,7 +459,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_IDENTITY = "Don't Code Sign";
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
@@ -478,6 +479,7 @@
 				);
 				PREBINDING = NO;
 				PRODUCT_NAME = "Unit Tests (GHUnit)";
+				PROVISIONING_PROFILE = "";
 				SDKROOT = iphoneos3.0;
 				ZERO_LINK = NO;
 			};
