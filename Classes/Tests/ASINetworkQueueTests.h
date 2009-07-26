@@ -12,6 +12,14 @@
 	#import <GHUnit/GHUnit.h>
 #endif
 
+/*
+IMPORTANT
+Code that appears in these tests is not for general purpose use. 
+You should not use [networkQueue waitUntilAllOperationsAreFinished] or [[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]] in your own software.
+They are used here to force a queue to operate synchronously to simplify writing the tests.
+IMPORTANT
+*/
+
 @class ASIHTTPRequest;
 @class ASINetworkQueue;
 

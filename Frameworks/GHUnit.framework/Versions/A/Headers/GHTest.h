@@ -31,34 +31,41 @@
  Test status.
  */
 typedef enum {
-	GHTestStatusNone = 0,	
-	GHTestStatusRunning,
-	GHTestStatusFinished,
-	GHTestStatusIgnored
+	GHTestStatusNone = 0,
+	GHTestStatusRunning, // Test is running
+	GHTestStatusCancelling, // Test is being cancelled
+	GHTestStatusCancelled, // Test was cancelled
+	GHTestStatusSucceeded, // Test finished and succeeded
+	GHTestStatusErrored, // Test finished and errored
 } GHTestStatus;
 
 /*!
  Generate string from GHTestStatus
  @param status
  */
-NSString* NSStringFromGHTestStatus(GHTestStatus status);
+extern NSString* NSStringFromGHTestStatus(GHTestStatus status);
+
+extern BOOL GHTestStatusIsRunning(GHTestStatus status);
+extern BOOL GHTestStatusEnded(GHTestStatus status);
 
 /*!
  Test stats.
  */
 typedef struct {
-	NSInteger runCount;
-	NSInteger failureCount;
-	NSInteger ignoreCount;
-	NSInteger testCount;
+	NSInteger succeedCount; // Number of succeeded tests
+	NSInteger failureCount; // Number of failed tests
+	NSInteger cancelCount; // Number of aborted tests
+	NSInteger testCount; // Total number of tests 
 } GHTestStats;
 
 /*!
  Create GHTestStats.
  */
-GHTestStats GHTestStatsMake(NSInteger runCount, NSInteger failureCount, NSInteger ignoreCount, NSInteger testCount);
+extern GHTestStats GHTestStatsMake(NSInteger succeedCount, NSInteger failureCount, NSInteger cancelCount, NSInteger testCount);
 
-#define NSStringFromGHTestStats(stats) [NSString stringWithFormat:@"%d/%d/%d", stats.runCount, stats.testCount, stats.failureCount]
+const GHTestStats GHTestStatsEmpty;
+
+extern NSString *NSStringFromGHTestStats(GHTestStats stats);
 
 @protocol GHTestDelegate;
 
@@ -80,11 +87,16 @@ GHTestStats GHTestStatsMake(NSInteger runCount, NSInteger failureCount, NSIntege
 - (void)setDelegate:(id<GHTestDelegate>)delegate;
 
 - (NSException *)exception;
+- (void)setException:(NSException *)exception;
 
 - (NSArray *)log;
 
-- (BOOL)ignore;
-- (void)setIgnore:(BOOL)ignore;
+- (void)reset;
+- (void)cancel;
+
+- (void)setDisabled:(BOOL)disabled;
+- (BOOL)isDisabled;
+- (NSInteger)disabledCount;
 
 @end
 
@@ -92,29 +104,34 @@ GHTestStats GHTestStatsMake(NSInteger runCount, NSInteger failureCount, NSIntege
  Test delegate for notification when a test starts and ends.
  */
 @protocol GHTestDelegate <NSObject>
-- (void)testDidStart:(id<GHTest>)test;
-- (void)testDidFinish:(id<GHTest>)test;
-- (void)test:(id<GHTest>)test didLog:(NSString *)message;
-- (void)testDidIgnore:(id<GHTest>)test;
+- (void)testDidStart:(id<GHTest>)test source:(id<GHTest>)source;
+- (void)testDidUpdate:(id<GHTest>)test source:(id<GHTest>)source;
+- (void)testDidEnd:(id<GHTest>)test source:(id<GHTest>)source;
+- (void)test:(id<GHTest>)test didLog:(NSString *)message source:(id<GHTest>)source;
 @end
 
 /*!
  Delegate which is notified of log messages from inside GHTestCase.
  */
-@protocol GHTestCaseLogDelegate <NSObject>
-- (void)testCase:(id)testCase didLog:(NSString *)message;
+@protocol GHTestCaseLogWriter <NSObject>
+- (void)log:(NSString *)message testCase:(id)testCase;
+@end
+
+@interface GHTestOperation : NSOperation { 
+	id<GHTest> test_;
+}
 @end
 
 /*!
- Default test implementation target with a target/selector pair.
+ Default test implementation with a target/selector pair.
  - Consists of a target/selector
  - Notifies a test delegate
  - Keeps track of status, running time and failures
  - Stores any test specific logging
  */
-@interface GHTest : NSObject <GHTest, GHTestCaseLogDelegate> {
+@interface GHTest : NSObject <GHTest, GHTestCaseLogWriter> {
 	
-	id<GHTestDelegate> delegate_; // weak
+	NSObject<GHTestDelegate> *delegate_; // weak
 	
 	id target_;
 	SEL selector_;
@@ -123,15 +140,23 @@ GHTestStats GHTestStatsMake(NSInteger runCount, NSInteger failureCount, NSIntege
 	NSString *name_;	
 	GHTestStatus status_;
 	NSTimeInterval interval_;
-	BOOL failed_;
+	BOOL disabled_;
 	NSException *exception_; // If failed
-	
-	GHTestStats stats_;
 		
 	NSMutableArray *log_;
-	
-	BOOL ignore_;
 }
+
+@property (readonly, nonatomic) id target;
+@property (readonly, nonatomic) SEL selector;
+@property (readonly, nonatomic) NSString *identifier; // Unique identifier for test
+@property (readonly, nonatomic) NSString *name;
+@property (readonly, nonatomic) NSTimeInterval interval;
+@property (retain, nonatomic) NSException *exception;
+@property (readonly, nonatomic) GHTestStatus status;
+@property (assign, nonatomic, getter=isDisabled) BOOL disabled;
+@property (readonly, nonatomic) NSArray *log;
+
+@property (assign, nonatomic) NSObject<GHTestDelegate> *delegate;
 
 /*!
  Create test with target/selector.
@@ -146,26 +171,5 @@ GHTestStats GHTestStatsMake(NSInteger runCount, NSInteger failureCount, NSIntege
  @param selector Selector (usually a test method)
  */
 + (id)testWithTarget:(id)target selector:(SEL)selector;
-
-@property (readonly, nonatomic) id target;
-@property (readonly, nonatomic) SEL selector;
-@property (readonly, nonatomic) NSString *identifier; // Unique identifier for test
-@property (readonly, nonatomic) NSString *name;
-@property (readonly, nonatomic) NSTimeInterval interval;
-@property (readonly, nonatomic) NSException *exception;
-@property (readonly, nonatomic) GHTestStatus status;
-@property (readonly, nonatomic) BOOL failed;
-@property (readonly, nonatomic) GHTestStats stats;
-@property (readonly, nonatomic) NSArray *log;
-
-@property (assign, nonatomic) id<GHTestDelegate> delegate;
-@property (assign, nonatomic) BOOL ignore;
-
-/*!
- Run the test.
- After running, the interval and exception properties may be set.
- @result YES if passed, NO otherwise
- */
-- (void)run;
 
 @end

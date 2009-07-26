@@ -11,6 +11,14 @@
 #import "ASINetworkQueue.h"
 #import "ASIFormDataRequest.h"
 
+/*
+IMPORTANT
+Code that appears in these tests is not for general purpose use. 
+You should not use [networkQueue waitUntilAllOperationsAreFinished] or [[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]] in your own software.
+They are used here to force a queue to operate synchronously to simplify writing the tests.
+IMPORTANT
+*/
+
 // Used for subclass test
 @interface ASINetworkQueueSubclass : ASINetworkQueue {}
 @end
@@ -47,7 +55,7 @@
 	[networkQueue go];
 		
 	 while (!complete) {
-		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1]];
+		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
 	 }
 	
 	BOOL success = (progress > 0.95);
@@ -108,7 +116,7 @@
 	[networkQueue go];
 	
 	while (!complete) {
-		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1]];
+		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
 	}
 	
 	BOOL success = (progress > 0.95);
@@ -132,7 +140,7 @@
 	[networkQueue go];
 	
 	while (!complete) {
-		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1]];
+		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
 	}
 	
 	success = (progress > 0.95);
@@ -295,7 +303,7 @@
 	
 
 	while (!complete) {
-		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1]];
+		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
 	}
 
 	NSError *error = [request error];
@@ -317,7 +325,7 @@
 	[networkQueue go];
 	
 	while (!complete) {
-		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1]];
+		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
 	}
 	
 	error = [request error];
@@ -360,6 +368,9 @@
 	[networkQueue go];
 	[networkQueue waitUntilAllOperationsAreFinished];
     
+	// Give the queue time to notify us
+	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
+	
 	// This test may fail if you are using a proxy and it returns a page when you try to connect to a bad port.
 	GHAssertTrue(!request_succeeded && request_didfail,@"Request to resource without listener succeeded but should have failed");
     
@@ -394,7 +405,7 @@
 	NSTimer *timeoutTimer = [NSTimer scheduledTimerWithTimeInterval:5 target:self selector:@selector(stopQueue:) userInfo:nil repeats:NO];
 	
 	while (!complete) {
-		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1]];
+		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
 	}
 	
 	// 5 seconds is up, let's tell the queue to stop
@@ -422,7 +433,7 @@
 	[networkQueue go];
 
 	while (!complete) {
-		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1]];
+		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
 	}
 	
 	unsigned long long amountDownloaded = [[[NSFileManager defaultManager] fileAttributesAtPath:downloadPath traverseLink:NO] fileSize];
@@ -453,7 +464,7 @@
 	// Let the download run for 5 seconds
 	timeoutTimer = [NSTimer scheduledTimerWithTimeInterval:5 target:self selector:@selector(stopQueue:) userInfo:nil repeats:NO];
 	while (!complete) {
-		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1]];
+		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
 	}
 	[networkQueue cancelAllOperations];
 	

@@ -29,50 +29,55 @@
 
 #import "GHTestViewModel.h"
 #import "GHTestGroup.h"
+#import "GHTestOutlineViewModel.h"
 
-@interface GHTestViewController : NSViewController {
-	NSSplitView *splitView_;
-	NSView *statusView_;
-	NSView *detailsView_;
+#import "BWSplitView.h"
+
+@interface GHTestViewController : NSViewController <GHTestRunnerDelegate, GHTestOutlineViewModelDelegate> {
+
+	IBOutlet BWSplitView *_splitView;
+	IBOutlet NSView *_statusView;
+	IBOutlet NSView *_detailsView;	
+	IBOutlet NSOutlineView *_outlineView;	
+	IBOutlet NSTextView *_textView;
+	IBOutlet NSSegmentedControl *_textSegmentedControl;
 	
-	NSTextField *statusLabel_;
-	NSProgressIndicator *progressIndicator_;
-	NSOutlineView *outlineView_;
+	BOOL wrapInTextView_;		
+	NSString *status_;
+	double statusProgress_;
+	BOOL runInParallel_;	
+	NSString *runLabel_;
 	
-	NSSegmentedControl *textSegmentedControl_;
-	NSTextView *textView_;
+	GHTestSuite *suite_;
 	
-	BOOL wrapInTextView_;
-	
-	GHTestViewModel *model_;
+	GHTestOutlineViewModel *dataSource_;
 }
 
-// Assign since they are retained as subviews
-@property (assign, nonatomic) IBOutlet NSSplitView *splitView;
-@property (assign, nonatomic) IBOutlet NSView *statusView;
-@property (assign, nonatomic) IBOutlet NSView *detailsView;
-@property (assign, nonatomic) IBOutlet NSTextField *statusLabel;
-@property (assign, nonatomic) IBOutlet NSProgressIndicator *progressIndicator;
-@property (assign, nonatomic) IBOutlet NSOutlineView *outlineView;
-@property (assign, nonatomic) IBOutlet NSSegmentedControl *textSegmentedControl;
-@property (assign, nonatomic) IBOutlet NSTextView *textView;
 @property (assign, nonatomic) BOOL wrapInTextView;
 @property (readonly, nonatomic) id<GHTest> selectedTest;
+@property (readonly, nonatomic) GHTestOutlineViewModel *dataSource;
 
-@property (copy, nonatomic) NSString *status;
+@property (retain, nonatomic) NSString *status;
+@property (assign, nonatomic) double statusProgress;
+@property (retain, nonatomic) NSString *runLabel;
 
-- (void)log:(NSString *)log;
-- (void)test:(id<GHTest>)test didLog:(NSString *)message;
+@property (retain, nonatomic) GHTestSuite *suite;
 
-- (void)updateTest:(id<GHTest>)test;
-
-- (void)setRoot:(id<GHTestGroup>)root;
+- (void)loadTestSuite;
 
 - (void)selectFirstFailure;
 
-- (GHTestNode *)findFailure;
-- (GHTestNode *)findFailureFromNode:(GHTestNode *)node;
-
 - (IBAction)copy:(id)sender;
+- (IBAction)edit:(id)sender;
+- (IBAction)runTests:(id)sender;
+- (IBAction)toggleDetails:(id)sender;
+- (IBAction)updateTextSegment:(id)sender;
+
+- (id<GHTest>)selectedTest;
+
+- (void)runTests;
+
+- (void)loadDefaults;
+- (void)saveDefaults;
 
 @end

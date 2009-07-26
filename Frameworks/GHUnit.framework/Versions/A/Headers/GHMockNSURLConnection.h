@@ -49,7 +49,7 @@ extern NSString *const GHMockNSURLConnectionException;
 	 [connection receiveHTTPResponseWithStatusCode:204 headers:testHeaders_ afterDelay:0.1];
 	 [connection receiveData:testData_ afterDelay:0.2];
 	 [connection finishAfterDelay:0.3];
-	 [self waitFor:kGHUnitWaitStatusSuccess timeout:1.0];
+	 [self waitForStatus:kGHUnitWaitStatusSuccess timeout:1.0];
  }
  
  - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response {
@@ -139,5 +139,12 @@ extern NSString *const GHMockNSURLConnectionException;
  @param afterDelay Delay before responding (if < 0, there is no delay)
  */
 - (void)receiveFromPath:(NSString *)path statusCode:(NSInteger)statusCode MIMEType:(NSString *)MIMEType afterDelay:(NSTimeInterval)delay;
+
+/*!
+ Calls connection:didFailWithError: on delegate after specified delay.
+ @param error The error to pass to the delegate.
+ @param delay Delay before responding (if < 0, there is no delay)
+ */
+- (void)failWithError:(NSError *)error afterDelay:(NSTimeInterval)delay;
 
 @end

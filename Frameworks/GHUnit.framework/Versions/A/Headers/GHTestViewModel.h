@@ -41,29 +41,37 @@
  */
 @interface GHTestViewModel : NSObject <GHTestNodeDelegate> {
 	
+	GHTestSuite *suite_;
 	GHTestNode *root_;
+	
+	GHTestRunner *runner_;
 	
 	NSMutableDictionary *map_; // id<GHTest>#identifier -> GHTestNode
 
+	BOOL editing_;
 	NSString *settingsKey_;
 	NSMutableDictionary *settings_;
 }
 
 @property (readonly, nonatomic) GHTestNode *root;
+@property (assign, nonatomic, getter=isEditing) BOOL editing;
 
 /*!
  Create view model with root test group node.
  */
-- (id)initWithRoot:(id<GHTestGroup>)root;
+- (id)initWithSuite:(GHTestSuite *)suite;
 
 - (NSString *)name;
-- (NSString *)statusString;
+- (NSString *)statusString:(NSString *)prefix;
 
 /*!
  Get the test node from the test.
  @param test
  */
 - (GHTestNode *)findTestNode:(id<GHTest>)test;
+
+- (GHTestNode *)findFailure;
+- (GHTestNode *)findFailureFromNode:(GHTestNode *)node;
 
 /*!
  Register node, so that we can do a lookup later (see #findTestNode).
@@ -84,13 +92,22 @@
  */
 - (NSIndexPath *)indexPathToTest:(id<GHTest>)test;
 
+- (void)loadDefaults;
+- (void)saveDefaults;
+
+- (void)run:(id<GHTestRunnerDelegate>)delegate inParallel:(BOOL)inParallel;
+
+- (void)cancel;
+
+- (BOOL)isRunning;
+
 @end
 
 
 @interface GHTestNode : NSObject {
 
-	id<GHTest> test_; // The test
-	NSMutableArray *children_; // of GHTestNode
+	id<GHTest> test_;
+	NSMutableArray */* of GHTestNode*/children_;
 
 	id<GHTestNodeDelegate> delegate_;
 }
@@ -99,15 +116,14 @@
 
 @property (readonly, nonatomic) NSString *identifier;
 @property (readonly, nonatomic) NSString *name;
-@property (readonly, nonatomic) NSArray *children; // of GHTestNode
+@property (readonly, nonatomic) NSArray */* of GHTestNode*/children;
 @property (readonly, nonatomic) id<GHTest> test;
 @property (readonly, nonatomic) GHTestStatus status;
-@property (readonly, nonatomic) BOOL failed;
 @property (readonly, nonatomic) NSString *statusString;
 @property (readonly, nonatomic) NSString *stackTrace;
 @property (readonly, nonatomic) NSString *log;
 @property (readonly, nonatomic) BOOL isRunning;
-@property (readonly, nonatomic) BOOL isFinished;
+@property (readonly, nonatomic) BOOL isEnded;
 @property (readonly, nonatomic) BOOL isGroupTest; // YES if test has "sub tests"
 
 @property (assign, nonatomic, getter=isSelected) BOOL selected;
@@ -119,6 +135,7 @@
 - (NSString *)nameWithStatus;
 
 - (BOOL)hasChildren;
+- (BOOL)failed;
 
 - (void)notifyChanged;
 

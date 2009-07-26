@@ -67,7 +67,7 @@ BOOL isTestFixtureOfClass(Class aClass, Class testCaseClass);
 
 /*!
  Load all test classes that we can "see".
- @return Array of initialized (and autoreleased) test case classes in an autoreleased array.
+ @result Array of initialized (and autoreleased) test case classes in an autoreleased array.
  */
 - (NSArray *)loadAllTestCases;
 
@@ -98,7 +98,7 @@ BOOL isTestFixtureOfClass(Class aClass, Class testCaseClass);
  Run test.
  Exception if set is retained and should be released by the caller.
  */
-- (BOOL)runTest:(id)target selector:(SEL)selector exception:(NSException **)exception interval:(NSTimeInterval *)interval;
++ (BOOL)runTest:(id)target selector:(SEL)selector withObject:(id)obj exception:(NSException **)exception interval:(NSTimeInterval *)interval;
 
 @end
 

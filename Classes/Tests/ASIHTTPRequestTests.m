@@ -255,6 +255,9 @@
 	[request setDownloadProgressDelegate:self];
 	[request start];
 	
+	// Wait for the progress to catch up
+	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
+	
 	BOOL success = (progress > 0.95);
 	GHAssertTrue(success,@"Failed to properly increment download progress %f != 1.0",progress);	
 }
@@ -275,6 +278,9 @@
 	[request setPostBody:(NSMutableData *)[@"This is the request body" dataUsingEncoding:NSUTF8StringEncoding]];
 	[request setUploadProgressDelegate:self];
 	[request start];
+	
+	// Wait for the progress to catch up
+	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
 	
 	BOOL success = (progress > 0.95);
 	GHAssertTrue(success,@"Failed to properly increment upload progress %f != 1.0",progress);	
@@ -297,6 +303,9 @@
 	[request setPostBodyFilePath:requestContentPath];
 	[request start];
 	
+	// Wait for the progress to catch up
+	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
+	
 	BOOL success = (progress > 0.95);
 	GHAssertTrue(success,@"Failed to properly increment upload progress %f != 1.0",progress);
 	
@@ -312,6 +321,9 @@
 	[request setUploadProgressDelegate:self];
 	[request appendPostDataFromFile:requestContentPath];
 	[request start];
+	
+	// Wait for the progress to catch up
+	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
 	
 	success = (progress > 0.95);
 	GHAssertTrue(success,@"Failed to properly increment upload progress %f != 1.0",progress);
@@ -631,6 +643,7 @@
 	[request setAllowResumeForFileDownloads:YES];
 	[request setDownloadProgressDelegate:self];
 	[request start];
+	
 
 	
 	BOOL success = ([request contentLength] == 68);
@@ -641,6 +654,9 @@
 	NSString *newPartialContent = [content substringFromIndex:95];
 	success = ([newPartialContent isEqualToString:@"This is the content we ought to be getting if we start from byte 95."]);
 	GHAssertTrue(success,@"Failed to append the correct data to the end of the file?");
+
+	// Wait for the progress to catch up
+	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
 	
 	success = (progress > 0.95);
 	GHAssertTrue(success,@"Failed to correctly display increment progress for a partial download");

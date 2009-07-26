@@ -10,7 +10,7 @@
 
 #import "GHTestRunner.h"
 
-@interface GHTestApp : NSObject <GHTestRunnerDelegate> {
+@interface GHTestApp : NSObject {
 	NSMutableArray *topLevelObjects_;
 	
 	GHTestWindowController *windowController_;

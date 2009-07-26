@@ -54,12 +54,14 @@
 @protocol GHTestRunnerDelegate <NSObject>
 @optional
 - (void)testRunnerDidStart:(GHTestRunner *)runner;
-- (void)testRunner:(GHTestRunner *)runner didStartTest:(id<GHTest>)test;
-- (void)testRunner:(GHTestRunner *)runner didFinishTest:(id<GHTest>)test;
-- (void)testRunnerDidFinish:(GHTestRunner *)runner;
+- (void)testRunner:(GHTestRunner *)runner didStartTest:(id<GHTest>)test; // Test started
+- (void)testRunner:(GHTestRunner *)runner didUpdateTest:(id<GHTest>)test; // Test changed
+- (void)testRunner:(GHTestRunner *)runner didEndTest:(id<GHTest>)test; // Test finished
+- (void)testRunnerDidCancel:(GHTestRunner *)runner;
+- (void)testRunnerDidEnd:(GHTestRunner *)runner;
 
-- (void)testRunner:(GHTestRunner *)runner didLog:(NSString *)message;
-- (void)testRunner:(GHTestRunner *)runner test:(id<GHTest>)test didLog:(NSString *)message;
+- (void)testRunner:(GHTestRunner *)runner didLog:(NSString *)message; // Runner logged message
+- (void)testRunner:(GHTestRunner *)runner test:(id<GHTest>)test didLog:(NSString *)message; // Test logged message
 @end
 
 /*!
@@ -71,22 +73,24 @@
 	
 	id<GHTest> test_; // The test to run; Could be a GHTestGroup (suite), GHTestGroup (test case), or GHTest (target/selector)
 	
-	id<GHTestRunnerDelegate> delegate_; // weak
+	NSObject<GHTestRunnerDelegate> *delegate_; // weak
 	
 	// If YES, will allow exceptions to be raised (so you can trigger the debugger)
-	BOOL raiseExceptions_;
+	BOOL raiseExceptions_;	
 	
-	// If yes, delegate calls will occur on the main thread
-	// Defaults to YES.
-	BOOL delegateOnMainThread_;
-
+	BOOL running_;
+	BOOL cancelling_;
+	
+	NSOperationQueue *operationQueue_; //! If running a suite in operation queue
 }
 
 @property (retain) id<GHTest> test;
-@property (assign) id<GHTestRunnerDelegate> delegate;
+@property (assign) NSObject<GHTestRunnerDelegate> *delegate;
 @property (assign) BOOL raiseExceptions;
-@property (assign) BOOL delegateOnMainThread;
 @property (readonly) GHTestStats stats;
+@property (readonly, getter=isRunning) BOOL running;
+@property (readonly, getter=isCancelling) BOOL cancelling;
+@property (retain, nonatomic) NSOperationQueue *operationQueue;
 
 /*!
  Create runner for test.
@@ -109,6 +113,14 @@
 + (GHTestRunner *)runnerForSuite:(GHTestSuite *)suite;
 
 /*!
+ Create runner for class and method.
+ @param testClassName
+ @param methodName
+ @result Runner
+ */
++ (GHTestRunner *)runnerForTestClassName:(NSString *)testClassName methodName:(NSString *)methodName;
+
+/*!
  Get the runner from the environment.
  If the TEST env is set, then we will only run that test case or test method.
  */
@@ -117,14 +129,19 @@
 /*!
  Run the test runner. Usually called from the test main.
  Reads the TEST environment variable and filters on that; or all tests are run.
- @result Return value, 0 is success, otherwise the failure count
+ @result 0 is success, otherwise the failure count
  */
 + (int)run;
 
+- (void)runInBackground;
+
 /*!
  Start the test runner.
+ @result 0 is success, otherwise the failure count
  */
-- (void)run;
+- (int)runTests;
+
+- (void)cancel;
 
 @end
 
