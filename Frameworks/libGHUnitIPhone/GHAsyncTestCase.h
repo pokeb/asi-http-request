@@ -50,7 +50,7 @@ enum {
 	 // Do asynchronous task here
 	 [self performSelector:@selector(_succeed) withObject:nil afterDelay:0.1];
 	 
-	 [self waitFor:kGHUnitWaitStatusSuccess timeout:1.0];
+	 [self waitForStatus:kGHUnitWaitStatusSuccess timeout:1.0];
  }
  
  - (void)_succeed {
@@ -65,14 +65,14 @@ enum {
 	NSInteger waitForStatus_;
 	NSInteger notifiedStatus_;
 	
-	BOOL prepared_; // Whether prepared was called before waitFor:timeout:
+	BOOL prepared_; // Whether prepared was called before waitForStatus:timeout:
 	NSRecursiveLock *lock_; // Lock to synchronize on
 	SEL waitSelector_; // The selector we are waiting on
 		
 	NSArray *_runLoopModes; // Run loop modes to run while waiting; Defaults to NSDefaultRunLoopMode, NSRunLoopCommonModes, NSConnectionReplyMode
 }
 
-@property (retain) NSArray *runLoopModes;
+@property (retain, nonatomic) NSArray *runLoopModes;
 
 /*!
  Prepare before calling the asynchronous method. 
@@ -96,13 +96,16 @@ enum {
 	- (void)testFoo {
 		[self prepare];
 		// Do asynchronous task here
-		[self waitFor:kGHUnitWaitStatusSuccess timeout:1.0];
+		[self waitForStatus:kGHUnitWaitStatusSuccess timeout:1.0];
 	}
  @endcode
  
  @param status kGHUnitWaitStatusSuccess, kGHUnitWaitStatusFailure or custom status 
  @param timeout Timeout in seconds
  */
+- (void)waitForStatus:(NSInteger)status timeout:(NSTimeInterval)timeout;
+
+// Deprecated
 - (void)waitFor:(NSInteger)status timeout:(NSTimeInterval)timeout;
 
 /*!
@@ -113,11 +116,17 @@ enum {
 - (void)waitForTimeout:(NSTimeInterval)timeout;
 
 /*!
- Notify of status for test selector.
- @param status For example, kGHUnitWaitStatusSuccess
+ Notify waiting of status for test selector.
+ @param status Status, for example, kGHUnitWaitStatusSuccess
  @param selector If not NULL, then will verify this selector is where we are waiting.
 					This prevents stray asynchronous callbacks to fail a later test
  */
 - (void)notify:(NSInteger)status forSelector:(SEL)selector;
+
+/*!
+ Notify waiting of status for any selector.
+ @param status Status, for example, kGHUnitWaitStatusSuccess
+ */
+- (void)notify:(NSInteger)status;
 
 @end

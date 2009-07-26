@@ -407,7 +407,7 @@ extern NSString* const NetworkRequestErrorDomain;
 @property (retain) NSString *password;
 @property (retain) NSString *domain;
 
-@property (retain,readonly) NSURL *url;
+@property (retain,setter=setURL:) NSURL *url;
 @property (assign) id delegate;
 @property (assign) id queue;
 @property (assign) id uploadProgressDelegate;

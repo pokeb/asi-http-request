@@ -81,7 +81,7 @@
  */
 @interface GHTestGroup : NSObject <GHTestDelegate, GHTestGroup> {
 	
-	id<GHTestDelegate> delegate_; // weak
+	NSObject<GHTestDelegate> *delegate_; // weak
 	id<GHTestGroup> parent_; // weak
 	
 	NSMutableArray *children_; // of id<GHTest>
@@ -91,16 +91,17 @@
 	GHTestStatus status_; // Current status of the group (current status of running or completed child tests)
 	GHTestStats stats_; // Current stats for the group (aggregate of child test stats)
 	
-	id testCase_; // Is set if test is created from initWithTestCase:delegate:
-	id<GHTest> currentTest_; // weak
+	BOOL didSetUpClass_;
+	
+	// Set if test is created from initWithTestCase:delegate:
+	// Allows use to perform setUpClass and tearDownClass (once per test case run)
+	id testCase_; 
 	
 	NSException *exception_; // If exception happens in group setUpClass/tearDownClass
-	
-	BOOL ignore_;
 }
 
-@property (readonly, nonatomic) NSArray *children;
-@property (assign, nonatomic) id<GHTestDelegate> delegate;
+@property (readonly, nonatomic) NSArray */*of id<GHTest>*/children;
+@property (assign, nonatomic) NSObject<GHTestDelegate> *delegate;
 @property (assign, nonatomic) id<GHTestGroup> parent;
 @property (readonly, nonatomic) id testCase;
 
@@ -110,8 +111,7 @@
 
 @property (readonly, nonatomic) NSTimeInterval interval;
 @property (readonly, nonatomic) GHTestStats stats;
-
-@property (assign, nonatomic) BOOL ignore;
+@property (readonly, nonatomic) NSException *exception;
 
 /*!
  Create an empty test group.
@@ -134,7 +134,7 @@
 /*!
  Create test group from a single test.
  @param testCase
- @param selector Test to run
+ @param selector Test to run 
  @param delegate
  */
 - (id)initWithTestCase:(id)testCase selector:(SEL)selector delegate:(id<GHTestDelegate>)delegate;
@@ -155,10 +155,13 @@
 
 - (void)addTestGroup:(GHTestGroup *)testGroup;
 
+- (BOOL)shouldRunOnMainThread;
+
 /*!
- Run the test group.
- Will notify delegate as tests are run.
+ Run in operation queue.
+ Tests from the group are added and will block until they have completed.
+ @param operationQueue If nil, then runs as is
  */
-- (void)run;
+- (void)runInOperationQueue:(NSOperationQueue *)operationQueue;
 
 @end

@@ -46,7 +46,6 @@ static NSError *ASITooMuchRedirectionError;
 
 // Private stuff
 @interface ASIHTTPRequest ()
-	@property (retain,setter=setURL:) NSURL *url;
 	@property (assign) BOOL complete;
 	@property (retain) NSDictionary *responseHeaders;
 	@property (retain) NSArray *responseCookies;

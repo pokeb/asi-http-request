@@ -13,7 +13,6 @@ static NSDateFormatter *dateFormatter = nil;
 
 // Private stuff
 @interface ASIS3ListRequest ()
-	@property (retain,setter=setURL:) NSURL *url;
 	@property (retain, nonatomic) NSString *currentContent;
 	@property (retain, nonatomic) NSString *currentElement;
 	@property (retain, nonatomic) ASIS3BucketObject *currentObject;
@@ -133,5 +132,4 @@ static NSDateFormatter *dateFormatter = nil;
 @synthesize marker;
 @synthesize maxResultCount;
 @synthesize delimiter;
-@synthesize url;
 @end
