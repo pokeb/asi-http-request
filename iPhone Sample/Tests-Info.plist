@@ -20,5 +20,7 @@
 	<string>GHUnitIPhone</string>
 	<key>CFBundleDisplayName</key>
 	<string>ASIHTTPRequest Unit Tests</string>
+	<key>CFBundleIconFile</key>
+	<string>iphone-icon.png</string>
 </dict>
 </plist>
