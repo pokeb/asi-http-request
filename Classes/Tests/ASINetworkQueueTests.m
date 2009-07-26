@@ -22,11 +22,10 @@ IMPORTANT
 // Used for subclass test
 @interface ASINetworkQueueSubclass : ASINetworkQueue {}
 @end
-@implementation ASINetworkQueueSubclass;
+@implementation ASINetworkQueueSubclass
 @end
 
 @implementation ASINetworkQueueTests
-
 
 - (void)testProgress
 {
@@ -106,7 +105,7 @@ IMPORTANT
 	int i;
 	for (i=0; i<3; i++) {
 		NSData *data = [[[NSMutableData alloc] initWithLength:fileSizes[i]*1024] autorelease];
-		NSString *path = [[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:[NSString stringWithFormat:@"file%hi",i]];
+		NSString *path = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:[NSString stringWithFormat:@"file%hi",i]];
 		[data writeToFile:path atomically:NO];
 		ASIFormDataRequest *request = [[[ASIFormDataRequest alloc] initWithURL:url] autorelease];
 		[request setFile:path forKey:@"file"];
@@ -130,7 +129,7 @@ IMPORTANT
 	
 	for (i=0; i<3; i++) {
 		NSData *data = [[[NSMutableData alloc] initWithLength:fileSizes[i]*1024] autorelease];
-		NSString *path = [[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:[NSString stringWithFormat:@"file%hi",i]];
+		NSString *path = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:[NSString stringWithFormat:@"file%hi",i]];
 		[data writeToFile:path atomically:NO];
 		ASIFormDataRequest *request = [[[ASIFormDataRequest alloc] initWithURL:url] autorelease];
 		[request setFile:path forKey:@"file"];
@@ -381,12 +380,12 @@ IMPORTANT
 	complete = NO;
 	progress = 0;
 	
-	NSString *temporaryPath = [[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"MemexTrails_1.0b1.zip.download"];
+	NSString *temporaryPath = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:@"MemexTrails_1.0b1.zip.download"];
 	if ([[NSFileManager defaultManager] fileExistsAtPath:temporaryPath]) {
 		[[NSFileManager defaultManager] removeItemAtPath:temporaryPath error:nil];
 	}
 	
-	NSString *downloadPath = [[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"MemexTrails_1.0b1.zip"];
+	NSString *downloadPath = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:@"MemexTrails_1.0b1.zip"];
 	if ([[NSFileManager defaultManager] fileExistsAtPath:downloadPath]) {
 		[[NSFileManager defaultManager] removeItemAtPath:downloadPath error:nil];
 	}

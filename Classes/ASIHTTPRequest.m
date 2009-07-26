@@ -602,9 +602,13 @@ static NSError *ASITooMuchRedirectionError;
 		}
 		
 		// Find out how much data we've uploaded so far
+		[[self cancelledLock] lock];
 		[self setTotalBytesSent:[[(NSNumber *)CFReadStreamCopyProperty(readStream, kCFStreamPropertyHTTPRequestBytesWrittenCount) autorelease] unsignedLongLongValue]];
-
+		[[self cancelledLock] unlock];
+		
 		[self updateProgressIndicators];
+		
+		
 		
 		// This thread should wait for 1/4 second for the stream to do something. We'll stop early if it does.
 		CFRunLoopRunInMode(ASIHTTPRequestRunMode,0.25,YES);
@@ -1397,9 +1401,11 @@ static NSError *ASITooMuchRedirectionError;
 		return;
 	}
 	[progressLock lock];	
+	
 	[self setComplete:YES];
 	[self updateProgressIndicators];
 	
+	[[self cancelledLock] lock];
     if (readStream) {
         CFReadStreamClose(readStream);
         CFReadStreamSetClient(readStream, kCFStreamEventNone, NULL, NULL);
@@ -1449,7 +1455,9 @@ static NSError *ASITooMuchRedirectionError;
 			}
 		}
 	}
+	[[self cancelledLock] unlock];
 	[progressLock unlock];
+	
 	if (fileError) {
 		[self failWithError:fileError];
 	} else {

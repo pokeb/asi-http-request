@@ -6,11 +6,7 @@
 //  Copyright 2008 All-Seeing Interactive. All rights reserved.
 //
 
-#if TARGET_OS_IPHONE
-	#import "GHUnit.h"
-#else
-	#import <GHUnit/GHUnit.h>
-#endif
+#import "ASITestCase.h"
 
 /*
 IMPORTANT
@@ -23,7 +19,7 @@ IMPORTANT
 @class ASIHTTPRequest;
 @class ASINetworkQueue;
 
-@interface ASINetworkQueueTests : GHTestCase {
+@interface ASINetworkQueueTests : ASITestCase {
 	ASIHTTPRequest *requestThatShouldFail;
 	BOOL complete;
 	BOOL request_didfail;

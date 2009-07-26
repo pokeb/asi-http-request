@@ -6,13 +6,9 @@
 //  Copyright 2009 All-Seeing Interactive. All rights reserved.
 //
 
-#if TARGET_OS_IPHONE
-#import "GHUnit.h"
-#else
-#import <GHUnit/GHUnit.h>
-#endif
+#import "ASITestCase.h"
 
-@interface ASIS3RequestTests : GHTestCase {
+@interface ASIS3RequestTests : ASITestCase {
 }
 
 - (void)testAuthenticationHeaderGeneration;

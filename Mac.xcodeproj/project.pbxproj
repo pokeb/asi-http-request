@@ -30,6 +30,7 @@
 		B55B60140F7659A30064029C /* libz.1.2.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B55B5EB70F7658200064029C /* libz.1.2.3.dylib */; };
 		B564D0520FEE677F00A2098A /* ASINSStringAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = B564D0500FEE677F00A2098A /* ASINSStringAdditions.m */; };
 		B564D0530FEE678C00A2098A /* ASINSStringAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = B564D0500FEE677F00A2098A /* ASINSStringAdditions.m */; };
+		B565297E101C8D01000499CF /* ASITestCase.m in Sources */ = {isa = PBXBuildFile; fileRef = B565297C101C8D01000499CF /* ASITestCase.m */; };
 		B5B513680FBEE435002C74D0 /* GHUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B5B513670FBEE435002C74D0 /* GHUnit.framework */; };
 		B5B513830FBEE490002C74D0 /* GHUnit.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = B5B513670FBEE435002C74D0 /* GHUnit.framework */; };
 		B5B513860FBEE515002C74D0 /* GHUnitTestMain.m in Sources */ = {isa = PBXBuildFile; fileRef = B5B513850FBEE515002C74D0 /* GHUnitTestMain.m */; };
@@ -85,6 +86,8 @@
 		B55B5EDF0F7658C70064029C /* Unit Tests (GHUnit).app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Unit Tests (GHUnit).app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B564D0500FEE677F00A2098A /* ASINSStringAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASINSStringAdditions.m; sourceTree = "<group>"; };
 		B564D0510FEE677F00A2098A /* ASINSStringAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASINSStringAdditions.h; sourceTree = "<group>"; };
+		B565297C101C8D01000499CF /* ASITestCase.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASITestCase.m; sourceTree = "<group>"; };
+		B565297D101C8D01000499CF /* ASITestCase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASITestCase.h; sourceTree = "<group>"; };
 		B5B513670FBEE435002C74D0 /* GHUnit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GHUnit.framework; path = Frameworks/GHUnit.framework; sourceTree = "<group>"; };
 		B5B513850FBEE515002C74D0 /* GHUnitTestMain.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GHUnitTestMain.m; sourceTree = "<group>"; };
 		B5C66394100A4C24004F3C96 /* ASIS3Request.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIS3Request.m; sourceTree = "<group>"; };
@@ -225,6 +228,8 @@
 			isa = PBXGroup;
 			children = (
 				B5B513850FBEE515002C74D0 /* GHUnitTestMain.m */,
+				B565297D101C8D01000499CF /* ASITestCase.h */,
+				B565297C101C8D01000499CF /* ASITestCase.m */,
 				B55B5D1A0F76568E0064029C /* ASIFormDataRequestTests.h */,
 				B55B5D1B0F76568E0064029C /* ASIFormDataRequestTests.m */,
 				B55B5D1C0F76568E0064029C /* ASIHTTPRequestTests.h */,
@@ -345,6 +350,7 @@
 				B5C664BC100A6220004F3C96 /* ASIS3RequestTests.m in Sources */,
 				B51E5F3B100B829D004A300D /* ASIS3BucketObject.m in Sources */,
 				B51E5F56100B83F7004A300D /* ASIS3ListRequest.m in Sources */,
+				B565297E101C8D01000499CF /* ASITestCase.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

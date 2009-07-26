@@ -24,7 +24,7 @@
 	//Create a 32kb file
 	unsigned int size = 1024*32;
 	NSMutableData *data = [NSMutableData dataWithLength:size];
-	NSString *path = [[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"bigfile"];
+	NSString *path = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:@"bigfile"];
 	[data writeToFile:path atomically:NO];
 	
 	ASIFormDataRequest *request = [ASIFormDataRequest requestWithURL:url];
@@ -39,7 +39,6 @@
 	[request setPostValue:d forKey:@"post_var2"];
 	[request setPostValue:v forKey:@"post_var3"];
 	[request setFile:path forKey:@"file"];
-	[request setPostBodyFilePath:@"/Users/ben/Desktop/111.txt"];
 	[request start];
 
 	BOOL success = ([[request responseString] isEqualToString:[NSString stringWithFormat:@"post_var: %@\r\npost_var2: %@\r\npost_var3: %@\r\nfile_name: %@\r\nfile_size: %hu",@"foo",d,v,@"bigfile",size]]);

@@ -4,10 +4,14 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
+	<key>CFBundleDisplayName</key>
+	<string>ASIHTTPRequest Unit Tests</string>
 	<key>CFBundleExecutable</key>
 	<string>${EXECUTABLE_NAME}</string>
+	<key>CFBundleIconFile</key>
+	<string>iphone-tests-icon.png</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.allseeinginteractive.trailsnetwork.tests</string>
+	<string>com.your.company.blah</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundlePackageType</key>
@@ -18,9 +22,5 @@
 	<string>1.0</string>
 	<key>NSMainNibFile</key>
 	<string>GHUnitIPhone</string>
-	<key>CFBundleDisplayName</key>
-	<string>ASIHTTPRequest Unit Tests</string>
-	<key>CFBundleIconFile</key>
-	<string>iphone-icon.png</string>
 </dict>
 </plist>

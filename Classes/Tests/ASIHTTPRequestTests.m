@@ -20,7 +20,6 @@
 
 @implementation ASIHTTPRequestTests
 
-
 - (void)testBasicDownload
 {
 	NSURL *url = [NSURL URLWithString:@"http://allseeing-i.com"];
@@ -204,7 +203,7 @@
 
 - (void)testFileDownload
 {
-	NSString *path = [[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"testimage.png"];
+	NSString *path = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:@"testimage.png"];
 	
 	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/i/logo.png"] autorelease];
 	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
@@ -228,7 +227,7 @@
 
 - (void)testCompressedResponseDownloadToFile
 {
-	NSString *path = [[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"testfile"];
+	NSString *path = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:@"testfile"];
 	
 	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/first"] autorelease];
 	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
@@ -290,7 +289,7 @@
 {
 	NSURL *url = [NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/print_request_body"];
 	NSString *requestBody = @"This is the request body";
-	NSString *requestContentPath = [[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"testfile.txt"];
+	NSString *requestContentPath = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:@"testfile.txt"];
 	[[requestBody dataUsingEncoding:NSUTF8StringEncoding] writeToFile:requestContentPath atomically:NO];
 
 	
@@ -630,8 +629,8 @@
 
 - (void)testPartialFetch
 {
-	NSString *downloadPath = [[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"testfile.txt"];
-	NSString *tempPath = [[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"tempfile.txt"];
+	NSString *downloadPath = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:@"testfile.txt"];
+	NSString *tempPath = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:@"tempfile.txt"];
 	NSString *partialContent = @"This file should be exactly 163 bytes long when encoded as UTF8, Unix line breaks with no BOM.\n";
 	[partialContent writeToFile:tempPath atomically:NO encoding:NSASCIIStringEncoding error:nil];
 	
@@ -737,7 +736,8 @@
 	GHAssertTrue(success,@"Failed compress or decompress the correct data");	
 	
 	// Test file to file compression / decompression
-	NSString *basePath = [[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent];
+	
+	NSString *basePath = [self filePathForTemporaryTestFiles];
 	NSString *sourcePath = [basePath stringByAppendingPathComponent:@"text.txt"];
 	NSString *destPath = [basePath stringByAppendingPathComponent:@"text.txt.compressed"];
 	NSString *newPath = [basePath stringByAppendingPathComponent:@"text2.txt"];

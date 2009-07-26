@@ -35,7 +35,6 @@ static NSString *bucket = @"";
 
 @implementation ASIS3RequestTests
 
-
 // All these tests are based on Amazon's examples at: http://docs.amazonwebservices.com/AmazonS3/2006-03-01/
 - (void)testAuthenticationHeaderGeneration
 {
@@ -141,7 +140,7 @@ static NSString *bucket = @"";
 	
 	// Create the file
 	NSString *text = @"This is my content";
-	NSString *filePath = [[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"testfile.txt"];
+	NSString *filePath = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:@"testfile.txt"];
 	[[text dataUsingEncoding:NSUTF8StringEncoding] writeToFile:filePath atomically:NO];
 	
 	// PUT the file
@@ -231,7 +230,7 @@ static NSString *bucket = @"";
 {
 	// Create the file
 	NSString *text = @"This is my content This is my content This is my content This is my content This is my content This is my content";
-	NSString *filePath = [[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"testfile.txt"];
+	NSString *filePath = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:@"testfile.txt"];
 	[[text dataUsingEncoding:NSUTF8StringEncoding] writeToFile:filePath atomically:NO];
 	
 	NSString *path = @"/gzipped-data";
@@ -274,7 +273,7 @@ static NSString *bucket = @"";
 	int i;
 	for (i=0; i<5; i++) {
 		NSString *text = [NSString stringWithFormat:@"This is the content of file #%hi",i];
-		NSString *filePath = [[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:[NSString stringWithFormat:@"%hi.txt",i]];
+		NSString *filePath = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:[NSString stringWithFormat:@"%hi.txt",i]];
 		[[text dataUsingEncoding:NSUTF8StringEncoding] writeToFile:filePath atomically:NO];
 		NSString *path = [NSString stringWithFormat:@"/test-file/%hi",i];
 		ASIS3Request *request = [ASIS3Request PUTRequestForFile:filePath withBucket:bucket path:path];
@@ -319,7 +318,7 @@ static NSString *bucket = @"";
 	i=0;
 	// For each one, we'll just upload the same content again
 	for (ASIS3BucketObject *object in [listRequest bucketObjects]) {
-		NSString *oldFilePath = [[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:[NSString stringWithFormat:@"%hi.txt",i]];;
+		NSString *oldFilePath = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:[NSString stringWithFormat:@"%hi.txt",i]];;
 		ASIS3Request *request = [object PUTRequestWithFile:oldFilePath];
 		[request setAccessKey:accessKey];
 		[request setSecretAccessKey:secretAccessKey];
