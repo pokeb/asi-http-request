@@ -53,10 +53,10 @@ IMPORTANT
 	
 	[networkQueue go];
 		
-	 while (!complete) {
+	while (!complete) {
 		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
-	 }
-	
+	}
+	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
 	BOOL success = (progress > 0.95);
 	GHAssertTrue(success,@"Failed to increment progress properly");
 	
@@ -117,7 +117,7 @@ IMPORTANT
 	while (!complete) {
 		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
 	}
-	
+	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
 	BOOL success = (progress > 0.95);
 	GHAssertTrue(success,@"Failed to increment progress properly");
 	
@@ -141,7 +141,7 @@ IMPORTANT
 	while (!complete) {
 		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
 	}
-	
+	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
 	success = (progress > 0.95);
 	GHAssertTrue(success,@"Failed to increment progress properly");
 	

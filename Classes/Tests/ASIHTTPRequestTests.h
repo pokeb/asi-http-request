@@ -36,5 +36,5 @@
 - (void)test303Redirect;
 - (void)testCompression;
 - (void)testSubclass;
-
+- (void)testTimeOutWithoutDownloadDelegate;
 @end

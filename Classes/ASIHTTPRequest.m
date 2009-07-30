@@ -566,7 +566,7 @@ static NSError *ASITooMuchRedirectionError;
 			// Prevent timeouts before 128KB* has been sent when the size of data to upload is greater than 128KB* (*32KB on iPhone 3.0 SDK)
 			// This is to workaround the fact that kCFStreamPropertyHTTPRequestBytesWrittenCount is the amount written to the buffer, not the amount actually sent
 			// This workaround prevents erroneous timeouts in low bandwidth situations (eg iPhone)
-			if (contentLength <= uploadBufferSize || (uploadBufferSize > 0 && totalBytesSent > uploadBufferSize)) {
+			if (totalBytesSent || postLength <= uploadBufferSize || (uploadBufferSize > 0 && totalBytesSent > uploadBufferSize)) {
 				[self failWithError:ASIRequestTimedOutError];
 				[self cancelLoad];
 				[self setComplete:YES];
@@ -848,11 +848,6 @@ static NSError *ASITooMuchRedirectionError;
 	if (responseHeaders) {
 		
 		unsigned long long bytesReadSoFar = totalBytesRead+partialDownloadSize;
-		
-		if (bytesReadSoFar > lastBytesRead) {
-			[self setLastActivityTime:[NSDate date]];
-		}
-		
 
 		// We're using a progress queue or compatible controller to handle progress
 		SEL selector = @selector(incrementDownloadProgressBy:);
@@ -1365,6 +1360,7 @@ static NSError *ASITooMuchRedirectionError;
     } else if (bytesRead) {
 		
 		[self setTotalBytesRead:[self totalBytesRead]+bytesRead];
+		[self setLastActivityTime:[NSDate date]];
 		
 		// Are we downloading to a file?
 		if ([self downloadDestinationPath]) {

@@ -97,7 +97,19 @@
 	
 	BOOL success = [[request error] code] == ASIRequestTimedOutErrorType;
 	GHAssertTrue(success,@"Timeout didn't generate the correct error");
+}
+
+
+// Test fix for a bug that might have caused timeouts when posting data
+- (void)testTimeOutWithoutDownloadDelegate
+{
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://trails-network.net/Downloads/MemexTrails_1.0b1.zip"]];
+	[request setTimeOutSeconds:5];
+	[request setShowAccurateProgress:NO];
+	[request setPostBody:[NSMutableData dataWithData:[@"Small Body" dataUsingEncoding:NSUTF8StringEncoding]]];
+	[request start];
 	
+	GHAssertNil([request error],@"Generated an error (most likely a timeout) - this test might fail on high latency connections");	
 }
 
 
@@ -780,6 +792,7 @@
 	BOOL success = [instance isKindOfClass:[ASIHTTPRequestSubclass class]];
 	GHAssertTrue(success,@"Convenience constructor failed to return an instance of the correct class");	
 }
+
 
 
 @end

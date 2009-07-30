@@ -34,7 +34,9 @@
 	[request addRequestHeader:@"User-Agent" value:@"ASIHTTPRequest"];
 	
 	[request start];
-	if ([request responseString]) {
+	if ([request error]) {
+		[htmlSource setString:[[request error] localizedDescription]];
+	} else if ([request responseString]) {
 		[htmlSource setString:[request responseString]];
 	}
 }
