@@ -275,6 +275,13 @@
 	}
 }
 
+- (void)proxyAuthorizationNeededForRequest:(ASIHTTPRequest *)request
+{
+	if ([[self delegate] respondsToSelector:@selector(proxyAuthorizationNeededForRequest:)]) {
+		[[self delegate] performSelector:@selector(proxyAuthorizationNeededForRequest:) withObject:request];
+	}
+}
+
 
 - (BOOL)respondsToSelector:(SEL)selector
 {

@@ -32,7 +32,6 @@
 	
 	//Customise our user agent, for no real reason
 	[request addRequestHeader:@"User-Agent" value:@"ASIHTTPRequest"];
-	
 	[request start];
 	if ([request error]) {
 		[htmlSource setString:[[request error] localizedDescription]];
@@ -197,6 +196,19 @@
 		didEndSelector: @selector(authSheetDidEnd:returnCode:contextInfo:)
 		contextInfo: request];
 }
+
+- (void)proxyAuthorizationNeededForRequest:(ASIHTTPRequest *)request
+{
+	[realm setStringValue:[request proxyAuthenticationRealm]];
+	[host setStringValue:[request proxyHost]];
+	
+	[NSApp beginSheet: loginWindow
+	   modalForWindow: window
+		modalDelegate: self
+	   didEndSelector: @selector(authSheetDidEnd:returnCode:contextInfo:)
+		  contextInfo: request];
+}
+
 
 - (IBAction)dismissAuthSheet:(id)sender {
     [[NSApplication sharedApplication] endSheet: loginWindow returnCode: [(NSControl*)sender tag]];

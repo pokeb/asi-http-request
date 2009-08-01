@@ -14,6 +14,7 @@
 #import <zlib.h>
 #ifndef TARGET_OS_IPHONE
 #import <SystemConfiguration/SystemConfiguration.h>
+#import <Security/Security.h>
 #endif
 
 // We use our own custom run loop mode as CoreAnimation seems to want to hijack our threads otherwise
@@ -25,6 +26,10 @@ static const CFOptionFlags kNetworkEvents = kCFStreamEventOpenCompleted | kCFStr
 
 static CFHTTPAuthenticationRef sessionAuthentication = NULL;
 static NSMutableDictionary *sessionCredentials = nil;
+
+static CFHTTPAuthenticationRef sessionProxyAuthentication = NULL;
+static NSMutableDictionary *sessionProxyCredentials = nil;
+
 static NSMutableArray *sessionCookies = nil;
 
 // The number of times we will allow requests to redirect before we fail with a redirection error
@@ -66,12 +71,16 @@ static NSError *ASITooMuchRedirectionError;
 	@property (assign, nonatomic) BOOL haveBuiltPostBody;
 	@property (retain, nonatomic) NSOutputStream *fileDownloadOutputStream;
 	@property (assign, nonatomic) int authenticationRetryCount;
+	@property (assign, nonatomic) int proxyAuthenticationRetryCount;
+	@property (assign, nonatomic) BOOL needsProxyAuthentication;
 	@property (assign, nonatomic) BOOL updatedProgress;
 	@property (assign, nonatomic) BOOL needsRedirect;
 	@property (assign, nonatomic) int redirectCount;
 	@property (retain, nonatomic) NSData *compressedPostBody;
 	@property (retain, nonatomic) NSString *compressedPostBodyFilePath;
 	@property (retain) NSConditionLock *authenticationLock;
+	@property (retain) NSString *authenticationRealm;
+	@property (retain) NSString *proxyAuthenticationRealm;
 @end
 
 @implementation ASIHTTPRequest
@@ -128,6 +137,9 @@ static NSError *ASITooMuchRedirectionError;
 	if (requestAuthentication) {
 		CFRelease(requestAuthentication);
 	}
+	if (proxyAuthentication) {
+		CFRelease(proxyAuthentication);
+	}
 	if (request) {
 		CFRelease(request);
 	}
@@ -136,7 +148,6 @@ static NSError *ASITooMuchRedirectionError;
 	[mainRequest release];
 	[postBody release];
 	[compressedPostBody release];
-	[requestCredentials release];
 	[error release];
 	[requestHeaders release];
 	[requestCookies release];
@@ -147,6 +158,15 @@ static NSError *ASITooMuchRedirectionError;
 	[password release];
 	[domain release];
 	[authenticationRealm release];
+	[authenticationMethod release];
+	[requestCredentials release];
+	[proxyHost release];
+	[proxyUsername release];
+	[proxyPassword release];
+	[proxyDomain release];
+	[proxyAuthenticationRealm release];
+	[proxyAuthenticationMethod release];
+	[proxyCredentials release];
 	[url release];
 	[authenticationLock release];
 	[lastActivityTime release];
@@ -155,7 +175,6 @@ static NSError *ASITooMuchRedirectionError;
 	[responseHeaders release];
 	[requestMethod release];
 	[cancelledLock release];
-	[authenticationMethod release];
 	[postBodyFilePath release];
 	[compressedPostBodyFilePath release];
 	[postBodyWriteStream release];
@@ -351,10 +370,12 @@ static NSError *ASITooMuchRedirectionError;
 	
 	
 	// If we've already talked to this server and have valid credentials, let's apply them to the request
-	if ([self useSessionPersistance] && sessionCredentials && sessionAuthentication) {
-		if (!CFHTTPMessageApplyCredentialDictionary(request, sessionAuthentication, (CFMutableDictionaryRef)sessionCredentials, NULL)) {
-			[ASIHTTPRequest setSessionAuthentication:NULL];
-			[ASIHTTPRequest setSessionCredentials:nil];
+	if ([self useSessionPersistance]) {
+		if (sessionCredentials && sessionAuthentication) {
+			if (!CFHTTPMessageApplyCredentialDictionary(request, sessionAuthentication, (CFMutableDictionaryRef)sessionCredentials, NULL)) {
+				[ASIHTTPRequest setSessionAuthentication:NULL];
+				[ASIHTTPRequest setSessionCredentials:nil];
+			}
 		}
 	}
 	
@@ -491,22 +512,43 @@ static NSError *ASITooMuchRedirectionError;
 		CFReadStreamSetProperty(readStream, kCFStreamPropertySSLSettings, [NSMutableDictionary dictionaryWithObject:(NSString *)kCFBooleanFalse forKey:(NSString *)kCFStreamSSLValidatesCertificateChain]); 
 	}
 	
-	// Detect proxy settings and apply them
-#if TARGET_OS_IPHONE
-	#if TARGET_IPHONE_SIMULATOR
-		#if __IPHONE_OS_VERSION_MIN_REQUIRED > __IPHONE_2_2
-	NSDictionary *proxySettings = [(NSDictionary *)CFNetworkCopySystemProxySettings() autorelease];
+
+	if (![self proxyHost] && ![self proxyPort]) {
+		
+		// Detect proxy settings and apply them		
+		#if TARGET_OS_IPHONE
+		#if !defined(TARGET_IPHONE_SIMULATOR) || __IPHONE_OS_VERSION_MIN_REQUIRED > __IPHONE_2_2
+		NSDictionary *proxySettings = [(NSDictionary *)CFNetworkCopySystemProxySettings() autorelease];
 		#else
-	// Can't detect proxies in 2.2.1 Simulator
-	NSDictionary *proxySettings = [NSMutableDictionary dictionary];	
+		// Can't detect proxies in 2.2.1 Simulator
+		NSDictionary *proxySettings = [NSMutableDictionary dictionary];	
 		#endif
-	#else
-	NSDictionary *proxySettings = [(NSDictionary *)CFNetworkCopySystemProxySettings() autorelease];
-	#endif
-#else
-	NSDictionary *proxySettings = [(NSDictionary *)SCDynamicStoreCopyProxies(NULL) autorelease];
-#endif
-	CFReadStreamSetProperty(readStream, kCFStreamPropertyHTTPProxy, proxySettings);
+		#else
+		NSDictionary *proxySettings = [(NSDictionary *)SCDynamicStoreCopyProxies(NULL) autorelease];
+		#endif
+
+		NSArray *proxies = [(NSArray *)CFNetworkCopyProxiesForURL((CFURLRef)[self url], (CFDictionaryRef)proxySettings) autorelease];
+		if (proxies == NULL) {
+			CFRelease(readStream);
+			readStream = NULL;
+			[[self cancelledLock] unlock];
+			[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIInternalErrorWhileBuildingRequestType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Unable to obtain information on proxy servers needed for request",NSLocalizedDescriptionKey,nil]]];
+			return;			
+		}
+		// I don't really understand why the dictionary returned by CFNetworkCopyProxiesForURL uses different key names from CFNetworkCopySystemProxySettings/SCDynamicStoreCopyProxies
+		// and why its key names are documented while those we actually need to use don't seem to be (passing the kCF* keys doesn't seem to work)
+		if ([proxies count] > 0) {
+			NSDictionary *settings = [proxies objectAtIndex:0];
+			[self setProxyHost:[settings objectForKey:(NSString *)kCFProxyHostNameKey]];
+			[self setProxyPort:[[settings objectForKey:(NSString *)kCFProxyPortNumberKey] intValue]];
+			NSLog(@"%@",proxySettings);
+			NSLog(@"%@",[proxies objectAtIndex:0]);
+		}
+	}
+	if ([self proxyHost] && [self proxyPort]) {
+		NSMutableDictionary *proxyToUse = [NSMutableDictionary dictionaryWithObjectsAndKeys:[self proxyHost],kCFStreamPropertyHTTPProxyHost,[NSNumber numberWithInt:[self proxyPort]],kCFStreamPropertyHTTPProxyPort,nil];
+		CFReadStreamSetProperty(readStream, kCFStreamPropertyHTTPProxy, proxyToUse);
+	}
 	
     // Set the client
 	CFStreamClientContext ctxt = {0, self, NULL, NULL, NULL};
@@ -1000,17 +1042,23 @@ static NSError *ASITooMuchRedirectionError;
 
 - (BOOL)readResponseHeadersReturningAuthenticationFailure
 {
+	[self setNeedsProxyAuthentication:NO];
 	BOOL isAuthenticationChallenge = NO;
 	CFHTTPMessageRef headers = (CFHTTPMessageRef)CFReadStreamCopyProperty(readStream, kCFStreamPropertyHTTPResponseHeader);
 	if (CFHTTPMessageIsHeaderComplete(headers)) {
 		
 		CFDictionaryRef headerFields = CFHTTPMessageCopyAllHeaderFields(headers);
 		[self setResponseHeaders:(NSDictionary *)headerFields];
+
 		CFRelease(headerFields);
 		[self setResponseStatusCode:CFHTTPMessageGetResponseStatusCode(headers)];
 		
 		// Is the server response a challenge for credentials?
 		isAuthenticationChallenge = ([self responseStatusCode] == 401);
+		if ([self responseStatusCode] == 407) {
+			isAuthenticationChallenge = YES;
+			[self setNeedsProxyAuthentication:YES];
+		}
 		
 		// We won't reset the download progress delegate if we got an authentication challenge
 		if (!isAuthenticationChallenge) {
@@ -1095,6 +1143,18 @@ static NSError *ASITooMuchRedirectionError;
 
 #pragma mark http authentication
 
+- (void)saveProxyCredentialsToKeychain:(NSMutableDictionary *)newCredentials
+{
+	NSURLCredential *authenticationCredentials = [NSURLCredential credentialWithUser:[newCredentials objectForKey:(NSString *)kCFHTTPAuthenticationUsername]
+																			password:[newCredentials objectForKey:(NSString *)kCFHTTPAuthenticationPassword]
+																		 persistence:NSURLCredentialPersistencePermanent];
+	
+	if (authenticationCredentials) {
+		[ASIHTTPRequest saveCredentials:authenticationCredentials forHost:[self proxyHost] port:[self proxyPort] protocol:[[self url] scheme] realm:[self proxyAuthenticationRealm]];
+	}	
+}
+
+
 - (void)saveCredentialsToKeychain:(NSMutableDictionary *)newCredentials
 {
 	NSURLCredential *authenticationCredentials = [NSURLCredential credentialWithUser:[newCredentials objectForKey:(NSString *)kCFHTTPAuthenticationUsername]
@@ -1102,8 +1162,32 @@ static NSError *ASITooMuchRedirectionError;
 																		 persistence:NSURLCredentialPersistencePermanent];
 	
 	if (authenticationCredentials) {
-		[ASIHTTPRequest saveCredentials:authenticationCredentials forHost:[url host] port:[[url port] intValue] protocol:[url scheme] realm:authenticationRealm];
+		[ASIHTTPRequest saveCredentials:authenticationCredentials forHost:[[self url] host] port:[[[self url] port] intValue] protocol:[[self url] scheme] realm:[self authenticationRealm]];
 	}	
+}
+
+- (BOOL)applyProxyCredentials:(NSMutableDictionary *)newCredentials
+{
+	[self setProxyAuthenticationRetryCount:[self proxyAuthenticationRetryCount]+1];
+	
+	if (newCredentials && proxyAuthentication && request) {
+		NSLog(@"%@",newCredentials);
+		// Apply whatever credentials we've built up to the old request
+		if (CFHTTPMessageApplyCredentialDictionary(request, proxyAuthentication, (CFMutableDictionaryRef)newCredentials, NULL)) {
+			
+			//If we have credentials and they're ok, let's save them to the keychain
+			if (useKeychainPersistance) {
+				[self saveProxyCredentialsToKeychain:newCredentials];
+			}
+			if (useSessionPersistance) {
+				[ASIHTTPRequest setSessionProxyAuthentication:proxyAuthentication];
+				[ASIHTTPRequest setSessionProxyCredentials:newCredentials];
+			}
+			[self setProxyCredentials:newCredentials];
+			return YES;
+		}
+	}
+	return NO;
 }
 
 - (BOOL)applyCredentials:(NSMutableDictionary *)newCredentials
@@ -1130,6 +1214,61 @@ static NSError *ASITooMuchRedirectionError;
 	return NO;
 }
 
+- (NSMutableDictionary *)findProxyCredentials
+{
+	NSMutableDictionary *newCredentials = [[[NSMutableDictionary alloc] init] autorelease];
+	
+	// Is an account domain needed? (used currently for NTLM only)
+	if (CFHTTPAuthenticationRequiresAccountDomain(proxyAuthentication)) {
+		if (![self proxyDomain]) {
+			[self setProxyDomain:@""];
+		}
+		[newCredentials setObject:[self proxyDomain] forKey:(NSString *)kCFHTTPAuthenticationAccountDomain];
+	}
+	
+	// Get the authentication realm
+	[self setProxyAuthenticationRealm:nil];
+	if (!CFHTTPAuthenticationRequiresAccountDomain(proxyAuthentication)) {
+		[self setProxyAuthenticationRealm:[(NSString *)CFHTTPAuthenticationCopyRealm(proxyAuthentication) autorelease]];
+	}
+	
+	NSString *user = nil;
+	NSString *pass = nil;
+	
+
+	// If this is a HEAD request generated by an ASINetworkQueue, we'll try to use the details from the main request
+	if ([self mainRequest] && [[self mainRequest] proxyUsername] && [[self mainRequest] proxyPassword]) {
+		user = [[self mainRequest] proxyUsername];
+		pass = [[self mainRequest] proxyPassword];
+		
+		// Let's try to use the ones set in this object
+	} else if ([self username] && [self password]) {
+		user = [self username];
+		pass = [self password];
+	}		
+
+	
+	// Ok, that didn't work, let's try the keychain
+	if ((!user || !pass) && useKeychainPersistance) {
+		NSURLCredential *authenticationCredentials = [ASIHTTPRequest savedCredentialsForHost:[self proxyHost] port:[self proxyPort] protocol:[[self url] scheme] realm:[self proxyAuthenticationRealm]];
+		if (authenticationCredentials) {
+			user = [authenticationCredentials user];
+			pass = [authenticationCredentials password];
+		}
+		
+	}
+	
+	// If we have a username and password, let's apply them to the request and continue
+	if (user && pass) {
+		
+		[newCredentials setObject:user forKey:(NSString *)kCFHTTPAuthenticationUsername];
+		[newCredentials setObject:pass forKey:(NSString *)kCFHTTPAuthenticationPassword];
+		return newCredentials;
+	}
+	return nil;
+}
+
+
 - (NSMutableDictionary *)findCredentials
 {
 	NSMutableDictionary *newCredentials = [[[NSMutableDictionary alloc] init] autorelease];
@@ -1143,15 +1282,14 @@ static NSError *ASITooMuchRedirectionError;
 	}
 	
 	// Get the authentication realm
-	[authenticationRealm release];
-	authenticationRealm = nil;
+	[self setAuthenticationRealm:nil];
 	if (!CFHTTPAuthenticationRequiresAccountDomain(requestAuthentication)) {
-		authenticationRealm = (NSString *)CFHTTPAuthenticationCopyRealm(requestAuthentication);
+		[self setAuthenticationRealm:[(NSString *)CFHTTPAuthenticationCopyRealm(requestAuthentication) autorelease]];
 	}
 	
 	// First, let's look at the url to see if the username and password were included
-	NSString *user = [url user];
-	NSString *pass = [url password];
+	NSString *user = [[self url] user];
+	NSString *pass = [[self url] password];
 	
 	// If the username and password weren't in the url
 	if (!user || !pass) {
@@ -1162,18 +1300,16 @@ static NSError *ASITooMuchRedirectionError;
 			pass = [[self mainRequest] password];
 			
 		// Let's try to use the ones set in this object
-		} else if (username && password) {
-			user = username;
-			pass = password;
+		} else if ([self username] && [self password]) {
+			user = [self username];
+			pass = [self password];
 		}		
 		
 	}
 	
-
-	
 	// Ok, that didn't work, let's try the keychain
 	if ((!user || !pass) && useKeychainPersistance) {
-		NSURLCredential *authenticationCredentials = [ASIHTTPRequest savedCredentialsForHost:[url host] port:443 protocol:[url scheme] realm:authenticationRealm];
+		NSURLCredential *authenticationCredentials = [ASIHTTPRequest savedCredentialsForHost:[[self url] host] port:[[[self url] port] intValue] protocol:[[self url] scheme] realm:[self authenticationRealm]];
 		if (authenticationCredentials) {
 			user = [authenticationCredentials user];
 			pass = [authenticationCredentials password];
@@ -1198,8 +1334,118 @@ static NSError *ASITooMuchRedirectionError;
 	[authenticationLock unlockWithCondition:2];
 }
 
+- (void)attemptToApplyProxyCredentialsAndResume
+{
+	
+	// Read authentication data
+	if (!proxyAuthentication) {
+		CFHTTPMessageRef responseHeader = (CFHTTPMessageRef) CFReadStreamCopyProperty(readStream,kCFStreamPropertyHTTPResponseHeader);
+		proxyAuthentication = CFHTTPAuthenticationCreateFromResponse(NULL, responseHeader);
+		CFRelease(responseHeader);
+		proxyAuthenticationMethod = (NSString *)CFHTTPAuthenticationCopyMethod(proxyAuthentication);
+	}
+	
+	
+	if (!proxyAuthentication) {
+		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIInternalErrorWhileApplyingCredentialsType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Failed to get authentication object from response headers",NSLocalizedDescriptionKey,nil]]];
+		return;
+	}
+	
+	// See if authentication is valid
+	CFStreamError err;		
+	if (!CFHTTPAuthenticationIsValid(proxyAuthentication, &err)) {
+		
+		CFRelease(proxyAuthentication);
+		proxyAuthentication = NULL;
+		
+		// check for bad credentials, so we can give the delegate a chance to replace them
+		if (err.domain == kCFStreamErrorDomainHTTP && (err.error == kCFStreamErrorHTTPAuthenticationBadUserName || err.error == kCFStreamErrorHTTPAuthenticationBadPassword)) {
+			
+			[self setProxyCredentials:nil];
+			
+			[self setLastActivityTime:nil];
+			
+			// If we have a delegate, we'll see if it can handle authorizationNeededForRequest.
+			// Otherwise, we'll try the queue (if this request is part of one) and it will pass the message on to its own delegate
+			id authorizationDelegate = [self delegate];
+			if (!authorizationDelegate) {
+				authorizationDelegate = [self queue];
+			}
+			
+			if ([authorizationDelegate respondsToSelector:@selector(proxyAuthorizationNeededForRequest:)]) {
+				[authorizationDelegate performSelectorOnMainThread:@selector(proxyAuthorizationNeededForRequest:) withObject:self waitUntilDone:[NSThread isMainThread]];
+				[authenticationLock lockWhenCondition:2];
+				[authenticationLock unlock];
+				
+				// Hopefully, the delegate gave us some credentials, let's apply them and reload
+				[self attemptToApplyProxyCredentialsAndResume];
+				return;
+			}
+		}
+		[self failWithError:ASIAuthenticationError];
+		return;
+	}
+	
+	[self cancelLoad];
+	
+	if (proxyCredentials) {
+		
+		if (((proxyAuthenticationMethod != (NSString *)kCFHTTPAuthenticationSchemeNTLM) || proxyAuthenticationRetryCount < 2) && [self applyCredentials:proxyCredentials]) {
+			[self startRequest];
+			
+			// We've failed NTLM authentication twice, we should assume our credentials are wrong
+		} else if (proxyAuthenticationMethod == (NSString *)kCFHTTPAuthenticationSchemeNTLM && proxyAuthenticationRetryCount == 2) {
+			[self failWithError:ASIAuthenticationError];
+			
+		} else {
+			[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIInternalErrorWhileApplyingCredentialsType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Failed to apply proxy credentials to request",NSLocalizedDescriptionKey,nil]]];
+		}
+		
+		// Are a user name & password needed?
+	}  else if (CFHTTPAuthenticationRequiresUserNameAndPassword(proxyAuthentication)) {
+		
+		NSMutableDictionary *newCredentials = [self findProxyCredentials];
+		
+		//If we have some credentials to use let's apply them to the request and continue
+		if (newCredentials) {
+			
+			if ([self applyProxyCredentials:newCredentials]) {
+				[self startRequest];
+			} else {
+				[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIInternalErrorWhileApplyingCredentialsType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Failed to apply proxy credentials to request",NSLocalizedDescriptionKey,nil]]];
+			}
+			return;
+		}
+		
+		// We've got no credentials, let's ask the delegate to sort this out
+		// If we have a delegate, we'll see if it can handle authorizationNeededForRequest.
+		// Otherwise, we'll try the queue (if this request is part of one) and it will pass the message on to its own delegate
+		id authorizationDelegate = [self delegate];
+		if (!authorizationDelegate) {
+			authorizationDelegate = [self queue];
+		}
+		
+		if ([authorizationDelegate respondsToSelector:@selector(proxyAuthorizationNeededForRequest:)]) {
+			[authorizationDelegate performSelectorOnMainThread:@selector(proxyAuthorizationNeededForRequest:) withObject:self waitUntilDone:[NSThread isMainThread]];
+			[authenticationLock lockWhenCondition:2];
+			[authenticationLock unlock];
+			[self attemptToApplyProxyCredentialsAndResume];
+			return;
+		}
+		
+		// The delegate isn't interested, we'll have to give up
+		[self failWithError:ASIAuthenticationError];
+		return;
+	}
+	
+}
+
 - (void)attemptToApplyCredentialsAndResume
 {
+	if ([self needsProxyAuthentication]) {
+		[self attemptToApplyProxyCredentialsAndResume];
+		return;
+	}
 	
 	// Read authentication data
 	if (!requestAuthentication) {
@@ -1208,7 +1454,7 @@ static NSError *ASITooMuchRedirectionError;
 		CFRelease(responseHeader);
 		authenticationMethod = (NSString *)CFHTTPAuthenticationCopyMethod(requestAuthentication);
 	}
-
+	
 	
 	if (!requestAuthentication) {
 		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIInternalErrorWhileApplyingCredentialsType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Failed to get authentication object from response headers",NSLocalizedDescriptionKey,nil]]];
@@ -1253,19 +1499,19 @@ static NSError *ASITooMuchRedirectionError;
 	[self cancelLoad];
 	
 	if (requestCredentials) {
-
+		
 		if (((authenticationMethod != (NSString *)kCFHTTPAuthenticationSchemeNTLM) || authenticationRetryCount < 2) && [self applyCredentials:requestCredentials]) {
 			[self startRequest];
 			
-		// We've failed NTLM authentication twice, we should assume our credentials are wrong
+			// We've failed NTLM authentication twice, we should assume our credentials are wrong
 		} else if (authenticationMethod == (NSString *)kCFHTTPAuthenticationSchemeNTLM && authenticationRetryCount == 2) {
 			[self failWithError:ASIAuthenticationError];
-	
+			
 		} else {
 			[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIInternalErrorWhileApplyingCredentialsType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Failed to apply credentials to request",NSLocalizedDescriptionKey,nil]]];
 		}
 		
-	// Are a user name & password needed?
+		// Are a user name & password needed?
 	}  else if (CFHTTPAuthenticationRequiresUserNameAndPassword(requestAuthentication)) {
 		
 		NSMutableDictionary *newCredentials = [self findCredentials];
@@ -1303,6 +1549,7 @@ static NSError *ASITooMuchRedirectionError;
 	}
 	
 }
+
 
 #pragma mark stream status handlers
 
@@ -1506,6 +1753,24 @@ static NSError *ASITooMuchRedirectionError;
 		CFRetain(sessionAuthentication);
 	}
 }
+
++ (void)setSessionProxyCredentials:(NSMutableDictionary *)newCredentials
+{
+	[sessionProxyCredentials release];
+	sessionProxyCredentials = [newCredentials retain];
+}
+
++ (void)setSessionProxyAuthentication:(CFHTTPAuthenticationRef)newAuthentication
+{
+	if (sessionProxyAuthentication) {
+		CFRelease(sessionProxyAuthentication);
+	}
+	sessionProxyAuthentication = newAuthentication;
+	if (newAuthentication) {
+		CFRetain(sessionProxyAuthentication);
+	}
+}
+
 
 #pragma mark keychain storage
 
@@ -1912,6 +2177,9 @@ static NSError *ASITooMuchRedirectionError;
 @synthesize username;
 @synthesize password;
 @synthesize domain;
+@synthesize proxyUsername;
+@synthesize proxyPassword;
+@synthesize proxyDomain;
 @synthesize url;
 @synthesize delegate;
 @synthesize queue;
@@ -1925,6 +2193,7 @@ static NSError *ASITooMuchRedirectionError;
 @synthesize didFinishSelector;
 @synthesize didFailSelector;
 @synthesize authenticationRealm;
+@synthesize proxyAuthenticationRealm;
 @synthesize error;
 @synthesize complete;
 @synthesize requestHeaders;
@@ -1966,6 +2235,7 @@ static NSError *ASITooMuchRedirectionError;
 @synthesize haveBuiltPostBody;
 @synthesize fileDownloadOutputStream;
 @synthesize authenticationRetryCount;
+@synthesize proxyAuthenticationRetryCount;
 @synthesize updatedProgress;
 @synthesize shouldRedirect;
 @synthesize validatesSecureCertificate;
@@ -1973,4 +2243,9 @@ static NSError *ASITooMuchRedirectionError;
 @synthesize redirectCount;
 @synthesize shouldCompressRequestBody;
 @synthesize authenticationLock;
+@synthesize needsProxyAuthentication;
+@synthesize proxyCredentials;
+
+@synthesize proxyHost;
+@synthesize proxyPort;
 @end

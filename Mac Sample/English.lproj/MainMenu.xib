@@ -8,7 +8,7 @@
 		<string key="IBDocument.HIToolboxVersion">353.00</string>
 		<object class="NSMutableArray" key="IBDocument.EditedObjectIDs">
 			<bool key="EncodedWithXMLCoder">YES</bool>
-			<integer value="440"/>
+			<integer value="442"/>
 		</object>
 		<object class="NSArray" key="IBDocument.PluginDependencies">
 			<bool key="EncodedWithXMLCoder">YES</bool>
@@ -1087,7 +1087,7 @@ bWUgYnV0dG9uIHRvIHBpY2sgdXAgd2hlcmUgd2UgbGVmdCBvZmYuA</string>
 								<object class="NSTabViewItem" id="725395930">
 									<string key="NSIdentifier">Item 2</string>
 									<object class="NSView" key="NSView" id="624078948">
-										<reference key="NSNextResponder" ref="495298985"/>
+										<nil key="NSNextResponder"/>
 										<int key="NSvFlags">256</int>
 										<object class="NSMutableArray" key="NSSubviews">
 											<bool key="EncodedWithXMLCoder">YES</bool>
@@ -1291,7 +1291,6 @@ b3ZlcmFsbCBwcm9ncmVzcyBkaXNwbGF5ZWQgYXQgdGhlIGJvdHRvbSBvZiB0aGUgd2luZG93LiAKCg</
 											</object>
 										</object>
 										<string key="NSFrame">{{10, 33}, {441, 288}}</string>
-										<reference key="NSSuperview" ref="495298985"/>
 									</object>
 									<string key="NSLabel">Queue</string>
 									<reference key="NSColor" ref="482475293"/>
@@ -1300,7 +1299,7 @@ b3ZlcmFsbCBwcm9ncmVzcyBkaXNwbGF5ZWQgYXQgdGhlIGJvdHRvbSBvZiB0aGUgd2luZG93LiAKCg</
 								<object class="NSTabViewItem" id="834739259">
 									<string key="NSIdentifier">Item 3</string>
 									<object class="NSView" key="NSView" id="1012174184">
-										<nil key="NSNextResponder"/>
+										<reference key="NSNextResponder" ref="495298985"/>
 										<int key="NSvFlags">256</int>
 										<object class="NSMutableArray" key="NSSubviews">
 											<bool key="EncodedWithXMLCoder">YES</bool>
@@ -1398,6 +1397,7 @@ c3N3b3JkLCBlbnRlciAndG9wc2VjcmV0JyBmb3IgYm90aC4</string>
 											</object>
 										</object>
 										<string key="NSFrame">{{10, 33}, {441, 288}}</string>
+										<reference key="NSSuperview" ref="495298985"/>
 									</object>
 									<string key="NSLabel">Authentication</string>
 									<reference key="NSColor" ref="482475293"/>
@@ -1454,14 +1454,14 @@ c3N3b3JkLCBlbnRlciAndG9wc2VjcmV0JyBmb3IgYm90aC4</string>
 									<reference key="NSTabView" ref="495298985"/>
 								</object>
 							</object>
-							<reference key="NSSelectedTabViewItem" ref="725395930"/>
+							<reference key="NSSelectedTabViewItem" ref="834739259"/>
 							<reference key="NSFont" ref="584670792"/>
 							<int key="NSTvFlags">0</int>
 							<bool key="NSAllowTruncatedLabels">YES</bool>
 							<bool key="NSDrawsBackground">YES</bool>
 							<object class="NSMutableArray" key="NSSubviews">
 								<bool key="EncodedWithXMLCoder">YES</bool>
-								<reference ref="624078948"/>
+								<reference ref="1012174184"/>
 							</object>
 						</object>
 					</object>
@@ -3862,8 +3862,8 @@ c3N3b3JkLCBlbnRlciAndG9wc2VjcmV0JyBmb3IgYm90aC4</string>
 					<reference ref="9"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<reference ref="9"/>
-					<string>{{206, 193}, {480, 378}}</string>
-					<string>{{206, 193}, {480, 378}}</string>
+					<string>{{740, 24}, {480, 378}}</string>
+					<string>{{740, 24}, {480, 378}}</string>
 					<reference ref="9"/>
 					<string>{{235, -51}, {480, 337}}</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>

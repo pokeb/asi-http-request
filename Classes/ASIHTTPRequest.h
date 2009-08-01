@@ -125,6 +125,13 @@ extern NSString* const NetworkRequestErrorDomain;
 	// Domain used for NTLM authentication
 	NSString *domain;
 	
+	// Username and password used for proxy authentication
+	NSString *proxyUsername;
+	NSString *proxyPassword;
+	
+	// Domain used for NTLM proxy authentication
+	NSString *proxyDomain;
+	
 	// Delegate for displaying upload progress (usually an NSProgressIndicator, but you can supply a different object and handle this yourself)
 	id uploadProgressDelegate;
 	
@@ -141,11 +148,34 @@ extern NSString* const NetworkRequestErrorDomain;
     CFHTTPMessageRef request;	
 	CFReadStreamRef readStream;
 	
-	// Authentication currently being used for prompting and resuming
+	// Used for authentication
     CFHTTPAuthenticationRef requestAuthentication; 
 	NSMutableDictionary *requestCredentials;
+	
+	// Used during NTLM authentication
 	int authenticationRetryCount;
+	
+	// Authentication method (Basic, Digest, NTLM)
 	NSString *authenticationMethod;
+	
+	// Realm for authentication when credentials are required
+	NSString *authenticationRealm;
+	
+	// And now, the same thing, but for authenticating proxies
+	BOOL needsProxyAuthentication;
+	
+	// Used for proxy authentication
+    CFHTTPAuthenticationRef proxyAuthentication; 
+	NSMutableDictionary *proxyCredentials;
+	
+	// Used during authentication with an NTLM proxy
+	int proxyAuthenticationRetryCount;
+	
+	// Authentication method for the proxy (Basic, Digest, NTLM)
+	NSString *proxyAuthenticationMethod;	
+	
+	// Realm for proxy authentication when credentials are required
+	NSString *proxyAuthenticationRealm;
 	
 	// HTTP status code, eg: 200 = OK, 404 = Not found etc
 	int responseStatusCode;
@@ -170,9 +200,6 @@ extern NSString* const NetworkRequestErrorDomain;
 	
 	// Last amount of data sent (used for incrementing progress)
 	unsigned long long lastBytesSent;
-	
-	// Realm for authentication when credentials are required
-	NSString *authenticationRealm;
 	
 	// This lock will block the request until the delegate supplies authentication info
 	NSConditionLock *authenticationLock;
@@ -244,7 +271,10 @@ extern NSString* const NetworkRequestErrorDomain;
 	
 	// When NO, requests will not check the secure certificate is valid (use for self-signed cerficates during development, DO NOT USE IN PRODUCTION) Default is YES
 	BOOL validatesSecureCertificate;
-
+	
+	// Details on the proxy to use - you could set these yourself, but it's probably best to let ASIHTTPRequest detect the system proxy settings
+	NSString *proxyHost;
+	int proxyPort;
 }
 
 #pragma mark init / dealloc
@@ -330,9 +360,11 @@ extern NSString* const NetworkRequestErrorDomain;
 
 // Apply credentials to this request
 - (BOOL)applyCredentials:(NSMutableDictionary *)newCredentials;
+- (BOOL)applyProxyCredentials:(NSMutableDictionary *)newCredentials;
 
 // Attempt to obtain credentials for this request from the URL, username and password or keychain
 - (NSMutableDictionary *)findCredentials;
+- (NSMutableDictionary *)findProxyCredentials;
 
 // Unlock (unpause) the request thread so it can resume the request
 // Should be called by delegates when they have populated the authentication information after an authentication challenge
@@ -340,7 +372,7 @@ extern NSString* const NetworkRequestErrorDomain;
 
 // Apply authentication information and resume the request after an authentication challenge
 - (void)attemptToApplyCredentialsAndResume;
-
+- (void)attemptToApplyProxyCredentialsAndResume;
 
 #pragma mark stream status handlers
 
@@ -354,6 +386,8 @@ extern NSString* const NetworkRequestErrorDomain;
 
 + (void)setSessionCredentials:(NSMutableDictionary *)newCredentials;
 + (void)setSessionAuthentication:(CFHTTPAuthenticationRef)newAuthentication;
++ (void)setSessionProxyCredentials:(NSMutableDictionary *)newCredentials;
++ (void)setSessionProxyAuthentication:(CFHTTPAuthenticationRef)newAuthentication;
 
 #pragma mark keychain storage
 
@@ -407,6 +441,13 @@ extern NSString* const NetworkRequestErrorDomain;
 @property (retain) NSString *password;
 @property (retain) NSString *domain;
 
+@property (retain) NSString *proxyUsername;
+@property (retain) NSString *proxyPassword;
+@property (retain) NSString *proxyDomain;
+
+@property (retain) NSString *proxyHost;
+@property (assign) int proxyPort;
+
 @property (retain,setter=setURL:) NSURL *url;
 @property (assign) id delegate;
 @property (assign) id queue;
@@ -419,6 +460,7 @@ extern NSString* const NetworkRequestErrorDomain;
 @property (assign) SEL didFinishSelector;
 @property (assign) SEL didFailSelector;
 @property (retain,readonly) NSString *authenticationRealm;
+@property (retain,readonly) NSString *proxyAuthenticationRealm;
 @property (retain) NSError *error;
 @property (assign,readonly) BOOL complete;
 @property (retain,readonly) NSDictionary *responseHeaders;
@@ -427,6 +469,7 @@ extern NSString* const NetworkRequestErrorDomain;
 @property (retain,readonly) NSArray *responseCookies;
 @property (assign) BOOL useCookiePersistance;
 @property (retain) NSDictionary *requestCredentials;
+@property (retain) NSDictionary *proxyCredentials;
 @property (assign,readonly) int responseStatusCode;
 @property (retain,readonly) NSMutableData *rawResponseData;
 @property (assign) NSTimeInterval timeOutSeconds;
