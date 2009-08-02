@@ -20,6 +20,7 @@
 - (void)testProxy;
 - (void)testProxyAutodetect;
 - (void)testProxyWithSuppliedAuthenticationCredentials;
+- (void)testDoubleAuthentication;
 
 @property (retain) ASINetworkQueue *queue;
 @property (assign) BOOL complete;

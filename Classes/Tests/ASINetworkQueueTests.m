@@ -332,6 +332,36 @@ IMPORTANT
 	
 }
 
+- (void)testDelegateAuthentication
+{
+	complete = NO;
+	ASINetworkQueue *networkQueue = [ASINetworkQueue queue];
+	[networkQueue setDelegate:self];
+	[networkQueue setRequestDidFinishSelector:@selector(queueFinished:)];
+	
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/basic-authentication"]];
+	[networkQueue addOperation:request];
+	
+	[networkQueue go];
+	
+	while (!complete) {
+		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
+	}
+	
+	NSError *error = [request error];
+	GHAssertNil(error,@"Request failed");	
+}
+
+
+- (void)authorizationNeededForRequest:(ASIHTTPRequest *)request
+{
+	[request setUsername:@"secret_username"];
+	[request setPassword:@"secret_password"];
+	[request retryWithAuthentication];
+}
+
+
+
 
 
 - (void)requestFailedExpectedly:(ASIHTTPRequest *)request
