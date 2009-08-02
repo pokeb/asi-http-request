@@ -15,6 +15,7 @@ It provides:
 * Cookie support
 * GZIP support for response data AND request bodies
 * [NEW] Experimental support for Amazon S3
+* [NEW] Supports manual and autodetected proxies, authenticating proxies, and PAC file autoconfiguration
 * Based on NSOperation to make queuing requests and background operation easy
 * Comes with a broad range of unit tests
 
