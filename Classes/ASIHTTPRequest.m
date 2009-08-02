@@ -51,36 +51,41 @@ static NSError *ASITooMuchRedirectionError;
 
 // Private stuff
 @interface ASIHTTPRequest ()
-	@property (assign) BOOL complete;
-	@property (retain) NSDictionary *responseHeaders;
-	@property (retain) NSArray *responseCookies;
-	@property (assign) int responseStatusCode;
-	@property (retain) NSMutableData *rawResponseData;
-	@property (retain, nonatomic) NSDate *lastActivityTime;
-	@property (assign) unsigned long long contentLength;
-	@property (assign) unsigned long long partialDownloadSize;
-	@property (assign, nonatomic) unsigned long long uploadBufferSize;
-	@property (assign) NSStringEncoding responseEncoding;
-	@property (retain, nonatomic) NSOutputStream *postBodyWriteStream;
-	@property (retain, nonatomic) NSInputStream *postBodyReadStream;
-	@property (assign) unsigned long long totalBytesRead;
-	@property (assign) unsigned long long totalBytesSent;
-	@property (assign, nonatomic) unsigned long long lastBytesRead;
-	@property (assign, nonatomic) unsigned long long lastBytesSent;
-	@property (retain) NSLock *cancelledLock;
-	@property (assign, nonatomic) BOOL haveBuiltPostBody;
-	@property (retain, nonatomic) NSOutputStream *fileDownloadOutputStream;
-	@property (assign, nonatomic) int authenticationRetryCount;
-	@property (assign, nonatomic) int proxyAuthenticationRetryCount;
-	@property (assign, nonatomic) BOOL needsProxyAuthentication;
-	@property (assign, nonatomic) BOOL updatedProgress;
-	@property (assign, nonatomic) BOOL needsRedirect;
-	@property (assign, nonatomic) int redirectCount;
-	@property (retain, nonatomic) NSData *compressedPostBody;
-	@property (retain, nonatomic) NSString *compressedPostBodyFilePath;
-	@property (retain) NSConditionLock *authenticationLock;
-	@property (retain) NSString *authenticationRealm;
-	@property (retain) NSString *proxyAuthenticationRealm;
+
+- (BOOL)askDelegateForCredentials;
+- (BOOL)askDelegateForProxyCredentials;
+
+@property (assign) BOOL complete;
+@property (retain) NSDictionary *responseHeaders;
+@property (retain) NSArray *responseCookies;
+@property (assign) int responseStatusCode;
+@property (retain) NSMutableData *rawResponseData;
+@property (retain, nonatomic) NSDate *lastActivityTime;
+@property (assign) unsigned long long contentLength;
+@property (assign) unsigned long long partialDownloadSize;
+@property (assign, nonatomic) unsigned long long uploadBufferSize;
+@property (assign) NSStringEncoding responseEncoding;
+@property (retain, nonatomic) NSOutputStream *postBodyWriteStream;
+@property (retain, nonatomic) NSInputStream *postBodyReadStream;
+@property (assign) unsigned long long totalBytesRead;
+@property (assign) unsigned long long totalBytesSent;
+@property (assign, nonatomic) unsigned long long lastBytesRead;
+@property (assign, nonatomic) unsigned long long lastBytesSent;
+@property (retain) NSLock *cancelledLock;
+@property (assign, nonatomic) BOOL haveBuiltPostBody;
+@property (retain, nonatomic) NSOutputStream *fileDownloadOutputStream;
+@property (assign, nonatomic) int authenticationRetryCount;
+@property (assign, nonatomic) int proxyAuthenticationRetryCount;
+@property (assign, nonatomic) BOOL needsProxyAuthentication;
+@property (assign, nonatomic) BOOL updatedProgress;
+@property (assign, nonatomic) BOOL needsRedirect;
+@property (assign, nonatomic) int redirectCount;
+@property (retain, nonatomic) NSData *compressedPostBody;
+@property (retain, nonatomic) NSString *compressedPostBodyFilePath;
+@property (retain) NSConditionLock *authenticationLock;
+@property (retain) NSString *authenticationRealm;
+@property (retain) NSString *proxyAuthenticationRealm;
+
 @end
 
 @implementation ASIHTTPRequest
@@ -1335,6 +1340,25 @@ static NSError *ASITooMuchRedirectionError;
 	[[self authenticationLock] unlockWithCondition:2];
 }
 
+- (BOOL)askDelegateForProxyCredentials
+{
+	// If we have a delegate, we'll see if it can handle proxyAuthorizationNeededForRequest:.
+	// Otherwise, we'll try the queue (if this request is part of one) and it will pass the message on to its own delegate
+	id authorizationDelegate = [self delegate];
+	if (!authorizationDelegate) {
+		authorizationDelegate = [self queue];
+	}
+	
+	if ([authorizationDelegate respondsToSelector:@selector(proxyAuthorizationNeededForRequest:)]) {
+		[authorizationDelegate performSelectorOnMainThread:@selector(proxyAuthorizationNeededForRequest:) withObject:self waitUntilDone:[NSThread isMainThread]];
+		[[self authenticationLock] lockWhenCondition:2];
+		[[self authenticationLock] unlockWithCondition:1];
+		
+		return YES;
+	}
+	return NO;
+}
+
 - (void)attemptToApplyProxyCredentialsAndResume
 {
 	
@@ -1346,7 +1370,7 @@ static NSError *ASITooMuchRedirectionError;
 		proxyAuthenticationMethod = (NSString *)CFHTTPAuthenticationCopyMethod(proxyAuthentication);
 	}
 	
-	
+	// If we haven't got a CFHTTPAuthenticationRef by now, something is badly wrong, so we'll have to give up
 	if (!proxyAuthentication) {
 		[self cancelLoad];
 		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIInternalErrorWhileApplyingCredentialsType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Failed to get authentication object from response headers",NSLocalizedDescriptionKey,nil]]];
@@ -1364,22 +1388,8 @@ static NSError *ASITooMuchRedirectionError;
 		if (err.domain == kCFStreamErrorDomainHTTP && (err.error == kCFStreamErrorHTTPAuthenticationBadUserName || err.error == kCFStreamErrorHTTPAuthenticationBadPassword)) {
 			
 			[self setProxyCredentials:nil];
-			
 			[self setLastActivityTime:nil];
-			
-			// If we have a delegate, we'll see if it can handle authorizationNeededForRequest.
-			// Otherwise, we'll try the queue (if this request is part of one) and it will pass the message on to its own delegate
-			id authorizationDelegate = [self delegate];
-			if (!authorizationDelegate) {
-				authorizationDelegate = [self queue];
-			}
-			
-			if ([authorizationDelegate respondsToSelector:@selector(proxyAuthorizationNeededForRequest:)]) {
-				[authorizationDelegate performSelectorOnMainThread:@selector(proxyAuthorizationNeededForRequest:) withObject:self waitUntilDone:[NSThread isMainThread]];
-				[[self authenticationLock] lockWhenCondition:2];
-				[[self authenticationLock] unlockWithCondition:1];
-				
-				// Hopefully, the delegate gave us some credentials, let's apply them and reload
+			if ([self askDelegateForProxyCredentials]) {
 				[self attemptToApplyProxyCredentialsAndResume];
 				return;
 			}
@@ -1393,18 +1403,20 @@ static NSError *ASITooMuchRedirectionError;
 	
 	if (proxyCredentials) {
 		
+		// We use startRequest rather than starting all over again in load request because NTLM requires we reuse the request
 		if (((proxyAuthenticationMethod != (NSString *)kCFHTTPAuthenticationSchemeNTLM) || proxyAuthenticationRetryCount < 2) && [self applyCredentials:proxyCredentials]) {
 			[self startRequest];
 			
-			// We've failed NTLM authentication twice, we should assume our credentials are wrong
+		// We've failed NTLM authentication twice, we should assume our credentials are wrong
 		} else if (proxyAuthenticationMethod == (NSString *)kCFHTTPAuthenticationSchemeNTLM && proxyAuthenticationRetryCount == 2) {
 			[self failWithError:ASIAuthenticationError];
 			
+		// Something went wrong, we'll have to give up
 		} else {
 			[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIInternalErrorWhileApplyingCredentialsType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Failed to apply proxy credentials to request",NSLocalizedDescriptionKey,nil]]];
 		}
 		
-		// Are a user name & password needed?
+	// Are a user name & password needed?
 	}  else if (CFHTTPAuthenticationRequiresUserNameAndPassword(proxyAuthentication)) {
 		
 		NSMutableDictionary *newCredentials = [self findProxyCredentials];
@@ -1420,18 +1432,7 @@ static NSError *ASITooMuchRedirectionError;
 			return;
 		}
 		
-		// We've got no credentials, let's ask the delegate to sort this out
-		// If we have a delegate, we'll see if it can handle authorizationNeededForRequest.
-		// Otherwise, we'll try the queue (if this request is part of one) and it will pass the message on to its own delegate
-		id authorizationDelegate = [self delegate];
-		if (!authorizationDelegate) {
-			authorizationDelegate = [self queue];
-		}
-		
-		if ([authorizationDelegate respondsToSelector:@selector(proxyAuthorizationNeededForRequest:)]) {
-			[authorizationDelegate performSelectorOnMainThread:@selector(proxyAuthorizationNeededForRequest:) withObject:self waitUntilDone:[NSThread isMainThread]];
-			[[self authenticationLock] lockWhenCondition:2];
-			[[self authenticationLock] unlockWithCondition:1];
+		if ([self askDelegateForProxyCredentials]) {
 			[self attemptToApplyProxyCredentialsAndResume];
 			return;
 		}
@@ -1441,6 +1442,25 @@ static NSError *ASITooMuchRedirectionError;
 		return;
 	}
 	
+}
+
+- (BOOL)askDelegateForCredentials
+{
+	// If we have a delegate, we'll see if it can handle proxyAuthorizationNeededForRequest:.
+	// Otherwise, we'll try the queue (if this request is part of one) and it will pass the message on to its own delegate
+	id authorizationDelegate = [self delegate];
+	if (!authorizationDelegate) {
+		authorizationDelegate = [self queue];
+	}
+	
+	if ([authorizationDelegate respondsToSelector:@selector(authorizationNeededForRequest:)]) {
+		[authorizationDelegate performSelectorOnMainThread:@selector(authorizationNeededForRequest:) withObject:self waitUntilDone:[NSThread isMainThread]];
+		[[self authenticationLock] lockWhenCondition:2];
+		[[self authenticationLock] unlockWithCondition:1];
+		
+		return YES;
+	}
+	return NO;
 }
 
 - (void)attemptToApplyCredentialsAndResume
@@ -1457,7 +1477,6 @@ static NSError *ASITooMuchRedirectionError;
 		CFRelease(responseHeader);
 		authenticationMethod = (NSString *)CFHTTPAuthenticationCopyMethod(requestAuthentication);
 	}
-	
 	
 	if (!requestAuthentication) {
 		[self cancelLoad];
@@ -1479,24 +1498,11 @@ static NSError *ASITooMuchRedirectionError;
 			
 			[self setLastActivityTime:nil];
 			
-			// If we have a delegate, we'll see if it can handle authorizationNeededForRequest.
-			// Otherwise, we'll try the queue (if this request is part of one) and it will pass the message on to its own delegate
-			id authorizationDelegate = [self delegate];
-			if (!authorizationDelegate) {
-				authorizationDelegate = [self queue];
-			}
-			
-			if ([authorizationDelegate respondsToSelector:@selector(authorizationNeededForRequest:)]) {
-				[authorizationDelegate performSelectorOnMainThread:@selector(authorizationNeededForRequest:) withObject:self waitUntilDone:[NSThread isMainThread]];
-				[[self authenticationLock] lockWhenCondition:2];
-				[[self authenticationLock] unlockWithCondition:1];
-				
-				// Hopefully, the delegate gave us some credentials, let's apply them and reload
+			if ([self askDelegateForCredentials]) {
 				[self attemptToApplyCredentialsAndResume];
 				return;
 			}
 		}
-		// The delegate isn't interested, we'll have to give up
 		[self cancelLoad];
 		[self failWithError:ASIAuthenticationError];
 		return;
@@ -1533,19 +1539,7 @@ static NSError *ASITooMuchRedirectionError;
 			return;
 		}
 		
-		// We've got no credentials, let's ask the delegate to sort this out
-		// If we have a delegate, we'll see if it can handle authorizationNeededForRequest.
-		// Otherwise, we'll try the queue (if this request is part of one) and it will pass the message on to its own delegate
-		id authorizationDelegate = [self delegate];
-		if (!authorizationDelegate) {
-			authorizationDelegate = [self queue];
-		}
-		
-		if ([authorizationDelegate respondsToSelector:@selector(authorizationNeededForRequest:)]) {
-			[authorizationDelegate performSelectorOnMainThread:@selector(authorizationNeededForRequest:) withObject:self waitUntilDone:[NSThread isMainThread]];
-			
-			[[self authenticationLock] lockWhenCondition:2];
-			[[self authenticationLock] unlockWithCondition:1];
+		if ([self askDelegateForCredentials]) {
 			[self attemptToApplyCredentialsAndResume];
 			return;
 		}
