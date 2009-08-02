@@ -17,6 +17,7 @@
 		B522EF78101C795F00A902FC /* RunTests.sh in Resources */ = {isa = PBXBuildFile; fileRef = B522EF72101C795F00A902FC /* RunTests.sh */; };
 		B522EF79101C795F00A902FC /* GHUnitIPhoneTestMain.m in Sources */ = {isa = PBXBuildFile; fileRef = B522EF76101C795F00A902FC /* GHUnitIPhoneTestMain.m */; };
 		B522EF7A101C795F00A902FC /* libGHUnitIPhone3_0.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B522EF77101C795F00A902FC /* libGHUnitIPhone3_0.a */; };
+		B5254FF91025F9BF00CF7BC4 /* ProxyTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B5254FF71025F9BF00CF7BC4 /* ProxyTests.m */; };
 		B55B604D0F765A320064029C /* ASIFormDataRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B60460F765A320064029C /* ASIFormDataRequest.m */; };
 		B55B604E0F765A320064029C /* ASIHTTPRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B60480F765A320064029C /* ASIHTTPRequest.m */; };
 		B55B604F0F765A320064029C /* ASINetworkQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B604A0F765A320064029C /* ASINetworkQueue.m */; };
@@ -77,6 +78,8 @@
 		B522EF75101C795F00A902FC /* GHTestGroup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GHTestGroup.h; path = Frameworks/libGHUnitIPhone/GHTestGroup.h; sourceTree = SOURCE_ROOT; };
 		B522EF76101C795F00A902FC /* GHUnitIPhoneTestMain.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = GHUnitIPhoneTestMain.m; path = Frameworks/libGHUnitIPhone/GHUnitIPhoneTestMain.m; sourceTree = SOURCE_ROOT; };
 		B522EF77101C795F00A902FC /* libGHUnitIPhone3_0.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libGHUnitIPhone3_0.a; path = Frameworks/libGHUnitIPhone/libGHUnitIPhone3_0.a; sourceTree = SOURCE_ROOT; };
+		B5254FF71025F9BF00CF7BC4 /* ProxyTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ProxyTests.m; sourceTree = "<group>"; };
+		B5254FF81025F9BF00CF7BC4 /* ProxyTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ProxyTests.h; sourceTree = "<group>"; };
 		B55B60450F765A320064029C /* ASIFormDataRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIFormDataRequest.h; sourceTree = "<group>"; };
 		B55B60460F765A320064029C /* ASIFormDataRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIFormDataRequest.m; sourceTree = "<group>"; };
 		B55B60470F765A320064029C /* ASIHTTPRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIHTTPRequest.h; sourceTree = "<group>"; };
@@ -254,6 +257,8 @@
 				B55B60570F765A3C0064029C /* ASINetworkQueueTests.m */,
 				B5C6663C100A82D7004F3C96 /* ASIS3RequestTests.h */,
 				B5C6663D100A82D7004F3C96 /* ASIS3RequestTests.m */,
+				B5254FF81025F9BF00CF7BC4 /* ProxyTests.h */,
+				B5254FF71025F9BF00CF7BC4 /* ProxyTests.m */,
 			);
 			path = Tests;
 			sourceTree = "<group>";
@@ -409,6 +414,7 @@
 				B5E2A9AC100C89D900B70E26 /* ASIS3ListRequest.m in Sources */,
 				B522EF79101C795F00A902FC /* GHUnitIPhoneTestMain.m in Sources */,
 				B5652920101C8BD7000499CF /* ASITestCase.m in Sources */,
+				B5254FF91025F9BF00CF7BC4 /* ProxyTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

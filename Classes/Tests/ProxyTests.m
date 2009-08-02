@@ -25,7 +25,7 @@ static NSString *proxyPassword = @"";
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
 	[request setPACurl:[NSURL URLWithString:pacurl]];
 	[request start];
-	NSLog(@"%@",[request proxyHost]);
+
 	BOOL success = [[request proxyHost] isEqualToString:@"proxy1.apple.com"];
 	GHAssertTrue(success,@"Failed to use the correct proxy");
 	
@@ -40,7 +40,7 @@ static NSString *proxyPassword = @"";
 	// To run this test, specify the pac script above in your network settings
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
 	[request start];
-	NSLog(@"%@",[request proxyHost]);
+
 	BOOL success = [[request proxyHost] isEqualToString:@"proxy1.apple.com"];
 	GHAssertTrue(success,@"Failed to use the correct proxy");
 	

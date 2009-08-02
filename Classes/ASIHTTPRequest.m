@@ -1196,7 +1196,7 @@ static NSError *ASITooMuchRedirectionError;
 	[self setProxyAuthenticationRetryCount:[self proxyAuthenticationRetryCount]+1];
 	
 	if (newCredentials && proxyAuthentication && request) {
-		NSLog(@"%@",newCredentials);
+
 		// Apply whatever credentials we've built up to the old request
 		if (CFHTTPMessageApplyCredentialDictionary(request, proxyAuthentication, (CFMutableDictionaryRef)newCredentials, NULL)) {
 			

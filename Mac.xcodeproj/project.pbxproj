@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
 		B502441B1025D36B002B13E1 /* ProxyTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B502441A1025D36B002B13E1 /* ProxyTests.m */; };
-		B51791291024BF0F00583567 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B51791281024BF0F00583567 /* Security.framework */; };
 		B51E5F3B100B829D004A300D /* ASIS3BucketObject.m in Sources */ = {isa = PBXBuildFile; fileRef = B51E5F3A100B829D004A300D /* ASIS3BucketObject.m */; };
 		B51E5F3C100B829D004A300D /* ASIS3BucketObject.m in Sources */ = {isa = PBXBuildFile; fileRef = B51E5F3A100B829D004A300D /* ASIS3BucketObject.m */; };
 		B51E5F56100B83F7004A300D /* ASIS3ListRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B51E5F55100B83F7004A300D /* ASIS3ListRequest.m */; };
@@ -120,7 +119,6 @@
 				B55B60140F7659A30064029C /* libz.1.2.3.dylib in Frameworks */,
 				B5B513680FBEE435002C74D0 /* GHUnit.framework in Frameworks */,
 				B53FADE80FF38B2A002E2DE6 /* SystemConfiguration.framework in Frameworks */,
-				B51791291024BF0F00583567 /* Security.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
