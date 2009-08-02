@@ -228,6 +228,10 @@ static NSString *bucket = @"";
 // The file should still be accessible by any HTTP client that supports gzipped responses (eg browsers, NSURLConnection, etc)
 - (void)testGZippedContent
 {
+	
+	BOOL success = (![secretAccessKey isEqualToString:@""] && ![accessKey isEqualToString:@""] && ![bucket isEqualToString:@""]);
+	GHAssertTrue(success,@"You need to supply your S3 access details to run the gzipped put test (see the top of ASIS3RequestTests.m)");
+	
 	// Create the file
 	NSString *text = @"This is my content This is my content This is my content This is my content This is my content This is my content";
 	NSString *filePath = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:@"testfile.txt"];
@@ -240,7 +244,7 @@ static NSString *bucket = @"";
 	[request setShouldCompressRequestBody:YES];
 	[request setAccessPolicy:ASIS3AccessPolicyPublicRead]; // We'll make it public
 	[request start];
-	BOOL success = [[request responseString] isEqualToString:@""];
+	success = [[request responseString] isEqualToString:@""];
 	GHAssertTrue(success,@"Failed to PUT the gzipped file");		
 	
 	// GET the file

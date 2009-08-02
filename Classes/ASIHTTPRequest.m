@@ -546,8 +546,8 @@ static NSError *ASITooMuchRedirectionError;
 			NSDictionary *settings = [proxies objectAtIndex:0];
 			[self setProxyHost:[settings objectForKey:(NSString *)kCFProxyHostNameKey]];
 			[self setProxyPort:[[settings objectForKey:(NSString *)kCFProxyPortNumberKey] intValue]];
-			NSLog(@"%@",proxySettings);
-			NSLog(@"%@",[proxies objectAtIndex:0]);
+			//NSLog(@"%@",proxySettings);
+			//NSLog(@"%@",[proxies objectAtIndex:0]);
 		}
 	}
 	if ([self proxyHost] && [self proxyPort]) {
