@@ -583,6 +583,8 @@ static NSError *ASITooMuchRedirectionError;
 		}
 		[self resetUploadProgress:amount];
 	}	
+	// Record when the request started, so we can timeout if nothing happens
+	[self setLastActivityTime:[NSDate date]];	
 }
 
 // This is the 'main loop' for the request. Basically, it runs the runloop that our network stuff is attached to, and checks to see if we should cancel or timeout
@@ -590,8 +592,7 @@ static NSError *ASITooMuchRedirectionError;
 {
 	[self startRequest];
 	
-	// Record when the request started, so we can timeout if nothing happens
-	[self setLastActivityTime:[NSDate date]];
+
 	
 	// Wait for the request to finish
 	while (!complete) {
@@ -1242,9 +1243,9 @@ static NSError *ASITooMuchRedirectionError;
 		pass = [[self mainRequest] proxyPassword];
 		
 		// Let's try to use the ones set in this object
-	} else if ([self username] && [self password]) {
-		user = [self username];
-		pass = [self password];
+	} else if ([self proxyUsername] && [self proxyPassword]) {
+		user = [self proxyUsername];
+		pass = [self proxyPassword];
 	}		
 
 	
@@ -1330,8 +1331,8 @@ static NSError *ASITooMuchRedirectionError;
 // Called by delegate to resume loading once authentication info has been populated
 - (void)retryWithAuthentication
 {
-	[authenticationLock lockWhenCondition:1];
-	[authenticationLock unlockWithCondition:2];
+	[[self authenticationLock] lockWhenCondition:1];
+	[[self authenticationLock] unlockWithCondition:2];
 }
 
 - (void)attemptToApplyProxyCredentialsAndResume
@@ -1347,6 +1348,7 @@ static NSError *ASITooMuchRedirectionError;
 	
 	
 	if (!proxyAuthentication) {
+		[self cancelLoad];
 		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIInternalErrorWhileApplyingCredentialsType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Failed to get authentication object from response headers",NSLocalizedDescriptionKey,nil]]];
 		return;
 	}
@@ -1374,18 +1376,19 @@ static NSError *ASITooMuchRedirectionError;
 			
 			if ([authorizationDelegate respondsToSelector:@selector(proxyAuthorizationNeededForRequest:)]) {
 				[authorizationDelegate performSelectorOnMainThread:@selector(proxyAuthorizationNeededForRequest:) withObject:self waitUntilDone:[NSThread isMainThread]];
-				[authenticationLock lockWhenCondition:2];
-				[authenticationLock unlock];
+				[[self authenticationLock] lockWhenCondition:2];
+				[[self authenticationLock] unlockWithCondition:1];
 				
 				// Hopefully, the delegate gave us some credentials, let's apply them and reload
 				[self attemptToApplyProxyCredentialsAndResume];
 				return;
 			}
 		}
+		[self cancelLoad];
 		[self failWithError:ASIAuthenticationError];
 		return;
 	}
-	
+
 	[self cancelLoad];
 	
 	if (proxyCredentials) {
@@ -1427,8 +1430,8 @@ static NSError *ASITooMuchRedirectionError;
 		
 		if ([authorizationDelegate respondsToSelector:@selector(proxyAuthorizationNeededForRequest:)]) {
 			[authorizationDelegate performSelectorOnMainThread:@selector(proxyAuthorizationNeededForRequest:) withObject:self waitUntilDone:[NSThread isMainThread]];
-			[authenticationLock lockWhenCondition:2];
-			[authenticationLock unlock];
+			[[self authenticationLock] lockWhenCondition:2];
+			[[self authenticationLock] unlockWithCondition:1];
 			[self attemptToApplyProxyCredentialsAndResume];
 			return;
 		}
@@ -1457,6 +1460,7 @@ static NSError *ASITooMuchRedirectionError;
 	
 	
 	if (!requestAuthentication) {
+		[self cancelLoad];
 		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIInternalErrorWhileApplyingCredentialsType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Failed to get authentication object from response headers",NSLocalizedDescriptionKey,nil]]];
 		return;
 	}
@@ -1484,14 +1488,16 @@ static NSError *ASITooMuchRedirectionError;
 			
 			if ([authorizationDelegate respondsToSelector:@selector(authorizationNeededForRequest:)]) {
 				[authorizationDelegate performSelectorOnMainThread:@selector(authorizationNeededForRequest:) withObject:self waitUntilDone:[NSThread isMainThread]];
-				[authenticationLock lockWhenCondition:2];
-				[authenticationLock unlock];
+				[[self authenticationLock] lockWhenCondition:2];
+				[[self authenticationLock] unlockWithCondition:1];
 				
 				// Hopefully, the delegate gave us some credentials, let's apply them and reload
 				[self attemptToApplyCredentialsAndResume];
 				return;
 			}
 		}
+		// The delegate isn't interested, we'll have to give up
+		[self cancelLoad];
 		[self failWithError:ASIAuthenticationError];
 		return;
 	}
@@ -1537,8 +1543,9 @@ static NSError *ASITooMuchRedirectionError;
 		
 		if ([authorizationDelegate respondsToSelector:@selector(authorizationNeededForRequest:)]) {
 			[authorizationDelegate performSelectorOnMainThread:@selector(authorizationNeededForRequest:) withObject:self waitUntilDone:[NSThread isMainThread]];
-			[authenticationLock lockWhenCondition:2];
-			[authenticationLock unlock];
+			
+			[[self authenticationLock] lockWhenCondition:2];
+			[[self authenticationLock] unlockWithCondition:1];
 			[self attemptToApplyCredentialsAndResume];
 			return;
 		}

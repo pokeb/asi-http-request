@@ -21,6 +21,7 @@
 {
 	[networkQueue cancelAllOperations];
 	[networkQueue setRequestDidFinishSelector:@selector(topSecretFetchComplete:)];
+	[networkQueue setRequestDidFailSelector:@selector(topSecretFetchFailed:)];
 	[networkQueue setDelegate:self];
 	
 	
@@ -31,13 +32,16 @@
 	
 }
 
+- (IBAction)topSecretFetchFailed:(ASIHTTPRequest *)request
+{
+	[topSecretInfo setText:[[request error] localizedDescription]];
+	[topSecretInfo setFont:[UIFont boldSystemFontOfSize:12]];
+}
+
 - (IBAction)topSecretFetchComplete:(ASIHTTPRequest *)request
 {
-	if (![request error]) {
-		NSLog(@"foo %@",[request responseString]);
-		[topSecretInfo setText:[request responseString]];
-		[topSecretInfo setFont:[UIFont boldSystemFontOfSize:12]];
-	}
+	[topSecretInfo setText:[request responseString]];
+	[topSecretInfo setFont:[UIFont boldSystemFontOfSize:12]];
 }
 
 - (void)authorizationNeededForRequest:(ASIHTTPRequest *)request
