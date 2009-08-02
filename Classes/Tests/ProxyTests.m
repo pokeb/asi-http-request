@@ -18,6 +18,37 @@ static NSString *proxyPassword = @"";
 
 @implementation ProxyTests
 
+- (void)testAutoConfigureWithPAC
+{
+	// To run this test, specify the location of the pac script that is available at http://developer.apple.com/samplecode/CFProxySupportTool/listing1.html
+	NSString *pacurl = @"file:///Users/ben/Desktop/test.pac";
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
+	[request setPACurl:[NSURL URLWithString:pacurl]];
+	[request start];
+	NSLog(@"%@",[request proxyHost]);
+	BOOL success = [[request proxyHost] isEqualToString:@"proxy1.apple.com"];
+	GHAssertTrue(success,@"Failed to use the correct proxy");
+	
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://www.apple.com"]];
+	[request setPACurl:[NSURL URLWithString:pacurl]];
+	[request start];
+	GHAssertNil([request proxyHost],@"Used a proxy when the script told us to go direct");
+}
+
+- (void)testAutoConfigureWithSystemPAC
+{
+	// To run this test, specify the pac script above in your network settings
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
+	[request start];
+	NSLog(@"%@",[request proxyHost]);
+	BOOL success = [[request proxyHost] isEqualToString:@"proxy1.apple.com"];
+	GHAssertTrue(success,@"Failed to use the correct proxy");
+	
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://www.apple.com"]];
+	[request start];
+	GHAssertNil([request proxyHost],@"Used a proxy when the script told us to go direct");
+}
+
 - (void)testProxy
 {
 	BOOL success = (![proxyHost isEqualToString:@""] && proxyPort > 0);

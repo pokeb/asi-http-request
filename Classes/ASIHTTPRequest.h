@@ -275,6 +275,8 @@ extern NSString* const NetworkRequestErrorDomain;
 	// Details on the proxy to use - you could set these yourself, but it's probably best to let ASIHTTPRequest detect the system proxy settings
 	NSString *proxyHost;
 	int proxyPort;
+	
+	NSURL *PACurl;
 }
 
 #pragma mark init / dealloc
@@ -437,6 +439,11 @@ extern NSString* const NetworkRequestErrorDomain;
 // Is only used when you have specified a Bundle Display Name (CFDisplayBundleName) or Bundle Name (CFBundleName) in your plist
 + (NSString *)defaultUserAgentString;
 
+#pragma mark proxy autoconfiguration
+
+// Returns an array of proxies to use for a particular url, given the url of a PAC script
++ (NSArray *)proxiesForURL:(NSURL *)theURL fromPAC:(NSURL *)pacScriptURL;
+
 @property (retain) NSString *username;
 @property (retain) NSString *password;
 @property (retain) NSString *domain;
@@ -495,4 +502,6 @@ extern NSString* const NetworkRequestErrorDomain;
 @property (assign) BOOL shouldRedirect;
 @property (assign) BOOL validatesSecureCertificate;
 @property (assign) BOOL shouldCompressRequestBody;
+@property (assign) BOOL needsProxyAuthentication;
+@property (retain) NSURL *PACurl;
 @end

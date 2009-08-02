@@ -217,8 +217,13 @@
 - (void)authSheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo {
 	ASIHTTPRequest *request = (ASIHTTPRequest *)contextInfo;
     if (returnCode == NSOKButton) {
-		[request setUsername:[[[username stringValue] copy] autorelease]];
-		[request setPassword:[[[password stringValue] copy] autorelease]];
+		if ([request needsProxyAuthentication]) {
+			[request setProxyUsername:[[[username stringValue] copy] autorelease]];
+			[request setProxyPassword:[[[password stringValue] copy] autorelease]];			
+		} else {
+			[request setUsername:[[[username stringValue] copy] autorelease]];
+			[request setPassword:[[[password stringValue] copy] autorelease]];
+		}
 		[request retryWithAuthentication];
     } else {
 		[request cancelLoad];

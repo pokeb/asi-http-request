@@ -76,7 +76,6 @@ static NSError *ASITooMuchRedirectionError;
 @property (retain, nonatomic) NSOutputStream *fileDownloadOutputStream;
 @property (assign, nonatomic) int authenticationRetryCount;
 @property (assign, nonatomic) int proxyAuthenticationRetryCount;
-@property (assign, nonatomic) BOOL needsProxyAuthentication;
 @property (assign, nonatomic) BOOL updatedProgress;
 @property (assign, nonatomic) BOOL needsRedirect;
 @property (assign, nonatomic) int redirectCount;
@@ -517,23 +516,45 @@ static NSError *ASITooMuchRedirectionError;
 		CFReadStreamSetProperty(readStream, kCFStreamPropertySSLSettings, [NSMutableDictionary dictionaryWithObject:(NSString *)kCFBooleanFalse forKey:(NSString *)kCFStreamSSLValidatesCertificateChain]); 
 	}
 	
+	
+	// Handle proxy settings
 
+	// Have details of the proxy been set on this request
 	if (![self proxyHost] && ![self proxyPort]) {
 		
-		// Detect proxy settings and apply them		
-		#if TARGET_OS_IPHONE
-		#if !defined(TARGET_IPHONE_SIMULATOR) || __IPHONE_OS_VERSION_MIN_REQUIRED > __IPHONE_2_2
-		NSDictionary *proxySettings = [(NSDictionary *)CFNetworkCopySystemProxySettings() autorelease];
-		#else
-		// Can't detect proxies in 2.2.1 Simulator
-		NSDictionary *proxySettings = [NSMutableDictionary dictionary];	
-		#endif
-		#else
-		NSDictionary *proxySettings = [(NSDictionary *)SCDynamicStoreCopyProxies(NULL) autorelease];
-		#endif
+		// If not, we need to figure out what they'll be
+		
+		NSArray *proxies = nil;
+		
+		// Have we been given a proxy auto config file?
+		if ([self PACurl]) {
+			
+			proxies = [ASIHTTPRequest proxiesForURL:[self url] fromPAC:[self PACurl]];
 
-		NSArray *proxies = [(NSArray *)CFNetworkCopyProxiesForURL((CFURLRef)[self url], (CFDictionaryRef)proxySettings) autorelease];
-		if (proxies == NULL) {
+		// Detect proxy settings and apply them	
+		} else {
+		
+			#if TARGET_OS_IPHONE
+			#if !defined(TARGET_IPHONE_SIMULATOR) || __IPHONE_OS_VERSION_MIN_REQUIRED > __IPHONE_2_2
+			NSDictionary *proxySettings = [(NSDictionary *)CFNetworkCopySystemProxySettings() autorelease];
+			#else
+			// Can't detect proxies in 2.2.1 Simulator
+			NSDictionary *proxySettings = [NSMutableDictionary dictionary];	
+			#endif
+			#else
+			NSDictionary *proxySettings = [(NSDictionary *)SCDynamicStoreCopyProxies(NULL) autorelease];
+			#endif
+
+			proxies = [(NSArray *)CFNetworkCopyProxiesForURL((CFURLRef)[self url], (CFDictionaryRef)proxySettings) autorelease];
+			
+			// Now check to see if the proxy settings contained a PAC url, we need to run the script to get the real list of proxies if so
+			NSDictionary *settings = [proxies objectAtIndex:0];
+			if ([settings objectForKey:(NSString *)kCFProxyAutoConfigurationURLKey]) {
+				proxies = [ASIHTTPRequest proxiesForURL:[self url] fromPAC:[settings objectForKey:(NSString *)kCFProxyAutoConfigurationURLKey]];
+			}
+		}
+		
+		if (!proxies) {
 			CFRelease(readStream);
 			readStream = NULL;
 			[[self cancelledLock] unlock];
@@ -546,8 +567,6 @@ static NSError *ASITooMuchRedirectionError;
 			NSDictionary *settings = [proxies objectAtIndex:0];
 			[self setProxyHost:[settings objectForKey:(NSString *)kCFProxyHostNameKey]];
 			[self setProxyPort:[[settings objectForKey:(NSString *)kCFProxyPortNumberKey] intValue]];
-			//NSLog(@"%@",proxySettings);
-			//NSLog(@"%@",[proxies objectAtIndex:0]);
 		}
 	}
 	if ([self proxyHost] && [self proxyPort]) {
@@ -2173,6 +2192,31 @@ static NSError *ASITooMuchRedirectionError;
 	return [NSString stringWithFormat:@"%@ %@ (%@; %@ %@; %@)", appName, appVersion, deviceName, OSName, OSVersion, locale];
 }
 
+#pragma mark proxy autoconfiguration
+
+// Returns an array of proxies to use for a particular url, given the url of a PAC script
++ (NSArray *)proxiesForURL:(NSURL *)theURL fromPAC:(NSURL *)pacScriptURL
+{
+	// From: http://developer.apple.com/samplecode/CFProxySupportTool/listing1.html
+	// Work around <rdar://problem/5530166>.  This dummy call to 
+	// CFNetworkCopyProxiesForURL initialise some state within CFNetwork 
+	// that is required by CFNetworkCopyProxiesForAutoConfigurationScript.
+	(void) CFNetworkCopyProxiesForURL((CFURLRef)theURL, NULL);
+	
+	NSStringEncoding encoding;
+	NSError *err = nil;
+	NSString *script = [NSString stringWithContentsOfURL:pacScriptURL usedEncoding:&encoding error:&err];
+	if (err) {
+		return nil;
+	}
+	CFErrorRef err2 = NULL;
+	// Obtain the list of proxies by running the autoconfiguration script
+	NSArray *proxies = [(NSArray *)CFNetworkCopyProxiesForAutoConfigurationScript((CFStringRef)script,(CFURLRef)theURL, &err2) autorelease];
+	if (err2) {
+		return nil;
+	}
+	return proxies;
+}
 
 
 @synthesize username;
@@ -2249,4 +2293,5 @@ static NSError *ASITooMuchRedirectionError;
 
 @synthesize proxyHost;
 @synthesize proxyPort;
+@synthesize PACurl;
 @end
