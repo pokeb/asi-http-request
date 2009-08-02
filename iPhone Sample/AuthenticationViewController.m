@@ -26,7 +26,7 @@
 	
 	
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/top_secret/"]];
-	[request setUseKeychainPersistance:[useKeychain state]];
+	[request setUseKeychainPersistance:[useKeychain isOn]];
 	[networkQueue addOperation:request];
 	[networkQueue go];
 	
