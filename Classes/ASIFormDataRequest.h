@@ -30,4 +30,7 @@
 // Add the contents of an NSData object to the request
 - (void)setData:(NSData *)data forKey:(NSString *)key;
 
+// Allows to specify content type of the file
+- (void)setFileDataContainerObject:(id)data fileName:(NSString *)fileName contentType:(NSString *)contentType forKey:(NSString *)key;
+
 @end

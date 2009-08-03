@@ -46,20 +46,26 @@
 
 - (void)setFile:(NSString *)filePath forKey:(NSString *)key
 {
-	if (!fileData) {
-		fileData = [[NSMutableDictionary alloc] init];
-	}
-	[fileData setValue:filePath forKey:key];
-	[self setRequestMethod:@"POST"];
+	[self setFileDataContainerObject:filePath fileName:@"file" contentType:@"application/octet-stream" forKey:key];
 }
 
 - (void)setData:(NSData *)data forKey:(NSString *)key
 {
+	[self setFileDataContainerObject:data fileName:@"file" contentType:@"application/octet-stream" forKey:key];
+}
+
+- (void)setFileDataContainerObject:(id)data
+						  fileName:(NSString *)fileName
+					   contentType:(NSString *)contentType
+							forKey:(NSString *)key {
 	if (!fileData) {
-		fileData = [[NSMutableDictionary alloc] init];
+		fileData = [[NSMutableDictionary alloc] initWithCapacity: 0];
 	}
-	[fileData setObject:data forKey:key];
-	[self setRequestMethod:@"POST"];	
+
+	NSDictionary *fileInfo = [NSDictionary dictionaryWithObjectsAndKeys:
+							  data, @"fileDataContainerObject", contentType, @"contentType", fileName, @"fileName", nil];
+	[fileData setObject:fileInfo forKey:key];
+	[self setRequestMethod: @"POST"];
 }
 
 - (void)buildPostBody
@@ -95,19 +101,21 @@
 	}
 	
 	// Adds files to upload
-	NSData *contentTypeHeader = [[NSString stringWithString:@"Content-Type: application/octet-stream\r\n\r\n"] dataUsingEncoding:NSUTF8StringEncoding];
 	e = [fileData keyEnumerator];
 	i=0;
 	while (key = [e nextObject]) {
-		NSString *fileName = @"file";
-		id file =  [fileData objectForKey:key];
+		NSDictionary *fileInfo = [fileData objectForKey:key];
+		id file = [fileInfo objectForKey:@"fileDataContainerObject"];
+		NSString *contentType = [fileInfo objectForKey:@"contentType"];
+		NSString *fileName = [fileInfo objectForKey:@"fileName"];
+
+		NSString *contentTypeHeader = [NSString stringWithFormat:@"Content-Type: %@\r\n\r\n", contentType];
+
+		[self appendPostData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"; filename=\"%@\"\r\n", key, fileName] dataUsingEncoding:NSUTF8StringEncoding]];
+		[self appendPostData:[contentTypeHeader dataUsingEncoding:NSUTF8StringEncoding]];
+
 		if ([file isKindOfClass:[NSString class]]) {
-			fileName = (NSString *)file;
-		}
-		[self appendPostData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"; filename=\"%@\"\r\n",key,fileName] dataUsingEncoding:NSUTF8StringEncoding]];
-		[self appendPostData:contentTypeHeader];
-		if ([file isKindOfClass:[NSString class]]) {
-			[self appendPostDataFromFile:fileName];
+			[self appendPostDataFromFile:file];
 		} else {
 			[self appendPostData:file];
 		}
