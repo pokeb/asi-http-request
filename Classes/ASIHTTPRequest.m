@@ -183,6 +183,7 @@ static NSError *ASITooMuchRedirectionError;
 	[compressedPostBodyFilePath release];
 	[postBodyWriteStream release];
 	[postBodyReadStream release];
+	[PACurl release];
 	[super dealloc];
 }
 
