@@ -65,13 +65,19 @@ static unsigned long maxBandwidthPerSecond = 0;
 // A default figure for throttling bandwidth on mobile devices
 unsigned long const ASIWWANBandwidthThrottleAmount = 14800;
 
+// YES when bandwidth throttling is active
+// This flag does not denote whether throttling is turned on - rather whether it is currently in use
+// It will be set to NO when throttling is turned on, but a WI-FI connection is active
+BOOL shouldThrottleBandwidth = NO;
+
 // Private stuff
 @interface ASIHTTPRequest ()
 
 - (BOOL)askDelegateForCredentials;
 - (BOOL)askDelegateForProxyCredentials;
 + (void)incrementBandwidthUsedInLastSecond:(unsigned long)bytes;
-+ (void)throttleBandwidth;
++ (void)performBandwidthThrottling;
++ (BOOL)shouldThrottleBandwidth;
 
 @property (assign) BOOL complete;
 @property (retain) NSDictionary *responseHeaders;
@@ -685,7 +691,7 @@ unsigned long const ASIWWANBandwidthThrottleAmount = 14800;
 		if (totalBytesSent > lastBytesSent) {
 			
 			// For bandwidth throttling
-			if ([ASIHTTPRequest maxBandwidthPerSecond] > 0) {
+			if ([ASIHTTPRequest shouldThrottleBandwidth] > 0) {
 				[ASIHTTPRequest incrementBandwidthUsedInLastSecond:totalBytesSent-maxBandwidthPerSecond];
 			}
 			[self setLastActivityTime:[NSDate date]];
@@ -700,7 +706,7 @@ unsigned long const ASIWWANBandwidthThrottleAmount = 14800;
 		[self updateProgressIndicators];
 		
 		// Throttle bandwidth if nescessary
-		[ASIHTTPRequest throttleBandwidth];
+		[ASIHTTPRequest performBandwidthThrottling];
 		
 		// This thread should wait for 1/4 second for the stream to do something. We'll stop early if it does.
 		CFRunLoopRunInMode(ASIHTTPRequestRunMode,0.25,YES);
@@ -1655,7 +1661,7 @@ unsigned long const ASIWWANBandwidthThrottleAmount = 14800;
 		[self setLastActivityTime:[NSDate date]];
 		
 		// For bandwidth throttling
-		if ([ASIHTTPRequest maxBandwidthPerSecond] > 0) {
+		if ([ASIHTTPRequest shouldThrottleBandwidth] > 0) {
 			[ASIHTTPRequest incrementBandwidthUsedInLastSecond:bytesRead];
 		}
 		
@@ -2282,6 +2288,14 @@ unsigned long const ASIWWANBandwidthThrottleAmount = 14800;
 
 #pragma mark bandwidth throttling
 
++ (BOOL)shouldThrottleBandwidth
+{
+	[bandwidthThrottlingLock lock];
+	BOOL throttle = shouldThrottleBandwidth;
+	[bandwidthThrottlingLock unlock];
+	return throttle;
+}
+
 + (unsigned long)maxBandwidthPerSecond
 {
 	[bandwidthThrottlingLock lock];
@@ -2304,7 +2318,7 @@ unsigned long const ASIWWANBandwidthThrottleAmount = 14800;
 	[bandwidthThrottlingLock unlock];
 }
 
-+ (void)throttleBandwidth
++ (void)performBandwidthThrottling
 {
 	// Other requests may have to wait for this lock if we're sleeping, but this is fine, since we already know they shouldn't be sending or receiving data
 	[bandwidthThrottlingLock lock];
@@ -2336,6 +2350,7 @@ unsigned long const ASIWWANBandwidthThrottleAmount = 14800;
 		[ASIHTTPRequest throttleBandwidthForWWANUsingLimit:ASIWWANBandwidthThrottleAmount];
 	} else {
 		[[NSNotificationCenter defaultCenter] removeObserver:self name:@"kNetworkReachabilityChangedNotification" object:nil];
+		[ASIHTTPRequest setMaxBandwidthPerSecond:0];
 	}
 }
 
@@ -2353,9 +2368,9 @@ unsigned long const ASIWWANBandwidthThrottleAmount = 14800;
 {
 	[bandwidthThrottlingLock lock];	
 	if ([[Reachability sharedReachability] internetConnectionStatus] == ReachableViaCarrierDataNetwork) {
-		[ASIHTTPRequest setMaxBandwidthPerSecond:maxBandwidthPerSecond];		
+		shouldThrottleBandwidth = YES;
 	} else {
-		[ASIHTTPRequest setMaxBandwidthPerSecond:0];
+		shouldThrottleBandwidth = NO;
 	}
 	[bandwidthThrottlingLock unlock];
 }

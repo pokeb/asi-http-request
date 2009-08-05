@@ -52,6 +52,7 @@
 		B5D145511029E20D004379B8 /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = B5D145501029E20D004379B8 /* Reachability.m */; };
 		B5D145521029E20D004379B8 /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = B5D145501029E20D004379B8 /* Reachability.m */; };
 		B5D145781029E7F3004379B8 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B5D145771029E7F3004379B8 /* SystemConfiguration.framework */; };
+		B5D1458C1029ED68004379B8 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B5D145771029E7F3004379B8 /* SystemConfiguration.framework */; };
 		B5E2A9AB100C89D900B70E26 /* ASIS3BucketObject.m in Sources */ = {isa = PBXBuildFile; fileRef = B5E2A9A7100C89D900B70E26 /* ASIS3BucketObject.m */; };
 		B5E2A9AC100C89D900B70E26 /* ASIS3ListRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5E2A9AA100C89D900B70E26 /* ASIS3ListRequest.m */; };
 		B5E2A9AD100C89D900B70E26 /* ASIS3BucketObject.m in Sources */ = {isa = PBXBuildFile; fileRef = B5E2A9A7100C89D900B70E26 /* ASIS3BucketObject.m */; };
@@ -142,6 +143,7 @@
 				288765080DF74369002DB57D /* CoreGraphics.framework in Frameworks */,
 				B55B60930F765AF50064029C /* CFNetwork.framework in Frameworks */,
 				B517900B1024AD1B00583567 /* libz.1.2.3.dylib in Frameworks */,
+				B5D1458C1029ED68004379B8 /* SystemConfiguration.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -174,7 +176,6 @@
 				B55B604B0F765A320064029C /* ASINSStringAdditions.h */,
 				B55B604C0F765A320064029C /* ASINSStringAdditions.m */,
 				B5E2A99E100C89BC00B70E26 /* S3 */,
-				B5B513BE0FBEE602002C74D0 /* GHUnit */,
 				B55B60510F765A3C0064029C /* Tests */,
 			);
 			path = Classes;
@@ -288,6 +289,7 @@
 				B522EF77101C795F00A902FC /* libGHUnitIPhone3_0.a */,
 			);
 			name = GHUnit;
+			path = ../Classes;
 			sourceTree = "<group>";
 		};
 		B5D1454E1029E20D004379B8 /* External */ = {
@@ -295,6 +297,7 @@
 			children = (
 				B5D1454F1029E20D004379B8 /* Reachability.h */,
 				B5D145501029E20D004379B8 /* Reachability.m */,
+				B5B513BE0FBEE602002C74D0 /* GHUnit */,
 			);
 			path = External;
 			sourceTree = "<group>";

@@ -16,5 +16,5 @@
 }
 
 - (IBAction)performLargeUpload:(id)sender;
-
+- (IBAction)toggleThrottling:(id)sender;
 @end
