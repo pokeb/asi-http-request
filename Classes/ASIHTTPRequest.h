@@ -462,6 +462,17 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 + (unsigned long)maxBandwidthPerSecond;
 + (void)setMaxBandwidthPerSecond:(unsigned long)bytes;
 
+#if TARGET_OS_IPHONE
+// Set to YES to automatically turn on throttling when WWAN is connected, and automatically turn it off when it isn't
++ (void)setShouldThrottleBandwidthForWWAN:(BOOL)throttle;
+
+// Turns on throttling automatically when WWAN is connected using a custom limit, and turns it off automatically when it isn't
++ (void)throttleBandwidthForWWANUsingLimit:(unsigned long)limit;
+
+// Called when the status of the network changes
++ (void)reachabilityChanged:(NSNotification *)note;
+#endif
+
 
 
 @property (retain) NSString *username;

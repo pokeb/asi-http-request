@@ -12,9 +12,10 @@
 
 #import "ASIHTTPRequest.h"
 #import <zlib.h>
-#ifndef TARGET_OS_IPHONE
+#if TARGET_OS_IPHONE
+#import "Reachability.h"
+#else
 #import <SystemConfiguration/SystemConfiguration.h>
-#import <Security/Security.h>
 #endif
 
 // We use our own custom run loop mode as CoreAnimation seems to want to hijack our threads otherwise
@@ -2328,7 +2329,37 @@ unsigned long const ASIWWANBandwidthThrottleAmount = 14800;
 	[bandwidthThrottlingLock unlock];
 }
 
+#if TARGET_OS_IPHONE
++ (void)setShouldThrottleBandwidthForWWAN:(BOOL)throttle
+{
+	if (throttle) {
+		[ASIHTTPRequest throttleBandwidthForWWANUsingLimit:ASIWWANBandwidthThrottleAmount];
+	} else {
+		[[NSNotificationCenter defaultCenter] removeObserver:self name:@"kNetworkReachabilityChangedNotification" object:nil];
+	}
+}
 
++ (void)throttleBandwidthForWWANUsingLimit:(unsigned long)limit
+{	
+	[bandwidthThrottlingLock lock];	
+	maxBandwidthPerSecond = limit;
+	[[Reachability sharedReachability] setNetworkStatusNotificationsEnabled:YES];
+	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reachabilityChanged:) name:@"kNetworkReachabilityChangedNotification" object:nil];
+	[bandwidthThrottlingLock unlock];
+	[ASIHTTPRequest reachabilityChanged:nil];
+}
+
++ (void)reachabilityChanged:(NSNotification *)note
+{
+	[bandwidthThrottlingLock lock];	
+	if ([[Reachability sharedReachability] internetConnectionStatus] == ReachableViaCarrierDataNetwork) {
+		[ASIHTTPRequest setMaxBandwidthPerSecond:maxBandwidthPerSecond];		
+	} else {
+		[ASIHTTPRequest setMaxBandwidthPerSecond:0];
+	}
+	[bandwidthThrottlingLock unlock];
+}
+#endif
 
 @synthesize username;
 @synthesize password;

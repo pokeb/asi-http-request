@@ -22,3 +22,7 @@
 * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+A different license may apply to other software included in this package, 
+including GHUnit and Apple's Reachability classes. Please consult their 
+respective headers for the terms of their individual licenses.

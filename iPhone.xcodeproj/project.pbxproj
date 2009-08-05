@@ -11,7 +11,6 @@
 		1DF5F4E00D08C38300B7A737 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1DF5F4DF0D08C38300B7A737 /* UIKit.framework */; };
 		288765080DF74369002DB57D /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 288765070DF74369002DB57D /* CoreGraphics.framework */; };
 		B517900B1024AD1B00583567 /* libz.1.2.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B55B60940F765AF80064029C /* libz.1.2.3.dylib */; };
-		B517914B1024BFFF00583567 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B517914A1024BFFF00583567 /* Security.framework */; };
 		B51791951024C3DA00583567 /* Authentication.xib in Resources */ = {isa = PBXBuildFile; fileRef = B51791941024C3DA00583567 /* Authentication.xib */; };
 		B51791A31024C3E800583567 /* AuthenticationViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B51791A21024C3E800583567 /* AuthenticationViewController.m */; };
 		B522EF78101C795F00A902FC /* RunTests.sh in Resources */ = {isa = PBXBuildFile; fileRef = B522EF72101C795F00A902FC /* RunTests.sh */; };
@@ -50,6 +49,9 @@
 		B5C66638100A82A2004F3C96 /* ASIS3Request.m in Sources */ = {isa = PBXBuildFile; fileRef = B5C66637100A82A2004F3C96 /* ASIS3Request.m */; };
 		B5C66639100A82A2004F3C96 /* ASIS3Request.m in Sources */ = {isa = PBXBuildFile; fileRef = B5C66637100A82A2004F3C96 /* ASIS3Request.m */; };
 		B5C6663E100A82D7004F3C96 /* ASIS3RequestTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B5C6663D100A82D7004F3C96 /* ASIS3RequestTests.m */; };
+		B5D145511029E20D004379B8 /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = B5D145501029E20D004379B8 /* Reachability.m */; };
+		B5D145521029E20D004379B8 /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = B5D145501029E20D004379B8 /* Reachability.m */; };
+		B5D145781029E7F3004379B8 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B5D145771029E7F3004379B8 /* SystemConfiguration.framework */; };
 		B5E2A9AB100C89D900B70E26 /* ASIS3BucketObject.m in Sources */ = {isa = PBXBuildFile; fileRef = B5E2A9A7100C89D900B70E26 /* ASIS3BucketObject.m */; };
 		B5E2A9AC100C89D900B70E26 /* ASIS3ListRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5E2A9AA100C89D900B70E26 /* ASIS3ListRequest.m */; };
 		B5E2A9AD100C89D900B70E26 /* ASIS3BucketObject.m in Sources */ = {isa = PBXBuildFile; fileRef = B5E2A9A7100C89D900B70E26 /* ASIS3BucketObject.m */; };
@@ -121,6 +123,9 @@
 		B5C66637100A82A2004F3C96 /* ASIS3Request.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIS3Request.m; sourceTree = "<group>"; };
 		B5C6663C100A82D7004F3C96 /* ASIS3RequestTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIS3RequestTests.h; sourceTree = "<group>"; };
 		B5C6663D100A82D7004F3C96 /* ASIS3RequestTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIS3RequestTests.m; sourceTree = "<group>"; };
+		B5D1454F1029E20D004379B8 /* Reachability.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Reachability.h; sourceTree = "<group>"; };
+		B5D145501029E20D004379B8 /* Reachability.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Reachability.m; sourceTree = "<group>"; };
+		B5D145771029E7F3004379B8 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
 		B5E2A9A7100C89D900B70E26 /* ASIS3BucketObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIS3BucketObject.m; sourceTree = "<group>"; };
 		B5E2A9A8100C89D900B70E26 /* ASIS3ListRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIS3ListRequest.h; sourceTree = "<group>"; };
 		B5E2A9A9100C89D900B70E26 /* ASIS3BucketObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIS3BucketObject.h; sourceTree = "<group>"; };
@@ -150,7 +155,7 @@
 				B55B615B0F765C720064029C /* UIKit.framework in Frameworks */,
 				B55B616A0F765CA40064029C /* Foundation.framework in Frameworks */,
 				B522EF7A101C795F00A902FC /* libGHUnitIPhone3_0.a in Frameworks */,
-				B517914B1024BFFF00583567 /* Security.framework in Frameworks */,
+				B5D145781029E7F3004379B8 /* SystemConfiguration.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -187,6 +192,7 @@
 		29B97314FDCFA39411CA2CEA /* iPhone */ = {
 			isa = PBXGroup;
 			children = (
+				B5D1454E1029E20D004379B8 /* External */,
 				080E96DDFE201D6D7F000001 /* Classes */,
 				29B97315FDCFA39411CA2CEA /* Other Sources */,
 				29B97317FDCFA39411CA2CEA /* Resources */,
@@ -195,6 +201,7 @@
 				B55B60920F765AF50064029C /* CFNetwork.framework */,
 				B55B60940F765AF80064029C /* libz.1.2.3.dylib */,
 				B517914A1024BFFF00583567 /* Security.framework */,
+				B5D145771029E7F3004379B8 /* SystemConfiguration.framework */,
 			);
 			name = iPhone;
 			sourceTree = "<group>";
@@ -281,6 +288,15 @@
 				B522EF77101C795F00A902FC /* libGHUnitIPhone3_0.a */,
 			);
 			name = GHUnit;
+			sourceTree = "<group>";
+		};
+		B5D1454E1029E20D004379B8 /* External */ = {
+			isa = PBXGroup;
+			children = (
+				B5D1454F1029E20D004379B8 /* Reachability.h */,
+				B5D145501029E20D004379B8 /* Reachability.m */,
+			);
+			path = External;
 			sourceTree = "<group>";
 		};
 		B5E2A99E100C89BC00B70E26 /* S3 */ = {
@@ -394,6 +410,7 @@
 				B5E2A9AD100C89D900B70E26 /* ASIS3BucketObject.m in Sources */,
 				B5E2A9AE100C89D900B70E26 /* ASIS3ListRequest.m in Sources */,
 				B51791A31024C3E800583567 /* AuthenticationViewController.m in Sources */,
+				B5D145521029E20D004379B8 /* Reachability.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -415,6 +432,7 @@
 				B522EF79101C795F00A902FC /* GHUnitIPhoneTestMain.m in Sources */,
 				B5652920101C8BD7000499CF /* ASITestCase.m in Sources */,
 				B5254FF91025F9BF00CF7BC4 /* ProxyTests.m in Sources */,
+				B5D145511029E20D004379B8 /* Reachability.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
