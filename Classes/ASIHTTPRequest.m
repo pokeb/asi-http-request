@@ -1646,6 +1646,22 @@ BOOL shouldThrottleBandwidth = NO;
 		bufferSize = 16384;
 	}
 	
+	// Reduce the buffer size if we're receiving data too quickly when bandwidth throttling is active
+	// This just augments the throttling done in performBandwidthThrottling
+	if ([ASIHTTPRequest shouldThrottleBandwidth]) {
+		long long maxSize = [ASIHTTPRequest maxBandwidthPerSecond];
+		if (maxSize > 0) {
+			maxSize = maxSize-[ASIHTTPRequest bandwidthUsedInLastSecond];
+			if (maxSize < 0) {
+				// We aren't supposed to read any more data right now, but we'll read a single byte anyway so the CFNetwork's buffer isn't full
+				bufferSize = 1;
+			} else if (maxSize < bufferSize) {
+				// We were going to fetch more data that we should be allowed, so we'll reduce the size of our read
+				bufferSize = maxSize;
+			}
+		}
+	}
+	
     UInt8 buffer[bufferSize];
     CFIndex bytesRead = CFReadStreamRead(readStream, buffer, sizeof(buffer));
 	
@@ -2320,12 +2336,12 @@ BOOL shouldThrottleBandwidth = NO;
 
 + (void)performBandwidthThrottling
 {
-	// Other requests may have to wait for this lock if we're sleeping, but this is fine, since we already know they shouldn't be sending or receiving data
+	// Other requests may have to wait for this lock if we're sleeping, but this is fine, since in that case we already know they shouldn't be sending or receiving data
 	[bandwidthThrottlingLock lock];
 	
 	// Are we performing bandwidth throttling?
 	if (maxBandwidthPerSecond > 0) {
-		if (!bandwidthThrottlingMeasurementDate) {
+		if (!bandwidthThrottlingMeasurementDate || [bandwidthThrottlingMeasurementDate timeIntervalSinceNow] < 0) {
 			bandwidthThrottlingMeasurementDate = [NSDate dateWithTimeIntervalSinceNow:1];
 		}
 		
