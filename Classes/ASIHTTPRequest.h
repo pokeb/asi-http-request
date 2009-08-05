@@ -444,6 +444,11 @@ extern NSString* const NetworkRequestErrorDomain;
 // Returns an array of proxies to use for a particular url, given the url of a PAC script
 + (NSArray *)proxiesForURL:(NSURL *)theURL fromPAC:(NSURL *)pacScriptURL;
 
+#pragma mark mime-type detection
+
+// Only works on Mac OS, will always return 'application/octet-stream' on iPhone
++ (NSString *)mimeTypeForFileAtPath:(NSString *)path;
+
 @property (retain) NSString *username;
 @property (retain) NSString *password;
 @property (retain) NSString *domain;

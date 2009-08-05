@@ -2219,6 +2219,39 @@ static NSError *ASITooMuchRedirectionError;
 	return proxies;
 }
 
+#pragma mark Helper functions
+
++ (NSString *)mimeTypeForFileAtPath:(NSString *)path
+{
+	// NSTask does seem to exist in the 2.2.1 SDK, though it's not in the 3.0 SDK. It's probably best if we just use a generic mime type on iPhone all the time.
+#if TARGET_OS_IPHONE
+	return @"application/octet-stream";
+	
+	// Grab the mime type using an NSTask to run the 'file' program, with the Mac OS-specific parameters to grab the mime type
+	// Perhaps there is a better way to do this?
+#else
+	NSTask *task = [[[NSTask alloc] init] autorelease];
+	[task setLaunchPath: @"/usr/bin/file"];
+	[task setArguments:[NSMutableArray arrayWithObjects:@"-Ib",path,nil]];
+	
+    NSPipe *outputPipe = [NSPipe pipe];
+    [task setStandardOutput:outputPipe];
+	
+    NSFileHandle *file = [outputPipe fileHandleForReading];
+	
+	[task launch];
+	[task waitUntilExit];
+	
+	if ([task terminationStatus] != 0) {
+		return @"application/octet-stream";	
+	}
+	
+	NSString *mimeTypeString = [[[[NSString alloc] initWithData:[file readDataToEndOfFile] encoding: NSUTF8StringEncoding] autorelease] stringByReplacingOccurrencesOfString:@"\n" withString:@""];
+	return [[mimeTypeString componentsSeparatedByString:@";"] objectAtIndex:0];
+#endif
+}
+
+
 
 @synthesize username;
 @synthesize password;

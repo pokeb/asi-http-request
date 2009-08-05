@@ -27,10 +27,13 @@
 // Add the contents of a local file to the request
 - (void)setFile:(NSString *)filePath forKey:(NSString *)key;
 
+// Same as above, but you can specify the content-type and file name
+- (void)setFile:(id)data withFileName:(NSString *)fileName andContentType:(NSString *)contentType forKey:(NSString *)key;
+
 // Add the contents of an NSData object to the request
 - (void)setData:(NSData *)data forKey:(NSString *)key;
 
-// Allows to specify content type of the file
-- (void)setFileDataContainerObject:(id)data fileName:(NSString *)fileName contentType:(NSString *)contentType forKey:(NSString *)key;
+// Same as above, but you can specify the content-type and file name
+- (void)setData:(id)data withFileName:(NSString *)fileName andContentType:(NSString *)contentType forKey:(NSString *)key;
 
 @end

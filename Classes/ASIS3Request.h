@@ -81,11 +81,6 @@ typedef enum _ASIS3ErrorType {
 // Uses the supplied date to create a Date header string
 - (void)setDate:(NSDate *)date;
 
-#pragma mark Helper functions
-
-// Only works on Mac OS, will always return 'application/octet-stream' on iPhone
-+ (NSString *)mimeTypeForFileAtPath:(NSString *)path;
-
 #pragma mark Shared access keys
 
 // Get and set the global access key, this will be used for all requests the access key hasn't been set for

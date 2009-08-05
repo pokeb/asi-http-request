@@ -41,7 +41,7 @@
 	[request setFile:path forKey:@"file"];
 	[request start];
 
-	BOOL success = ([[request responseString] isEqualToString:[NSString stringWithFormat:@"post_var: %@\r\npost_var2: %@\r\npost_var3: %@\r\nfile_name: %@\r\nfile_size: %hu",@"foo",d,v,@"bigfile",size]]);
+	BOOL success = ([[request responseString] isEqualToString:[NSString stringWithFormat:@"post_var: %@\r\npost_var2: %@\r\npost_var3: %@\r\nfile_name: %@\r\nfile_size: %hu\r\ncontent_type: %@",@"foo",d,v,@"bigfile",size,@"application/octet-stream"]]);
 	GHAssertTrue(success,@"Failed to upload the correct data (using local file)");	
 	
 	//Try the same with the raw data
@@ -52,8 +52,31 @@
 	[request setData:data forKey:@"file"];
 	[request start];
 
-	success = ([[request responseString] isEqualToString:[NSString stringWithFormat:@"post_var: %@\r\npost_var2: %@\r\npost_var3: %@\r\nfile_name: %@\r\nfile_size: %hu",@"foo",d,v,@"file",size]]);
+	success = ([[request responseString] isEqualToString:[NSString stringWithFormat:@"post_var: %@\r\npost_var2: %@\r\npost_var3: %@\r\nfile_name: %@\r\nfile_size: %hu\r\ncontent_type: %@",@"foo",d,v,@"file",size,@"application/octet-stream"]]);
 	GHAssertTrue(success,@"Failed to upload the correct data (using NSData)");	
+
+	//Post with custom content-type and file name
+	request = [[[ASIFormDataRequest alloc] initWithURL:url] autorelease];
+	[request setPostValue:@"foo" forKey:@"post_var"];
+	[request setPostValue:d forKey:@"post_var2"];
+	[request setPostValue:v forKey:@"post_var3"];	
+	[request setFile:path withFileName:@"myfile" andContentType:@"text/plain" forKey:@"file"];
+	[request start];
+	
+	success = ([[request responseString] isEqualToString:[NSString stringWithFormat:@"post_var: %@\r\npost_var2: %@\r\npost_var3: %@\r\nfile_name: %@\r\nfile_size: %hu\r\ncontent_type: %@",@"foo",d,v,@"myfile",size,@"text/plain"]]);
+	GHAssertTrue(success,@"Failed to send the correct content-type / file name");	
+	
+	//Post raw data with custom content-type and file name
+	request = [[[ASIFormDataRequest alloc] initWithURL:url] autorelease];
+	[request setPostValue:@"foo" forKey:@"post_var"];
+	[request setPostValue:d forKey:@"post_var2"];
+	[request setPostValue:v forKey:@"post_var3"];	
+	[request setData:data withFileName:@"myfile" andContentType:@"text/plain" forKey:@"file"];
+	[request start];
+	
+	success = ([[request responseString] isEqualToString:[NSString stringWithFormat:@"post_var: %@\r\npost_var2: %@\r\npost_var3: %@\r\nfile_name: %@\r\nfile_size: %hu\r\ncontent_type: %@",@"foo",d,v,@"myfile",size,@"text/plain"]]);
+	GHAssertTrue(success,@"Failed to send the correct content-type / file name");	
+	
 }
 
 // Test fix for bug where setting an empty string for a form post value would cause the rest of the post body to be ignored (because an NSOutputStream won't like it if you try to write 0 bytes)
