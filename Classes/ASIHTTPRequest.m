@@ -48,12 +48,29 @@ static NSError *ASIAuthenticationError;
 static NSError *ASIUnableToCreateRequestError;
 static NSError *ASITooMuchRedirectionError;
 
+// Used for throttling bandwidth
+// I am assuming you don't have a connection capable of more than 4GB/second? If so, why are you reading this? Aren't you supposed to be backing up the Internet?!
+static unsigned long bandwidthUsedInLastSecond = 0; 
+
+// A date one second in the future from the time it was created
+static NSDate *bandwidthThrottlingMeasurementDate = nil;
+
+// Since throttling variables are shared among all requests, we'll use a lock to mediate access
+static NSLock *bandwidthThrottlingLock = nil;
+
+// the maximum number of bytes that can be transmitted in one second
+static unsigned long maxBandwidthPerSecond = 0;
+
+// A default figure for throttling bandwidth on mobile devices
+unsigned long const ASIWWANBandwidthThrottleAmount = 14800;
 
 // Private stuff
 @interface ASIHTTPRequest ()
 
 - (BOOL)askDelegateForCredentials;
 - (BOOL)askDelegateForProxyCredentials;
++ (void)incrementBandwidthUsedInLastSecond:(unsigned long)bytes;
++ (void)throttleBandwidth;
 
 @property (assign) BOOL complete;
 @property (retain) NSDictionary *responseHeaders;
@@ -97,6 +114,7 @@ static NSError *ASITooMuchRedirectionError;
 {
 	if (self == [ASIHTTPRequest class]) {
 		progressLock = [[NSRecursiveLock alloc] init];
+		bandwidthThrottlingLock = [[NSLock alloc] init];
 		ASIRequestTimedOutError = [[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIRequestTimedOutErrorType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"The request timed out",NSLocalizedDescriptionKey,nil]] retain];	
 		ASIAuthenticationError = [[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIAuthenticationErrorType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Authentication needed",NSLocalizedDescriptionKey,nil]] retain];
 		ASIRequestCancelledError = [[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIRequestCancelledErrorType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"The request was cancelled",NSLocalizedDescriptionKey,nil]] retain];
@@ -618,7 +636,6 @@ static NSError *ASITooMuchRedirectionError;
 	[self startRequest];
 	
 
-	
 	// Wait for the request to finish
 	while (!complete) {
 		
@@ -665,6 +682,11 @@ static NSError *ASITooMuchRedirectionError;
 		
 		// Find out if we've sent any more data than last time, and reset the timeout if so
 		if (totalBytesSent > lastBytesSent) {
+			
+			// For bandwidth throttling
+			if ([ASIHTTPRequest maxBandwidthPerSecond] > 0) {
+				[ASIHTTPRequest incrementBandwidthUsedInLastSecond:totalBytesSent-maxBandwidthPerSecond];
+			}
 			[self setLastActivityTime:[NSDate date]];
 			[self setLastBytesSent:totalBytesSent];
 		}
@@ -676,7 +698,8 @@ static NSError *ASITooMuchRedirectionError;
 		
 		[self updateProgressIndicators];
 		
-		
+		// Throttle bandwidth if nescessary
+		[ASIHTTPRequest throttleBandwidth];
 		
 		// This thread should wait for 1/4 second for the stream to do something. We'll stop early if it does.
 		CFRunLoopRunInMode(ASIHTTPRequestRunMode,0.25,YES);
@@ -1630,6 +1653,11 @@ static NSError *ASITooMuchRedirectionError;
 		[self setTotalBytesRead:[self totalBytesRead]+bytesRead];
 		[self setLastActivityTime:[NSDate date]];
 		
+		// For bandwidth throttling
+		if ([ASIHTTPRequest maxBandwidthPerSecond] > 0) {
+			[ASIHTTPRequest incrementBandwidthUsedInLastSecond:bytesRead];
+		}
+		
 		// Are we downloading to a file?
 		if ([self downloadDestinationPath]) {
 			if (![self fileDownloadOutputStream]) {
@@ -2219,7 +2247,7 @@ static NSError *ASITooMuchRedirectionError;
 	return proxies;
 }
 
-#pragma mark Helper functions
+#pragma mark mime-type detection
 
 + (NSString *)mimeTypeForFileAtPath:(NSString *)path
 {
@@ -2249,6 +2277,55 @@ static NSError *ASITooMuchRedirectionError;
 	NSString *mimeTypeString = [[[[NSString alloc] initWithData:[file readDataToEndOfFile] encoding: NSUTF8StringEncoding] autorelease] stringByReplacingOccurrencesOfString:@"\n" withString:@""];
 	return [[mimeTypeString componentsSeparatedByString:@";"] objectAtIndex:0];
 #endif
+}
+
+#pragma mark bandwidth throttling
+
++ (unsigned long)maxBandwidthPerSecond
+{
+	[bandwidthThrottlingLock lock];
+	unsigned long amount = maxBandwidthPerSecond;
+	[bandwidthThrottlingLock unlock];
+	return amount;
+}
+
++ (void)setMaxBandwidthPerSecond:(unsigned long)bytes
+{
+	[bandwidthThrottlingLock lock];
+	maxBandwidthPerSecond = bytes;
+	[bandwidthThrottlingLock unlock];
+}
+
++ (void)incrementBandwidthUsedInLastSecond:(unsigned long)bytes
+{
+	[bandwidthThrottlingLock lock];
+	bandwidthUsedInLastSecond += bytes;
+	[bandwidthThrottlingLock unlock];
+}
+
++ (void)throttleBandwidth
+{
+	// Other requests may have to wait for this lock if we're sleeping, but this is fine, since we already know they shouldn't be sending or receiving data
+	[bandwidthThrottlingLock lock];
+	
+	// Are we performing bandwidth throttling?
+	if (maxBandwidthPerSecond > 0) {
+		if (!bandwidthThrottlingMeasurementDate) {
+			bandwidthThrottlingMeasurementDate = [NSDate dateWithTimeIntervalSinceNow:1];
+		}
+		
+		// How much data can we still send or receive this second?
+		long long bytesRemaining = maxBandwidthPerSecond - bandwidthUsedInLastSecond;
+		
+		// Have we used up our allowance?
+		if (bytesRemaining < 0) {
+			
+			// Yes, put this request to sleep until a second is up
+			[NSThread sleepUntilDate:bandwidthThrottlingMeasurementDate];
+			bandwidthThrottlingMeasurementDate = [NSDate dateWithTimeIntervalSinceNow:1];
+		}
+	}
+	[bandwidthThrottlingLock unlock];
 }
 
 
@@ -2324,7 +2401,6 @@ static NSError *ASITooMuchRedirectionError;
 @synthesize authenticationLock;
 @synthesize needsProxyAuthentication;
 @synthesize proxyCredentials;
-
 @synthesize proxyHost;
 @synthesize proxyPort;
 @synthesize PACurl;
