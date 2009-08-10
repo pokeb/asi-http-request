@@ -265,7 +265,7 @@ BOOL shouldThrottleBandwidth = NO;
 		if (![requestMethod isEqualToString:@"POST"] && ![requestMethod isEqualToString:@"PUT"]) {
 			[self setRequestMethod:@"POST"];
 		}
-		//[self addRequestHeader:@"Content-Length" value:[NSString stringWithFormat:@"%llu",[self postLength]]];
+		[self addRequestHeader:@"Content-Length" value:[NSString stringWithFormat:@"%llu",[self postLength]]];
 	}
 	[self setHaveBuiltPostBody:YES];
 }
@@ -525,7 +525,9 @@ BOOL shouldThrottleBandwidth = NO;
 	if (![self downloadDestinationPath]) {
 		[self setRawResponseData:[[[NSMutableData alloc] init] autorelease]];
     }
-    // Create the stream for the request.
+    // Create the stream for the request
+	
+	// Do we need to stream the request body from disk
 	if ([self shouldStreamPostDataFromDisk] && [self postBodyFilePath] && [[NSFileManager defaultManager] fileExistsAtPath:[self postBodyFilePath]]) {
 		
 		// Are we gzipping the request body?
@@ -536,7 +538,14 @@ BOOL shouldThrottleBandwidth = NO;
 		}
 		readStream = CFReadStreamCreateForStreamedHTTPRequest(kCFAllocatorDefault, request,(CFReadStreamRef)[self postBodyReadStream]);
     } else {
-		readStream = CFReadStreamCreateForHTTPRequest(kCFAllocatorDefault, request);
+		// If we have a request body, we'll stream it from memory using our custom stream, so that it can be bandwidth-throttled if nescessary
+		if ([self postBody]) {
+			[self setPostBodyReadStream:[ASIInputStream inputStreamWithData:[self postBody]]];
+			readStream = CFReadStreamCreateForStreamedHTTPRequest(kCFAllocatorDefault, request,(CFReadStreamRef)[self postBodyReadStream]);
+		
+		} else {
+			readStream = CFReadStreamCreateForHTTPRequest(kCFAllocatorDefault, request);
+		}
 	}
 	if (!readStream) {
 		[[self cancelledLock] unlock];
@@ -659,8 +668,6 @@ BOOL shouldThrottleBandwidth = NO;
 		
 		NSDate *now = [NSDate date];
 		
-		//NSLog(@"loop");
-		
 		// See if we need to timeout
 		if (lastActivityTime && timeOutSeconds > 0 && [now timeIntervalSinceDate:lastActivityTime] > timeOutSeconds) {
 			
@@ -698,9 +705,6 @@ BOOL shouldThrottleBandwidth = NO;
 		
 		// Find out if we've sent any more data than last time, and reset the timeout if so
 		if (totalBytesSent > lastBytesSent) {
-			
-//			// For bandwidth measurement / throttling
-//			[ASIHTTPRequest incrementBandwidthUsedInLastSecond:(totalBytesSent-lastBytesSent)];
 			[self setLastActivityTime:[NSDate date]];
 			[self setLastBytesSent:totalBytesSent];
 		}
@@ -2313,7 +2317,7 @@ BOOL shouldThrottleBandwidth = NO;
 #endif
 }
 
-#pragma mark bandwidth throttling
+#pragma mark bandwidth measurement / throttling
 
 + (BOOL)shouldThrottleBandwidth
 {
@@ -2355,7 +2359,6 @@ BOOL shouldThrottleBandwidth = NO;
 
 + (void)recordBandwidthUsage
 {
-	//NSLog(@"--Mark-- %lu",bandwidthUsedInLastSecond);
 	if (bandwidthUsedInLastSecond == 0) {
 		[bandwidthUsageTracker removeAllObjects];
 	} else {
@@ -2382,9 +2385,9 @@ BOOL shouldThrottleBandwidth = NO;
 {
 	[bandwidthThrottlingLock lock];
 	
-//	if (!bandwidthMeasurementDate || [bandwidthMeasurementDate timeIntervalSinceNow] < 0) {
-//		[self recordBandwidthUsage];
-//	}
+	if (!bandwidthMeasurementDate || [bandwidthMeasurementDate timeIntervalSinceNow] < 0) {
+		[self recordBandwidthUsage];
+	}
 	unsigned long amount = 	averageBandwidthUsedPerSecond;
 	[bandwidthThrottlingLock unlock];
 	return amount;
@@ -2403,9 +2406,7 @@ BOOL shouldThrottleBandwidth = NO;
 	if (maxBandwidthPerSecond > 0) {	
 		// How much data can we still send or receive this second?
 		long long bytesRemaining = (long long)maxBandwidthPerSecond - (long long)bandwidthUsedInLastSecond;
-		
-		//NSLog(@"%qi",bytesRemaining);
-		
+				
 		// Have we used up our allowance?
 		if (bytesRemaining < 8) {
 			
@@ -2458,7 +2459,6 @@ BOOL shouldThrottleBandwidth = NO;
 	if (maxBandwidthPerSecond) {
 		toRead = maxBandwidthPerSecond/32;
 	}
-	//NSLog(@"max: %lu used: %lu",maxBandwidthPerSecond,bandwidthUsedInLastSecond);
 	if (maxBandwidthPerSecond > 0 && (bandwidthUsedInLastSecond + toRead > maxBandwidthPerSecond)) {
 		toRead = 0;
 	}

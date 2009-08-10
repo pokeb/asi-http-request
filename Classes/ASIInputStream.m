@@ -9,15 +9,19 @@
 #import "ASIInputStream.h"
 #import "ASIHTTPRequest.h"
 
-// This is a wrapper for NSInputStream that pretends to be an NSInputStream itself
-// Subclassing NSInputStream seems to be tricky, and may involve overriding undocumented methods, so we'll cheat instead.
-
 @implementation ASIInputStream
 
 + (id)inputStreamWithFileAtPath:(NSString *)path
 {
 	ASIInputStream *stream = [[[self alloc] init] autorelease];
 	[stream setStream:[NSInputStream inputStreamWithFileAtPath:path]];
+	return stream;
+}
+
++ (id)inputStreamWithData:(NSData *)data
+{
+	ASIInputStream *stream = [[[self alloc] init] autorelease];
+	[stream setStream:[NSInputStream inputStreamWithData:data]];
 	return stream;
 }
 
@@ -30,8 +34,10 @@
 - (BOOL)hasBytesAvailable
 {
 	if ([ASIHTTPRequest maxUploadReadLength] == 0) {
+		NSLog(@"no");
 		return NO;
 	}
+	NSLog(@"yes");
 	return [[self stream] hasBytesAvailable];
 	
 }

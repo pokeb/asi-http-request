@@ -13,6 +13,8 @@
 		B517900B1024AD1B00583567 /* libz.1.2.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B55B60940F765AF80064029C /* libz.1.2.3.dylib */; };
 		B51791951024C3DA00583567 /* Authentication.xib in Resources */ = {isa = PBXBuildFile; fileRef = B51791941024C3DA00583567 /* Authentication.xib */; };
 		B51791A31024C3E800583567 /* AuthenticationViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B51791A21024C3E800583567 /* AuthenticationViewController.m */; };
+		B522DACE1030B2AB009A2D22 /* ASIInputStream.m in Sources */ = {isa = PBXBuildFile; fileRef = B522DACD1030B2AB009A2D22 /* ASIInputStream.m */; };
+		B522DACF1030B2AB009A2D22 /* ASIInputStream.m in Sources */ = {isa = PBXBuildFile; fileRef = B522DACD1030B2AB009A2D22 /* ASIInputStream.m */; };
 		B522EF78101C795F00A902FC /* RunTests.sh in Resources */ = {isa = PBXBuildFile; fileRef = B522EF72101C795F00A902FC /* RunTests.sh */; };
 		B522EF79101C795F00A902FC /* GHUnitIPhoneTestMain.m in Sources */ = {isa = PBXBuildFile; fileRef = B522EF76101C795F00A902FC /* GHUnitIPhoneTestMain.m */; };
 		B522EF7A101C795F00A902FC /* libGHUnitIPhone3_0.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B522EF77101C795F00A902FC /* libGHUnitIPhone3_0.a */; };
@@ -68,6 +70,8 @@
 		B51791941024C3DA00583567 /* Authentication.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Authentication.xib; path = "iPhone Sample/XIBs/Authentication.xib"; sourceTree = "<group>"; };
 		B51791A11024C3E800583567 /* AuthenticationViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AuthenticationViewController.h; path = "iPhone Sample/AuthenticationViewController.h"; sourceTree = "<group>"; };
 		B51791A21024C3E800583567 /* AuthenticationViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AuthenticationViewController.m; path = "iPhone Sample/AuthenticationViewController.m"; sourceTree = "<group>"; };
+		B522DACC1030B2AB009A2D22 /* ASIInputStream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIInputStream.h; sourceTree = "<group>"; };
+		B522DACD1030B2AB009A2D22 /* ASIInputStream.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIInputStream.m; sourceTree = "<group>"; };
 		B522EF6B101C795F00A902FC /* GHTestRunner.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GHTestRunner.h; path = Frameworks/libGHUnitIPhone/GHTestRunner.h; sourceTree = SOURCE_ROOT; };
 		B522EF6C101C795F00A902FC /* GHAsyncTestCase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GHAsyncTestCase.h; path = Frameworks/libGHUnitIPhone/GHAsyncTestCase.h; sourceTree = SOURCE_ROOT; };
 		B522EF6D101C795F00A902FC /* GHTestMacros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GHTestMacros.h; path = Frameworks/libGHUnitIPhone/GHTestMacros.h; sourceTree = SOURCE_ROOT; };
@@ -167,6 +171,8 @@
 		080E96DDFE201D6D7F000001 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
+				B522DACC1030B2AB009A2D22 /* ASIInputStream.h */,
+				B522DACD1030B2AB009A2D22 /* ASIInputStream.m */,
 				B55B60450F765A320064029C /* ASIFormDataRequest.h */,
 				B55B60460F765A320064029C /* ASIFormDataRequest.m */,
 				B55B60470F765A320064029C /* ASIHTTPRequest.h */,
@@ -414,6 +420,7 @@
 				B5E2A9AE100C89D900B70E26 /* ASIS3ListRequest.m in Sources */,
 				B51791A31024C3E800583567 /* AuthenticationViewController.m in Sources */,
 				B5D145521029E20D004379B8 /* Reachability.m in Sources */,
+				B522DACF1030B2AB009A2D22 /* ASIInputStream.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -436,6 +443,7 @@
 				B5652920101C8BD7000499CF /* ASITestCase.m in Sources */,
 				B5254FF91025F9BF00CF7BC4 /* ProxyTests.m in Sources */,
 				B5D145511029E20D004379B8 /* Reachability.m in Sources */,
+				B522DACE1030B2AB009A2D22 /* ASIInputStream.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

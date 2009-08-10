@@ -455,10 +455,10 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 // Only works on Mac OS, will always return 'application/octet-stream' on iPhone
 + (NSString *)mimeTypeForFileAtPath:(NSString *)path;
 
-#pragma mark bandwidth throttling
+#pragma mark bandwidth measurement / throttling
 
 // The maximum number of bytes ALL requests can send / receive in a second
-// This is a rough figure. The actual amount used may be slightly more
+// This is a rough figure. The actual amount used will be slightly more, this does not include HTTP headers
 + (unsigned long)maxBandwidthPerSecond;
 + (void)setMaxBandwidthPerSecond:(unsigned long)bytes;
 
