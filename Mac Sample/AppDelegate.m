@@ -106,6 +106,8 @@
 	[networkQueue setDelegate:self];
 	[networkQueue setShowAccurateProgress:([showAccurateProgress state] == NSOnState)];
 	
+	NSTimer *timer = [NSTimer scheduledTimerWithTimeInterval:0.5 target:self selector:@selector(updateBandwidthUsageIndicator) userInfo:nil repeats:YES];
+
 	ASIHTTPRequest *request;
 	
 	request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/images/small-image.jpg"]] autorelease];
@@ -133,6 +135,20 @@
 	[networkQueue go];
 }
 
+- (void)updateBandwidthUsageIndicator
+{
+	[bandwidthUsed setStringValue:[NSString stringWithFormat:@"%luKB / second",[ASIHTTPRequest averageBandwidthUsedPerSecond]/1024]];
+}
+
+- (IBAction)throttleBandwidth:(id)sender
+{
+	if ([(NSButton *)sender state] == NSOnState) {
+		[ASIHTTPRequest setMaxBandwidthPerSecond:ASIWWANBandwidthThrottleAmount];
+	} else {
+		[ASIHTTPRequest setMaxBandwidthPerSecond:0];
+	}
+}
+
 
 - (void)imageFetch1Complete:(ASIHTTPRequest *)request
 {
@@ -158,7 +174,6 @@
 		[imageView3 setImage:img];
 	}
 }
-
 
 
 - (IBAction)fetchTopSecretInformation:(id)sender

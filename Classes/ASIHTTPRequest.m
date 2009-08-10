@@ -50,13 +50,14 @@ static NSError *ASIUnableToCreateRequestError;
 static NSError *ASITooMuchRedirectionError;
 
 static NSMutableArray *bandwidthUsageTracker = nil;
+static unsigned long averageBandwidthUsedPerSecond = 0;
 
 // Used for throttling bandwidth
 // I am assuming you don't have a connection capable of more than 4GB/second? If so, why are you reading this? Aren't you supposed to be backing up the Internet?!
 static unsigned long bandwidthUsedInLastSecond = 0; 
 
 // A date one second in the future from the time it was created
-static NSDate *bandwidthThrottlingMeasurementDate = nil;
+static NSDate *bandwidthMeasurementDate = nil;
 
 // Since throttling variables are shared among all requests, we'll use a lock to mediate access
 static NSLock *bandwidthThrottlingLock = nil;
@@ -78,7 +79,7 @@ BOOL shouldThrottleBandwidth = NO;
 - (BOOL)askDelegateForCredentials;
 - (BOOL)askDelegateForProxyCredentials;
 + (void)incrementBandwidthUsedInLastSecond:(unsigned long)bytes;
-+ (void)performBandwidthThrottling;
++ (void)measureBandwidthUsage;
 + (BOOL)shouldThrottleBandwidth;
 + (void)recordBandwidthUsage;
 
@@ -694,10 +695,8 @@ BOOL shouldThrottleBandwidth = NO;
 		// Find out if we've sent any more data than last time, and reset the timeout if so
 		if (totalBytesSent > lastBytesSent) {
 			
-			// For bandwidth throttling
-			if ([ASIHTTPRequest shouldThrottleBandwidth] > 0) {
-				[ASIHTTPRequest incrementBandwidthUsedInLastSecond:totalBytesSent-maxBandwidthPerSecond];
-			}
+			// For bandwidth measurement / throttling
+			[ASIHTTPRequest incrementBandwidthUsedInLastSecond:(totalBytesSent-lastBytesSent)];
 			[self setLastActivityTime:[NSDate date]];
 			[self setLastBytesSent:totalBytesSent];
 		}
@@ -709,8 +708,8 @@ BOOL shouldThrottleBandwidth = NO;
 		
 		[self updateProgressIndicators];
 		
-		// Throttle bandwidth if nescessary
-		[ASIHTTPRequest performBandwidthThrottling];
+		// Measure bandwidth used, and throttle if nescessary
+		[ASIHTTPRequest measureBandwidthUsage];
 		
 		// This thread should wait for 1/4 second for the stream to do something. We'll stop early if it does.
 		CFRunLoopRunInMode(ASIHTTPRequestRunMode,0.25,YES);
@@ -1651,21 +1650,26 @@ BOOL shouldThrottleBandwidth = NO;
 	}
 	
 	// Reduce the buffer size if we're receiving data too quickly when bandwidth throttling is active
-	// This just augments the throttling done in performBandwidthThrottling to reduce the amount we go over the limit
-	[bandwidthThrottlingLock lock];
-	if (shouldThrottleBandwidth) {
+	// This just augments the throttling done in measureBandwidthUsage to reduce the amount we go over the limit
+	
+	if ([[self class] shouldThrottleBandwidth]) {
+		[bandwidthThrottlingLock lock];
 		if (maxBandwidthPerSecond > 0) {
-			long long maxSize  = maxBandwidthPerSecond-bandwidthUsedInLastSecond;
+			long long maxSize  = (long long)maxBandwidthPerSecond-(long long)bandwidthUsedInLastSecond;
 			if (maxSize < 0) {
 				// We aren't supposed to read any more data right now, but we'll read a single byte anyway so the CFNetwork's buffer isn't full
 				bufferSize = 1;
-			} else if (maxSize < bufferSize) {
+			} else if (maxSize/4 < bufferSize) {
 				// We were going to fetch more data that we should be allowed, so we'll reduce the size of our read
-				bufferSize = maxSize;
+				bufferSize = maxSize/4;
 			}
 		}
+		if (bufferSize < 1) {
+			bufferSize = 1;
+		}
+		[bandwidthThrottlingLock unlock];
 	}
-	[bandwidthThrottlingLock unlock];
+
 	
     UInt8 buffer[bufferSize];
     CFIndex bytesRead = CFReadStreamRead(readStream, buffer, sizeof(buffer));
@@ -1681,10 +1685,8 @@ BOOL shouldThrottleBandwidth = NO;
 		[self setTotalBytesRead:[self totalBytesRead]+bytesRead];
 		[self setLastActivityTime:[NSDate date]];
 		
-		// For bandwidth throttling
-		if ([ASIHTTPRequest shouldThrottleBandwidth] > 0) {
-			[ASIHTTPRequest incrementBandwidthUsedInLastSecond:bytesRead];
-		}
+		// For bandwidth measurement / throttling
+		[ASIHTTPRequest incrementBandwidthUsedInLastSecond:bytesRead];
 		
 		// Are we downloading to a file?
 		if ([self downloadDestinationPath]) {
@@ -2311,10 +2313,17 @@ BOOL shouldThrottleBandwidth = NO;
 
 + (BOOL)shouldThrottleBandwidth
 {
+#if TARGET_OS_IPHONE
 	[bandwidthThrottlingLock lock];
 	BOOL throttle = shouldThrottleBandwidth;
 	[bandwidthThrottlingLock unlock];
 	return throttle;
+#else
+	[bandwidthThrottlingLock lock];
+	BOOL throttle = (maxBandwidthPerSecond);
+	[bandwidthThrottlingLock unlock];
+	return throttle;
+#endif
 }
 
 + (unsigned long)maxBandwidthPerSecond
@@ -2341,46 +2350,60 @@ BOOL shouldThrottleBandwidth = NO;
 
 + (void)recordBandwidthUsage
 {
-	NSTimeInterval interval = [bandwidthThrottlingMeasurementDate timeIntervalSinceNow];
-	while (interval-1 > 0) {
-		[bandwidthUsageTracker removeObjectAtIndex:0];
+	
+	if (bandwidthUsedInLastSecond == 0) {
+		[bandwidthUsageTracker removeAllObjects];
+	} else {
+		NSTimeInterval interval = [bandwidthMeasurementDate timeIntervalSinceNow];
+		while ((interval < 0 || [bandwidthUsageTracker count] > 5) && [bandwidthUsageTracker count] > 0) {
+			[bandwidthUsageTracker removeObjectAtIndex:0];
+			interval++;
+		}
 	}
 	[bandwidthUsageTracker addObject:[NSNumber numberWithUnsignedLong:bandwidthUsedInLastSecond]];
-	bandwidthThrottlingMeasurementDate = [NSDate dateWithTimeIntervalSinceNow:1];
+	[bandwidthMeasurementDate release];
+	bandwidthMeasurementDate = [[NSDate dateWithTimeIntervalSinceNow:1] retain];
 	bandwidthUsedInLastSecond = 0;
-}
-
-+ (unsigned long)averageBandwidthUsedPerSecond
-{
-	[bandwidthThrottlingLock lock];
+	
 	int measurements = [bandwidthUsageTracker count];
 	unsigned long long totalBytes = 0;
 	for (NSNumber *bytes in bandwidthUsageTracker) {
 		totalBytes += [bytes unsignedLongValue];
 	}
-	[bandwidthThrottlingLock unlock];
-	return totalBytes/measurements;
+	averageBandwidthUsedPerSecond = totalBytes/measurements;		
 }
 
-+ (void)performBandwidthThrottling
++ (unsigned long)averageBandwidthUsedPerSecond
+{
+	[bandwidthThrottlingLock lock];
+	
+	if (!bandwidthMeasurementDate || [bandwidthMeasurementDate timeIntervalSinceNow] < 0) {
+		[self recordBandwidthUsage];
+	}
+	unsigned long amount = 	averageBandwidthUsedPerSecond;
+	[bandwidthThrottlingLock unlock];
+	return amount;
+}
+
++ (void)measureBandwidthUsage
 {
 	// Other requests may have to wait for this lock if we're sleeping, but this is fine, since in that case we already know they shouldn't be sending or receiving data
 	[bandwidthThrottlingLock lock];
+
+	if (!bandwidthMeasurementDate || [bandwidthMeasurementDate timeIntervalSinceNow] < -0) {
+		[self recordBandwidthUsage];
+	}
 	
 	// Are we performing bandwidth throttling?
-	if (maxBandwidthPerSecond > 0) {
-		if (!bandwidthThrottlingMeasurementDate || [bandwidthThrottlingMeasurementDate timeIntervalSinceNow] < 0) {
-			[self recordBandwidthUsage];
-		}
-		
+	if (maxBandwidthPerSecond > 0) {	
 		// How much data can we still send or receive this second?
-		long long bytesRemaining = maxBandwidthPerSecond - bandwidthUsedInLastSecond;
+		long long bytesRemaining = (long long)maxBandwidthPerSecond - (long long)bandwidthUsedInLastSecond;
 		
 		// Have we used up our allowance?
 		if (bytesRemaining < 0) {
 			
 			// Yes, put this request to sleep until a second is up
-			[NSThread sleepUntilDate:bandwidthThrottlingMeasurementDate];
+			[NSThread sleepUntilDate:bandwidthMeasurementDate];
 			[self recordBandwidthUsage];
 		}
 	}

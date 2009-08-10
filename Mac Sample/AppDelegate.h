@@ -35,6 +35,8 @@
 	
 	IBOutlet NSButton *startButton;
 	IBOutlet NSButton *resumeButton;
+	
+	IBOutlet NSTextField *bandwidthUsed;
 }
 
 - (IBAction)simpleURLFetch:(id)sender;
@@ -49,5 +51,7 @@
 - (IBAction)fetchTopSecretInformation:(id)sender;
 
 - (IBAction)postWithProgress:(id)sender;
+
+- (IBAction)throttleBandwidth:(id)sender;
 
 @end
