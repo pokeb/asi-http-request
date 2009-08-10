@@ -49,6 +49,8 @@ static NSError *ASIAuthenticationError;
 static NSError *ASIUnableToCreateRequestError;
 static NSError *ASITooMuchRedirectionError;
 
+static NSMutableArray *bandwidthUsageTracker = nil;
+
 // Used for throttling bandwidth
 // I am assuming you don't have a connection capable of more than 4GB/second? If so, why are you reading this? Aren't you supposed to be backing up the Internet?!
 static unsigned long bandwidthUsedInLastSecond = 0; 
@@ -78,6 +80,7 @@ BOOL shouldThrottleBandwidth = NO;
 + (void)incrementBandwidthUsedInLastSecond:(unsigned long)bytes;
 + (void)performBandwidthThrottling;
 + (BOOL)shouldThrottleBandwidth;
++ (void)recordBandwidthUsage;
 
 @property (assign) BOOL complete;
 @property (retain) NSDictionary *responseHeaders;
@@ -122,6 +125,7 @@ BOOL shouldThrottleBandwidth = NO;
 	if (self == [ASIHTTPRequest class]) {
 		progressLock = [[NSRecursiveLock alloc] init];
 		bandwidthThrottlingLock = [[NSLock alloc] init];
+		bandwidthUsageTracker = [[NSMutableArray alloc] initWithCapacity:10];
 		ASIRequestTimedOutError = [[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIRequestTimedOutErrorType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"The request timed out",NSLocalizedDescriptionKey,nil]] retain];	
 		ASIAuthenticationError = [[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIAuthenticationErrorType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Authentication needed",NSLocalizedDescriptionKey,nil]] retain];
 		ASIRequestCancelledError = [[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIRequestCancelledErrorType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"The request was cancelled",NSLocalizedDescriptionKey,nil]] retain];
@@ -1647,11 +1651,11 @@ BOOL shouldThrottleBandwidth = NO;
 	}
 	
 	// Reduce the buffer size if we're receiving data too quickly when bandwidth throttling is active
-	// This just augments the throttling done in performBandwidthThrottling
-	if ([ASIHTTPRequest shouldThrottleBandwidth]) {
-		long long maxSize = [ASIHTTPRequest maxBandwidthPerSecond];
-		if (maxSize > 0) {
-			maxSize = maxSize-[ASIHTTPRequest bandwidthUsedInLastSecond];
+	// This just augments the throttling done in performBandwidthThrottling to reduce the amount we go over the limit
+	[bandwidthThrottlingLock lock];
+	if (shouldThrottleBandwidth) {
+		if (maxBandwidthPerSecond > 0) {
+			long long maxSize  = maxBandwidthPerSecond-bandwidthUsedInLastSecond;
 			if (maxSize < 0) {
 				// We aren't supposed to read any more data right now, but we'll read a single byte anyway so the CFNetwork's buffer isn't full
 				bufferSize = 1;
@@ -1661,6 +1665,7 @@ BOOL shouldThrottleBandwidth = NO;
 			}
 		}
 	}
+	[bandwidthThrottlingLock unlock];
 	
     UInt8 buffer[bufferSize];
     CFIndex bytesRead = CFReadStreamRead(readStream, buffer, sizeof(buffer));
@@ -2334,6 +2339,29 @@ BOOL shouldThrottleBandwidth = NO;
 	[bandwidthThrottlingLock unlock];
 }
 
++ (void)recordBandwidthUsage
+{
+	NSTimeInterval interval = [bandwidthThrottlingMeasurementDate timeIntervalSinceNow];
+	while (interval-1 > 0) {
+		[bandwidthUsageTracker removeObjectAtIndex:0];
+	}
+	[bandwidthUsageTracker addObject:[NSNumber numberWithUnsignedLong:bandwidthUsedInLastSecond]];
+	bandwidthThrottlingMeasurementDate = [NSDate dateWithTimeIntervalSinceNow:1];
+	bandwidthUsedInLastSecond = 0;
+}
+
++ (unsigned long)averageBandwidthUsedPerSecond
+{
+	[bandwidthThrottlingLock lock];
+	int measurements = [bandwidthUsageTracker count];
+	unsigned long long totalBytes = 0;
+	for (NSNumber *bytes in bandwidthUsageTracker) {
+		totalBytes += [bytes unsignedLongValue];
+	}
+	[bandwidthThrottlingLock unlock];
+	return totalBytes/measurements;
+}
+
 + (void)performBandwidthThrottling
 {
 	// Other requests may have to wait for this lock if we're sleeping, but this is fine, since in that case we already know they shouldn't be sending or receiving data
@@ -2342,7 +2370,7 @@ BOOL shouldThrottleBandwidth = NO;
 	// Are we performing bandwidth throttling?
 	if (maxBandwidthPerSecond > 0) {
 		if (!bandwidthThrottlingMeasurementDate || [bandwidthThrottlingMeasurementDate timeIntervalSinceNow] < 0) {
-			bandwidthThrottlingMeasurementDate = [NSDate dateWithTimeIntervalSinceNow:1];
+			[self recordBandwidthUsage];
 		}
 		
 		// How much data can we still send or receive this second?
@@ -2353,7 +2381,7 @@ BOOL shouldThrottleBandwidth = NO;
 			
 			// Yes, put this request to sleep until a second is up
 			[NSThread sleepUntilDate:bandwidthThrottlingMeasurementDate];
-			bandwidthThrottlingMeasurementDate = [NSDate dateWithTimeIntervalSinceNow:1];
+			[self recordBandwidthUsage];
 		}
 	}
 	[bandwidthThrottlingLock unlock];
