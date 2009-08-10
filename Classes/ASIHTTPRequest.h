@@ -475,7 +475,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 + (void)reachabilityChanged:(NSNotification *)note;
 #endif
 
-
++ (unsigned long)maxUploadReadLength;
 
 @property (retain) NSString *username;
 @property (retain) NSString *password;

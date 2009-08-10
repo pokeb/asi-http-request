@@ -17,6 +17,7 @@
 #else
 #import <SystemConfiguration/SystemConfiguration.h>
 #endif
+#import "ASIInputStream.h"
 
 // We use our own custom run loop mode as CoreAnimation seems to want to hijack our threads otherwise
 static CFStringRef ASIHTTPRequestRunMode = CFSTR("ASIHTTPRequest");
@@ -114,6 +115,7 @@ BOOL shouldThrottleBandwidth = NO;
 @property (retain) NSString *proxyAuthenticationRealm;
 
 @end
+
 
 @implementation ASIHTTPRequest
 
@@ -263,7 +265,7 @@ BOOL shouldThrottleBandwidth = NO;
 		if (![requestMethod isEqualToString:@"POST"] && ![requestMethod isEqualToString:@"PUT"]) {
 			[self setRequestMethod:@"POST"];
 		}
-		[self addRequestHeader:@"Content-Length" value:[NSString stringWithFormat:@"%llu",[self postLength]]];
+		//[self addRequestHeader:@"Content-Length" value:[NSString stringWithFormat:@"%llu",[self postLength]]];
 	}
 	[self setHaveBuiltPostBody:YES];
 }
@@ -528,9 +530,9 @@ BOOL shouldThrottleBandwidth = NO;
 		
 		// Are we gzipping the request body?
 		if ([self compressedPostBodyFilePath] && [[NSFileManager defaultManager] fileExistsAtPath:[self compressedPostBodyFilePath]]) {
-			[self setPostBodyReadStream:[[[NSInputStream alloc] initWithFileAtPath:[self compressedPostBodyFilePath]] autorelease]];
+			[self setPostBodyReadStream:[ASIInputStream inputStreamWithFileAtPath:[self compressedPostBodyFilePath]]];
 		} else {
-			[self setPostBodyReadStream:[[[NSInputStream alloc] initWithFileAtPath:[self postBodyFilePath]] autorelease]];	
+			[self setPostBodyReadStream:[ASIInputStream inputStreamWithFileAtPath:[self postBodyFilePath]]];
 		}
 		readStream = CFReadStreamCreateForStreamedHTTPRequest(kCFAllocatorDefault, request,(CFReadStreamRef)[self postBodyReadStream]);
     } else {
@@ -657,6 +659,8 @@ BOOL shouldThrottleBandwidth = NO;
 		
 		NSDate *now = [NSDate date];
 		
+		//NSLog(@"loop");
+		
 		// See if we need to timeout
 		if (lastActivityTime && timeOutSeconds > 0 && [now timeIntervalSinceDate:lastActivityTime] > timeOutSeconds) {
 			
@@ -695,8 +699,8 @@ BOOL shouldThrottleBandwidth = NO;
 		// Find out if we've sent any more data than last time, and reset the timeout if so
 		if (totalBytesSent > lastBytesSent) {
 			
-			// For bandwidth measurement / throttling
-			[ASIHTTPRequest incrementBandwidthUsedInLastSecond:(totalBytesSent-lastBytesSent)];
+//			// For bandwidth measurement / throttling
+//			[ASIHTTPRequest incrementBandwidthUsedInLastSecond:(totalBytesSent-lastBytesSent)];
 			[self setLastActivityTime:[NSDate date]];
 			[self setLastBytesSent:totalBytesSent];
 		}
@@ -712,7 +716,7 @@ BOOL shouldThrottleBandwidth = NO;
 		[ASIHTTPRequest measureBandwidthUsage];
 		
 		// This thread should wait for 1/4 second for the stream to do something. We'll stop early if it does.
-		CFRunLoopRunInMode(ASIHTTPRequestRunMode,0.25,YES);
+		CFRunLoopRunInMode(ASIHTTPRequestRunMode,0,YES);
 	}
 	
 	[pool release];
@@ -2344,14 +2348,14 @@ BOOL shouldThrottleBandwidth = NO;
 + (void)incrementBandwidthUsedInLastSecond:(unsigned long)bytes
 {
 	[bandwidthThrottlingLock lock];
-	NSLog(@"%lu",bytes);
 	bandwidthUsedInLastSecond += bytes;
+	//NSLog(@"used in last second: %lu",bandwidthUsedInLastSecond);
 	[bandwidthThrottlingLock unlock];
 }
 
 + (void)recordBandwidthUsage
 {
-	NSLog(@"--Mark--");
+	//NSLog(@"--Mark-- %lu",bandwidthUsedInLastSecond);
 	if (bandwidthUsedInLastSecond == 0) {
 		[bandwidthUsageTracker removeAllObjects];
 	} else {
@@ -2378,9 +2382,9 @@ BOOL shouldThrottleBandwidth = NO;
 {
 	[bandwidthThrottlingLock lock];
 	
-	if (!bandwidthMeasurementDate || [bandwidthMeasurementDate timeIntervalSinceNow] < 0) {
-		[self recordBandwidthUsage];
-	}
+//	if (!bandwidthMeasurementDate || [bandwidthMeasurementDate timeIntervalSinceNow] < 0) {
+//		[self recordBandwidthUsage];
+//	}
 	unsigned long amount = 	averageBandwidthUsedPerSecond;
 	[bandwidthThrottlingLock unlock];
 	return amount;
@@ -2400,8 +2404,10 @@ BOOL shouldThrottleBandwidth = NO;
 		// How much data can we still send or receive this second?
 		long long bytesRemaining = (long long)maxBandwidthPerSecond - (long long)bandwidthUsedInLastSecond;
 		
+		//NSLog(@"%qi",bytesRemaining);
+		
 		// Have we used up our allowance?
-		if (bytesRemaining < 0) {
+		if (bytesRemaining < 8) {
 			
 			// Yes, put this request to sleep until a second is up
 			[NSThread sleepUntilDate:bandwidthMeasurementDate];
@@ -2443,6 +2449,27 @@ BOOL shouldThrottleBandwidth = NO;
 	[bandwidthThrottlingLock unlock];
 }
 #endif
+
++ (unsigned long)maxUploadReadLength
+{
+
+	[bandwidthThrottlingLock lock];
+	unsigned long toRead = 4096;
+	if (maxBandwidthPerSecond) {
+		toRead = maxBandwidthPerSecond/32;
+	}
+	//NSLog(@"max: %lu used: %lu",maxBandwidthPerSecond,bandwidthUsedInLastSecond);
+	if (maxBandwidthPerSecond > 0 && (bandwidthUsedInLastSecond + toRead > maxBandwidthPerSecond)) {
+		toRead = 0;
+	}
+
+	if (toRead == 0 || !bandwidthMeasurementDate || [bandwidthMeasurementDate timeIntervalSinceNow] < -0) {
+		[NSThread sleepUntilDate:bandwidthMeasurementDate];
+		[self recordBandwidthUsage];
+	}
+	[bandwidthThrottlingLock unlock];	
+	return toRead;
+}
 
 @synthesize username;
 @synthesize password;
@@ -2521,24 +2548,3 @@ BOOL shouldThrottleBandwidth = NO;
 @end
 
 
-@interface ASIInputStream : NSInputStream {}
-@end
-
-@implementation ASIInputStream
-
-- (NSInteger)read:(uint8_t *)buffer maxLength:(NSUInteger)len
-{
-	[bandwidthThrottlingLock lock];
-	int toRead = len;
-	if (maxBandwidthPerSecond > 0 && bandwidthUsedInLastSecond + toRead > maxBandwidthPerSecond) {
-		toRead = (maxBandwidthPerSecond-bandwidthUsedInLastSecond)/4;
-	}
-	[bandwidthThrottlingLock unlock];
-	if (toRead == 0) {
-		toRead = 1;
-	}
-	return [super read:buffer maxLength:toRead];
-	
-}
-
-@end

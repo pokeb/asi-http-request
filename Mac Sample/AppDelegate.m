@@ -248,14 +248,14 @@
 
 - (IBAction)postWithProgress:(id)sender
 {	
-	//Create a 10MB file
+	//Create a 2MB file
 	NSMutableData *data = [NSMutableData dataWithLength:1024];
 	NSString *path = [[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"bigfile"];
 	
 	NSOutputStream *stream = [[[NSOutputStream alloc] initToFileAtPath:path append:NO] autorelease];
 	[stream open];
 	int i;
-	for (i=0; i<1024*10; i++) {
+	for (i=0; i<1024*2; i++) {
 		[stream write:[data mutableBytes] maxLength:[data length]];
 	}
 	
