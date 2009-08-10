@@ -126,7 +126,7 @@ BOOL shouldThrottleBandwidth = NO;
 	if (self == [ASIHTTPRequest class]) {
 		progressLock = [[NSRecursiveLock alloc] init];
 		bandwidthThrottlingLock = [[NSLock alloc] init];
-		bandwidthUsageTracker = [[NSMutableArray alloc] initWithCapacity:10];
+		bandwidthUsageTracker = [[NSMutableArray alloc] initWithCapacity:5];
 		ASIRequestTimedOutError = [[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIRequestTimedOutErrorType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"The request timed out",NSLocalizedDescriptionKey,nil]] retain];	
 		ASIAuthenticationError = [[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIAuthenticationErrorType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Authentication needed",NSLocalizedDescriptionKey,nil]] retain];
 		ASIRequestCancelledError = [[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIRequestCancelledErrorType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"The request was cancelled",NSLocalizedDescriptionKey,nil]] retain];
@@ -2344,13 +2344,14 @@ BOOL shouldThrottleBandwidth = NO;
 + (void)incrementBandwidthUsedInLastSecond:(unsigned long)bytes
 {
 	[bandwidthThrottlingLock lock];
+	NSLog(@"%lu",bytes);
 	bandwidthUsedInLastSecond += bytes;
 	[bandwidthThrottlingLock unlock];
 }
 
 + (void)recordBandwidthUsage
 {
-	
+	NSLog(@"--Mark--");
 	if (bandwidthUsedInLastSecond == 0) {
 		[bandwidthUsageTracker removeAllObjects];
 	} else {
@@ -2517,4 +2518,27 @@ BOOL shouldThrottleBandwidth = NO;
 @synthesize proxyHost;
 @synthesize proxyPort;
 @synthesize PACurl;
+@end
+
+
+@interface ASIInputStream : NSInputStream {}
+@end
+
+@implementation ASIInputStream
+
+- (NSInteger)read:(uint8_t *)buffer maxLength:(NSUInteger)len
+{
+	[bandwidthThrottlingLock lock];
+	int toRead = len;
+	if (maxBandwidthPerSecond > 0 && bandwidthUsedInLastSecond + toRead > maxBandwidthPerSecond) {
+		toRead = (maxBandwidthPerSecond-bandwidthUsedInLastSecond)/4;
+	}
+	[bandwidthThrottlingLock unlock];
+	if (toRead == 0) {
+		toRead = 1;
+	}
+	return [super read:buffer maxLength:toRead];
+	
+}
+
 @end

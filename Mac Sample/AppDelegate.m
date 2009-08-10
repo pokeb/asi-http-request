@@ -16,6 +16,8 @@
 {
 	[super init];
 	networkQueue = [[ASINetworkQueue alloc] init];
+	NSTimer *timer = [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(updateBandwidthUsageIndicator) userInfo:nil repeats:YES];
+	timer = nil;
 	return self;
 }
 
@@ -106,8 +108,6 @@
 	[networkQueue setDelegate:self];
 	[networkQueue setShowAccurateProgress:([showAccurateProgress state] == NSOnState)];
 	
-	NSTimer *timer = [NSTimer scheduledTimerWithTimeInterval:0.5 target:self selector:@selector(updateBandwidthUsageIndicator) userInfo:nil repeats:YES];
-
 	ASIHTTPRequest *request;
 	
 	request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/images/small-image.jpg"]] autorelease];
