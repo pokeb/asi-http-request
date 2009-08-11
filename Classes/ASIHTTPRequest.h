@@ -11,7 +11,6 @@
 //  See: http://developer.apple.com/samplecode/ImageClient/listing37.html
 
 #import <Foundation/Foundation.h>
-// Dammit, importing frameworks when you are targetting two platforms is a PITA
 #if TARGET_OS_IPHONE
 	#import <CFNetwork/CFNetwork.h>
 #endif
@@ -246,7 +245,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	// Prevents the body of the post being built more than once (largely for subclasses)
 	BOOL haveBuiltPostBody;
 	
-	// Used internally, may reflect the size of the internal used by CFNetwork
+	// Used internally, may reflect the size of the internal buffer used by CFNetwork
 	// POST / PUT operations with body sizes greater than uploadBufferSize will not timeout unless more than uploadBufferSize bytes have been sent
 	// Likely to be 32KB on iPhone 3.0, 128KB on Mac OS X Leopard and iPhone 2.2.x
 	unsigned long long uploadBufferSize;
@@ -260,7 +259,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	// Tells ASIHTTPRequest not to delete partial downloads, and allows it to use an existing file to resume a download. Defaults to NO.
 	BOOL allowResumeForFileDownloads;
 	
-	// Custom user information assosiated with the request
+	// Custom user information associated with the request
 	NSDictionary *userInfo;
 	
 	// Use HTTP 1.0 rather than 1.1 (defaults to false)
@@ -282,6 +281,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	NSString *proxyHost;
 	int proxyPort;
 	
+	// URL for a PAC (Proxy Auto Configuration) file. If you want to set this yourself, it's probably best if you use a local file
 	NSURL *PACurl;
 }
 
@@ -471,7 +471,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 // Used internally to record bandwidth use, and by ASIInputStreams when uploading. It's probably best if you don't mess with this.
 + (void)incrementBandwidthUsedInLastSecond:(unsigned long)bytes;
 
-// On iPhone only, ASIHTTPRequest can automatically turn throttling on and off as the connection type changes between WWAN and WiFi
+// On iPhone, ASIHTTPRequest can automatically turn throttling on and off as the connection type changes between WWAN and WiFi
 
 #if TARGET_OS_IPHONE
 // Set to YES to automatically turn on throttling when WWAN is connected, and automatically turn it off when it isn't

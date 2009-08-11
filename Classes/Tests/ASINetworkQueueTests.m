@@ -618,6 +618,144 @@ IMPORTANT
 	[self setReleaseTestQueue:nil];
 }
 
+- (void)testMultipleDownloadsThrottlingBandwidth
+{
+	complete = NO;
+	
+	[ASIHTTPRequest setMaxBandwidthPerSecond:0];
+	
+	ASINetworkQueue *networkQueue = [ASINetworkQueue queue];
+	[networkQueue setDelegate:self];
+	[networkQueue setRequestDidFailSelector:@selector(throttleFail:)];
+	[networkQueue setQueueDidFinishSelector:@selector(queueFinished:)];
+	
+	// We'll test first without throttling
+	int i;
+	for (i=0; i<5; i++) {
+		// This image is around 18KB in size, for 90KB total download size
+		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/i/logo.png"]];
+		[networkQueue addOperation:request];
+	}
+	
+	NSDate *date = [NSDate date];
+	[networkQueue go];
+	
+	while (!complete) {
+		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
+	}
+	
+	
+	NSTimeInterval interval =[date timeIntervalSinceNow];
+	BOOL success = (interval > -6);
+	GHAssertTrue(success,@"Downloaded the data too slowly - either this is a bug, or your internet connection is too slow to run this test (must be able to download 90KB in less than 6 seconds, without throttling)");
+
+	NSLog(@"Throttle");
+	
+	// Reset the queue
+	[networkQueue cancelAllOperations];
+	networkQueue = [ASINetworkQueue queue];
+	[networkQueue setDelegate:self];
+	[networkQueue setRequestDidFailSelector:@selector(throttleFail:)];
+	[networkQueue setQueueDidFinishSelector:@selector(queueFinished:)];
+	complete = NO;
+	
+	// Now we'll test with throttling
+	[ASIHTTPRequest setMaxBandwidthPerSecond:ASIWWANBandwidthThrottleAmount];
+	
+	for (i=0; i<5; i++) {
+		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/i/logo.png"]];
+		[networkQueue addOperation:request];
+	}
+	
+	date = [NSDate date];
+	[networkQueue go];
+	
+	while (!complete) {
+		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
+	}
+	
+	[ASIHTTPRequest setMaxBandwidthPerSecond:0];
+	
+	interval =[date timeIntervalSinceNow];
+	success = (interval < -6);
+	GHAssertTrue(success,@"Failed to throttle upload");		
+	
+}
+
+- (void)testMultipleUploadsThrottlingBandwidth
+{
+	complete = NO;
+	
+	[ASIHTTPRequest setMaxBandwidthPerSecond:0];
+	
+	ASINetworkQueue *networkQueue = [ASINetworkQueue queue];
+	[networkQueue setDelegate:self];
+	[networkQueue setRequestDidFailSelector:@selector(throttleFail:)];
+	[networkQueue setQueueDidFinishSelector:@selector(queueFinished:)];
+
+	// Create a 16KB request body
+	NSData *data = [[[NSMutableData alloc] initWithLength:16*1024] autorelease];
+
+	// We'll test first without throttling
+	int i;
+	for (i=0; i<10; i++) {
+		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/ignore"]];
+		[request appendPostData:data];
+		[networkQueue addOperation:request];
+	}
+	
+	NSDate *date = [NSDate date];
+	[networkQueue go];
+	
+	while (!complete) {
+		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
+	}
+	
+		
+	NSTimeInterval interval =[date timeIntervalSinceNow];
+	BOOL success = (interval > -11);
+	GHAssertTrue(success,@"Uploaded the data too slowly - either this is a bug, or your internet connection is too slow to run this test (must be able to upload 320KB in less than 11 seconds, without throttling)");
+	
+	NSLog(@"Throttle");
+	
+	// Reset the queue
+	[networkQueue cancelAllOperations];
+	networkQueue = [ASINetworkQueue queue];
+	[networkQueue setDelegate:self];
+	[networkQueue setRequestDidFailSelector:@selector(throttleFail:)];
+	[networkQueue setQueueDidFinishSelector:@selector(queueFinished:)];
+	complete = NO;
+	
+	// Now we'll test with throttling
+	[ASIHTTPRequest setMaxBandwidthPerSecond:ASIWWANBandwidthThrottleAmount];
+
+	for (i=0; i<10; i++) {
+		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/ignore"]];
+		[request appendPostData:data];
+		[networkQueue addOperation:request];
+	}
+	
+	date = [NSDate date];
+	[networkQueue go];
+	
+	while (!complete) {
+		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
+	}
+	
+	[ASIHTTPRequest setMaxBandwidthPerSecond:0];
+	
+	interval =[date timeIntervalSinceNow];
+	success = (interval < -11);
+	GHAssertTrue(success,@"Failed to throttle upload");		
+	
+}
+	 
+- (void)throttleFail:(ASIHTTPRequest *)request
+{
+	GHAssertTrue(NO,@"Request failed");
+}
+
+
 @synthesize immediateCancelQueue;
 @synthesize failedRequests;
 @synthesize finishedRequests;

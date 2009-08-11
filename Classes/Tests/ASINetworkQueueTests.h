@@ -47,6 +47,9 @@ IMPORTANT
 - (void)testQueueReleaseOnRequestComplete;
 - (void)testQueueReleaseOnQueueComplete;
 
+- (void)testMultipleDownloadsThrottlingBandwidth;
+- (void)testMultipleUploadsThrottlingBandwidth;
+
 @property (retain) NSOperationQueue *immediateCancelQueue;
 @property (retain) NSMutableArray *failedRequests;
 @property (retain) NSMutableArray *finishedRequests;

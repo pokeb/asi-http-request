@@ -1,6 +1,6 @@
 //
 //  ASIInputStream.m
-//  Mac
+//  asi-http-request
 //
 //  Created by Ben Copsey on 10/08/2009.
 //  Copyright 2009 All-Seeing Interactive. All rights reserved.
@@ -9,7 +9,17 @@
 #import "ASIInputStream.h"
 #import "ASIHTTPRequest.h"
 
+// Used to ensure only one request can read data at once
+static NSLock *readLock = nil;
+
 @implementation ASIInputStream
+
++ (void)initialize
+{
+	if (self == [ASIInputStream class]) {
+		readLock = [[NSLock alloc] init];
+	}
+}
 
 + (id)inputStreamWithFileAtPath:(NSString *)path
 {
@@ -40,10 +50,14 @@
 // The NO returns seem to snap CFNetwork out of its reverie, and return control to the main loop in loadRequest, so that we can manage timeouts and progress delegate updates
 - (BOOL)hasBytesAvailable
 {
+	
 	if ([ASIHTTPRequest isBandwidthThrottled]) {
+		[readLock lock];
 		if ([ASIHTTPRequest maxUploadReadLength] == 0) {
+			[readLock unlock];
 			return NO;
 		}
+		[readLock unlock];
 	}
 	return [[self stream] hasBytesAvailable];
 	
@@ -53,6 +67,7 @@
 // When throttling is on, we ask ASIHTTPRequest for the maximum amount of data we can read
 - (NSInteger)read:(uint8_t *)buffer maxLength:(NSUInteger)len
 {
+	[readLock lock];
 	unsigned long toRead = len;
 	if ([ASIHTTPRequest isBandwidthThrottled]) {
 		toRead = [ASIHTTPRequest maxUploadReadLength];
@@ -68,6 +83,7 @@
 		NSLog(@"Unthrottled read %u",toRead);
 	}
 	[ASIHTTPRequest incrementBandwidthUsedInLastSecond:toRead];
+	[readLock unlock];
 	return [[self stream] read:buffer maxLength:toRead];
 }
 

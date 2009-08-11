@@ -53,8 +53,7 @@ static NSError *ASITooMuchRedirectionError;
 static NSMutableArray *bandwidthUsageTracker = nil;
 static unsigned long averageBandwidthUsedPerSecond = 0;
 
-// Used for throttling bandwidth
-// I am assuming you don't have a connection capable of more than 4GB/second? If so, why are you reading this? Aren't you supposed to be backing up the Internet?!
+// Records how much bandwidth all requests combined have used in the last second
 static unsigned long bandwidthUsedInLastSecond = 0; 
 
 // A date one second in the future from the time it was created
@@ -71,8 +70,10 @@ unsigned long const ASIWWANBandwidthThrottleAmount = 14800;
 
 // YES when bandwidth throttling is active
 // This flag does not denote whether throttling is turned on - rather whether it is currently in use
-// It will be set to NO when throttling is turned on, but a WI-FI connection is active
+// It will be set to NO when throttling was turned on with setShouldThrottleBandwidthForWWAN, but a WI-FI connection is active
 BOOL isBandwidthThrottled = NO;
+
+static NSLock *sessionCookiesLock = nil;
 
 // Private stuff
 @interface ASIHTTPRequest ()
@@ -126,6 +127,7 @@ BOOL isBandwidthThrottled = NO;
 	if (self == [ASIHTTPRequest class]) {
 		progressLock = [[NSRecursiveLock alloc] init];
 		bandwidthThrottlingLock = [[NSLock alloc] init];
+		sessionCookiesLock = [[NSLock alloc] init];
 		bandwidthUsageTracker = [[NSMutableArray alloc] initWithCapacity:5];
 		ASIRequestTimedOutError = [[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIRequestTimedOutErrorType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"The request timed out",NSLocalizedDescriptionKey,nil]] retain];	
 		ASIAuthenticationError = [[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIAuthenticationErrorType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Authentication needed",NSLocalizedDescriptionKey,nil]] retain];
@@ -536,7 +538,7 @@ BOOL isBandwidthThrottled = NO;
 		}
 		readStream = CFReadStreamCreateForStreamedHTTPRequest(kCFAllocatorDefault, request,(CFReadStreamRef)[self postBodyReadStream]);
     } else {
-		// If we have a request body, we'll stream it from memory using our custom stream, so that it can be bandwidth-throttled if nescessary
+		// If we have a request body, we'll stream it from memory using our custom stream, so that we can measure bandwidth use and it can be bandwidth-throttled if nescessary
 		if ([self postBody]) {
 			[self setPostBodyReadStream:[ASIInputStream inputStreamWithData:[self postBody]]];
 			readStream = CFReadStreamCreateForStreamedHTTPRequest(kCFAllocatorDefault, request,(CFReadStreamRef)[self postBodyReadStream]);
@@ -1910,16 +1912,22 @@ BOOL isBandwidthThrottled = NO;
 
 + (void)setSessionCookies:(NSMutableArray *)newSessionCookies
 {
+	[sessionCookiesLock lock];
 	// Remove existing cookies from the persistent store
 	for (NSHTTPCookie *cookie in sessionCookies) {
 		[[NSHTTPCookieStorage sharedHTTPCookieStorage] deleteCookie:cookie];
 	}
 	[sessionCookies release];
 	sessionCookies = [newSessionCookies retain];
+	[sessionCookiesLock unlock];
 }
 
 + (void)addSessionCookie:(NSHTTPCookie *)newCookie
 {
+	// Called to ensure sessionCookies exists first, as we won't be able to create it when we have the lock
+	[[ASIHTTPRequest sessionCookies] count];
+	
+	[sessionCookiesLock lock];
 	NSHTTPCookie *cookie;
 	int i;
 	int max = [[ASIHTTPRequest sessionCookies] count];
@@ -1931,6 +1939,7 @@ BOOL isBandwidthThrottled = NO;
 		}
 	}
 	[[ASIHTTPRequest sessionCookies] addObject:newCookie];
+	[sessionCookiesLock unlock];
 }
 
 // Dump all session data (authentication and cookies)
@@ -2366,6 +2375,7 @@ BOOL isBandwidthThrottled = NO;
 			interval++;
 		}
 	}
+	NSLog(@"Used: %qi",bandwidthUsedInLastSecond);
 	[bandwidthUsageTracker addObject:[NSNumber numberWithUnsignedLong:bandwidthUsedInLastSecond]];
 	[bandwidthMeasurementDate release];
 	bandwidthMeasurementDate = [[NSDate dateWithTimeIntervalSinceNow:1] retain];
