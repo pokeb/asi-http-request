@@ -2,9 +2,9 @@
 <archive type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="7.03">
 	<data>
 		<int key="IBDocument.SystemTarget">528</int>
-		<string key="IBDocument.SystemVersion">9J61</string>
+		<string key="IBDocument.SystemVersion">9L30</string>
 		<string key="IBDocument.InterfaceBuilderVersion">677</string>
-		<string key="IBDocument.AppKitVersion">949.46</string>
+		<string key="IBDocument.AppKitVersion">949.54</string>
 		<string key="IBDocument.HIToolboxVersion">353.00</string>
 		<object class="NSMutableArray" key="IBDocument.EditedObjectIDs">
 			<bool key="EncodedWithXMLCoder">YES</bool>
@@ -130,6 +130,28 @@ ZSByZXF1ZXN0IGJvZHkgaXMgbGFyZ2VyIHRoYW4gMzJLQiAoaW4gMy4wIFNESyk</string>
 						<int key="IBUIBaselineAdjustment">1</int>
 						<float key="IBUIMinimumFontSize">1.000000e+01</float>
 					</object>
+					<object class="IBUILabel" id="1019131044">
+						<reference key="NSNextResponder" ref="191373211"/>
+						<int key="NSvFlags">292</int>
+						<string key="NSFrame">{{20, 301}, {266, 68}}</string>
+						<reference key="NSSuperview" ref="191373211"/>
+						<bool key="IBUIOpaque">NO</bool>
+						<bool key="IBUIClipsSubviews">YES</bool>
+						<bool key="IBUIUserInteractionEnabled">NO</bool>
+						<string type="base64-UTF8" key="IBUIText">VGhpcyBpcyBhIGdsb2JhbCBzZXR0aW5nIHRoYXQgYWZmZWN0cyBhbGwgcmVxdWVzdHMKCkJhbmR3aWR0
+aCB3aWxsIGJlIHJlZHVjZWQgb25seSB3aGVuIHlvdSBhcmUgbm90IGNvbm5lY3RlZCB0byBXaUZpLg</string>
+						<object class="NSFont" key="IBUIFont">
+							<string key="NSName">Helvetica</string>
+							<double key="NSSize">1.200000e+01</double>
+							<int key="NSfFlags">16</int>
+						</object>
+						<reference key="IBUITextColor" ref="129865504"/>
+						<nil key="IBUIHighlightedColor"/>
+						<int key="IBUIBaselineAdjustment">1</int>
+						<float key="IBUIMinimumFontSize">1.000000e+01</float>
+						<int key="IBUINumberOfLines">4</int>
+						<int key="IBUILineBreakMode">0</int>
+					</object>
 				</object>
 				<string key="NSFrameSize">{320, 480}</string>
 				<reference key="NSSuperview"/>
@@ -201,6 +223,7 @@ ZSByZXF1ZXN0IGJvZHkgaXMgbGFyZ2VyIHRoYW4gMzJLQiAoaW4gMy4wIFNESyk</string>
 							<reference ref="652745716"/>
 							<reference ref="636544176"/>
 							<reference ref="352131301"/>
+							<reference ref="1019131044"/>
 						</object>
 						<reference key="parent" ref="360949347"/>
 					</object>
@@ -240,6 +263,11 @@ ZSByZXF1ZXN0IGJvZHkgaXMgbGFyZ2VyIHRoYW4gMzJLQiAoaW4gMy4wIFNESyk</string>
 						<reference key="object" ref="636544176"/>
 						<reference key="parent" ref="191373211"/>
 					</object>
+					<object class="IBObjectRecord">
+						<int key="objectID">16</int>
+						<reference key="object" ref="1019131044"/>
+						<reference key="parent" ref="191373211"/>
+					</object>
 				</object>
 			</object>
 			<object class="NSMutableDictionary" key="flattenedProperties">
@@ -253,6 +281,7 @@ ZSByZXF1ZXN0IGJvZHkgaXMgbGFyZ2VyIHRoYW4gMzJLQiAoaW4gMy4wIFNESyk</string>
 					<string>10.IBPluginDependency</string>
 					<string>12.IBPluginDependency</string>
 					<string>13.IBPluginDependency</string>
+					<string>16.IBPluginDependency</string>
 					<string>4.IBPluginDependency</string>
 					<string>6.IBPluginDependency</string>
 				</object>
@@ -261,6 +290,7 @@ ZSByZXF1ZXN0IGJvZHkgaXMgbGFyZ2VyIHRoYW4gMzJLQiAoaW4gMy4wIFNESyk</string>
 					<string>UploadViewController</string>
 					<string>UIResponder</string>
 					<string>{{68, 167}, {320, 480}}</string>
+					<string>com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
 					<string>com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
 					<string>com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
 					<string>com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
@@ -289,7 +319,7 @@ ZSByZXF1ZXN0IGJvZHkgaXMgbGFyZ2VyIHRoYW4gMzJLQiAoaW4gMy4wIFNESyk</string>
 				</object>
 			</object>
 			<nil key="sourceID"/>
-			<int key="maxID">15</int>
+			<int key="maxID">16</int>
 		</object>
 		<object class="IBClassDescriber" key="IBDocument.Classes">
 			<object class="NSMutableArray" key="referencedPartialClassDescriptions">

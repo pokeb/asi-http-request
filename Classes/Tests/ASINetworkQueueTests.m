@@ -724,7 +724,7 @@ IMPORTANT
 	BOOL success = (interval > -11);
 	GHAssertTrue(success,@"Uploaded the data too slowly - either this is a bug, or your internet connection is too slow to run this test (must be able to upload 320KB in less than 11 seconds, without throttling)");
 	
-	NSLog(@"Throttle");
+	//NSLog(@"Throttle");
 	
 	// Reset the queue
 	[networkQueue cancelAllOperations];
