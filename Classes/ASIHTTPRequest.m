@@ -73,6 +73,8 @@ unsigned long const ASIWWANBandwidthThrottleAmount = 14800;
 // It will be set to NO when throttling was turned on with setShouldThrottleBandwidthForWWAN, but a WI-FI connection is active
 BOOL isBandwidthThrottled = NO;
 
+BOOL shouldThrottleBandwithForWWANOnly = NO;
+
 static NSLock *sessionCookiesLock = nil;
 
 // Private stuff
@@ -2328,7 +2330,8 @@ static NSLock *sessionCookiesLock = nil;
 {
 #if TARGET_OS_IPHONE
 	[bandwidthThrottlingLock lock];
-	BOOL throttle = isBandwidthThrottled;
+
+	BOOL throttle = isBandwidthThrottled || (!shouldThrottleBandwithForWWANOnly && (maxBandwidthPerSecond));
 	[bandwidthThrottlingLock unlock];
 	return throttle;
 #else
@@ -2432,12 +2435,16 @@ static NSLock *sessionCookiesLock = nil;
 	} else {
 		[[NSNotificationCenter defaultCenter] removeObserver:self name:@"kNetworkReachabilityChangedNotification" object:nil];
 		[ASIHTTPRequest setMaxBandwidthPerSecond:0];
+		[bandwidthThrottlingLock lock];
+		shouldThrottleBandwithForWWANOnly = NO;
+		[bandwidthThrottlingLock unlock];
 	}
 }
 
 + (void)throttleBandwidthForWWANUsingLimit:(unsigned long)limit
 {	
-	[bandwidthThrottlingLock lock];	
+	[bandwidthThrottlingLock lock];
+	shouldThrottleBandwithForWWANOnly = YES;
 	maxBandwidthPerSecond = limit;
 	[[Reachability sharedReachability] setNetworkStatusNotificationsEnabled:YES];
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reachabilityChanged:) name:@"kNetworkReachabilityChangedNotification" object:nil];
