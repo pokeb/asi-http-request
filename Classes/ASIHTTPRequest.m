@@ -539,7 +539,6 @@ static NSLock *sessionCookiesLock = nil;
 			} else if ([self postBody]) {
 				[self setPostBodyReadStream:[ASIInputStream inputStreamWithData:[self postBody]]];
 			}
-			[self setPostBodyReadStream:[ASIInputStream inputStreamWithData:[self compressedPostBody]]];
 			readStream = CFReadStreamCreateForStreamedHTTPRequest(kCFAllocatorDefault, request,(CFReadStreamRef)[self postBodyReadStream]);
 		
 		} else {
@@ -2426,7 +2425,7 @@ static NSLock *sessionCookiesLock = nil;
 }
 
 #if TARGET_OS_IPHONE
-+ (void)setisBandwidthThrottledForWWAN:(BOOL)throttle
++ (void)setShouldThrottleBandwidthForWWAN:(BOOL)throttle
 {
 	if (throttle) {
 		[ASIHTTPRequest throttleBandwidthForWWANUsingLimit:ASIWWANBandwidthThrottleAmount];
