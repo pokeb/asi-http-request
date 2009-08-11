@@ -641,7 +641,7 @@ IMPORTANT
 	int i;
 	for (i=0; i<5; i++) {
 		// This image is around 18KB in size, for 90KB total download size
-		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/i/logo.png"]];
+		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/i/logo.png"]];
 		[networkQueue addOperation:request];
 	}
 	
@@ -671,7 +671,7 @@ IMPORTANT
 	[ASIHTTPRequest setMaxBandwidthPerSecond:ASIWWANBandwidthThrottleAmount];
 	
 	for (i=0; i<5; i++) {
-		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/i/logo.png"]];
+		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/i/logo.png"]];
 		[networkQueue addOperation:request];
 	}
 	
@@ -707,7 +707,7 @@ IMPORTANT
 	// We'll test first without throttling
 	int i;
 	for (i=0; i<10; i++) {
-		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/ignore"]];
+		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ignore"]];
 		[request appendPostData:data];
 		[networkQueue addOperation:request];
 	}
@@ -738,7 +738,7 @@ IMPORTANT
 	[ASIHTTPRequest setMaxBandwidthPerSecond:ASIWWANBandwidthThrottleAmount];
 
 	for (i=0; i<10; i++) {
-		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/ignore"]];
+		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ignore"]];
 		[request appendPostData:data];
 		[networkQueue addOperation:request];
 	}

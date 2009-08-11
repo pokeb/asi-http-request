@@ -2376,7 +2376,7 @@ static NSLock *sessionCookiesLock = nil;
 			interval++;
 		}
 	}
-	NSLog(@"Used: %qi",bandwidthUsedInLastSecond);
+	//NSLog(@"Used: %qi",bandwidthUsedInLastSecond);
 	[bandwidthUsageTracker addObject:[NSNumber numberWithUnsignedLong:bandwidthUsedInLastSecond]];
 	[bandwidthMeasurementDate release];
 	bandwidthMeasurementDate = [[NSDate dateWithTimeIntervalSinceNow:1] retain];
@@ -2479,7 +2479,7 @@ static NSLock *sessionCookiesLock = nil;
 	}
 
 	if (toRead == 0 || !bandwidthMeasurementDate || [bandwidthMeasurementDate timeIntervalSinceNow] < -0) {
-		NSLog(@"sleep");
+		//NSLog(@"sleep");
 		[NSThread sleepUntilDate:bandwidthMeasurementDate];
 		[self recordBandwidthUsage];
 	}

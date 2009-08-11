@@ -762,7 +762,7 @@
 	
 	// Test compressed body
 	// Body is deflated by ASIHTTPRequest, sent, inflated by the server, printed, deflated by mod_deflate, response is inflated by ASIHTTPRequest
-	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/compressed_post_body"]];
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/compressed_post_body"]];
 	[request setRequestMethod:@"PUT"];
 	[request setShouldCompressRequestBody:YES];
 	[request appendPostData:data];
@@ -772,7 +772,7 @@
 	success = [[request responseString] isEqualToString:content];
 	GHAssertTrue(success,@"Failed to compress the body, or server failed to decompress it");	
 	
-	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/compressed_post_body"]];
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/compressed_post_body"]];
 	[request setRequestMethod:@"PUT"];
 	[request setShouldCompressRequestBody:YES];
 	[request setShouldStreamPostDataFromDisk:YES];
@@ -801,7 +801,7 @@
 	
 	// This content is around 128KB in size, and it won't be gzipped, so it should take more than 8 seconds to download at 14.5KB / second
 	// We'll test first without throttling
-	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/the_great_american_novel_%28abridged%29.txt"]];
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_great_american_novel_%28abridged%29.txt"]];
 	NSDate *date = [NSDate date];
 	[request start];	
 	
@@ -811,7 +811,7 @@
 	
 	// Now we'll test with throttling
 	[ASIHTTPRequest setMaxBandwidthPerSecond:ASIWWANBandwidthThrottleAmount];
-	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/the_great_american_novel_%28abridged%29.txt"]];
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_great_american_novel_%28abridged%29.txt"]];
 	date = [NSDate date];
 	[request start];	
 	
@@ -832,7 +832,7 @@
 	NSData *data = [[[NSMutableData alloc] initWithLength:64*1024] autorelease];
 	
 	// We'll test first without throttling
-	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/ignore"]];
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ignore"]];
 	[request appendPostData:data];
 	NSDate *date = [NSDate date];
 	[request start];	
@@ -843,7 +843,7 @@
 	
 	// Now we'll test with throttling
 	[ASIHTTPRequest setMaxBandwidthPerSecond:ASIWWANBandwidthThrottleAmount];
-	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/ignore"]];
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ignore"]];
 	[request appendPostData:data];
 	date = [NSDate date];
 	[request start];	
