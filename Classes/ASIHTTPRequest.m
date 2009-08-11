@@ -72,16 +72,14 @@ unsigned long const ASIWWANBandwidthThrottleAmount = 14800;
 // YES when bandwidth throttling is active
 // This flag does not denote whether throttling is turned on - rather whether it is currently in use
 // It will be set to NO when throttling is turned on, but a WI-FI connection is active
-BOOL shouldThrottleBandwidth = NO;
+BOOL isBandwidthThrottled = NO;
 
 // Private stuff
 @interface ASIHTTPRequest ()
 
 - (BOOL)askDelegateForCredentials;
 - (BOOL)askDelegateForProxyCredentials;
-+ (void)incrementBandwidthUsedInLastSecond:(unsigned long)bytes;
 + (void)measureBandwidthUsage;
-+ (BOOL)shouldThrottleBandwidth;
 + (void)recordBandwidthUsage;
 
 @property (assign) BOOL complete;
@@ -1660,7 +1658,7 @@ BOOL shouldThrottleBandwidth = NO;
 	// Reduce the buffer size if we're receiving data too quickly when bandwidth throttling is active
 	// This just augments the throttling done in measureBandwidthUsage to reduce the amount we go over the limit
 	
-	if ([[self class] shouldThrottleBandwidth]) {
+	if ([[self class] isBandwidthThrottled]) {
 		[bandwidthThrottlingLock lock];
 		if (maxBandwidthPerSecond > 0) {
 			long long maxSize  = (long long)maxBandwidthPerSecond-(long long)bandwidthUsedInLastSecond;
@@ -2319,11 +2317,11 @@ BOOL shouldThrottleBandwidth = NO;
 
 #pragma mark bandwidth measurement / throttling
 
-+ (BOOL)shouldThrottleBandwidth
++ (BOOL)isBandwidthThrottled
 {
 #if TARGET_OS_IPHONE
 	[bandwidthThrottlingLock lock];
-	BOOL throttle = shouldThrottleBandwidth;
+	BOOL throttle = isBandwidthThrottled;
 	[bandwidthThrottlingLock unlock];
 	return throttle;
 #else
@@ -2419,7 +2417,7 @@ BOOL shouldThrottleBandwidth = NO;
 }
 
 #if TARGET_OS_IPHONE
-+ (void)setShouldThrottleBandwidthForWWAN:(BOOL)throttle
++ (void)setisBandwidthThrottledForWWAN:(BOOL)throttle
 {
 	if (throttle) {
 		[ASIHTTPRequest throttleBandwidthForWWANUsingLimit:ASIWWANBandwidthThrottleAmount];
@@ -2443,9 +2441,9 @@ BOOL shouldThrottleBandwidth = NO;
 {
 	[bandwidthThrottlingLock lock];	
 	if ([[Reachability sharedReachability] internetConnectionStatus] == ReachableViaCarrierDataNetwork) {
-		shouldThrottleBandwidth = YES;
+		isBandwidthThrottled = YES;
 	} else {
-		shouldThrottleBandwidth = NO;
+		isBandwidthThrottled = NO;
 	}
 	[bandwidthThrottlingLock unlock];
 }
@@ -2455,15 +2453,18 @@ BOOL shouldThrottleBandwidth = NO;
 {
 
 	[bandwidthThrottlingLock lock];
-	unsigned long toRead = 4096;
-	if (maxBandwidthPerSecond) {
-		toRead = maxBandwidthPerSecond/32;
-	}
+	
+	// We'll split our bandwidth allowance into 4 (which is the default for an ASINetworkQueue's max concurrent operations count) to give all running requests a fighting chance of reading data this cycle
+	long long toRead = maxBandwidthPerSecond/4;
 	if (maxBandwidthPerSecond > 0 && (bandwidthUsedInLastSecond + toRead > maxBandwidthPerSecond)) {
-		toRead = 0;
+		toRead = maxBandwidthPerSecond-bandwidthUsedInLastSecond;
+		if (toRead < 0) {
+			toRead = 0;
+		}
 	}
 
 	if (toRead == 0 || !bandwidthMeasurementDate || [bandwidthMeasurementDate timeIntervalSinceNow] < -0) {
+		NSLog(@"sleep");
 		[NSThread sleepUntilDate:bandwidthMeasurementDate];
 		[self recordBandwidthUsage];
 	}

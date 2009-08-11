@@ -794,6 +794,68 @@
 }
 
 
+- (void)testThrottlingDownloadBandwidth
+{
+	[ASIHTTPRequest setMaxBandwidthPerSecond:0];
+	
+	// This content is around 128KB in size, and it won't be gzipped, so it should take more than 8 seconds to download at 14.5KB / second
+	// We'll test first without throttling
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/the_great_american_novel_%28abridged%29.txt"]];
+	NSDate *date = [NSDate date];
+	[request start];	
+	
+	NSTimeInterval interval =[date timeIntervalSinceNow];
+	BOOL success = (interval > -7);
+	GHAssertTrue(success,@"Downloaded the file too slowly - either this is a bug, or your internet connection is too slow to run this test (must be able to download 128KB in less than 7 seconds, without throttling)");
+	
+	// Now we'll test with throttling
+	[ASIHTTPRequest setMaxBandwidthPerSecond:ASIWWANBandwidthThrottleAmount];
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/the_great_american_novel_%28abridged%29.txt"]];
+	date = [NSDate date];
+	[request start];	
+	
+	[ASIHTTPRequest setMaxBandwidthPerSecond:0];
+	
+	interval =[date timeIntervalSinceNow];
+	success = (interval < -7);
+	GHAssertTrue(success,@"Failed to throttle download");		
+	GHAssertNil([request error],@"Request generated an error - timeout?");	
+	
+}
+
+- (void)testThrottlingUploadBandwidth
+{
+	[ASIHTTPRequest setMaxBandwidthPerSecond:0];
+	
+	// Create a 64KB request body
+	NSData *data = [[[NSMutableData alloc] initWithLength:64*1024] autorelease];
+	
+	// We'll test first without throttling
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/ignore"]];
+	[request appendPostData:data];
+	NSDate *date = [NSDate date];
+	[request start];	
+	
+	NSTimeInterval interval =[date timeIntervalSinceNow];
+	BOOL success = (interval > -3);
+	GHAssertTrue(success,@"Uploaded the data too slowly - either this is a bug, or your internet connection is too slow to run this test (must be able to upload 64KB in less than 3 seconds, without throttling)");
+	
+	// Now we'll test with throttling
+	[ASIHTTPRequest setMaxBandwidthPerSecond:ASIWWANBandwidthThrottleAmount];
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/ignore"]];
+	[request appendPostData:data];
+	date = [NSDate date];
+	[request start];	
+	
+	[ASIHTTPRequest setMaxBandwidthPerSecond:0];
+	
+	interval =[date timeIntervalSinceNow];
+	success = (interval < -3);
+	GHAssertTrue(success,@"Failed to throttle upload");		
+	GHAssertNil([request error],@"Request generated an error - timeout?");	
+	
+}
+
 @end
 
 

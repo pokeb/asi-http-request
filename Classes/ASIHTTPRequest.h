@@ -462,7 +462,16 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 + (unsigned long)maxBandwidthPerSecond;
 + (void)setMaxBandwidthPerSecond:(unsigned long)bytes;
 
+// Get a rough average (for the last 5 seconds) of how much bandwidth is being used, in bytes
 + (unsigned long)averageBandwidthUsedPerSecond;
+
+// Will return YES is bandwidth throttling is currently in use
++ (BOOL)isBandwidthThrottled;
+
+// Used internally to record bandwidth use, and by ASIInputStreams when uploading. It's probably best if you don't mess with this.
++ (void)incrementBandwidthUsedInLastSecond:(unsigned long)bytes;
+
+// On iPhone only, ASIHTTPRequest can automatically turn throttling on and off as the connection type changes between WWAN and WiFi
 
 #if TARGET_OS_IPHONE
 // Set to YES to automatically turn on throttling when WWAN is connected, and automatically turn it off when it isn't
