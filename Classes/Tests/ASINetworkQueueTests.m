@@ -296,6 +296,7 @@ IMPORTANT
 	NSURL *url;	
 	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/basic-authentication"] autorelease];
 	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request setUserInfo:[NSDictionary dictionaryWithObject:@"Don't bother" forKey:@"Shall I return any credentials?"]];
 	[networkQueue addOperation:request];
 	
 	[networkQueue go];
@@ -317,6 +318,7 @@ IMPORTANT
 	[networkQueue setQueueDidFinishSelector:@selector(queueFinished:)];	
 	
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request setUserInfo:[NSDictionary dictionaryWithObject:@"Don't bother" forKey:@"Shall I return any credentials?"]];
 	[request setUsername:@"secret_username"];
 	[request setPassword:@"secret_password"];
 	[networkQueue addOperation:request];
@@ -355,9 +357,15 @@ IMPORTANT
 
 - (void)authorizationNeededForRequest:(ASIHTTPRequest *)request
 {
-	[request setUsername:@"secret_username"];
-	[request setPassword:@"secret_password"];
-	[request retryWithAuthentication];
+	// We're using this method in multiple tests:
+	// testProgressWithAuthentication will set a userInfo dictionary on the main request, to tell us not to supply credentials
+	if (![request mainRequest] || ![[request mainRequest] userInfo]) {
+		[request setUsername:@"secret_username"];
+		[request setPassword:@"secret_password"];
+		[request retryWithAuthentication];
+	} else {
+		[request cancel];
+	}
 }
 
 

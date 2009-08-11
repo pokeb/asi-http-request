@@ -484,13 +484,6 @@ static NSLock *sessionCookiesLock = nil;
 	for (header in headers) {
 		CFHTTPMessageSetHeaderFieldValue(request, (CFStringRef)header, (CFStringRef)[[self requestHeaders] objectForKey:header]);
 	}
-
-	// If this is a post/put request and we store the request body in memory, add it to the request
-	if ([self shouldCompressRequestBody] && [self compressedPostBody]) {
-		CFHTTPMessageSetBody(request, (CFDataRef)[self compressedPostBody]);
-	} else if ([self postBody]) {
-		CFHTTPMessageSetBody(request, (CFDataRef)[self postBody]);
-	}
 	
 	[self loadRequest];
 	
@@ -538,9 +531,15 @@ static NSLock *sessionCookiesLock = nil;
 		}
 		readStream = CFReadStreamCreateForStreamedHTTPRequest(kCFAllocatorDefault, request,(CFReadStreamRef)[self postBodyReadStream]);
     } else {
+		
 		// If we have a request body, we'll stream it from memory using our custom stream, so that we can measure bandwidth use and it can be bandwidth-throttled if nescessary
 		if ([self postBody]) {
-			[self setPostBodyReadStream:[ASIInputStream inputStreamWithData:[self postBody]]];
+			if ([self shouldCompressRequestBody] && [self compressedPostBody]) {
+				[self setPostBodyReadStream:[ASIInputStream inputStreamWithData:[self compressedPostBody]]];
+			} else if ([self postBody]) {
+				[self setPostBodyReadStream:[ASIInputStream inputStreamWithData:[self postBody]]];
+			}
+			[self setPostBodyReadStream:[ASIInputStream inputStreamWithData:[self compressedPostBody]]];
 			readStream = CFReadStreamCreateForStreamedHTTPRequest(kCFAllocatorDefault, request,(CFReadStreamRef)[self postBodyReadStream]);
 		
 		} else {

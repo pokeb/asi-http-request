@@ -762,7 +762,7 @@
 	
 	// Test compressed body
 	// Body is deflated by ASIHTTPRequest, sent, inflated by the server, printed, deflated by mod_deflate, response is inflated by ASIHTTPRequest
-	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/compressed_post_body"]];
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/compressed_post_body"]];
 	[request setRequestMethod:@"PUT"];
 	[request setShouldCompressRequestBody:YES];
 	[request appendPostData:data];
@@ -772,7 +772,7 @@
 	success = [[request responseString] isEqualToString:content];
 	GHAssertTrue(success,@"Failed to compress the body, or server failed to decompress it");	
 	
-	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/compressed_post_body"]];
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/compressed_post_body"]];
 	[request setRequestMethod:@"PUT"];
 	[request setShouldCompressRequestBody:YES];
 	[request setShouldStreamPostDataFromDisk:YES];
