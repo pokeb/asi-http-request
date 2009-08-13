@@ -2283,12 +2283,16 @@ static NSLock *sessionCookiesLock = nil;
 	if (err) {
 		return nil;
 	}
-	CFErrorRef err2 = NULL;
 	// Obtain the list of proxies by running the autoconfiguration script
+#if !TARGET_OS_IPHONE ||  __IPHONE_OS_VERSION_MIN_REQUIRED > __IPHONE_2_2
+	CFErrorRef err2 = NULL;
 	NSArray *proxies = [(NSArray *)CFNetworkCopyProxiesForAutoConfigurationScript((CFStringRef)script,(CFURLRef)theURL, &err2) autorelease];
 	if (err2) {
 		return nil;
 	}
+#else
+	NSArray *proxies = [(NSArray *)CFNetworkCopyProxiesForAutoConfigurationScript((CFStringRef)script,(CFURLRef)theURL) autorelease];
+#endif
 	return proxies;
 }
 
