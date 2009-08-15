@@ -306,7 +306,6 @@
 @synthesize requestDidFinishSelector;
 @synthesize requestDidFailSelector;
 @synthesize queueDidFinishSelector;
-@synthesize shouldCancelAllRequestsOnFailure;
 @synthesize delegate;
 @synthesize showAccurateProgress;
 
