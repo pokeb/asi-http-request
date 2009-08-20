@@ -668,6 +668,9 @@ static NSLock *sessionCookiesLock = nil;
 		
 		NSDate *now = [NSDate date];
 		
+		// We won't let the request cancel until we're done with this cycle of the loop
+		[[self cancelledLock] lock];
+		
 		// See if we need to timeout
 		if (lastActivityTime && timeOutSeconds > 0 && [now timeIntervalSinceDate:lastActivityTime] > timeOutSeconds) {
 			
@@ -676,6 +679,7 @@ static NSLock *sessionCookiesLock = nil;
 			// This workaround prevents erroneous timeouts in low bandwidth situations (eg iPhone)
 			if (totalBytesSent || postLength <= uploadBufferSize || (uploadBufferSize > 0 && totalBytesSent > uploadBufferSize)) {
 				[self failWithError:ASIRequestTimedOutError];
+				[[self cancelledLock] unlock];
 				[self cancelLoad];
 				[self setComplete:YES];
 				break;
@@ -684,6 +688,7 @@ static NSLock *sessionCookiesLock = nil;
 		
 		// Do we need to redirect?
 		if ([self needsRedirect]) {
+			[[self cancelledLock] unlock];
 			[self cancelLoad];
 			[self setNeedsRedirect:NO];
 			[self setRedirectCount:[self redirectCount]+1];
@@ -699,7 +704,8 @@ static NSLock *sessionCookiesLock = nil;
 		}
 		
 		// See if our NSOperationQueue told us to cancel
-		if ([self isCancelled]) {
+		if ([self isCancelled] || [self complete]) {
+			[[self cancelledLock] unlock];
 			break;
 		}
 		
@@ -708,10 +714,11 @@ static NSLock *sessionCookiesLock = nil;
 			[self setLastActivityTime:[NSDate date]];
 			[self setLastBytesSent:totalBytesSent];
 		}
-		
+
 		// Find out how much data we've uploaded so far
-		[[self cancelledLock] lock];
 		[self setTotalBytesSent:[[(NSNumber *)CFReadStreamCopyProperty(readStream, kCFStreamPropertyHTTPRequestBytesWrittenCount) autorelease] unsignedLongLongValue]];
+		
+		// Updating the progress indicators will attempt to aquire the lock again when needed
 		[[self cancelledLock] unlock];
 		
 		[self updateProgressIndicators];

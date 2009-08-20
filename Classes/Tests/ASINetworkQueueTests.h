@@ -31,6 +31,7 @@ IMPORTANT
 	NSMutableArray *finishedRequests;
 	
 	ASINetworkQueue *releaseTestQueue;
+	ASINetworkQueue *cancelQueue;
 }
 
 - (void)testFailure;
@@ -50,8 +51,13 @@ IMPORTANT
 - (void)testMultipleDownloadsThrottlingBandwidth;
 - (void)testMultipleUploadsThrottlingBandwidth;
 
+/*
+- (void)testCancelStressTest;
+*/
+
 @property (retain) NSOperationQueue *immediateCancelQueue;
 @property (retain) NSMutableArray *failedRequests;
 @property (retain) NSMutableArray *finishedRequests;
 @property (retain) ASINetworkQueue *releaseTestQueue;
+@property (retain) ASINetworkQueue *cancelQueue;
 @end
