@@ -46,7 +46,7 @@
 
 - (IBAction)fetchThreeImages:(id)sender;
 
-- (void)authorizationNeededForRequest:(ASIHTTPRequest *)request;
+- (void)authenticationNeededForRequest:(ASIHTTPRequest *)request;
 - (IBAction)dismissAuthSheet:(id)sender;
 - (IBAction)fetchTopSecretInformation:(id)sender;
 

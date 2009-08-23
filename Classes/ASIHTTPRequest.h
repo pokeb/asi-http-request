@@ -386,7 +386,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 
 // Unlock (unpause) the request thread so it can resume the request
 // Should be called by delegates when they have populated the authentication information after an authentication challenge
-- (void)retryWithAuthentication;
+- (void)retryUsingSuppliedCredentials;
 
 // Should be called by delegates when they wish to cancel authentication and stop
 - (void)cancelAuthentication;

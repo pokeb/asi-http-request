@@ -200,7 +200,7 @@
 	}
 }
 
-- (void)authorizationNeededForRequest:(ASIHTTPRequest *)request
+- (void)authenticationNeededForRequest:(ASIHTTPRequest *)request
 {
 	[realm setStringValue:[request authenticationRealm]];
 	[host setStringValue:[[request url] host]];
@@ -212,7 +212,7 @@
 		contextInfo: request];
 }
 
-- (void)proxyAuthorizationNeededForRequest:(ASIHTTPRequest *)request
+- (void)proxyAuthenticationNeededForRequest:(ASIHTTPRequest *)request
 {
 	[realm setStringValue:[request proxyAuthenticationRealm]];
 	[host setStringValue:[request proxyHost]];
@@ -239,9 +239,9 @@
 			[request setUsername:[[[username stringValue] copy] autorelease]];
 			[request setPassword:[[[password stringValue] copy] autorelease]];
 		}
-		[request retryWithAuthentication];
+		[request retryUsingSuppliedCredentials];
     } else {
-		[request cancelLoad];
+		[request cancelAuthentication];
 	}
     [loginWindow orderOut: self];
 }

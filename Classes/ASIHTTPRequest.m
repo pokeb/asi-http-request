@@ -77,7 +77,15 @@ BOOL isBandwidthThrottled = NO;
 
 BOOL shouldThrottleBandwithForWWANOnly = NO;
 
+// Mediates access to the session cookies so requests can't modify them when they are in use
 static NSLock *sessionCookiesLock = nil;
+
+// This lock ensures delegates only receive one notification that authentication is required at once
+// When using ASIAuthenticationDialogs, it also ensures only one dialog is shown at once
+// If a request can't aquire the lock immediately, it means a dialog is being shown or a delegate is handling the authentication challenge
+// Once it gets the lock, it will try to look for existing credentials again rather than showing the dialog / notifying the delegate
+// This is so it can make use of any credentials supplied for the other request, if they are appropriate
+static NSRecursiveLock *delegateAuthenticationLock = nil;
 
 // Private stuff
 @interface ASIHTTPRequest ()
@@ -132,6 +140,7 @@ static NSLock *sessionCookiesLock = nil;
 		progressLock = [[NSRecursiveLock alloc] init];
 		bandwidthThrottlingLock = [[NSLock alloc] init];
 		sessionCookiesLock = [[NSLock alloc] init];
+		delegateAuthenticationLock = [[NSRecursiveLock alloc] init];
 		bandwidthUsageTracker = [[NSMutableArray alloc] initWithCapacity:5];
 		ASIRequestTimedOutError = [[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIRequestTimedOutErrorType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"The request timed out",NSLocalizedDescriptionKey,nil]] retain];	
 		ASIAuthenticationError = [[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIAuthenticationErrorType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Authentication needed",NSLocalizedDescriptionKey,nil]] retain];
@@ -1261,6 +1270,9 @@ static NSLock *sessionCookiesLock = nil;
 			}
 			[self setProxyCredentials:newCredentials];
 			return YES;
+		} else {
+			[ASIHTTPRequest setSessionAuthentication:NULL];
+			[ASIHTTPRequest setSessionCredentials:nil];
 		}
 	}
 	return NO;
@@ -1279,7 +1291,6 @@ static NSLock *sessionCookiesLock = nil;
 				[self saveCredentialsToKeychain:newCredentials];
 			}
 			if (useSessionPersistance) {
-				
 				[ASIHTTPRequest setSessionAuthentication:requestAuthentication];
 				[ASIHTTPRequest setSessionCredentials:newCredentials];
 			}
@@ -1404,7 +1415,7 @@ static NSLock *sessionCookiesLock = nil;
 }
 
 // Called by delegate or authentication dialog to resume loading once authentication info has been populated
-- (void)retryWithAuthentication
+- (void)retryUsingSuppliedCredentials
 {
 	[[self authenticationLock] lockWhenCondition:1];
 	[[self authenticationLock] unlockWithCondition:2];
@@ -1426,6 +1437,9 @@ static NSLock *sessionCookiesLock = nil;
 		[ASIAuthenticationDialog performSelectorOnMainThread:@selector(presentProxyAuthenticationDialogForRequest:) withObject:self waitUntilDone:[NSThread isMainThread]];
 		[[self authenticationLock] lockWhenCondition:2];
 		[[self authenticationLock] unlockWithCondition:1];
+		if ([self error]) {
+			return NO;
+		}
 		return YES;
 	}
 	return NO;
@@ -1449,8 +1463,14 @@ static NSLock *sessionCookiesLock = nil;
 		[[self authenticationLock] lockWhenCondition:2];
 		[[self authenticationLock] unlockWithCondition:1];
 		
+		// Was the request cancelled?
+		if ([self error] || [[self mainRequest] error]) {
+			return NO;
+		}
+
 		return YES;
 	}
+	[delegateAuthenticationLock unlock];
 	return NO;
 }
 
@@ -1486,12 +1506,29 @@ static NSLock *sessionCookiesLock = nil;
 		// check for bad credentials, so we can give the delegate a chance to replace them
 		if (err.domain == kCFStreamErrorDomainHTTP && (err.error == kCFStreamErrorHTTPAuthenticationBadUserName || err.error == kCFStreamErrorHTTPAuthenticationBadPassword)) {
 			
+			// Prevent more than one request from asking for credentials at once
+			[delegateAuthenticationLock lock];
+			
+			// Now we've aquirred the lock, it may be that the session contains credentials we can re-use for this request
+			if ([self useSessionPersistance] && [self applyProxyCredentials:sessionProxyCredentials]) {
+				[delegateAuthenticationLock unlock];
+				[self startRequest];
+				return;
+			}
+			
 			[self setProxyCredentials:nil];
 			[self setLastActivityTime:nil];
 			if ([self askDelegateForProxyCredentials]) {
 				[self attemptToApplyProxyCredentialsAndResume];
+				[delegateAuthenticationLock unlock];
 				return;
 			}
+			if ([self showProxyAuthenticationDialog]) {
+				[self attemptToApplyProxyCredentialsAndResume];
+				[delegateAuthenticationLock unlock];
+				return;
+			}
+			[delegateAuthenticationLock unlock];
 		}
 		[self cancelLoad];
 		[self failWithError:ASIAuthenticationError];
@@ -1518,6 +1555,16 @@ static NSLock *sessionCookiesLock = nil;
 	// Are a user name & password needed?
 	}  else if (CFHTTPAuthenticationRequiresUserNameAndPassword(proxyAuthentication)) {
 		
+		// Prevent more than one request from asking for credentials at once
+		[delegateAuthenticationLock lock];
+		
+		// Now we've aquirred the lock, it may be that the session contains credentials we can re-use for this request
+		if ([self useSessionPersistance] && [self applyProxyCredentials:sessionProxyCredentials]) {
+			[delegateAuthenticationLock unlock];
+			[self startRequest];
+			return;
+		}
+		
 		NSMutableDictionary *newCredentials = [self findProxyCredentials];
 		
 		//If we have some credentials to use let's apply them to the request and continue
@@ -1528,17 +1575,22 @@ static NSLock *sessionCookiesLock = nil;
 			} else {
 				[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIInternalErrorWhileApplyingCredentialsType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Failed to apply proxy credentials to request",NSLocalizedDescriptionKey,nil]]];
 			}
+			
 			return;
 		}
 		
 		if ([self askDelegateForProxyCredentials]) {
 			[self attemptToApplyProxyCredentialsAndResume];
+			[delegateAuthenticationLock unlock];
 			return;
 		}
 		
 		if ([self showProxyAuthenticationDialog]) {
 			[self attemptToApplyProxyCredentialsAndResume];
+			[delegateAuthenticationLock unlock];
+			return;
 		}
+		[delegateAuthenticationLock unlock];
 		
 		// The delegate isn't interested and we aren't showing the authentication dialog, we'll have to give up
 		[self failWithError:ASIAuthenticationError];
@@ -1555,6 +1607,9 @@ static NSLock *sessionCookiesLock = nil;
 		[ASIAuthenticationDialog performSelectorOnMainThread:@selector(presentAuthenticationDialogForRequest:) withObject:self waitUntilDone:[NSThread isMainThread]];
 		[[self authenticationLock] lockWhenCondition:2];
 		[[self authenticationLock] unlockWithCondition:1];
+		if ([self error]) {
+			return NO;
+		}
 		return YES;
 	}
 	return NO;
@@ -1577,6 +1632,10 @@ static NSLock *sessionCookiesLock = nil;
 		[[self authenticationLock] lockWhenCondition:2];
 		[[self authenticationLock] unlockWithCondition:1];
 		
+		// Was the request cancelled?
+		if ([self error] || [[self mainRequest] error]) {
+			return NO;
+		}
 		return YES;
 	}
 	return NO;
@@ -1617,17 +1676,31 @@ static NSLock *sessionCookiesLock = nil;
 		// check for bad credentials, so we can give the delegate a chance to replace them
 		if (err.domain == kCFStreamErrorDomainHTTP && (err.error == kCFStreamErrorHTTPAuthenticationBadUserName || err.error == kCFStreamErrorHTTPAuthenticationBadPassword)) {
 			
+			// Prevent more than one request from asking for credentials at once
+			[delegateAuthenticationLock lock];
+			
+			// Now we've aquirred the lock, it may be that the session contains credentials we can re-use for this request
+			if ([self useSessionPersistance] && [self applyCredentials:sessionCredentials]) {
+				[delegateAuthenticationLock unlock];
+				[self startRequest];
+				return;
+			}
+			
 			[self setRequestCredentials:nil];
 			
 			[self setLastActivityTime:nil];
 			
 			if ([self askDelegateForCredentials]) {
 				[self attemptToApplyCredentialsAndResume];
+				[delegateAuthenticationLock unlock];
 				return;
 			}
 			if ([self showAuthenticationDialog]) {
 				[self attemptToApplyCredentialsAndResume];
+				[delegateAuthenticationLock unlock];
+				return;
 			}
+			[delegateAuthenticationLock unlock];
 		}
 		[self cancelLoad];
 		[self failWithError:ASIAuthenticationError];
@@ -1652,27 +1725,46 @@ static NSLock *sessionCookiesLock = nil;
 		// Are a user name & password needed?
 	}  else if (CFHTTPAuthenticationRequiresUserNameAndPassword(requestAuthentication)) {
 		
+		// Prevent more than one request from asking for credentials at once
+		[delegateAuthenticationLock lock];
+		
+		// Now we've aquirred the lock, it may be that the session contains credentials we can re-use for this request
+		if ([self useSessionPersistance] && [self applyCredentials:sessionCredentials]) {
+			[delegateAuthenticationLock unlock];
+			[self startRequest];
+			return;
+		}
+		
+
 		NSMutableDictionary *newCredentials = [self findCredentials];
 		
 		//If we have some credentials to use let's apply them to the request and continue
 		if (newCredentials) {
 			
 			if ([self applyCredentials:newCredentials]) {
+				[delegateAuthenticationLock unlock];
 				[self startRequest];
 			} else {
+				[delegateAuthenticationLock unlock];
 				[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIInternalErrorWhileApplyingCredentialsType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Failed to apply credentials to request",NSLocalizedDescriptionKey,nil]]];
 			}
 			return;
 		}
-		
 		if ([self askDelegateForCredentials]) {
 			[self attemptToApplyCredentialsAndResume];
+			[delegateAuthenticationLock unlock];
 			return;
 		}
 		
 		if ([self showAuthenticationDialog]) {
 			[self attemptToApplyCredentialsAndResume];
+			[delegateAuthenticationLock unlock];
+			return;
 		}
+		[delegateAuthenticationLock unlock];
+		
+		[self failWithError:ASIAuthenticationError];
+
 		return;
 	}
 	

@@ -27,6 +27,32 @@ IMPORTANT
 
 @implementation ASINetworkQueueTests
 
+- (void)testDelegateAuthenticationCredentialsReuse
+{
+	complete = NO;
+	authenticationPromptCount = 0;
+
+	ASINetworkQueue *networkQueue = [ASINetworkQueue queue];
+	[networkQueue setDelegate:self];
+	[networkQueue setQueueDidFinishSelector:@selector(queueFinished:)];	
+	
+	NSDictionary *userInfo = [NSDictionary dictionaryWithObject:@"reuse" forKey:@"test"];
+	
+	int i;
+	for (i=0; i<5; i++) {
+		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/basic-authentication"]];
+		[request setUserInfo:userInfo];
+		[networkQueue addOperation:request];
+	}
+	[networkQueue go];
+	
+	while (!complete) {
+		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
+	}
+}
+
+
+
 - (void)testProgress
 {
 	complete = NO;
@@ -281,10 +307,14 @@ IMPORTANT
 
 
 
+
 - (void)testProgressWithAuthentication
 {
 	complete = NO;
 	progress = 0;
+	
+	// Make sure we don't re-use credentials from previous tests
+	[ASIHTTPRequest clearSession];
 	
 	ASINetworkQueue *networkQueue = [ASINetworkQueue queue];
 	[networkQueue setDownloadProgressDelegate:self];
@@ -316,6 +346,7 @@ IMPORTANT
 	[networkQueue setDelegate:self];
 	[networkQueue setShowAccurateProgress:YES];
 	[networkQueue setQueueDidFinishSelector:@selector(queueFinished:)];	
+	[networkQueue setRequestDidFailSelector:@selector(requestFailed:)];
 	
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUserInfo:[NSDictionary dictionaryWithObject:@"Don't bother" forKey:@"Shall I return any credentials?"]];
@@ -357,14 +388,24 @@ IMPORTANT
 
 - (void)authenticationNeededForRequest:(ASIHTTPRequest *)request
 {
-	// We're using this method in multiple tests:
-	// testProgressWithAuthentication will set a userInfo dictionary on the main request, to tell us not to supply credentials
-	if (![request mainRequest] || ![[request mainRequest] userInfo]) {
+	// We're using this method in multiple tests, so the code here is to act appropriatly for each one
+	if ([[[request userInfo] objectForKey:@"test"] isEqualToString:@"reuse"]) {
+		authenticationPromptCount++;
+		BOOL success = (authenticationPromptCount == 1);
+		GHAssertTrue(success,@"Delegate was asked for credentials more than once");
+		
 		[request setUsername:@"secret_username"];
 		[request setPassword:@"secret_password"];
-		[request retryWithAuthentication];
+		[request retryUsingSuppliedCredentials];
+
+
+	// testProgressWithAuthentication will set a userInfo dictionary on the main request, to tell us not to supply credentials
+	} else if (![request mainRequest] || ![[request mainRequest] userInfo]) {
+		[request setUsername:@"secret_username"];
+		[request setPassword:@"secret_password"];
+		[request retryUsingSuppliedCredentials];
 	} else {
-		[request cancel];
+		[request cancelAuthentication];
 	}
 }
 
