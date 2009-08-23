@@ -1468,10 +1468,8 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 		if ([self error] || [[self mainRequest] error]) {
 			return NO;
 		}
-
 		return YES;
 	}
-	[delegateAuthenticationLock unlock];
 	return NO;
 }
 
@@ -1572,8 +1570,10 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 		if (newCredentials) {
 			
 			if ([self applyProxyCredentials:newCredentials]) {
+				[delegateAuthenticationLock unlock];
 				[self startRequest];
 			} else {
+				[delegateAuthenticationLock unlock];
 				[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIInternalErrorWhileApplyingCredentialsType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Failed to apply proxy credentials to request",NSLocalizedDescriptionKey,nil]]];
 			}
 			

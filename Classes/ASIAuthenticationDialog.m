@@ -191,10 +191,12 @@ NSLock *dialogLock = nil;
 	UITableViewCell *cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:nil] autorelease];
 	[cell setSelectionStyle:UITableViewCellSelectionStyleNone];
 	UITextField *textField = [[[UITextField alloc] initWithFrame:CGRectMake(20,12,260,25)] autorelease];
+	[textField setAutocapitalizationType:UITextAutocapitalizationTypeNone];
 	if ([indexPath section] == 0) {
 		[textField setPlaceholder:@"User"];
 	} else if ([indexPath section] == 1) {
 		[textField setPlaceholder:@"Password"];
+		[textField setSecureTextEntry:YES];
 	} else if ([indexPath section] == 2) {
 		[textField setPlaceholder:@"Domain"];
 	}	
