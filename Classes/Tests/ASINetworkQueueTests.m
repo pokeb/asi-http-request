@@ -355,7 +355,7 @@ IMPORTANT
 }
 
 
-- (void)authorizationNeededForRequest:(ASIHTTPRequest *)request
+- (void)authenticationNeededForRequest:(ASIHTTPRequest *)request
 {
 	// We're using this method in multiple tests:
 	// testProgressWithAuthentication will set a userInfo dictionary on the main request, to tell us not to supply credentials

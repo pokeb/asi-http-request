@@ -55,21 +55,40 @@ NSLock *dialogLock = nil;
 	[[self loginDialog] setDelegate:self];
 	
 	// We show the login form in a table view, similar to Safari's authentication dialog
-	UITableView *table = [[[UITableView alloc] initWithFrame:CGRectMake(0,50,320,480) style:UITableViewStyleGrouped] autorelease];
+	UITableView *table = [[[UITableView alloc] initWithFrame:CGRectMake(0,80,320,480) style:UITableViewStyleGrouped] autorelease];
 	[table setDelegate:self];
 	[table setDataSource:self];
 	[[self loginDialog] addSubview:table];
 	[[self loginDialog] showInView:[[[UIApplication sharedApplication] windows] objectAtIndex:0]];
 	[[self loginDialog] setFrame:CGRectMake(0,0,320,480)];
 	
-	UIToolbar *toolbar = [[[UIToolbar alloc] initWithFrame:CGRectMake(0,0,320,80)] autorelease];
-	//[toolbar setFrame:CGRectMake(0,20,320,50)];
+	// Setup the title (Couldn't figure out how to put this in the same toolbar as the buttons)
+	UIToolbar *titleBar = [[[UIToolbar alloc] initWithFrame:CGRectMake(0,0,320,30)] autorelease];
+	UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(10,0,300,30)];
+	if ([self type] == ASIProxyAuthenticationType) {
+		[label setText:@"Login to this secure proxy server."];
+	} else {
+		[label setText:@"Login to this secure server."];
+	}
+	[label setTextColor:[UIColor blackColor]];
+	[label setFont:[UIFont systemFontOfSize:13.0]];
+	[label setShadowColor:[UIColor colorWithRed:1 green:1 blue:1 alpha:0.5]];
+	[label setShadowOffset:CGSizeMake(0, 1.0)];
+	[label setOpaque:NO];
+	[label setBackgroundColor:nil];
+	[label setTextAlignment:UITextAlignmentCenter];
+	
+	[titleBar addSubview:label];
+	[[self loginDialog] addSubview:titleBar];
+	
+	// Setup the toolbar 
+	UIToolbar *toolbar = [[[UIToolbar alloc] initWithFrame:CGRectMake(0,30,320,50)] autorelease];
+
 	NSMutableArray *items = [[[NSMutableArray alloc] init] autorelease];
 	UIBarButtonItem *backButton = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self action:@selector(cancelAuthenticationFromDialog:)] autorelease];
-	//[backButton setContentEdgeInsets:UIEdgeInsetsMake(0,20,0,0)];
 	[items addObject:backButton];
 	
-	UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(0,0,170,50)];
+	label = [[UILabel alloc] initWithFrame:CGRectMake(0,0,170,50)];
 	[label setText:[[[self request] url] host]];
 	[label setTextColor:[UIColor whiteColor]];
 	[label setFont:[UIFont boldSystemFontOfSize:22.0]];
@@ -80,14 +99,19 @@ NSLock *dialogLock = nil;
 	[label setTextAlignment:UITextAlignmentCenter];
 	
 	[toolbar addSubview:label];
-	
-	UIBarButtonItem *labelButton = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:nil action:nil] autorelease];
 
-	//[labelButton setCustomView:label];
-	//[items addObject:labelButton];
+	UIBarButtonItem *labelButton = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:nil action:nil] autorelease];
+	[labelButton setCustomView:label];
+	[items addObject:labelButton];
 	[items addObject:[[[UIBarButtonItem alloc] initWithTitle:@"Login" style:UIBarButtonItemStyleDone target:self action:@selector(loginWithCredentialsFromDialog:)] autorelease]];
 	[toolbar setItems:items];
+	
 	[[self loginDialog] addSubview:toolbar];
+	
+	// Force reload the table content, and focus the first field to show the keyboard
+	[table reloadData];
+	[[[[table cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]] subviews] objectAtIndex:2] becomeFirstResponder];
+	
 }
 
 - (void)cancelAuthenticationFromDialog:(id)sender
@@ -164,10 +188,12 @@ NSLock *dialogLock = nil;
 - (NSString *)tableView:(UITableView *)tableView titleForFooterInSection:(NSInteger)section
 {
 	if (section == [self numberOfSectionsInTableView:tableView]-1) {
-		if ([[[[self request] url] scheme] isEqualToString:@"https"]) {
-			return @"Password will be sent securely.";
-		} else {
+		// If we're using Basic authentication and the connection is not using SSL, we'll show the plain text message
+		if ([[[self request] authenticationScheme] isEqualToString:(NSString *)kCFHTTPAuthenticationSchemeBasic] && ![[[[self request] url] scheme] isEqualToString:@"https"]) {
 			return @"Password will be sent in the clear.";
+		// We are using Digest, NTLM, or any scheme over SSL
+		} else {
+			return @"Password will be sent securely.";
 		}
 	}
 	return nil;
