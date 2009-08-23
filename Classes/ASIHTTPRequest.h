@@ -160,14 +160,24 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	// Used during NTLM authentication
 	int authenticationRetryCount;
 	
-	// Authentication method (Basic, Digest, NTLM)
-	NSString *authenticationMethod;
+	// Authentication scheme (Basic, Digest, NTLM)
+	NSString *authenticationScheme;
 	
 	// Realm for authentication when credentials are required
 	NSString *authenticationRealm;
 	
 	// And now, the same thing, but for authenticating proxies
 	BOOL needsProxyAuthentication;
+	
+	// When YES, ASIHTTPRequest will present a dialog allowing users to enter credentials when no-matching credentials were found for a server that requires authentication
+	// The dialog will not be shown if your delegate responds to authenticationNeededForRequest:
+	// Default is NO.
+	BOOL shouldPresentAuthenticationDialog;
+	
+	// When YES, ASIHTTPRequest will present a dialog allowing users to enter credentials when no-matching credentials were found for a proxy server that requires authentication
+	// The dialog will not be shown if your delegate responds to proxyAuthenticationNeededForRequest:
+	// Default is YES (basically, because most people won't want the hassle of adding support for authenticating proxies to their apps)
+	BOOL shouldPresentProxyAuthenticationDialog;	
 	
 	// Used for proxy authentication
     CFHTTPAuthenticationRef proxyAuthentication; 
@@ -176,8 +186,8 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	// Used during authentication with an NTLM proxy
 	int proxyAuthenticationRetryCount;
 	
-	// Authentication method for the proxy (Basic, Digest, NTLM)
-	NSString *proxyAuthenticationMethod;	
+	// Authentication scheme for the proxy (Basic, Digest, NTLM)
+	NSString *proxyAuthenticationScheme;	
 	
 	// Realm for proxy authentication when credentials are required
 	NSString *proxyAuthenticationRealm;
@@ -378,6 +388,9 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 // Should be called by delegates when they have populated the authentication information after an authentication challenge
 - (void)retryWithAuthentication;
 
+// Should be called by delegates when they wish to cancel authentication and stop
+- (void)cancelAuthentication;
+
 // Apply authentication information and resume the request after an authentication challenge
 - (void)attemptToApplyCredentialsAndResume;
 - (void)attemptToApplyProxyCredentialsAndResume;
@@ -484,6 +497,10 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 + (void)reachabilityChanged:(NSNotification *)note;
 #endif
 
+
+- (BOOL)showProxyAuthenticationDialog;
+- (BOOL)showAuthenticationDialog;
+
 + (unsigned long)maxUploadReadLength;
 
 @property (retain) NSString *username;
@@ -546,4 +563,8 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 @property (assign) BOOL shouldCompressRequestBody;
 @property (assign) BOOL needsProxyAuthentication;
 @property (retain) NSURL *PACurl;
+@property (retain) NSString *authenticationScheme;
+@property (retain) NSString *proxyAuthenticationScheme;
+@property (assign) BOOL shouldPresentAuthenticationDialog;
+@property (assign) BOOL shouldPresentProxyAuthenticationDialog;
 @end

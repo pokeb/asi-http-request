@@ -13,6 +13,7 @@
 @interface AuthenticationViewController : UIViewController {
 	ASINetworkQueue *networkQueue;
 	IBOutlet UISwitch *useKeychain;
+	IBOutlet UISwitch *useBuiltInDialog;
 	IBOutlet UILabel *topSecretInfo;
 	ASIHTTPRequest *requestRequiringAuthentication;
 	ASIHTTPRequest *requestRequiringProxyAuthentication;

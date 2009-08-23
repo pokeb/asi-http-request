@@ -27,6 +27,7 @@
 	
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/top_secret/"]];
 	[request setUseKeychainPersistance:[useKeychain isOn]];
+	[request setShouldPresentAuthenticationDialog:[useBuiltInDialog isOn]];
 	[networkQueue addOperation:request];
 	[networkQueue go];
 	
@@ -44,28 +45,31 @@
 	[topSecretInfo setFont:[UIFont boldSystemFontOfSize:12]];
 }
 
-- (void)authorizationNeededForRequest:(ASIHTTPRequest *)request
-{
-	// Why oh why is there no contextInfo for alertView like on Mac OS ?!
-	[self setRequestRequiringProxyAuthentication:nil];
-	[self setRequestRequiringAuthentication:request];
-	UIAlertView *alertView = [[[UIAlertView alloc] initWithTitle:@"Please Login" message:[request authenticationRealm] delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"OK",nil] autorelease];
-	// These are undocumented, use at your own risk!
-	// A better general approach would be to subclass UIAlertView
-	[alertView addTextFieldWithValue:@"" label:@"Username"];
-	[alertView addTextFieldWithValue:@"" label:@"Password"];
-	[alertView show];
-}
-
-- (void)proxyAuthorizationNeededForRequest:(ASIHTTPRequest *)request
-{
-	[self setRequestRequiringAuthentication:nil];
-	[self setRequestRequiringProxyAuthentication:request];
-	UIAlertView *alertView = [[[UIAlertView alloc] initWithTitle:@"Please Login to proxy" message:[request authenticationRealm] delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"OK",nil] autorelease];
-	[alertView addTextFieldWithValue:@"" label:@"Username"];
-	[alertView addTextFieldWithValue:@"" label:@"Password"];
-	[alertView show];
-}
+//- (void)authorizationNeededForRequest:(ASIHTTPRequest *)request
+//{
+//	// Why oh why is there no contextInfo for alertView like on Mac OS ?!
+//	[self setRequestRequiringProxyAuthentication:nil];
+//	[self setRequestRequiringAuthentication:request];
+//	
+//	[ASIHTTPRequest showAuthenticationDialogForRequest:request];
+//	
+//	//UIAlertView *alertView = [[[UIAlertView alloc] initWithTitle:@"Please Login" message:[request authenticationRealm] delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"OK",nil] autorelease];
+//	// These are undocumented, use at your own risk!
+//	// A better general approach would be to subclass UIAlertView
+//	//[alertView addTextFieldWithValue:@"" label:@"Username"];
+//	//[alertView addTextFieldWithValue:@"" label:@"Password"];
+//
+//}
+//
+//- (void)proxyAuthorizationNeededForRequest:(ASIHTTPRequest *)request
+//{
+//	[self setRequestRequiringAuthentication:nil];
+//	[self setRequestRequiringProxyAuthentication:request];
+//	UIAlertView *alertView = [[[UIAlertView alloc] initWithTitle:@"Please Login to proxy" message:[request authenticationRealm] delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"OK",nil] autorelease];
+//	[alertView addTextFieldWithValue:@"" label:@"Username"];
+//	[alertView addTextFieldWithValue:@"" label:@"Password"];
+//	[alertView show];
+//}
 
 
 

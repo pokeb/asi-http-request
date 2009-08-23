@@ -18,6 +18,7 @@
 #import <SystemConfiguration/SystemConfiguration.h>
 #endif
 #import "ASIInputStream.h"
+#import "ASIAuthenticationDialog.h"
 
 // We use our own custom run loop mode as CoreAnimation seems to want to hijack our threads otherwise
 static CFStringRef ASIHTTPRequestRunMode = CFSTR("ASIHTTPRequest");
@@ -76,6 +77,8 @@ BOOL isBandwidthThrottled = NO;
 BOOL shouldThrottleBandwithForWWANOnly = NO;
 
 static NSLock *sessionCookiesLock = nil;
+
+UIActionSheet *loginDialog = nil;
 
 // Private stuff
 @interface ASIHTTPRequest ()
@@ -196,14 +199,14 @@ static NSLock *sessionCookiesLock = nil;
 	[password release];
 	[domain release];
 	[authenticationRealm release];
-	[authenticationMethod release];
+	[authenticationScheme release];
 	[requestCredentials release];
 	[proxyHost release];
 	[proxyUsername release];
 	[proxyPassword release];
 	[proxyDomain release];
 	[proxyAuthenticationRealm release];
-	[proxyAuthenticationMethod release];
+	[proxyAuthenticationScheme release];
 	[proxyCredentials release];
 	[url release];
 	[authenticationLock release];
@@ -1401,24 +1404,44 @@ static NSLock *sessionCookiesLock = nil;
 	return nil;
 }
 
-// Called by delegate to resume loading once authentication info has been populated
+// Called by delegate or authentication dialog to resume loading once authentication info has been populated
 - (void)retryWithAuthentication
 {
 	[[self authenticationLock] lockWhenCondition:1];
 	[[self authenticationLock] unlockWithCondition:2];
 }
 
+// Called by delegate or authentication dialog to cancel authentication
+- (void)cancelAuthentication
+{
+	[self failWithError:ASIAuthenticationError];
+	[[self authenticationLock] lockWhenCondition:1];
+	[[self authenticationLock] unlockWithCondition:2];
+}
+
+- (BOOL)showProxyAuthenticationDialog
+{
+	if ([self shouldPresentProxyAuthenticationDialog]) {
+		[ASIAuthenticationDialog performSelectorOnMainThread:@selector(presentProxyAuthenticationDialogForRequest:) withObject:self waitUntilDone:[NSThread isMainThread]];
+		[[self authenticationLock] lockWhenCondition:2];
+		[[self authenticationLock] unlockWithCondition:1];
+		return YES;
+	}
+	return NO;
+}
+
+
 - (BOOL)askDelegateForProxyCredentials
 {
-	// If we have a delegate, we'll see if it can handle proxyAuthorizationNeededForRequest:.
+	// If we have a delegate, we'll see if it can handle proxyAuthenticationNeededForRequest:.
 	// Otherwise, we'll try the queue (if this request is part of one) and it will pass the message on to its own delegate
-	id authorizationDelegate = [self delegate];
-	if (!authorizationDelegate) {
-		authorizationDelegate = [self queue];
+	id authenticationDelegate = [self delegate];
+	if (!authenticationDelegate) {
+		authenticationDelegate = [self queue];
 	}
 	
-	if ([authorizationDelegate respondsToSelector:@selector(proxyAuthorizationNeededForRequest:)]) {
-		[authorizationDelegate performSelectorOnMainThread:@selector(proxyAuthorizationNeededForRequest:) withObject:self waitUntilDone:[NSThread isMainThread]];
+	if ([authenticationDelegate respondsToSelector:@selector(proxyAuthenticationNeededForRequest:)]) {
+		[authenticationDelegate performSelectorOnMainThread:@selector(proxyAuthenticationNeededForRequest:) withObject:self waitUntilDone:[NSThread isMainThread]];
 		[[self authenticationLock] lockWhenCondition:2];
 		[[self authenticationLock] unlockWithCondition:1];
 		
@@ -1430,12 +1453,16 @@ static NSLock *sessionCookiesLock = nil;
 - (void)attemptToApplyProxyCredentialsAndResume
 {
 	
+	if ([self error]) {
+		return;
+	}
+	
 	// Read authentication data
 	if (!proxyAuthentication) {
 		CFHTTPMessageRef responseHeader = (CFHTTPMessageRef) CFReadStreamCopyProperty(readStream,kCFStreamPropertyHTTPResponseHeader);
 		proxyAuthentication = CFHTTPAuthenticationCreateFromResponse(NULL, responseHeader);
 		CFRelease(responseHeader);
-		proxyAuthenticationMethod = (NSString *)CFHTTPAuthenticationCopyMethod(proxyAuthentication);
+		[self setProxyAuthenticationScheme:[(NSString *)CFHTTPAuthenticationCopyMethod(proxyAuthentication) autorelease]];
 	}
 	
 	// If we haven't got a CFHTTPAuthenticationRef by now, something is badly wrong, so we'll have to give up
@@ -1472,11 +1499,11 @@ static NSLock *sessionCookiesLock = nil;
 	if (proxyCredentials) {
 		
 		// We use startRequest rather than starting all over again in load request because NTLM requires we reuse the request
-		if (((proxyAuthenticationMethod != (NSString *)kCFHTTPAuthenticationSchemeNTLM) || proxyAuthenticationRetryCount < 2) && [self applyCredentials:proxyCredentials]) {
+		if ((([self proxyAuthenticationScheme] != (NSString *)kCFHTTPAuthenticationSchemeNTLM) || proxyAuthenticationRetryCount < 2) && [self applyCredentials:proxyCredentials]) {
 			[self startRequest];
 			
 		// We've failed NTLM authentication twice, we should assume our credentials are wrong
-		} else if (proxyAuthenticationMethod == (NSString *)kCFHTTPAuthenticationSchemeNTLM && proxyAuthenticationRetryCount == 2) {
+		} else if ([self proxyAuthenticationScheme] == (NSString *)kCFHTTPAuthenticationSchemeNTLM && proxyAuthenticationRetryCount == 2) {
 			[self failWithError:ASIAuthenticationError];
 			
 		// Something went wrong, we'll have to give up
@@ -1505,24 +1532,39 @@ static NSLock *sessionCookiesLock = nil;
 			return;
 		}
 		
-		// The delegate isn't interested, we'll have to give up
+		if ([self showProxyAuthenticationDialog]) {
+			[self attemptToApplyProxyCredentialsAndResume];
+		}
+		
+		// The delegate isn't interested and we aren't showing the authentication dialog, we'll have to give up
 		[self failWithError:ASIAuthenticationError];
 		return;
 	}
 	
 }
 
+- (BOOL)showAuthenticationDialog
+{
+	if ([self shouldPresentAuthenticationDialog]) {
+		[ASIAuthenticationDialog performSelectorOnMainThread:@selector(presentAuthenticationDialogForRequest:) withObject:self waitUntilDone:[NSThread isMainThread]];
+		[[self authenticationLock] lockWhenCondition:2];
+		[[self authenticationLock] unlockWithCondition:1];
+		return YES;
+	}
+	return NO;
+}
+
 - (BOOL)askDelegateForCredentials
 {
-	// If we have a delegate, we'll see if it can handle proxyAuthorizationNeededForRequest:.
+	// If we have a delegate, we'll see if it can handle proxyAuthenticationNeededForRequest:.
 	// Otherwise, we'll try the queue (if this request is part of one) and it will pass the message on to its own delegate
-	id authorizationDelegate = [self delegate];
-	if (!authorizationDelegate) {
-		authorizationDelegate = [self queue];
+	id authenticationDelegate = [self delegate];
+	if (!authenticationDelegate) {
+		authenticationDelegate = [self queue];
 	}
 	
-	if ([authorizationDelegate respondsToSelector:@selector(authorizationNeededForRequest:)]) {
-		[authorizationDelegate performSelectorOnMainThread:@selector(authorizationNeededForRequest:) withObject:self waitUntilDone:[NSThread isMainThread]];
+	if ([authenticationDelegate respondsToSelector:@selector(authenticationNeededForRequest:)]) {
+		[authenticationDelegate performSelectorOnMainThread:@selector(authenticationNeededForRequest:) withObject:self waitUntilDone:[NSThread isMainThread]];
 		[[self authenticationLock] lockWhenCondition:2];
 		[[self authenticationLock] unlockWithCondition:1];
 		
@@ -1533,6 +1575,10 @@ static NSLock *sessionCookiesLock = nil;
 
 - (void)attemptToApplyCredentialsAndResume
 {
+	if ([self error]) {
+		return;
+	}
+	
 	if ([self needsProxyAuthentication]) {
 		[self attemptToApplyProxyCredentialsAndResume];
 		return;
@@ -1543,7 +1589,7 @@ static NSLock *sessionCookiesLock = nil;
 		CFHTTPMessageRef responseHeader = (CFHTTPMessageRef) CFReadStreamCopyProperty(readStream,kCFStreamPropertyHTTPResponseHeader);
 		requestAuthentication = CFHTTPAuthenticationCreateFromResponse(NULL, responseHeader);
 		CFRelease(responseHeader);
-		authenticationMethod = (NSString *)CFHTTPAuthenticationCopyMethod(requestAuthentication);
+		[self setAuthenticationScheme:[(NSString *)CFHTTPAuthenticationCopyMethod(requestAuthentication) autorelease]];
 	}
 	
 	if (!requestAuthentication) {
@@ -1570,6 +1616,9 @@ static NSLock *sessionCookiesLock = nil;
 				[self attemptToApplyCredentialsAndResume];
 				return;
 			}
+			if ([self showAuthenticationDialog]) {
+				[self attemptToApplyCredentialsAndResume];
+			}
 		}
 		[self cancelLoad];
 		[self failWithError:ASIAuthenticationError];
@@ -1580,11 +1629,11 @@ static NSLock *sessionCookiesLock = nil;
 	
 	if (requestCredentials) {
 		
-		if (((authenticationMethod != (NSString *)kCFHTTPAuthenticationSchemeNTLM) || authenticationRetryCount < 2) && [self applyCredentials:requestCredentials]) {
+		if ((([self authenticationScheme] != (NSString *)kCFHTTPAuthenticationSchemeNTLM) || authenticationRetryCount < 2) && [self applyCredentials:requestCredentials]) {
 			[self startRequest];
 			
 			// We've failed NTLM authentication twice, we should assume our credentials are wrong
-		} else if (authenticationMethod == (NSString *)kCFHTTPAuthenticationSchemeNTLM && authenticationRetryCount == 2) {
+		} else if ([self authenticationScheme] == (NSString *)kCFHTTPAuthenticationSchemeNTLM && authenticationRetryCount == 2) {
 			[self failWithError:ASIAuthenticationError];
 			
 		} else {
@@ -1612,8 +1661,9 @@ static NSLock *sessionCookiesLock = nil;
 			return;
 		}
 		
-		// The delegate isn't interested, we'll have to give up
-		[self failWithError:ASIAuthenticationError];
+		if ([self showAuthenticationDialog]) {
+			[self attemptToApplyCredentialsAndResume];
+		}
 		return;
 	}
 	
@@ -2498,6 +2548,7 @@ static NSLock *sessionCookiesLock = nil;
 	return toRead;
 }
 
+
 @synthesize username;
 @synthesize password;
 @synthesize domain;
@@ -2572,6 +2623,10 @@ static NSLock *sessionCookiesLock = nil;
 @synthesize proxyHost;
 @synthesize proxyPort;
 @synthesize PACurl;
+@synthesize authenticationScheme;
+@synthesize proxyAuthenticationScheme;
+@synthesize shouldPresentAuthenticationDialog;
+@synthesize shouldPresentProxyAuthenticationDialog;
 @end
 
 
