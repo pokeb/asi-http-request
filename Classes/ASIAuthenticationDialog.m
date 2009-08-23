@@ -89,7 +89,11 @@ NSLock *dialogLock = nil;
 	[items addObject:backButton];
 	
 	label = [[UILabel alloc] initWithFrame:CGRectMake(0,0,170,50)];
-	[label setText:[[[self request] url] host]];
+	if ([self type] == ASIProxyAuthenticationType) {
+		[label setText:[[self request] proxyHost]];
+	} else {
+		[label setText:[[[self request] url] host]];
+	}
 	[label setTextColor:[UIColor whiteColor]];
 	[label setFont:[UIFont boldSystemFontOfSize:22.0]];
 	[label setShadowColor:[UIColor colorWithRed:0 green:0 blue:0 alpha:0.5]];
@@ -122,10 +126,30 @@ NSLock *dialogLock = nil;
 
 - (void)loginWithCredentialsFromDialog:(id)sender
 {
-	[[self request] setUsername:[[[[[[[self loginDialog] subviews] objectAtIndex:0] cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]] subviews] objectAtIndex:2] text]];
-	[[self request] setPassword:[[[[[[[self loginDialog] subviews] objectAtIndex:0] cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:1]] subviews] objectAtIndex:2] text]];
+	NSString *username = [[[[[[[self loginDialog] subviews] objectAtIndex:0] cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]] subviews] objectAtIndex:2] text];
+	NSString *password = [[[[[[[self loginDialog] subviews] objectAtIndex:0] cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:1]] subviews] objectAtIndex:2] text];
+	
+	if ([self type] == ASIProxyAuthenticationType) {
+		[[self request] setProxyUsername:username];
+		[[self request] setProxyPassword:password];
+	} else {
+		[[self request] setUsername:username];
+		[[self request] setPassword:password];		
+	}
+	
+	// Handle NTLM domains
+	NSString *scheme = ([self type] == ASIStandardAuthenticationType) ? [[self request] authenticationScheme] : [[self request] proxyAuthenticationScheme];
+	if ([scheme isEqualToString:(NSString *)kCFHTTPAuthenticationSchemeNTLM]) {
+		NSString *domain = [[[[[[[self loginDialog] subviews] objectAtIndex:0] cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:2]] subviews] objectAtIndex:2] text];
+		if ([self type] == ASIProxyAuthenticationType) {
+			[[self request] setProxyDomain:domain];
+		} else {
+			[[self request] setDomain:domain];
+		}
+	}
+	
 	[[self loginDialog] dismissWithClickedButtonIndex:1 animated:YES];
-	[[self request] retryWithAuthentication];	
+	[[self request] retryUsingSuppliedCredentials];	
 }
 
 

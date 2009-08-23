@@ -163,6 +163,7 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 	[self setShouldResetProgressIndicators:YES];
 	[self setAllowCompressedResponse:YES];
 	[self setDefaultResponseEncoding:NSISOLatin1StringEncoding];
+	[self setShouldPresentProxyAuthenticationDialog:YES];
 	
 	[self setTimeOutSeconds:10];
 	[self setUseSessionPersistance:YES];
