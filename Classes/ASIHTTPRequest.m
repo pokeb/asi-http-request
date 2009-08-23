@@ -14,11 +14,12 @@
 #import <zlib.h>
 #if TARGET_OS_IPHONE
 #import "Reachability.h"
+#import "ASIAuthenticationDialog.h"
 #else
 #import <SystemConfiguration/SystemConfiguration.h>
 #endif
 #import "ASIInputStream.h"
-#import "ASIAuthenticationDialog.h"
+
 
 // We use our own custom run loop mode as CoreAnimation seems to want to hijack our threads otherwise
 static CFStringRef ASIHTTPRequestRunMode = CFSTR("ASIHTTPRequest");
@@ -77,8 +78,6 @@ BOOL isBandwidthThrottled = NO;
 BOOL shouldThrottleBandwithForWWANOnly = NO;
 
 static NSLock *sessionCookiesLock = nil;
-
-UIActionSheet *loginDialog = nil;
 
 // Private stuff
 @interface ASIHTTPRequest ()
@@ -1421,6 +1420,8 @@ UIActionSheet *loginDialog = nil;
 
 - (BOOL)showProxyAuthenticationDialog
 {
+// Mac authentication dialog coming soon!
+#if TARGET_OS_IPHONE
 	if ([self shouldPresentProxyAuthenticationDialog]) {
 		[ASIAuthenticationDialog performSelectorOnMainThread:@selector(presentProxyAuthenticationDialogForRequest:) withObject:self waitUntilDone:[NSThread isMainThread]];
 		[[self authenticationLock] lockWhenCondition:2];
@@ -1428,6 +1429,9 @@ UIActionSheet *loginDialog = nil;
 		return YES;
 	}
 	return NO;
+#else
+	return NO;
+#endif
 }
 
 
@@ -1545,6 +1549,8 @@ UIActionSheet *loginDialog = nil;
 
 - (BOOL)showAuthenticationDialog
 {
+// Mac authentication dialog coming soon!
+#if TARGET_OS_IPHONE
 	if ([self shouldPresentAuthenticationDialog]) {
 		[ASIAuthenticationDialog performSelectorOnMainThread:@selector(presentAuthenticationDialogForRequest:) withObject:self waitUntilDone:[NSThread isMainThread]];
 		[[self authenticationLock] lockWhenCondition:2];
@@ -1552,6 +1558,9 @@ UIActionSheet *loginDialog = nil;
 		return YES;
 	}
 	return NO;
+#else
+	return NO;
+#endif
 }
 
 - (BOOL)askDelegateForCredentials
