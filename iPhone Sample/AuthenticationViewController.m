@@ -79,11 +79,11 @@
 		if ([self requestRequiringAuthentication]) {
 			[[self requestRequiringAuthentication] setUsername:[[alertView textFieldAtIndex:0] text]];
 			[[self requestRequiringAuthentication] setPassword:[[alertView textFieldAtIndex:1] text]];
-			[[self requestRequiringAuthentication] retryWithAuthentication];
+			[[self requestRequiringAuthentication] retryUsingSuppliedCredentials];
 		} else if ([self requestRequiringProxyAuthentication]) {
 			[[self requestRequiringProxyAuthentication] setProxyUsername:[[alertView textFieldAtIndex:0] text]];
 			[[self requestRequiringProxyAuthentication] setProxyPassword:[[alertView textFieldAtIndex:1] text]];
-			[[self requestRequiringProxyAuthentication] retryWithAuthentication];
+			[[self requestRequiringProxyAuthentication] retryUsingSuppliedCredentials];
 		}
 	} else {
 		[[self requestRequiringAuthentication] cancelAuthentication];
