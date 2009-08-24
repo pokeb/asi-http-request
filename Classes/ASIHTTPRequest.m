@@ -1434,7 +1434,8 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 {
 // Mac authentication dialog coming soon!
 #if TARGET_OS_IPHONE
-	if ([self shouldPresentProxyAuthenticationDialog]) {
+	// Cannot show the dialog when we are running on the main thread, as the locks will cause the app to hang
+	if ([self shouldPresentProxyAuthenticationDialog] && ![NSThread isMainThread]) {
 		[ASIAuthenticationDialog performSelectorOnMainThread:@selector(presentProxyAuthenticationDialogForRequest:) withObject:self waitUntilDone:[NSThread isMainThread]];
 		[[self authenticationLock] lockWhenCondition:2];
 		[[self authenticationLock] unlockWithCondition:1];
@@ -1476,7 +1477,7 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 - (void)attemptToApplyProxyCredentialsAndResume
 {
 	
-	if ([self error]) {
+	if ([self error] || [self isCancelled]) {
 		return;
 	}
 	
@@ -1507,6 +1508,12 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 			
 			// Prevent more than one request from asking for credentials at once
 			[delegateAuthenticationLock lock];
+			
+			// If the user cancelled authentication via a dialog presented by another request, our queue may have cancelled us
+			if ([self error] || [self isCancelled]) {
+				[delegateAuthenticationLock unlock];
+				return;
+			}
 			
 			// Now we've aquirred the lock, it may be that the session contains credentials we can re-use for this request
 			if ([self useSessionPersistance] && [self applyProxyCredentials:sessionProxyCredentials]) {
@@ -1557,6 +1564,12 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 		// Prevent more than one request from asking for credentials at once
 		[delegateAuthenticationLock lock];
 		
+		// If the user cancelled authentication via a dialog presented by another request, our queue may have cancelled us
+		if ([self error] || [self isCancelled]) {
+			[delegateAuthenticationLock unlock];
+			return;
+		}
+		
 		// Now we've aquirred the lock, it may be that the session contains credentials we can re-use for this request
 		if ([self useSessionPersistance] && [self applyProxyCredentials:sessionProxyCredentials]) {
 			[delegateAuthenticationLock unlock];
@@ -1604,7 +1617,8 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 {
 // Mac authentication dialog coming soon!
 #if TARGET_OS_IPHONE
-	if ([self shouldPresentAuthenticationDialog]) {
+	// Cannot show the dialog when we are running on the main thread, as the locks will cause the app to hang
+	if ([self shouldPresentAuthenticationDialog] && ![NSThread isMainThread]) {
 		[ASIAuthenticationDialog performSelectorOnMainThread:@selector(presentAuthenticationDialogForRequest:) withObject:self waitUntilDone:[NSThread isMainThread]];
 		[[self authenticationLock] lockWhenCondition:2];
 		[[self authenticationLock] unlockWithCondition:1];
@@ -1644,7 +1658,7 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 
 - (void)attemptToApplyCredentialsAndResume
 {
-	if ([self error]) {
+	if ([self error] || [self isCancelled]) {
 		return;
 	}
 	
@@ -1679,6 +1693,12 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 			
 			// Prevent more than one request from asking for credentials at once
 			[delegateAuthenticationLock lock];
+			
+			// If the user cancelled authentication via a dialog presented by another request, our queue may have cancelled us
+			if ([self error] || [self isCancelled]) {
+				[delegateAuthenticationLock unlock];
+				return;
+			}
 			
 			// Now we've aquirred the lock, it may be that the session contains credentials we can re-use for this request
 			if ([self useSessionPersistance] && [self applyCredentials:sessionCredentials]) {
@@ -1728,6 +1748,12 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 		
 		// Prevent more than one request from asking for credentials at once
 		[delegateAuthenticationLock lock];
+		
+		// If the user cancelled authentication via a dialog presented by another request, our queue may have cancelled us
+		if ([self error] || [self isCancelled]) {
+			[delegateAuthenticationLock unlock];
+			return;
+		}
 		
 		// Now we've aquirred the lock, it may be that the session contains credentials we can re-use for this request
 		if ([self useSessionPersistance] && [self applyCredentials:sessionCredentials]) {
