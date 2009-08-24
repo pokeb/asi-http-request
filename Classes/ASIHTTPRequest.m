@@ -1453,6 +1453,11 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 
 - (BOOL)askDelegateForProxyCredentials
 {
+	// Can't use delegate authentication when running on the main thread
+	if ([NSThread isMainThread]) {
+		return NO;
+	}
+	
 	// If we have a delegate, we'll see if it can handle proxyAuthenticationNeededForRequest:.
 	// Otherwise, we'll try the queue (if this request is part of one) and it will pass the message on to its own delegate
 	id authenticationDelegate = [self delegate];
@@ -1635,6 +1640,11 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 
 - (BOOL)askDelegateForCredentials
 {
+	// Can't use delegate authentication when running on the main thread
+	if ([NSThread isMainThread]) {
+		return NO;
+	}
+	
 	// If we have a delegate, we'll see if it can handle proxyAuthenticationNeededForRequest:.
 	// Otherwise, we'll try the queue (if this request is part of one) and it will pass the message on to its own delegate
 	id authenticationDelegate = [self delegate];

@@ -39,4 +39,5 @@
 - (void)testTimeOutWithoutDownloadDelegate;
 - (void)testThrottlingDownloadBandwidth;
 - (void)testThrottlingUploadBandwidth;
+- (void)testMainThreadDelegateAuthenticationFailure;
 @end

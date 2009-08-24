@@ -857,6 +857,28 @@
 	
 }
 
+- (void)authenticationNeededForRequest:(ASIHTTPRequest *)request
+{
+	GHAssertTrue(NO,@"Delegate asked for authentication when running on the main thread");
+}
+
+- (void)testMainThreadDelegateAuthenticationFailure
+{
+	[ASIHTTPRequest clearSession];
+	//GHUnit will not run this function on the main thread, so we'll need to move it there
+	[self performSelectorOnMainThread:@selector(fetchOnMainThread) withObject:nil waitUntilDone:YES];
+		
+}
+
+- (void)fetchOnMainThread
+{
+	// Ensure the delegate is not called when we are running on the main thread
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/basic-authentication"]];
+	[request setDelegate:self];
+	[request start];
+	GHAssertNotNil([request error],@"Failed to generate an authentication error");		
+}
+
 @end
 
 
