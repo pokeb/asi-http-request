@@ -397,7 +397,18 @@ IMPORTANT
 		[request setUsername:@"secret_username"];
 		[request setPassword:@"secret_password"];
 		[request retryUsingSuppliedCredentials];
-
+		
+	} else if ([[[request userInfo] objectForKey:@"test"] isEqualToString:@"delegate-auth-failure"]) {
+		authenticationPromptCount++;
+		if (authenticationPromptCount == 5) {
+			[request setUsername:@"secret_username"];
+			[request setPassword:@"secret_password"];
+		} else {
+			[request setUsername:@"wrong_username"];
+			[request setPassword:@"wrong_password"];
+		}
+		[request retryUsingSuppliedCredentials];
+			
 
 	// testProgressWithAuthentication will set a userInfo dictionary on the main request, to tell us not to supply credentials
 	} else if (![request mainRequest] || ![[request mainRequest] userInfo]) {
@@ -829,6 +840,7 @@ IMPORTANT
 // Test for a bug that used to exist where the temporary file used to store the request body would be removed when authentication failed
 - (void)testPOSTWithAuthentication
 {
+	[[self postQueue] cancelAllOperations];
 	[self setPostQueue:[ASINetworkQueue queue]];
 	[[self postQueue] setRequestDidFinishSelector:@selector(postDone:)];
 	[[self postQueue] setDelegate:self];
@@ -844,6 +856,21 @@ IMPORTANT
 {
 	BOOL success = [[request responseString] isEqualToString:@"This is the first item\r\nThis is the second item"];
 	GHAssertTrue(success,@"Didn't post correct data");	
+}
+
+- (void)testDelegateAuthenticationFailure
+{
+	[[self postQueue] cancelAllOperations];
+	[self setPostQueue:[ASINetworkQueue queue]];
+	[[self postQueue] setRequestDidFinishSelector:@selector(postDone:)];
+	[[self postQueue] setDelegate:self];
+	
+	ASIFormDataRequest *request = [ASIFormDataRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/Tests/post_with_authentication"]];
+	[request setPostValue:@"This is the first item" forKey:@"first"];
+	[request setData:[@"This is the second item" dataUsingEncoding:NSUTF8StringEncoding] forKey:@"second"];
+	[request setUserInfo:[NSDictionary dictionaryWithObject:@"delegate-auth-failure" forKey:@"test"]];
+	[[self postQueue] addOperation:request];
+	[[self postQueue] go];
 }
 
 @synthesize immediateCancelQueue;

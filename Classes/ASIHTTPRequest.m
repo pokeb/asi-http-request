@@ -1518,6 +1518,12 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 			// Prevent more than one request from asking for credentials at once
 			[delegateAuthenticationLock lock];
 			
+			// We know the credentials we just presented are bad. If they are the same as the session credentials, we should clear those too.
+			if ([self proxyCredentials] == sessionProxyCredentials) {
+				[ASIHTTPRequest setSessionProxyCredentials:nil];
+			}
+			[self setProxyCredentials:nil];
+			
 			// If the user cancelled authentication via a dialog presented by another request, our queue may have cancelled us
 			if ([self error] || [self isCancelled]) {
 				[delegateAuthenticationLock unlock];
@@ -1531,8 +1537,8 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 				return;
 			}
 			
-			[self setProxyCredentials:nil];
 			[self setLastActivityTime:nil];
+			
 			if ([self askDelegateForProxyCredentials]) {
 				[self attemptToApplyProxyCredentialsAndResume];
 				[delegateAuthenticationLock unlock];
@@ -1708,6 +1714,12 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 			// Prevent more than one request from asking for credentials at once
 			[delegateAuthenticationLock lock];
 			
+			// We know the credentials we just presented are bad. If they are the same as the session credentials, we should clear those too.
+			if ([self requestCredentials] == sessionCredentials) {
+				[ASIHTTPRequest setSessionCredentials:nil];
+			}
+			[self setRequestCredentials:nil];
+			
 			// If the user cancelled authentication via a dialog presented by another request, our queue may have cancelled us
 			if ([self error] || [self isCancelled]) {
 				[delegateAuthenticationLock unlock];
@@ -1721,7 +1733,7 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 				return;
 			}
 			
-			[self setRequestCredentials:nil];
+			
 			
 			[self setLastActivityTime:nil];
 			
