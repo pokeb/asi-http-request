@@ -720,7 +720,7 @@ IMPORTANT
 	BOOL success = (interval > -6);
 	GHAssertTrue(success,@"Downloaded the data too slowly - either this is a bug, or your internet connection is too slow to run this test (must be able to download 90KB in less than 6 seconds, without throttling)");
 
-	NSLog(@"Throttle");
+	//NSLog(@"Throttle");
 	
 	// Reset the queue
 	[networkQueue cancelAllOperations];
@@ -826,10 +826,30 @@ IMPORTANT
 	GHAssertTrue(NO,@"Request failed");
 }
 
+// Test for a bug that used to exist where the temporary file used to store the request body would be removed when authentication failed
+- (void)testPOSTWithAuthentication
+{
+	[self setPostQueue:[ASINetworkQueue queue]];
+	[[self postQueue] setRequestDidFinishSelector:@selector(postDone:)];
+	[[self postQueue] setDelegate:self];
+	
+	ASIFormDataRequest *request = [ASIFormDataRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/Tests/post_with_authentication"]];
+	[request setPostValue:@"This is the first item" forKey:@"first"];
+	[request setData:[@"This is the second item" dataUsingEncoding:NSUTF8StringEncoding] forKey:@"second"];
+	[[self postQueue] addOperation:request];
+	[[self postQueue] go];
+}
+
+- (void)postDone:(ASIHTTPRequest *)request
+{
+	BOOL success = [[request responseString] isEqualToString:@"This is the first item\r\nThis is the second item"];
+	GHAssertTrue(success,@"Didn't post correct data");	
+}
 
 @synthesize immediateCancelQueue;
 @synthesize failedRequests;
 @synthesize finishedRequests;
 @synthesize releaseTestQueue;
 @synthesize cancelQueue;
+@synthesize postQueue;
 @end

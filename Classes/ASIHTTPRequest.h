@@ -293,6 +293,9 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	
 	// URL for a PAC (Proxy Auto Configuration) file. If you want to set this yourself, it's probably best if you use a local file
 	NSURL *PACurl;
+	
+	// True when request is attempting to handle an authentication challenge
+	BOOL authenticationChallengeInProgress;
 }
 
 #pragma mark init / dealloc
@@ -567,4 +570,5 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 @property (retain) NSString *proxyAuthenticationScheme;
 @property (assign) BOOL shouldPresentAuthenticationDialog;
 @property (assign) BOOL shouldPresentProxyAuthenticationDialog;
+@property (assign) BOOL authenticationChallengeInProgress;
 @end

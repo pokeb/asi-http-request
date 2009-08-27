@@ -184,6 +184,7 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 
 - (void)dealloc
 {
+	[self setAuthenticationChallengeInProgress:NO];
 	if (requestAuthentication) {
 		CFRelease(requestAuthentication);
 	}
@@ -774,8 +775,9 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 	}
 	
 	// Clean up any temporary file used to store request body for streaming
-	if ([self didCreateTemporaryPostDataFile]) {
+	if (![self authenticationChallengeInProgress] && [self didCreateTemporaryPostDataFile]) {
 		[self removePostDataFile];
+		[self setDidCreateTemporaryPostDataFile:NO];
 	}
 	
 	[self setResponseHeaders:nil];
@@ -1128,6 +1130,7 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 
 - (BOOL)readResponseHeadersReturningAuthenticationFailure
 {
+	[self setAuthenticationChallengeInProgress:NO];
 	[self setNeedsProxyAuthentication:NO];
 	BOOL isAuthenticationChallenge = NO;
 	CFHTTPMessageRef headers = (CFHTTPMessageRef)CFReadStreamCopyProperty(readStream, kCFStreamPropertyHTTPResponseHeader);
@@ -1145,6 +1148,7 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 			isAuthenticationChallenge = YES;
 			[self setNeedsProxyAuthentication:YES];
 		}
+		[self setAuthenticationChallengeInProgress:isAuthenticationChallenge];
 		
 		// We won't reset the download progress delegate if we got an authentication challenge
 		if (!isAuthenticationChallenge) {
@@ -2765,6 +2769,7 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 @synthesize proxyAuthenticationScheme;
 @synthesize shouldPresentAuthenticationDialog;
 @synthesize shouldPresentProxyAuthenticationDialog;
+@synthesize authenticationChallengeInProgress;
 @end
 
 

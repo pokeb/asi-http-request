@@ -34,6 +34,8 @@ IMPORTANT
 	ASINetworkQueue *cancelQueue;
 	
 	int authenticationPromptCount;
+	
+	ASINetworkQueue *postQueue;
 }
 
 - (void)testFailure;
@@ -58,10 +60,13 @@ IMPORTANT
 */
 
 - (void)testDelegateAuthenticationCredentialsReuse;
+- (void)testPOSTWithAuthentication;
 
 @property (retain) NSOperationQueue *immediateCancelQueue;
 @property (retain) NSMutableArray *failedRequests;
 @property (retain) NSMutableArray *finishedRequests;
 @property (retain) ASINetworkQueue *releaseTestQueue;
 @property (retain) ASINetworkQueue *cancelQueue;
+@property (retain) ASINetworkQueue *postQueue;
+
 @end
