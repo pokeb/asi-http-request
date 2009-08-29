@@ -879,6 +879,21 @@
 	GHAssertNotNil([request error],@"Failed to generate an authentication error");		
 }
 
+- (void)testFetchToInvalidPath
+{
+	// Test gzipped content
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL	URLWithString:@"http://allseeing-i.com"]];
+	[request setDownloadDestinationPath:@"/an/invalid/location.html"];
+	[request start];
+	GHAssertNotNil([request error],@"Failed to generate an authentication when attempting to write to an invalid location");	
+	
+	//Test non-gzipped content
+	request = [ASIHTTPRequest requestWithURL:[NSURL	URLWithString:@"http://allseeing-i.com/i/logo.png"]];
+	[request setDownloadDestinationPath:@"/an/invalid/location.png"];
+	[request start];
+	GHAssertNotNil([request error],@"Failed to generate an authentication when attempting to write to an invalid location");		
+}
+
 @end
 
 
