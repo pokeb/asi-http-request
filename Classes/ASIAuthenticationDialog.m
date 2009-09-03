@@ -79,6 +79,7 @@ NSLock *dialogLock = nil;
 	[label setTextAlignment:UITextAlignmentCenter];
 	
 	[titleBar addSubview:label];
+	[label release];
 	[[self loginDialog] addSubview:titleBar];
 	
 	// Setup the toolbar 
@@ -103,6 +104,7 @@ NSLock *dialogLock = nil;
 	[label setTextAlignment:UITextAlignmentCenter];
 	
 	[toolbar addSubview:label];
+	[label release];
 
 	UIBarButtonItem *labelButton = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:nil action:nil] autorelease];
 	[labelButton setCustomView:label];

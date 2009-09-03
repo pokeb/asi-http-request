@@ -2488,7 +2488,7 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 	// Work around <rdar://problem/5530166>.  This dummy call to 
 	// CFNetworkCopyProxiesForURL initialise some state within CFNetwork 
 	// that is required by CFNetworkCopyProxiesForAutoConfigurationScript.
-	(void) CFNetworkCopyProxiesForURL((CFURLRef)theURL, NULL);
+	CFRelease(CFNetworkCopyProxiesForURL((CFURLRef)theURL, NULL));
 	
 	NSStringEncoding encoding;
 	NSError *err = nil;
