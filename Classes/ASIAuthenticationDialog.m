@@ -64,7 +64,7 @@ NSLock *dialogLock = nil;
 	
 	// Setup the title (Couldn't figure out how to put this in the same toolbar as the buttons)
 	UIToolbar *titleBar = [[[UIToolbar alloc] initWithFrame:CGRectMake(0,0,320,30)] autorelease];
-	UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(10,0,300,30)];
+	UILabel *label = [[[UILabel alloc] initWithFrame:CGRectMake(10,0,300,30)] autorelease];
 	if ([self type] == ASIProxyAuthenticationType) {
 		[label setText:@"Login to this secure proxy server."];
 	} else {
@@ -79,7 +79,6 @@ NSLock *dialogLock = nil;
 	[label setTextAlignment:UITextAlignmentCenter];
 	
 	[titleBar addSubview:label];
-	[label release];
 	[[self loginDialog] addSubview:titleBar];
 	
 	// Setup the toolbar 
@@ -89,7 +88,7 @@ NSLock *dialogLock = nil;
 	UIBarButtonItem *backButton = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self action:@selector(cancelAuthenticationFromDialog:)] autorelease];
 	[items addObject:backButton];
 	
-	label = [[UILabel alloc] initWithFrame:CGRectMake(0,0,170,50)];
+	label = [[[UILabel alloc] initWithFrame:CGRectMake(0,0,170,50)] autorelease];
 	if ([self type] == ASIProxyAuthenticationType) {
 		[label setText:[[self request] proxyHost]];
 	} else {
@@ -104,7 +103,6 @@ NSLock *dialogLock = nil;
 	[label setTextAlignment:UITextAlignmentCenter];
 	
 	[toolbar addSubview:label];
-	[label release];
 
 	UIBarButtonItem *labelButton = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:nil action:nil] autorelease];
 	[labelButton setCustomView:label];
