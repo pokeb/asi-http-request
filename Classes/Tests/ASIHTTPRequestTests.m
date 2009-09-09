@@ -768,6 +768,7 @@
 	[request appendPostData:data];
 	[request start];
 	
+	NSLog(@"%@",[request responseData]);
 	success = [[request responseString] isEqualToString:content];
 	GHAssertTrue(success,@"Failed to compress the body, or server failed to decompress it");	
 	
@@ -794,6 +795,104 @@
 }
 
 
+- (void)testThrottlingDownloadBandwidth
+{
+	[ASIHTTPRequest setMaxBandwidthPerSecond:0];
+	
+	// This content is around 128KB in size, and it won't be gzipped, so it should take more than 8 seconds to download at 14.5KB / second
+	// We'll test first without throttling
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_great_american_novel_%28abridged%29.txt"]];
+	NSDate *date = [NSDate date];
+	[request start];	
+	
+	NSTimeInterval interval =[date timeIntervalSinceNow];
+	BOOL success = (interval > -7);
+	GHAssertTrue(success,@"Downloaded the file too slowly - either this is a bug, or your internet connection is too slow to run this test (must be able to download 128KB in less than 7 seconds, without throttling)");
+	
+	// Now we'll test with throttling
+	[ASIHTTPRequest setMaxBandwidthPerSecond:ASIWWANBandwidthThrottleAmount];
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_great_american_novel_%28abridged%29.txt"]];
+	date = [NSDate date];
+	[request start];	
+	
+	[ASIHTTPRequest setMaxBandwidthPerSecond:0];
+	
+	interval =[date timeIntervalSinceNow];
+	success = (interval < -7);
+	GHAssertTrue(success,@"Failed to throttle download");		
+	GHAssertNil([request error],@"Request generated an error - timeout?");	
+	
+}
+
+- (void)testThrottlingUploadBandwidth
+{
+	[ASIHTTPRequest setMaxBandwidthPerSecond:0];
+	
+	// Create a 64KB request body
+	NSData *data = [[[NSMutableData alloc] initWithLength:64*1024] autorelease];
+	
+	// We'll test first without throttling
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ignore"]];
+	[request appendPostData:data];
+	NSDate *date = [NSDate date];
+	[request start];	
+	
+	NSTimeInterval interval =[date timeIntervalSinceNow];
+	BOOL success = (interval > -3);
+	GHAssertTrue(success,@"Uploaded the data too slowly - either this is a bug, or your internet connection is too slow to run this test (must be able to upload 64KB in less than 3 seconds, without throttling)");
+	
+	// Now we'll test with throttling
+	[ASIHTTPRequest setMaxBandwidthPerSecond:ASIWWANBandwidthThrottleAmount];
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ignore"]];
+	[request appendPostData:data];
+	date = [NSDate date];
+	[request start];	
+	
+	[ASIHTTPRequest setMaxBandwidthPerSecond:0];
+	
+	interval =[date timeIntervalSinceNow];
+	success = (interval < -3);
+	GHAssertTrue(success,@"Failed to throttle upload");		
+	GHAssertNil([request error],@"Request generated an error - timeout?");	
+	
+}
+
+- (void)authenticationNeededForRequest:(ASIHTTPRequest *)request
+{
+	GHAssertTrue(NO,@"Delegate asked for authentication when running on the main thread");
+}
+
+- (void)testMainThreadDelegateAuthenticationFailure
+{
+	[ASIHTTPRequest clearSession];
+	//GHUnit will not run this function on the main thread, so we'll need to move it there
+	[self performSelectorOnMainThread:@selector(fetchOnMainThread) withObject:nil waitUntilDone:YES];
+		
+}
+
+- (void)fetchOnMainThread
+{
+	// Ensure the delegate is not called when we are running on the main thread
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/basic-authentication"]];
+	[request setDelegate:self];
+	[request start];
+	GHAssertNotNil([request error],@"Failed to generate an authentication error");		
+}
+
+- (void)testFetchToInvalidPath
+{
+	// Test gzipped content
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL	URLWithString:@"http://allseeing-i.com"]];
+	[request setDownloadDestinationPath:@"/an/invalid/location.html"];
+	[request start];
+	GHAssertNotNil([request error],@"Failed to generate an authentication when attempting to write to an invalid location");	
+	
+	//Test non-gzipped content
+	request = [ASIHTTPRequest requestWithURL:[NSURL	URLWithString:@"http://allseeing-i.com/i/logo.png"]];
+	[request setDownloadDestinationPath:@"/an/invalid/location.png"];
+	[request start];
+	GHAssertNotNil([request error],@"Failed to generate an authentication when attempting to write to an invalid location");		
+}
 
 @end
 

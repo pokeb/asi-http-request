@@ -27,6 +27,32 @@ IMPORTANT
 
 @implementation ASINetworkQueueTests
 
+- (void)testDelegateAuthenticationCredentialsReuse
+{
+	complete = NO;
+	authenticationPromptCount = 0;
+
+	ASINetworkQueue *networkQueue = [ASINetworkQueue queue];
+	[networkQueue setDelegate:self];
+	[networkQueue setQueueDidFinishSelector:@selector(queueFinished:)];	
+	
+	NSDictionary *userInfo = [NSDictionary dictionaryWithObject:@"reuse" forKey:@"test"];
+	
+	int i;
+	for (i=0; i<5; i++) {
+		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/basic-authentication"]];
+		[request setUserInfo:userInfo];
+		[networkQueue addOperation:request];
+	}
+	[networkQueue go];
+	
+	while (!complete) {
+		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
+	}
+}
+
+
+
 - (void)testProgress
 {
 	complete = NO;
@@ -281,10 +307,14 @@ IMPORTANT
 
 
 
+
 - (void)testProgressWithAuthentication
 {
 	complete = NO;
 	progress = 0;
+	
+	// Make sure we don't re-use credentials from previous tests
+	[ASIHTTPRequest clearSession];
 	
 	ASINetworkQueue *networkQueue = [ASINetworkQueue queue];
 	[networkQueue setDownloadProgressDelegate:self];
@@ -296,6 +326,7 @@ IMPORTANT
 	NSURL *url;	
 	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/basic-authentication"] autorelease];
 	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request setUserInfo:[NSDictionary dictionaryWithObject:@"Don't bother" forKey:@"Shall I return any credentials?"]];
 	[networkQueue addOperation:request];
 	
 	[networkQueue go];
@@ -315,8 +346,10 @@ IMPORTANT
 	[networkQueue setDelegate:self];
 	[networkQueue setShowAccurateProgress:YES];
 	[networkQueue setQueueDidFinishSelector:@selector(queueFinished:)];	
+	[networkQueue setRequestDidFailSelector:@selector(requestFailed:)];
 	
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request setUserInfo:[NSDictionary dictionaryWithObject:@"Don't bother" forKey:@"Shall I return any credentials?"]];
 	[request setUsername:@"secret_username"];
 	[request setPassword:@"secret_password"];
 	[networkQueue addOperation:request];
@@ -353,11 +386,38 @@ IMPORTANT
 }
 
 
-- (void)authorizationNeededForRequest:(ASIHTTPRequest *)request
+- (void)authenticationNeededForRequest:(ASIHTTPRequest *)request
 {
-	[request setUsername:@"secret_username"];
-	[request setPassword:@"secret_password"];
-	[request retryWithAuthentication];
+	// We're using this method in multiple tests, so the code here is to act appropriatly for each one
+	if ([[[request userInfo] objectForKey:@"test"] isEqualToString:@"reuse"]) {
+		authenticationPromptCount++;
+		BOOL success = (authenticationPromptCount == 1);
+		GHAssertTrue(success,@"Delegate was asked for credentials more than once");
+		
+		[request setUsername:@"secret_username"];
+		[request setPassword:@"secret_password"];
+		[request retryUsingSuppliedCredentials];
+		
+	} else if ([[[request userInfo] objectForKey:@"test"] isEqualToString:@"delegate-auth-failure"]) {
+		authenticationPromptCount++;
+		if (authenticationPromptCount == 5) {
+			[request setUsername:@"secret_username"];
+			[request setPassword:@"secret_password"];
+		} else {
+			[request setUsername:@"wrong_username"];
+			[request setPassword:@"wrong_password"];
+		}
+		[request retryUsingSuppliedCredentials];
+			
+
+	// testProgressWithAuthentication will set a userInfo dictionary on the main request, to tell us not to supply credentials
+	} else if (![request mainRequest] || ![[request mainRequest] userInfo]) {
+		[request setUsername:@"secret_username"];
+		[request setPassword:@"secret_password"];
+		[request retryUsingSuppliedCredentials];
+	} else {
+		[request cancelAuthentication];
+	}
 }
 
 
@@ -514,6 +574,28 @@ IMPORTANT
 	complete = YES;
 }
 
+// A test for a potential crasher that used to exist when requests were cancelled
+// We aren't testing a specific condition here, but rather attempting to trigger a crash
+// This test is commented out because it may generate enough load to kill a low-memory server
+// PLEASE DO NOT RUN THIS TEST ON A NON-LOCAL SERVER
+/*
+- (void)testCancelStressTest
+{
+	[self setCancelQueue:[ASINetworkQueue queue]];
+	
+	// Increase the risk of this crash
+	[[self cancelQueue] setMaxConcurrentOperationCount:25];
+	int i;
+	for (i=0; i<100; i++) {
+		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://127.0.0.1"]];
+		[[self cancelQueue] addOperation:request];
+	}
+	[[self cancelQueue] go];
+	[NSThread sleepUntilDate:[NSDate dateWithTimeIntervalSinceNow:2]];
+	[[self cancelQueue] cancelAllOperations];
+	[self setCancelQueue:nil];
+}
+*/
 
 // Not strictly an ASINetworkQueue test, but queue related
 // As soon as one request finishes or fails, we'll cancel the others and ensure that no requests are both finished and failed
@@ -618,8 +700,183 @@ IMPORTANT
 	[self setReleaseTestQueue:nil];
 }
 
+- (void)testMultipleDownloadsThrottlingBandwidth
+{
+	complete = NO;
+	
+	[ASIHTTPRequest setMaxBandwidthPerSecond:0];
+	
+	ASINetworkQueue *networkQueue = [ASINetworkQueue queue];
+	[networkQueue setDelegate:self];
+	[networkQueue setRequestDidFailSelector:@selector(throttleFail:)];
+	[networkQueue setQueueDidFinishSelector:@selector(queueFinished:)];
+	
+	// We'll test first without throttling
+	int i;
+	for (i=0; i<5; i++) {
+		// This image is around 18KB in size, for 90KB total download size
+		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/i/logo.png"]];
+		[networkQueue addOperation:request];
+	}
+	
+	NSDate *date = [NSDate date];
+	[networkQueue go];
+	
+	while (!complete) {
+		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
+	}
+	
+	
+	NSTimeInterval interval =[date timeIntervalSinceNow];
+	BOOL success = (interval > -6);
+	GHAssertTrue(success,@"Downloaded the data too slowly - either this is a bug, or your internet connection is too slow to run this test (must be able to download 90KB in less than 6 seconds, without throttling)");
+
+	//NSLog(@"Throttle");
+	
+	// Reset the queue
+	[networkQueue cancelAllOperations];
+	networkQueue = [ASINetworkQueue queue];
+	[networkQueue setDelegate:self];
+	[networkQueue setRequestDidFailSelector:@selector(throttleFail:)];
+	[networkQueue setQueueDidFinishSelector:@selector(queueFinished:)];
+	complete = NO;
+	
+	// Now we'll test with throttling
+	[ASIHTTPRequest setMaxBandwidthPerSecond:ASIWWANBandwidthThrottleAmount];
+	
+	for (i=0; i<5; i++) {
+		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/i/logo.png"]];
+		[networkQueue addOperation:request];
+	}
+	
+	date = [NSDate date];
+	[networkQueue go];
+	
+	while (!complete) {
+		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
+	}
+	
+	[ASIHTTPRequest setMaxBandwidthPerSecond:0];
+	
+	interval =[date timeIntervalSinceNow];
+	success = (interval < -6);
+	GHAssertTrue(success,@"Failed to throttle upload");		
+	
+}
+
+- (void)testMultipleUploadsThrottlingBandwidth
+{
+	complete = NO;
+	
+	[ASIHTTPRequest setMaxBandwidthPerSecond:0];
+	
+	ASINetworkQueue *networkQueue = [ASINetworkQueue queue];
+	[networkQueue setDelegate:self];
+	[networkQueue setRequestDidFailSelector:@selector(throttleFail:)];
+	[networkQueue setQueueDidFinishSelector:@selector(queueFinished:)];
+
+	// Create a 16KB request body
+	NSData *data = [[[NSMutableData alloc] initWithLength:16*1024] autorelease];
+
+	// We'll test first without throttling
+	int i;
+	for (i=0; i<10; i++) {
+		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ignore"]];
+		[request appendPostData:data];
+		[networkQueue addOperation:request];
+	}
+	
+	NSDate *date = [NSDate date];
+	[networkQueue go];
+	
+	while (!complete) {
+		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
+	}
+	
+		
+	NSTimeInterval interval =[date timeIntervalSinceNow];
+	BOOL success = (interval > -11);
+	GHAssertTrue(success,@"Uploaded the data too slowly - either this is a bug, or your internet connection is too slow to run this test (must be able to upload 320KB in less than 11 seconds, without throttling)");
+	
+	//NSLog(@"Throttle");
+	
+	// Reset the queue
+	[networkQueue cancelAllOperations];
+	networkQueue = [ASINetworkQueue queue];
+	[networkQueue setDelegate:self];
+	[networkQueue setRequestDidFailSelector:@selector(throttleFail:)];
+	[networkQueue setQueueDidFinishSelector:@selector(queueFinished:)];
+	complete = NO;
+	
+	// Now we'll test with throttling
+	[ASIHTTPRequest setMaxBandwidthPerSecond:ASIWWANBandwidthThrottleAmount];
+
+	for (i=0; i<10; i++) {
+		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ignore"]];
+		[request appendPostData:data];
+		[networkQueue addOperation:request];
+	}
+	
+	date = [NSDate date];
+	[networkQueue go];
+	
+	while (!complete) {
+		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
+	}
+	
+	[ASIHTTPRequest setMaxBandwidthPerSecond:0];
+	
+	interval =[date timeIntervalSinceNow];
+	success = (interval < -11);
+	GHAssertTrue(success,@"Failed to throttle upload");		
+	
+}
+	 
+- (void)throttleFail:(ASIHTTPRequest *)request
+{
+	GHAssertTrue(NO,@"Request failed");
+}
+
+// Test for a bug that used to exist where the temporary file used to store the request body would be removed when authentication failed
+- (void)testPOSTWithAuthentication
+{
+	[[self postQueue] cancelAllOperations];
+	[self setPostQueue:[ASINetworkQueue queue]];
+	[[self postQueue] setRequestDidFinishSelector:@selector(postDone:)];
+	[[self postQueue] setDelegate:self];
+	
+	ASIFormDataRequest *request = [ASIFormDataRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/Tests/post_with_authentication"]];
+	[request setPostValue:@"This is the first item" forKey:@"first"];
+	[request setData:[@"This is the second item" dataUsingEncoding:NSUTF8StringEncoding] forKey:@"second"];
+	[[self postQueue] addOperation:request];
+	[[self postQueue] go];
+}
+
+- (void)postDone:(ASIHTTPRequest *)request
+{
+	BOOL success = [[request responseString] isEqualToString:@"This is the first item\r\nThis is the second item"];
+	GHAssertTrue(success,@"Didn't post correct data");	
+}
+
+- (void)testDelegateAuthenticationFailure
+{
+	[[self postQueue] cancelAllOperations];
+	[self setPostQueue:[ASINetworkQueue queue]];
+	[[self postQueue] setRequestDidFinishSelector:@selector(postDone:)];
+	[[self postQueue] setDelegate:self];
+	
+	ASIFormDataRequest *request = [ASIFormDataRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/Tests/post_with_authentication"]];
+	[request setPostValue:@"This is the first item" forKey:@"first"];
+	[request setData:[@"This is the second item" dataUsingEncoding:NSUTF8StringEncoding] forKey:@"second"];
+	[request setUserInfo:[NSDictionary dictionaryWithObject:@"delegate-auth-failure" forKey:@"test"]];
+	[[self postQueue] addOperation:request];
+	[[self postQueue] go];
+}
+
 @synthesize immediateCancelQueue;
 @synthesize failedRequests;
 @synthesize finishedRequests;
 @synthesize releaseTestQueue;
+@synthesize cancelQueue;
+@synthesize postQueue;
 @end

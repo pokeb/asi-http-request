@@ -37,4 +37,7 @@
 - (void)testCompression;
 - (void)testSubclass;
 - (void)testTimeOutWithoutDownloadDelegate;
+- (void)testThrottlingDownloadBandwidth;
+- (void)testThrottlingUploadBandwidth;
+- (void)testMainThreadDelegateAuthenticationFailure;
 @end

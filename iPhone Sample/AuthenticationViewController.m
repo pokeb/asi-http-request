@@ -27,6 +27,7 @@
 	
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/top_secret/"]];
 	[request setUseKeychainPersistance:[useKeychain isOn]];
+	[request setShouldPresentAuthenticationDialog:[useBuiltInDialog isOn]];
 	[networkQueue addOperation:request];
 	[networkQueue go];
 	
@@ -44,20 +45,23 @@
 	[topSecretInfo setFont:[UIFont boldSystemFontOfSize:12]];
 }
 
-- (void)authorizationNeededForRequest:(ASIHTTPRequest *)request
+- (void)authenticationNeededForRequest:(ASIHTTPRequest *)request
 {
 	// Why oh why is there no contextInfo for alertView like on Mac OS ?!
 	[self setRequestRequiringProxyAuthentication:nil];
 	[self setRequestRequiringAuthentication:request];
+	
+	
 	UIAlertView *alertView = [[[UIAlertView alloc] initWithTitle:@"Please Login" message:[request authenticationRealm] delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"OK",nil] autorelease];
 	// These are undocumented, use at your own risk!
-	// A better general approach would be to subclass UIAlertView
+	// A better general approach would be to subclass UIAlertView, or just use ASIHTTPRequest's built-in dialog
 	[alertView addTextFieldWithValue:@"" label:@"Username"];
 	[alertView addTextFieldWithValue:@"" label:@"Password"];
 	[alertView show];
+
 }
 
-- (void)proxyAuthorizationNeededForRequest:(ASIHTTPRequest *)request
+- (void)proxyAuthenticationNeededForRequest:(ASIHTTPRequest *)request
 {
 	[self setRequestRequiringAuthentication:nil];
 	[self setRequestRequiringProxyAuthentication:request];
@@ -75,20 +79,28 @@
 		if ([self requestRequiringAuthentication]) {
 			[[self requestRequiringAuthentication] setUsername:[[alertView textFieldAtIndex:0] text]];
 			[[self requestRequiringAuthentication] setPassword:[[alertView textFieldAtIndex:1] text]];
-			[[self requestRequiringAuthentication] retryWithAuthentication];
+			[[self requestRequiringAuthentication] retryUsingSuppliedCredentials];
 		} else if ([self requestRequiringProxyAuthentication]) {
 			[[self requestRequiringProxyAuthentication] setProxyUsername:[[alertView textFieldAtIndex:0] text]];
 			[[self requestRequiringProxyAuthentication] setProxyPassword:[[alertView textFieldAtIndex:1] text]];
-			[[self requestRequiringProxyAuthentication] retryWithAuthentication];
+			[[self requestRequiringProxyAuthentication] retryUsingSuppliedCredentials];
 		}
 	} else {
-		if ([self requestRequiringAuthentication]) {
-			[[self requestRequiringAuthentication] cancelLoad];
-		} else {
-			[[self requestRequiringProxyAuthentication] cancelLoad];
-		}
+		[[self requestRequiringAuthentication] cancelAuthentication];
 	}
 }
+
+- (BOOL)respondsToSelector:(SEL)selector
+{
+	if (selector == @selector(authenticationNeededForRequest:) || selector == @selector(proxyAuthenticationNeededForRequest:)) {
+		if ([useBuiltInDialog isOn]) {
+			return NO;
+		}
+		return YES;
+	}
+	return [super respondsToSelector:selector];
+}
+
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];

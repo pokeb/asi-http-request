@@ -267,26 +267,32 @@
 	[ASIHTTPRequest setProgress:progress forProgressIndicator:[self downloadProgressDelegate]];
 }
 
+
 // Since this queue takes over as the delegate for all requests it contains, it should forward authorisation requests to its own delegate
-- (void)authorizationNeededForRequest:(ASIHTTPRequest *)request
+- (void)authenticationNeededForRequest:(ASIHTTPRequest *)request
 {
-	if ([[self delegate] respondsToSelector:@selector(authorizationNeededForRequest:)]) {
-		[[self delegate] performSelector:@selector(authorizationNeededForRequest:) withObject:request];
+	if ([[self delegate] respondsToSelector:@selector(authenticationNeededForRequest:)]) {
+		[[self delegate] performSelector:@selector(authenticationNeededForRequest:) withObject:request];
 	}
 }
 
-- (void)proxyAuthorizationNeededForRequest:(ASIHTTPRequest *)request
+- (void)proxyAuthenticationNeededForRequest:(ASIHTTPRequest *)request
 {
-	if ([[self delegate] respondsToSelector:@selector(proxyAuthorizationNeededForRequest:)]) {
-		[[self delegate] performSelector:@selector(proxyAuthorizationNeededForRequest:) withObject:request];
+	if ([[self delegate] respondsToSelector:@selector(proxyAuthenticationNeededForRequest:)]) {
+		[[self delegate] performSelector:@selector(proxyAuthenticationNeededForRequest:) withObject:request];
 	}
 }
 
 
 - (BOOL)respondsToSelector:(SEL)selector
 {
-	if (selector == @selector(authorizationNeededForRequest:)) {
-		if ([[self delegate] respondsToSelector:@selector(authorizationNeededForRequest:)]) {
+	if (selector == @selector(authenticationNeededForRequest:)) {
+		if ([[self delegate] respondsToSelector:@selector(authenticationNeededForRequest:)]) {
+			return YES;
+		}
+		return NO;
+	} else if (selector == @selector(proxyAuthenticationNeededForRequest:)) {
+		if ([[self delegate] respondsToSelector:@selector(proxyAuthenticationNeededForRequest:)]) {
 			return YES;
 		}
 		return NO;

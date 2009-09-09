@@ -46,6 +46,11 @@
 	[networkQueue go];
 }
 
+- (IBAction)toggleThrottling:(id)sender
+{
+	[ASIHTTPRequest setShouldThrottleBandwidthForWWAN:[(UISwitch *)sender isOn]];
+}
+
 - (void)dealloc {
 	[networkQueue release];
     [super dealloc];

@@ -16,6 +16,8 @@
 {
 	[super init];
 	networkQueue = [[ASINetworkQueue alloc] init];
+	NSTimer *timer = [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(updateBandwidthUsageIndicator) userInfo:nil repeats:YES];
+	timer = nil;
 	return self;
 }
 
@@ -133,6 +135,20 @@
 	[networkQueue go];
 }
 
+- (void)updateBandwidthUsageIndicator
+{
+	[bandwidthUsed setStringValue:[NSString stringWithFormat:@"%luKB / second",[ASIHTTPRequest averageBandwidthUsedPerSecond]/1024]];
+}
+
+- (IBAction)throttleBandwidth:(id)sender
+{
+	if ([(NSButton *)sender state] == NSOnState) {
+		[ASIHTTPRequest setMaxBandwidthPerSecond:ASIWWANBandwidthThrottleAmount];
+	} else {
+		[ASIHTTPRequest setMaxBandwidthPerSecond:0];
+	}
+}
+
 
 - (void)imageFetch1Complete:(ASIHTTPRequest *)request
 {
@@ -160,7 +176,6 @@
 }
 
 
-
 - (IBAction)fetchTopSecretInformation:(id)sender
 {
 	[networkQueue cancelAllOperations];
@@ -185,7 +200,7 @@
 	}
 }
 
-- (void)authorizationNeededForRequest:(ASIHTTPRequest *)request
+- (void)authenticationNeededForRequest:(ASIHTTPRequest *)request
 {
 	[realm setStringValue:[request authenticationRealm]];
 	[host setStringValue:[[request url] host]];
@@ -197,7 +212,7 @@
 		contextInfo: request];
 }
 
-- (void)proxyAuthorizationNeededForRequest:(ASIHTTPRequest *)request
+- (void)proxyAuthenticationNeededForRequest:(ASIHTTPRequest *)request
 {
 	[realm setStringValue:[request proxyAuthenticationRealm]];
 	[host setStringValue:[request proxyHost]];
@@ -224,23 +239,23 @@
 			[request setUsername:[[[username stringValue] copy] autorelease]];
 			[request setPassword:[[[password stringValue] copy] autorelease]];
 		}
-		[request retryWithAuthentication];
+		[request retryUsingSuppliedCredentials];
     } else {
-		[request cancelLoad];
+		[request cancelAuthentication];
 	}
     [loginWindow orderOut: self];
 }
 
 - (IBAction)postWithProgress:(id)sender
 {	
-	//Create a 10MB file
+	//Create a 2MB file
 	NSMutableData *data = [NSMutableData dataWithLength:1024];
 	NSString *path = [[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"bigfile"];
 	
 	NSOutputStream *stream = [[[NSOutputStream alloc] initToFileAtPath:path append:NO] autorelease];
 	[stream open];
 	int i;
-	for (i=0; i<1024*10; i++) {
+	for (i=0; i<1024*2; i++) {
 		[stream write:[data mutableBytes] maxLength:[data length]];
 	}
 	

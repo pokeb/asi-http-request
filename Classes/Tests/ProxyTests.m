@@ -133,11 +133,11 @@ static NSString *proxyPassword = @"";
 	GHAssertTrue(0,@"Request failed when it shouldn't have done so");	
 }
 
-- (void)proxyAuthorizationNeededForRequest:(ASIHTTPRequest *)request
+- (void)proxyAuthenticationNeededForRequest:(ASIHTTPRequest *)request
 {
 	[request setProxyUsername:proxyUsername];
 	[request setProxyPassword:proxyPassword];
-	[request retryWithAuthentication];
+	[request retryUsingSuppliedCredentials];
 }
 
 
@@ -168,11 +168,11 @@ static NSString *proxyPassword = @"";
 	[self setComplete:YES];
 }
 
-- (void)authorizationNeededForRequest:(ASIHTTPRequest *)request
+- (void)authenticationNeededForRequest:(ASIHTTPRequest *)request
 {
 	[request setUsername:@"secret_username"];
 	[request setPassword:@"secret_password"];
-	[request retryWithAuthentication];
+	[request retryUsingSuppliedCredentials];
 }
 
 

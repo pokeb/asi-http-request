@@ -50,12 +50,12 @@
 	if (img) {
 		if ([imageView1 image]) {
 			if ([imageView2 image]) {
-				[imageView3 performSelectorOnMainThread:@selector(setImage:) withObject:img waitUntilDone:NO];
+				[imageView3 setImage:img];
 			} else {
-				[imageView2 performSelectorOnMainThread:@selector(setImage:) withObject:img waitUntilDone:NO];
+				[imageView2 setImage:img];
 			}
 		} else {
-			[imageView1 performSelectorOnMainThread:@selector(setImage:) withObject:img waitUntilDone:NO];
+			[imageView1 setImage:img];
 		}
 	}
 }
