@@ -13,7 +13,7 @@
 #import "ASIHTTPRequest.h"
 #import <zlib.h>
 #if TARGET_OS_IPHONE
-#import "Reachability.h"
+#import "CCReachability.h"
 #import "ASIAuthenticationDialog.h"
 #else
 #import <SystemConfiguration/SystemConfiguration.h>
@@ -2650,7 +2650,7 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 	if (throttle) {
 		[ASIHTTPRequest throttleBandwidthForWWANUsingLimit:ASIWWANBandwidthThrottleAmount];
 	} else {
-		[[NSNotificationCenter defaultCenter] removeObserver:self name:@"kNetworkReachabilityChangedNotification" object:nil];
+		[[NSNotificationCenter defaultCenter] removeObserver:self name:CCReachabilityChangedNotification object:nil];
 		[ASIHTTPRequest setMaxBandwidthPerSecond:0];
 		[bandwidthThrottlingLock lock];
 		shouldThrottleBandwithForWWANOnly = NO;
@@ -2663,8 +2663,8 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 	[bandwidthThrottlingLock lock];
 	shouldThrottleBandwithForWWANOnly = YES;
 	maxBandwidthPerSecond = limit;
-	[[Reachability sharedReachability] setNetworkStatusNotificationsEnabled:YES];
-	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reachabilityChanged:) name:@"kNetworkReachabilityChangedNotification" object:nil];
+    [CCReachability sharedReachability].networkStatusNotificationsEnabled = YES;
+	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reachabilityChanged:) name:CCReachabilityChangedNotification object:nil];
 	[bandwidthThrottlingLock unlock];
 	[ASIHTTPRequest reachabilityChanged:nil];
 }
@@ -2672,11 +2672,7 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 + (void)reachabilityChanged:(NSNotification *)note
 {
 	[bandwidthThrottlingLock lock];	
-	if ([[Reachability sharedReachability] internetConnectionStatus] == ReachableViaCarrierDataNetwork) {
-		isBandwidthThrottled = YES;
-	} else {
-		isBandwidthThrottled = NO;
-	}
+    isBandwidthThrottled = ([[CCReachability sharedReachability] internetConnectionStatus] == CCNetworkStatusViaCarrier);
 	[bandwidthThrottlingLock unlock];
 }
 #endif

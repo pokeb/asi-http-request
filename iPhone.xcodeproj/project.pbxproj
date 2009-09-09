@@ -10,6 +10,8 @@
 		1D60589F0D05DD5A006BFB54 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1D30AB110D05D00D00671497 /* Foundation.framework */; };
 		1DF5F4E00D08C38300B7A737 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1DF5F4DF0D08C38300B7A737 /* UIKit.framework */; };
 		288765080DF74369002DB57D /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 288765070DF74369002DB57D /* CoreGraphics.framework */; };
+		6A43F80D10584ABB00BE1E7B /* CCReachability.m in Sources */ = {isa = PBXBuildFile; fileRef = 6A43F80C10584ABB00BE1E7B /* CCReachability.m */; };
+		6A43F80E10584ABB00BE1E7B /* CCReachability.m in Sources */ = {isa = PBXBuildFile; fileRef = 6A43F80C10584ABB00BE1E7B /* CCReachability.m */; };
 		B517900B1024AD1B00583567 /* libz.1.2.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B55B60940F765AF80064029C /* libz.1.2.3.dylib */; };
 		B51791951024C3DA00583567 /* Authentication.xib in Resources */ = {isa = PBXBuildFile; fileRef = B51791941024C3DA00583567 /* Authentication.xib */; };
 		B51791A31024C3E800583567 /* AuthenticationViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B51791A21024C3E800583567 /* AuthenticationViewController.m */; };
@@ -53,8 +55,6 @@
 		B5C66638100A82A2004F3C96 /* ASIS3Request.m in Sources */ = {isa = PBXBuildFile; fileRef = B5C66637100A82A2004F3C96 /* ASIS3Request.m */; };
 		B5C66639100A82A2004F3C96 /* ASIS3Request.m in Sources */ = {isa = PBXBuildFile; fileRef = B5C66637100A82A2004F3C96 /* ASIS3Request.m */; };
 		B5C6663E100A82D7004F3C96 /* ASIS3RequestTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B5C6663D100A82D7004F3C96 /* ASIS3RequestTests.m */; };
-		B5D145511029E20D004379B8 /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = B5D145501029E20D004379B8 /* Reachability.m */; };
-		B5D145521029E20D004379B8 /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = B5D145501029E20D004379B8 /* Reachability.m */; };
 		B5D145781029E7F3004379B8 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B5D145771029E7F3004379B8 /* SystemConfiguration.framework */; };
 		B5D1458C1029ED68004379B8 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B5D145771029E7F3004379B8 /* SystemConfiguration.framework */; };
 		B5E2A9AB100C89D900B70E26 /* ASIS3BucketObject.m in Sources */ = {isa = PBXBuildFile; fileRef = B5E2A9A7100C89D900B70E26 /* ASIS3BucketObject.m */; };
@@ -68,6 +68,8 @@
 		1D6058910D05DD3D006BFB54 /* ASIHTTPRequest.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ASIHTTPRequest.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1DF5F4DF0D08C38300B7A737 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		288765070DF74369002DB57D /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
+		6A43F80B10584ABB00BE1E7B /* CCReachability.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CCReachability.h; sourceTree = "<group>"; };
+		6A43F80C10584ABB00BE1E7B /* CCReachability.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CCReachability.m; sourceTree = "<group>"; };
 		B517914A1024BFFF00583567 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
 		B51791941024C3DA00583567 /* Authentication.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Authentication.xib; path = "iPhone Sample/XIBs/Authentication.xib"; sourceTree = "<group>"; };
 		B51791A11024C3E800583567 /* AuthenticationViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AuthenticationViewController.h; path = "iPhone Sample/AuthenticationViewController.h"; sourceTree = "<group>"; };
@@ -132,8 +134,6 @@
 		B5C66637100A82A2004F3C96 /* ASIS3Request.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIS3Request.m; sourceTree = "<group>"; };
 		B5C6663C100A82D7004F3C96 /* ASIS3RequestTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIS3RequestTests.h; sourceTree = "<group>"; };
 		B5C6663D100A82D7004F3C96 /* ASIS3RequestTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIS3RequestTests.m; sourceTree = "<group>"; };
-		B5D1454F1029E20D004379B8 /* Reachability.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Reachability.h; sourceTree = "<group>"; };
-		B5D145501029E20D004379B8 /* Reachability.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Reachability.m; sourceTree = "<group>"; };
 		B5D145771029E7F3004379B8 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
 		B5E2A9A7100C89D900B70E26 /* ASIS3BucketObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIS3BucketObject.m; sourceTree = "<group>"; };
 		B5E2A9A8100C89D900B70E26 /* ASIS3ListRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIS3ListRequest.h; sourceTree = "<group>"; };
@@ -307,8 +307,8 @@
 		B5D1454E1029E20D004379B8 /* External */ = {
 			isa = PBXGroup;
 			children = (
-				B5D1454F1029E20D004379B8 /* Reachability.h */,
-				B5D145501029E20D004379B8 /* Reachability.m */,
+				6A43F80B10584ABB00BE1E7B /* CCReachability.h */,
+				6A43F80C10584ABB00BE1E7B /* CCReachability.m */,
 				B5B513BE0FBEE602002C74D0 /* GHUnit */,
 			);
 			path = External;
@@ -425,9 +425,9 @@
 				B5E2A9AD100C89D900B70E26 /* ASIS3BucketObject.m in Sources */,
 				B5E2A9AE100C89D900B70E26 /* ASIS3ListRequest.m in Sources */,
 				B51791A31024C3E800583567 /* AuthenticationViewController.m in Sources */,
-				B5D145521029E20D004379B8 /* Reachability.m in Sources */,
 				B522DACF1030B2AB009A2D22 /* ASIInputStream.m in Sources */,
 				B59A87C3103EC6F200300252 /* ASIAuthenticationDialog.m in Sources */,
+				6A43F80D10584ABB00BE1E7B /* CCReachability.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -449,9 +449,9 @@
 				B522EF79101C795F00A902FC /* GHUnitIPhoneTestMain.m in Sources */,
 				B5652920101C8BD7000499CF /* ASITestCase.m in Sources */,
 				B5254FF91025F9BF00CF7BC4 /* ProxyTests.m in Sources */,
-				B5D145511029E20D004379B8 /* Reachability.m in Sources */,
 				B522DACE1030B2AB009A2D22 /* ASIInputStream.m in Sources */,
 				B59A87C2103EC6F200300252 /* ASIAuthenticationDialog.m in Sources */,
+				6A43F80E10584ABB00BE1E7B /* CCReachability.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
