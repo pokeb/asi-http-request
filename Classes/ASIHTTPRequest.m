@@ -2672,7 +2672,7 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 + (void)reachabilityChanged:(NSNotification *)note
 {
 	[bandwidthThrottlingLock lock];	
-    isBandwidthThrottled = ([[CCReachability sharedReachability] internetConnectionStatus] == CCNetworkStatusViaCarrier);
+    isBandwidthThrottled = ([[CCReachability sharedReachability] internetConnectionStatus] == CCReachabilityStatusViaCarrier);
 	[bandwidthThrottlingLock unlock];
 }
 #endif
