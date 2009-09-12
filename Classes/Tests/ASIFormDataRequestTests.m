@@ -105,7 +105,7 @@
 
 - (void)testURLEncodedPost
 {
-	ASIFormDataRequest *request = [ASIFormDataRequest requestWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/url-encoded-post"]];
+	ASIFormDataRequest *request = [ASIFormDataRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/url-encoded-post"]];
 	[request setPostValue:@"value1" forKey:@"value1"];
 	[request setPostValue:@"(%20 ? =)" forKey:@"value2"];
 	[request setPostValue:@"£100.00" forKey:@"value3"];
