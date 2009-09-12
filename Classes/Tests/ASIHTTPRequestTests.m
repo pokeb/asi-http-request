@@ -605,10 +605,12 @@
 
 	GHAssertNil([request error],@"Got an error when credentials were supplied");
 	
-	NSString *computerName = [(NSString *)SCDynamicStoreCopyComputerName(NULL,NULL) autorelease];
+	// Ok, so I assume that not everyone will have a hostname in the form 'Ben-Copseys-MacBook-Pro.local', but anyway...
+	NSString *hostName = [NSString stringWithFormat:@"%@.local",[(NSString *)SCDynamicStoreCopyLocalHostName(NULL) autorelease]];
 	
-	success = [[request responseString] isEqualToString:[NSString stringWithFormat:@"You are %@ from %@/%@",@"king",@"Castle.Kingdom",computerName]];
-	GHAssertTrue(success,@"Failed to send credentials correctly?");
+	NSString *expectedResponse = [NSString stringWithFormat:@"You are %@ from %@/%@",@"king",[@"Castle.Kingdom" uppercaseString],hostName];
+	success = [[request responseString] isEqualToString:expectedResponse];
+	GHAssertTrue(success,@"Failed to send credentials correctly? (Expected: '%@', got '%@')",expectedResponse,[request responseString]);
 }
 
 - (void)testCompressedResponse

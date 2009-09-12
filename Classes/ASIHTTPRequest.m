@@ -1548,7 +1548,7 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 			}
 			
 			// Now we've aquirred the lock, it may be that the session contains credentials we can re-use for this request
-			if ([self useSessionPersistance] && [self applyProxyCredentials:sessionProxyCredentials]) {
+			if ([self useSessionPersistance] && sessionProxyCredentials && [self applyProxyCredentials:sessionProxyCredentials]) {
 				[delegateAuthenticationLock unlock];
 				[self startRequest];
 				return;
@@ -1603,7 +1603,7 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 		}
 		
 		// Now we've aquirred the lock, it may be that the session contains credentials we can re-use for this request
-		if ([self useSessionPersistance] && [self applyProxyCredentials:sessionProxyCredentials]) {
+		if ([self useSessionPersistance] && sessionProxyCredentials && [self applyProxyCredentials:sessionProxyCredentials]) {
 			[delegateAuthenticationLock unlock];
 			[self startRequest];
 			return;
@@ -1744,7 +1744,7 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 			}
 			
 			// Now we've aquirred the lock, it may be that the session contains credentials we can re-use for this request
-			if ([self useSessionPersistance] && [self applyCredentials:sessionCredentials]) {
+			if ([self useSessionPersistance] && sessionCredentials &&  [self applyCredentials:sessionCredentials]) {
 				[delegateAuthenticationLock unlock];
 				[self startRequest];
 				return;
@@ -1799,7 +1799,7 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 		}
 		
 		// Now we've aquirred the lock, it may be that the session contains credentials we can re-use for this request
-		if ([self useSessionPersistance] && [self applyCredentials:sessionCredentials]) {
+		if ([self useSessionPersistance] && sessionCredentials && [self applyCredentials:sessionCredentials]) {
 			[delegateAuthenticationLock unlock];
 			[self startRequest];
 			return;
