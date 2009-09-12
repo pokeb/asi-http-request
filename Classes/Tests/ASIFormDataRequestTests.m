@@ -103,6 +103,22 @@
 	GHAssertTrue(success,@"Convenience constructor failed to return an instance of the correct class");	
 }
 
+- (void)testURLEncodedPost
+{
+	ASIFormDataRequest *request = [ASIFormDataRequest requestWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/url-encoded-post"]];
+	[request setPostValue:@"value1" forKey:@"value1"];
+	[request setPostValue:@"(%20 ? =)" forKey:@"value2"];
+	[request setPostValue:@"£100.00" forKey:@"value3"];
+	[request setPostValue:@"" forKey:@"value4"];
+	[request setShouldStreamPostDataFromDisk:YES];
+	[request setPostFormat:ASIURLEncodedPostFormat];
+	[request start];
+
+	
+	BOOL success = ([[request responseString] isEqualToString:@"value1: value1\r\nvalue2: (%20 ? =)\r\nvalue3: £100.00\r\nvalue4: "]);
+	GHAssertTrue(success,@"Failed to send the correct post data");			
+}
+
 
 
 @end

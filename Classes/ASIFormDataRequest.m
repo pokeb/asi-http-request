@@ -11,6 +11,8 @@
 
 // Private stuff
 @interface ASIFormDataRequest ()
+- (void)buildMultipartFormDataPostBody;
+- (void)buildURLEncodedPostBody;
 @property (retain) NSMutableDictionary *postData;
 @property (retain) NSMutableDictionary *fileData;
 @end
@@ -21,7 +23,9 @@
 
 + (id)requestWithURL:(NSURL *)newURL
 {
-	return [[[self alloc] initWithURL:newURL] autorelease];
+	ASIFormDataRequest *request = [[[self alloc] initWithURL:newURL] autorelease];
+	[request setPostFormat:ASIMultipartFormDataPostFormat];
+	return request;
 }
 
 - (void)dealloc
@@ -106,8 +110,19 @@
 	if ([[self fileData] count] > 0) {
 		[self setShouldStreamPostDataFromDisk:YES];
 	}
-	 
 	
+	if ([self postFormat] == ASIURLEncodedPostFormat) {
+		[self buildURLEncodedPostBody];
+	} else {
+		[self buildMultipartFormDataPostBody];
+	}
+	
+	[super buildPostBody];
+}
+
+
+- (void)buildMultipartFormDataPostBody
+{
 	// Set your own boundary string only if really obsessive. We don't bother to check if post data contains the boundary, since it's pretty unlikely that it does.
 	NSString *stringBoundary = @"0xKhTmLbOuNdArY";
 	
@@ -137,10 +152,10 @@
 		id file = [fileInfo objectForKey:@"data"];
 		NSString *contentType = [fileInfo objectForKey:@"contentType"];
 		NSString *fileName = [fileInfo objectForKey:@"fileName"];
-
+		
 		[self appendPostData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"; filename=\"%@\"\r\n", key, fileName] dataUsingEncoding:NSUTF8StringEncoding]];
 		[self appendPostData:[[NSString stringWithFormat:@"Content-Type: %@\r\n\r\n", contentType] dataUsingEncoding:NSUTF8StringEncoding]];
-
+		
 		if ([file isKindOfClass:[NSString class]]) {
 			[self appendPostDataFromFile:file];
 		} else {
@@ -155,11 +170,33 @@
 	
 	[self appendPostData:[[NSString stringWithFormat:@"\r\n--%@--\r\n",stringBoundary] dataUsingEncoding:NSUTF8StringEncoding]];
 	
-	[super buildPostBody];
 }
 
+- (void)buildURLEncodedPostBody
+{
+	// We can't post binary data using application/x-www-form-urlencoded
+	if ([[self fileData] count] > 0) {
+		[self setPostFormat:ASIMultipartFormDataPostFormat];
+		[self buildMultipartFormDataPostBody];
+		return;
+	}
+	
+	[self addRequestHeader:@"Content-Type" value:@"application/x-www-form-urlencoded"];
 
-@synthesize fileData;
+	
+	NSEnumerator *e = [[self postData] keyEnumerator];
+	NSString *key;
+	int i=0;
+	int count = [[self postData] count]-1;
+	while (key = [e nextObject]) {
+		NSString *data = [NSString stringWithFormat:@"%@=%@%@",[key stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding],[[[self postData] objectForKey:key] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding],(i<count ? @"&" : @"")];
+		[self appendPostData:[data dataUsingEncoding:NSUTF8StringEncoding]];
+		i++;
+	}
+}
+
 @synthesize postData;
+@synthesize fileData;
+@synthesize postFormat;
 
 @end

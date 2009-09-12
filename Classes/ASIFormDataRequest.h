@@ -9,6 +9,12 @@
 #import <Foundation/Foundation.h>
 #import "ASIHTTPRequest.h"
 
+typedef enum _ASIPostFormat {
+    ASIMultipartFormDataPostFormat = 0,
+    ASIURLEncodedPostFormat = 1
+	
+} ASIPostFormat;
+
 @interface ASIFormDataRequest : ASIHTTPRequest {
 
 	// Parameters that will be POSTed to the url
@@ -17,6 +23,7 @@
 	// Files that will be POSTed to the url
 	NSMutableDictionary *fileData;
 	
+	ASIPostFormat postFormat;
 }
 
 #pragma mark setup request
@@ -36,4 +43,6 @@
 // Same as above, but you can specify the content-type and file name
 - (void)setData:(id)data withFileName:(NSString *)fileName andContentType:(NSString *)contentType forKey:(NSString *)key;
 
+
+@property (assign) ASIPostFormat postFormat;
 @end
