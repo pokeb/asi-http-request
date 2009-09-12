@@ -605,12 +605,11 @@
 
 	GHAssertNil([request error],@"Got an error when credentials were supplied");
 	
-	// Ok, so I assume that not everyone will have a hostname in the form 'Ben-Copseys-MacBook-Pro.local', but anyway...
-	NSString *hostName = [NSString stringWithFormat:@"%@.local",[(NSString *)SCDynamicStoreCopyLocalHostName(NULL) autorelease]];
-	
-	NSString *expectedResponse = [NSString stringWithFormat:@"You are %@ from %@/%@",@"king",[@"Castle.Kingdom" uppercaseString],hostName];
-	success = [[request responseString] isEqualToString:expectedResponse];
-	GHAssertTrue(success,@"Failed to send credentials correctly? (Expected: '%@', got '%@')",expectedResponse,[request responseString]);
+	// NSProcessInfo returns a lower case string for host name, while CFNetwork will send a mixed case string for host name, so we'll compare by lowercasing everything
+	NSString *hostName = [[NSProcessInfo processInfo] hostName];
+	NSString *expectedResponse = [[NSString stringWithFormat:@"You are %@ from %@/%@",@"king",@"Castle.Kingdom",hostName] lowercaseString];
+	success = [[[request responseString] lowercaseString] isEqualToString:expectedResponse];
+	GHAssertTrue(success,@"Failed to send credentials correctly? (Expected: '%@', got '%@')",expectedResponse,[[request responseString] lowercaseString]);
 }
 
 - (void)testCompressedResponse
