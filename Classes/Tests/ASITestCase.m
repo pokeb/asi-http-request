@@ -15,7 +15,7 @@
 {
 	NSString *path = [[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0] stringByAppendingPathComponent:@"ASIHTTPRequest Test Files"];
 	if (![[NSFileManager defaultManager] fileExistsAtPath:path isDirectory:NULL]) {
-		[[NSFileManager defaultManager] createDirectoryAtPath:path attributes:nil];
+		[[NSFileManager defaultManager] createDirectoryAtPath:path withIntermediateDirectories:NO attributes:nil error:NULL];
 	}
 	return path;
 }

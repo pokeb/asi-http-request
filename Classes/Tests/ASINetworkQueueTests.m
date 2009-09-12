@@ -507,8 +507,12 @@ IMPORTANT
 	[networkQueue setQueueDidFinishSelector:@selector(queueFinished:)];	
 	
 	complete = NO;
-	progress = 0;	
-	unsigned long long downloadedSoFar = [[[NSFileManager defaultManager] fileAttributesAtPath:temporaryPath traverseLink:NO] fileSize];
+	progress = 0;
+	
+	NSError *err = nil;
+	unsigned long long downloadedSoFar = [[[NSFileManager defaultManager] attributesOfItemAtPath:temporaryPath error:&err] fileSize];
+	GHAssertNil(err,@"Got an error obtaining attributes on the file, this shouldn't happen");
+	
 	BOOL success = (downloadedSoFar > 0);
 	GHAssertTrue(success,@"Failed to download part of the file, so we can't proceed with this test");
 	
@@ -525,7 +529,8 @@ IMPORTANT
 		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
 	}
 	
-	unsigned long long amountDownloaded = [[[NSFileManager defaultManager] fileAttributesAtPath:downloadPath traverseLink:NO] fileSize];
+	unsigned long long amountDownloaded = [[[NSFileManager defaultManager] attributesOfItemAtPath:downloadPath error:&err] fileSize];
+	GHAssertNil(err,@"Got an error obtaining attributes on the file, this shouldn't happen");
 	success = (amountDownloaded == 9145357);
 	GHAssertTrue(success,@"Failed to complete the download");
 	

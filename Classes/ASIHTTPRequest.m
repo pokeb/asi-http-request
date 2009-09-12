@@ -258,12 +258,19 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 			[self setPostBodyWriteStream:nil];
 		}
 
+		NSError *err = nil;
+		NSString *path;
 		if ([self shouldCompressRequestBody]) {
 			[self setCompressedPostBodyFilePath:[NSTemporaryDirectory() stringByAppendingPathComponent:[[NSProcessInfo processInfo] globallyUniqueString]]];
 			[ASIHTTPRequest compressDataFromFile:[self postBodyFilePath] toFile:[self compressedPostBodyFilePath]];
-			[self setPostLength:[[[NSFileManager defaultManager] fileAttributesAtPath:[self compressedPostBodyFilePath] traverseLink:NO] fileSize]];
+			path = [self compressedPostBodyFilePath];
 		} else {
-			[self setPostLength:[[[NSFileManager defaultManager] fileAttributesAtPath:[self postBodyFilePath] traverseLink:NO] fileSize]];
+			path = [self postBodyFilePath];
+		}
+		[self setPostLength:[[[NSFileManager defaultManager] attributesOfItemAtPath:path error:&err] fileSize]];
+		if (err) {
+			[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIFileManagementError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Failed to get attributes for file at path '@%'",path],NSLocalizedDescriptionKey,error,NSUnderlyingErrorKey,nil]]];
+			return;
 		}
 		
 	// Otherwise, we have an in-memory request body
@@ -482,7 +489,12 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 	
 	// Should this request resume an existing download?
 	if ([self allowResumeForFileDownloads] && [self downloadDestinationPath] && [self temporaryFileDownloadPath] && [[NSFileManager defaultManager] fileExistsAtPath:[self temporaryFileDownloadPath]]) {
-		[self setPartialDownloadSize:[[[NSFileManager defaultManager] fileAttributesAtPath:[self temporaryFileDownloadPath] traverseLink:NO] fileSize]];
+		NSError *err = nil;
+		[self setPartialDownloadSize:[[[NSFileManager defaultManager] attributesOfItemAtPath:[self temporaryFileDownloadPath] error:&err] fileSize]];
+		if (err) {
+			[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIFileManagementError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Failed to get attributes for file at path '@%'",temporaryFileDownloadPath],NSLocalizedDescriptionKey,error,NSUnderlyingErrorKey,nil]]];
+			return;
+		}
 		[self addRequestHeader:@"Range" value:[NSString stringWithFormat:@"bytes=%llu-",[self partialDownloadSize]]];
 	}
 	
@@ -770,7 +782,12 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 		
 		// If we haven't said we might want to resume, let's remove the temporary file too
 		if (![self allowResumeForFileDownloads]) {
-			[[NSFileManager defaultManager] removeItemAtPath:temporaryFileDownloadPath error:NULL];
+			NSError *err = nil;
+			[[NSFileManager defaultManager] removeItemAtPath:temporaryFileDownloadPath error:&err];
+			if (err) {
+				[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIFileManagementError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Failed to remove temporary file at path '@%'",temporaryFileDownloadPath],NSLocalizedDescriptionKey,error,NSUnderlyingErrorKey,nil]]];
+				return;
+			}
 		}
 	}
 	
@@ -791,7 +808,7 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 		NSError *removeError = nil;
 		[[NSFileManager defaultManager] removeItemAtPath:temporaryFileDownloadPath error:&removeError];
 		if (removeError) {
-			[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIFileManagementError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Failed to delete file at %@ with error: %@",temporaryFileDownloadPath,removeError],NSLocalizedDescriptionKey,removeError,NSUnderlyingErrorKey,nil]]];
+			[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIFileManagementError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Failed to delete file at path '%@'",temporaryFileDownloadPath],NSLocalizedDescriptionKey,removeError,NSUnderlyingErrorKey,nil]]];
 		}
 		[self setTemporaryFileDownloadPath:nil];
 	}
@@ -803,7 +820,7 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 		NSError *removeError = nil;
 		[[NSFileManager defaultManager] removeItemAtPath:[self postBodyFilePath] error:&removeError];
 		if (removeError) {
-			[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIFileManagementError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Failed to delete file at %@ with error: %@",[self postBodyFilePath],removeError],NSLocalizedDescriptionKey,removeError,NSUnderlyingErrorKey,nil]]];
+			[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIFileManagementError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Failed to delete file at path '%@'",[self postBodyFilePath]],NSLocalizedDescriptionKey,removeError,NSUnderlyingErrorKey,nil]]];
 		}
 		[self setPostBodyFilePath:nil];
 	}
@@ -811,7 +828,7 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 		NSError *removeError = nil;
 		[[NSFileManager defaultManager] removeItemAtPath:[self compressedPostBodyFilePath] error:&removeError];
 		if (removeError) {
-			[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIFileManagementError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Failed to delete file at %@ with error: %@",[self compressedPostBodyFilePath],removeError],NSLocalizedDescriptionKey,removeError,NSUnderlyingErrorKey,nil]]];
+			[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIFileManagementError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Failed to delete file at path '%@'",[self compressedPostBodyFilePath]],NSLocalizedDescriptionKey,removeError,NSUnderlyingErrorKey,nil]]];
 		}
 		[self setCompressedPostBodyFilePath:nil];
 	}

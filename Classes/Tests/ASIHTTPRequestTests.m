@@ -11,6 +11,7 @@
 #import "ASINSStringAdditions.h"
 #import "ASINetworkQueue.h"
 #import "ASIFormDataRequest.h"
+#import <SystemConfiguration/SystemConfiguration.h>
 
 // Used for subclass test
 @interface ASIHTTPRequestSubclass : ASIHTTPRequest {}
@@ -252,7 +253,7 @@
 	//BOOL success = (![[NSFileManager defaultManager] fileExistsAtPath:tempPath]);
 	//GHAssertTrue(success,@"Failed to remove file from temporary location");	
 	
-	BOOL success = [[NSString stringWithContentsOfURL:[NSURL fileURLWithPath:path]] isEqualToString:@"This is the expected content for the first string"];
+	BOOL success = [[NSString stringWithContentsOfURL:[NSURL fileURLWithPath:path] encoding:NSUTF8StringEncoding error:NULL] isEqualToString:@"This is the expected content for the first string"];
 	GHAssertTrue(success,@"Failed to download data to a file");
 	
 }
@@ -577,43 +578,38 @@
 	GHAssertTrue(success,@"Failed to clear credentials");
 }
 
-// If you want to run this test, uncomment, and set your hostname, username, password and domain below.	
-//- (void)testNTLMAuthentication
-//{
-//	NSString *theURL = @"";
-//	NSString *username = @"";
-//	NSString *password = @"";
-//	NSString *domain = @"";
-//	
-//	if ([theURL isEqualToString:@""] || [username isEqualToString:@""] || [password isEqualToString:@""]) {
-//		GHAssertFalse(true,@"Skipping NTLM test because no server details were supplied");
-//	}
-//	
-//	[ASIHTTPRequest clearSession];
-//	
-//	NSURL *url = [[[NSURL alloc] initWithString:theURL] autorelease];
-//	ASIHTTPRequest *request;
-//	BOOL success;
-//	NSError *err;
-//	
-//	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-//	[request setUseKeychainPersistance:NO];
-//	[request setUseSessionPersistance:NO];
-//	[request start];
-//	success = [[request error] code] == ASIAuthenticationErrorType;
-//	GHAssertTrue(success,@"Failed to generate permission denied error with no credentials");
-//
-//
-//	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-//	[request setUseSessionPersistance:YES];
-//	[request setUseKeychainPersistance:NO];
-//	[request setUsername:username];
-//	[request setPassword:password];
-//	[request setDomain:domain];
-//	[request start];
-//	err = [request error];
-//	GHAssertNil(err,@"Got an error when correct credentials were supplied");
-//}
+- (void)testNTLMHandshake
+{
+	// This test connects to a script that masquerades as an NTLM server
+	// It tests that the handshake seems sane, but doesn't actually authenticate
+	
+	[ASIHTTPRequest clearSession];
+	
+	NSURL *url = [NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/pretend-ntlm-handshake"];
+	
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:url];
+	[request setUseKeychainPersistance:NO];
+	[request setUseSessionPersistance:NO];
+	[request start];
+	BOOL success = [[request error] code] == ASIAuthenticationErrorType;
+	GHAssertTrue(success,@"Failed to generate permission denied error with no credentials");
+
+
+	request = [ASIHTTPRequest requestWithURL:url];
+	[request setUseSessionPersistance:YES];
+	[request setUseKeychainPersistance:NO];
+	[request setUsername:@"king"];
+	[request setPassword:@"fink"];
+	[request setDomain:@"Castle.Kingdom"];
+	[request start];
+
+	GHAssertNil([request error],@"Got an error when credentials were supplied");
+	
+	NSString *computerName = [(NSString *)SCDynamicStoreCopyComputerName(NULL,NULL) autorelease];
+	
+	success = [[request responseString] isEqualToString:[NSString stringWithFormat:@"You are %@ from %@/%@",@"king",@"Castle.Kingdom",computerName]];
+	GHAssertTrue(success,@"Failed to send credentials correctly?");
+}
 
 - (void)testCompressedResponse
 {
@@ -660,7 +656,7 @@
 	BOOL success = ([request contentLength] == 68);
 	GHAssertTrue(success,@"Failed to download a segment of the data");
 	
-	NSString *content = [NSString stringWithContentsOfFile:downloadPath];
+	NSString *content = [NSString stringWithContentsOfFile:downloadPath encoding:NSUTF8StringEncoding error:NULL];
 	
 	NSString *newPartialContent = [content substringFromIndex:95];
 	success = ([newPartialContent isEqualToString:@"This is the content we ought to be getting if we start from byte 95."]);

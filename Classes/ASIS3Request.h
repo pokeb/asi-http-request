@@ -21,7 +21,7 @@ typedef enum _ASIS3ErrorType {
 	
 } ASIS3ErrorType;
 
-@interface ASIS3Request : ASIHTTPRequest {
+@interface ASIS3Request : ASIHTTPRequest <NSXMLParserDelegate> {
 
 	// Your S3 access key. Set it on the request, or set it globally using [ASIS3Request setSharedAccessKey:]
 	NSString *accessKey;
