@@ -36,6 +36,8 @@ IMPORTANT
 	int authenticationPromptCount;
 	
 	ASINetworkQueue *postQueue;
+	
+	ASINetworkQueue *testNTLMQueue;
 }
 
 - (void)testFailure;
@@ -68,5 +70,6 @@ IMPORTANT
 @property (retain) ASINetworkQueue *releaseTestQueue;
 @property (retain) ASINetworkQueue *cancelQueue;
 @property (retain) ASINetworkQueue *postQueue;
+@property (retain) ASINetworkQueue *testNTLMQueue;
 
 @end

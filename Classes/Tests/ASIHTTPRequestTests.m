@@ -585,7 +585,7 @@
 	
 	[ASIHTTPRequest clearSession];
 	
-	NSURL *url = [NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/pretend-ntlm-handshake"];
+	NSURL *url = [NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/pretend-ntlm-handshake"];
 	
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:url];
 	[request setUseKeychainPersistance:NO];
@@ -766,7 +766,6 @@
 	[request appendPostData:data];
 	[request start];
 	
-	NSLog(@"%@",[request responseData]);
 	success = [[request responseString] isEqualToString:content];
 	GHAssertTrue(success,@"Failed to compress the body, or server failed to decompress it");	
 	

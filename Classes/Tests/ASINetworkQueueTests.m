@@ -10,6 +10,7 @@
 #import "ASIHTTPRequest.h"
 #import "ASINetworkQueue.h"
 #import "ASIFormDataRequest.h"
+#import <SystemConfiguration/SystemConfiguration.h>
 
 /*
 IMPORTANT
@@ -82,7 +83,8 @@ IMPORTANT
 	while (!complete) {
 		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
 	}
-	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
+	
+	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1]];
 	BOOL success = (progress > 0.95);
 	GHAssertTrue(success,@"Failed to increment progress properly");
 	
@@ -114,6 +116,11 @@ IMPORTANT
 	
 }
 
+- (void)uploadFailed:(ASIHTTPRequest *)request
+{
+	GHFail(@"Failed to upload some data, cannot continue with this test");
+}
+
 - (void)testUploadProgress
 {
 	complete = NO;
@@ -123,6 +130,7 @@ IMPORTANT
 	[networkQueue setUploadProgressDelegate:self];
 	[networkQueue setDelegate:self];
 	[networkQueue setShowAccurateProgress:NO];
+	[networkQueue setRequestDidFailSelector:@selector(uploadFailed:)];
 	[networkQueue setQueueDidFinishSelector:@selector(queueFinished:)];	
 	
 	NSURL *url = [NSURL URLWithString:@"http://allseeing-i.com/ignore"];
@@ -143,7 +151,7 @@ IMPORTANT
 	while (!complete) {
 		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
 	}
-	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
+	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1]];
 	BOOL success = (progress > 0.95);
 	GHAssertTrue(success,@"Failed to increment progress properly");
 	
@@ -167,7 +175,7 @@ IMPORTANT
 	while (!complete) {
 		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
 	}
-	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
+	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1]];
 	success = (progress > 0.95);
 	GHAssertTrue(success,@"Failed to increment progress properly");
 	
@@ -389,7 +397,17 @@ IMPORTANT
 - (void)authenticationNeededForRequest:(ASIHTTPRequest *)request
 {
 	// We're using this method in multiple tests, so the code here is to act appropriatly for each one
-	if ([[[request userInfo] objectForKey:@"test"] isEqualToString:@"reuse"]) {
+	
+	if ([[[request userInfo] objectForKey:@"test"] isEqualToString:@"ntlm"]) {
+		authenticationPromptCount++;
+		if (authenticationPromptCount == 5) {
+			[request setUsername:@"king"];
+			[request setPassword:@"crown"];
+			[request setDomain:@"CASTLE.KINGDOM"];
+		}
+		[request retryUsingSuppliedCredentials];
+	
+	} else if ([[[request userInfo] objectForKey:@"test"] isEqualToString:@"reuse"]) {
 		authenticationPromptCount++;
 		BOOL success = (authenticationPromptCount == 1);
 		GHAssertTrue(success,@"Delegate was asked for credentials more than once");
@@ -458,7 +476,7 @@ IMPORTANT
 	[networkQueue waitUntilAllOperationsAreFinished];
     
 	// Give the queue time to notify us
-	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
+	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1]];
 	
 	// This test may fail if you are using a proxy and it returns a page when you try to connect to a bad port.
 	GHAssertTrue(!request_succeeded && request_didfail,@"Request to resource without listener succeeded but should have failed");
@@ -878,10 +896,49 @@ IMPORTANT
 	[[self postQueue] go];
 }
 
+- (void)testNTLMMultipleFailure
+{
+	authenticationPromptCount = 0;
+	[ASIHTTPRequest clearSession];
+	[[self testNTLMQueue] cancelAllOperations];
+	[self setTestNTLMQueue:[ASINetworkQueue queue]];
+	
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/pretend-ntlm-handshake"]];
+	[request setUseKeychainPersistance:NO];
+	[request setUseSessionPersistance:NO];
+	[request setUserInfo:[NSDictionary dictionaryWithObject:@"ntlm" forKey:@"test"]];
+	
+	[[self testNTLMQueue] setRequestDidFinishSelector:@selector(ntlmDone:)];
+	[[self testNTLMQueue] setRequestDidFailSelector:@selector(ntlmFailed:)];
+	[[self testNTLMQueue] setDelegate:self];	
+	[[self testNTLMQueue] addOperation:request];
+	[[self testNTLMQueue] go];	
+}
+
+- (void)ntlmFailed:(ASIHTTPRequest *)request
+{
+	GHFail(@"Failed to provide NTLM credentials (error was :%@)",[request error]);	
+}
+
+- (void)ntlmDone:(ASIHTTPRequest *)request
+{
+	GHAssertNil([request error],@"Got an error when credentials were supplied");
+	
+	// Ok, so I assume that not everyone will have a hostname in the form 'Ben-Copseys-MacBook-Pro.local', but anyway...
+	NSString *hostName = [NSString stringWithFormat:@"%@.local",[(NSString *)SCDynamicStoreCopyLocalHostName(NULL) autorelease]];
+	
+	NSString *expectedResponse = [NSString stringWithFormat:@"You are %@ from %@/%@",@"king",[@"Castle.Kingdom" uppercaseString],hostName];
+	BOOL success = [[request responseString] isEqualToString:expectedResponse];
+	GHAssertTrue(success,@"Failed to send credentials correctly? (Expected: '%@', got '%@')",expectedResponse,[request responseString]);
+	
+}
+
 @synthesize immediateCancelQueue;
 @synthesize failedRequests;
 @synthesize finishedRequests;
 @synthesize releaseTestQueue;
 @synthesize cancelQueue;
 @synthesize postQueue;
+@synthesize testNTLMQueue;
+
 @end
