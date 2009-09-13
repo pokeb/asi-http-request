@@ -2465,9 +2465,21 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 	if (!appName) {
 		return nil;
 	}
-	NSString *appVersion = [[bundle objectForInfoDictionaryKey:@"CFBundleShortVersionString"] stringByAppendingFormat:@" (%@)",
-                          [bundle objectForInfoDictionaryKey:@"CFBundleVersion"]];
-	NSString *deviceName;;
+	NSString *appVersion = nil;
+	NSString *marketingVersionNumber = [bundle objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
+    NSString *developmentVersionNumber = [bundle objectForInfoDictionaryKey:@"CFBundleVersion"];
+	if (marketingVersionNumber && developmentVersionNumber) {
+		if ([marketingVersionNumber isEqualToString:developmentVersionNumber]) {
+			appVersion = marketingVersionNumber;
+		} else {
+			appVersion = [NSString stringWithFormat:@"%@ rv:%@",marketingVersionNumber,developmentVersionNumber];
+		}
+	} else {
+		appVersion = (marketingVersionNumber ? marketingVersionNumber : developmentVersionNumber);
+	}
+	
+	
+	NSString *deviceName;
 	NSString *OSName;
 	NSString *OSVersion;
 	
