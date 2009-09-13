@@ -2465,7 +2465,8 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 	if (!appName) {
 		return nil;
 	}
-	NSString *appVersion = [bundle objectForInfoDictionaryKey:@"CFBundleVersion"];
+	NSString *appVersion = [[bundle objectForInfoDictionaryKey:@"CFBundleShortVersionString"] stringByAppendingFormat:@" (%@)",
+                          [bundle objectForInfoDictionaryKey:@"CFBundleVersion"]];
 	NSString *deviceName;;
 	NSString *OSName;
 	NSString *OSVersion;
