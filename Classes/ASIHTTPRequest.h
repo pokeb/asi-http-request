@@ -195,6 +195,8 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	// HTTP status code, eg: 200 = OK, 404 = Not found etc
 	int responseStatusCode;
 	
+	NSString *responseStatusMessage;
+	
 	// Size of the response
 	unsigned long long contentLength;
 	
@@ -540,6 +542,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 @property (retain) NSDictionary *requestCredentials;
 @property (retain) NSDictionary *proxyCredentials;
 @property (assign,readonly) int responseStatusCode;
+@property (retain,readonly) NSString *responseStatusMessage;
 @property (retain,readonly) NSMutableData *rawResponseData;
 @property (assign) NSTimeInterval timeOutSeconds;
 @property (retain) NSString *requestMethod;

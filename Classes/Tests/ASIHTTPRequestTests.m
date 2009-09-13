@@ -890,6 +890,14 @@
 	GHAssertNotNil([request error],@"Failed to generate an authentication when attempting to write to an invalid location");		
 }
 
+- (void)testResponseStatusMessage
+{
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL	URLWithString:@"http://allseeing-i.com/the-meaning-of-life"]];
+	[request start];	
+	BOOL success = [[request responseStatusMessage] isEqualToString:@"HTTP/1.0 404 Not Found"];
+	GHAssertTrue(success,@"Got wrong response status message");
+}
+
 @end
 
 

@@ -124,7 +124,7 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 @property (retain) NSConditionLock *authenticationLock;
 @property (retain) NSString *authenticationRealm;
 @property (retain) NSString *proxyAuthenticationRealm;
-
+@property (retain) NSString *responseStatusMessage;
 @end
 
 
@@ -1158,7 +1158,8 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 
 		CFRelease(headerFields);
 		[self setResponseStatusCode:CFHTTPMessageGetResponseStatusCode(headers)];
-		
+		[self setResponseStatusMessage:[(NSString *)CFHTTPMessageCopyResponseStatusLine(headers) autorelease]];
+
 		// Is the server response a challenge for credentials?
 		isAuthenticationChallenge = ([self responseStatusCode] == 401);
 		if ([self responseStatusCode] == 407) {
@@ -1247,6 +1248,7 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 	CFRelease(headers);
 	return isAuthenticationChallenge;
 }
+	
 
 #pragma mark http authentication
 
@@ -2814,6 +2816,7 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 @synthesize shouldPresentAuthenticationDialog;
 @synthesize shouldPresentProxyAuthenticationDialog;
 @synthesize authenticationChallengeInProgress;
+@synthesize responseStatusMessage;
 @end
 
 
