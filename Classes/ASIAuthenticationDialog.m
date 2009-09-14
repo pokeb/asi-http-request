@@ -188,7 +188,12 @@ NSLock *dialogLock = nil;
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
+#if __IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_3_0
+	UITableViewCell *cell = [[[UITableViewCell alloc] initWithFrame:CGRectZero reuseIdentifier:nil] autorelease];
+#else
 	UITableViewCell *cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:nil] autorelease];
+#endif
+
 	[cell setSelectionStyle:UITableViewCellSelectionStyleNone];
 	UITextField *textField = [[[UITextField alloc] initWithFrame:CGRectMake(20,12,260,25)] autorelease];
 	[textField setAutocapitalizationType:UITextAutocapitalizationTypeNone];

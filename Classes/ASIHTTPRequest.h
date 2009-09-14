@@ -16,6 +16,12 @@
 #endif
 #import <stdio.h>
 
+// Make targeting 2.2.1 more reliable
+// See: http://www.blumtnwerx.com/blog/2009/06/cross-sdk-code-hygiene-in-xcode/
+#ifndef __IPHONE_3_0
+	#define __IPHONE_3_0 30000
+#endif
+
 
 typedef enum _ASINetworkErrorType {
     ASIConnectionFailureErrorType = 1,

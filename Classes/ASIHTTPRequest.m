@@ -602,11 +602,11 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 		} else {
 		
 			#if TARGET_OS_IPHONE
-			#if !defined(TARGET_IPHONE_SIMULATOR) || __IPHONE_OS_VERSION_MIN_REQUIRED > __IPHONE_2_2
-			NSDictionary *proxySettings = [(NSDictionary *)CFNetworkCopySystemProxySettings() autorelease];
-			#else
+			#if TARGET_IPHONE_SIMULATOR && __IPHONE_OS_VERSION_MIN_REQUIRED < IPHONE_3_0
 			// Can't detect proxies in 2.2.1 Simulator
 			NSDictionary *proxySettings = [NSMutableDictionary dictionary];	
+			#else
+			NSDictionary *proxySettings = [(NSDictionary *)CFNetworkCopySystemProxySettings() autorelease];
 			#endif
 			#else
 			NSDictionary *proxySettings = [(NSDictionary *)SCDynamicStoreCopyProxies(NULL) autorelease];
@@ -2529,14 +2529,14 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 		return nil;
 	}
 	// Obtain the list of proxies by running the autoconfiguration script
-#if !TARGET_OS_IPHONE ||  __IPHONE_OS_VERSION_MIN_REQUIRED > __IPHONE_2_2
+#if TARGET_OS_IPHONE && __IPHONE_OS_VERSION_MIN_REQUIRED < IPHONE_3_0
+	NSArray *proxies = [(NSArray *)CFNetworkCopyProxiesForAutoConfigurationScript((CFStringRef)script,(CFURLRef)theURL) autorelease];
+#else
 	CFErrorRef err2 = NULL;
 	NSArray *proxies = [(NSArray *)CFNetworkCopyProxiesForAutoConfigurationScript((CFStringRef)script,(CFURLRef)theURL, &err2) autorelease];
 	if (err2) {
 		return nil;
 	}
-#else
-	NSArray *proxies = [(NSArray *)CFNetworkCopyProxiesForAutoConfigurationScript((CFStringRef)script,(CFURLRef)theURL) autorelease];
 #endif
 	return proxies;
 }
