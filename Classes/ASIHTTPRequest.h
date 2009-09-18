@@ -370,6 +370,12 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 // Called when a request fails, and lets the delegate now via didFailSelector
 - (void)failWithError:(NSError *)theError;
 
+// Called when a request actually starts sending data
+- (void)requestStarted;
+
+// Helpful for testing
+- (BOOL)delegateMethodsShouldWaitOnMainThread;
+
 #pragma mark parsing HTTP response headers
 
 // Reads the response headers to find the content length, encoding, cookies for the session 

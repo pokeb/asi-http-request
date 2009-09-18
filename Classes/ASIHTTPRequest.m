@@ -662,6 +662,10 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 		}
 		[self resetUploadProgress:amount];
 	}	
+    
+    // Notify delegates we're actually starting the connection
+    [self requestStarted];
+    
 	// Record when the request started, so we can timeout if nothing happens
 	[self setLastActivityTime:[NSDate date]];	
 }
@@ -1080,14 +1084,15 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 	if ([self error] || [self mainRequest]) {
 		return;
 	}
+    
 	// Let the queue know we are done
 	if ([queue respondsToSelector:@selector(requestDidFinish:)]) {
-		[queue performSelectorOnMainThread:@selector(requestDidFinish:) withObject:self waitUntilDone:[NSThread isMainThread]];		
+		[queue performSelectorOnMainThread:@selector(requestDidFinish:) withObject:self waitUntilDone:[self delegateMethodsShouldWaitOnMainThread]];		
 	}
 	
 	// Let the delegate know we are done
 	if (didFinishSelector && [delegate respondsToSelector:didFinishSelector]) {
-		[delegate performSelectorOnMainThread:didFinishSelector withObject:self waitUntilDone:[NSThread isMainThread]];		
+		[delegate performSelectorOnMainThread:didFinishSelector withObject:self waitUntilDone:[self delegateMethodsShouldWaitOnMainThread]];		
 	}
 }
 
@@ -1108,7 +1113,7 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 
 		// Let the queue know something went wrong
 		if ([queue respondsToSelector:@selector(requestDidFail:)]) {
-			[queue performSelectorOnMainThread:@selector(requestDidFail:) withObject:mRequest waitUntilDone:[NSThread isMainThread]];		
+			[queue performSelectorOnMainThread:@selector(requestDidFail:) withObject:mRequest waitUntilDone:[self delegateMethodsShouldWaitOnMainThread]];		
 		}
 	
 	} else {
@@ -1116,14 +1121,23 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 		
 		// Let the queue know something went wrong
 		if ([queue respondsToSelector:@selector(requestDidFail:)]) {
-			[queue performSelectorOnMainThread:@selector(requestDidFail:) withObject:self waitUntilDone:[NSThread isMainThread]];		
+			[queue performSelectorOnMainThread:@selector(requestDidFail:) withObject:self waitUntilDone:[self delegateMethodsShouldWaitOnMainThread]];		
 		}
 		
 		// Let the delegate know something went wrong
 		if (didFailSelector && [delegate respondsToSelector:didFailSelector]) {
-			[delegate performSelectorOnMainThread:didFailSelector withObject:self waitUntilDone:[NSThread isMainThread]];	
+			[delegate performSelectorOnMainThread:didFailSelector withObject:self waitUntilDone:[self delegateMethodsShouldWaitOnMainThread]];	
 		}
 	}
+}
+
+- (void)requestStarted
+{
+}
+
+- (BOOL)delegateMethodsShouldWaitOnMainThread;
+{
+    return [NSThread isMainThread];
 }
 
 #pragma mark parsing HTTP response headers
