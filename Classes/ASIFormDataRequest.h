@@ -26,6 +26,9 @@ typedef enum _ASIPostFormat {
 	ASIPostFormat postFormat;
 }
 
+#pragma mark utilities 
++ (NSString*) encodeURL:(CFStringRef) string; 
+ 
 #pragma mark setup request
 
 // Add a POST variable to the request

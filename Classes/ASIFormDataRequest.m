@@ -19,6 +19,17 @@
 
 @implementation ASIFormDataRequest
 
+#pragma mark utilities
++ (NSString*) encodeURL:(CFStringRef)string
+{
+   CFStringRef result = CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault,
+                                                                 string,
+                                                                 NULL,
+                                                                 CFSTR(":/?#[]@!$ &'()*+,;=\"<>%{}|\\^~`"),
+                                                                 kCFStringEncodingUTF8);
+   return [(NSString*) result autorelease];
+}
+
 #pragma mark init / dealloc
 
 + (id)requestWithURL:(NSURL *)newURL
@@ -126,7 +137,7 @@
 	// Set your own boundary string only if really obsessive. We don't bother to check if post data contains the boundary, since it's pretty unlikely that it does.
 	NSString *stringBoundary = @"0xKhTmLbOuNdArY";
 	
-	[self addRequestHeader:@"Content-Type" value:[NSString stringWithFormat:@"multipart/form-data; boundary=%@",stringBoundary]];
+	[self addRequestHeader:@"Content-Type" value:[NSString stringWithFormat:@"multipart/form-data; charset=UTF-8; boundary=%@",stringBoundary]];
 	
 	[self appendPostData:[[NSString stringWithFormat:@"--%@\r\n",stringBoundary] dataUsingEncoding:NSUTF8StringEncoding]];
 	
@@ -154,7 +165,7 @@
 		NSString *fileName = [fileInfo objectForKey:@"fileName"];
 		
 		[self appendPostData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"; filename=\"%@\"\r\n", key, fileName] dataUsingEncoding:NSUTF8StringEncoding]];
-		[self appendPostData:[[NSString stringWithFormat:@"Content-Type: %@\r\n\r\n", contentType] dataUsingEncoding:NSUTF8StringEncoding]];
+		[self appendPostData:[[NSString stringWithFormat:@"Content-Type: %@; charset=UTF-8\r\n\r\n", contentType] dataUsingEncoding:NSUTF8StringEncoding]];
 		
 		if ([file isKindOfClass:[NSString class]]) {
 			[self appendPostDataFromFile:file];
@@ -181,7 +192,7 @@
 		return;
 	}
 	
-	[self addRequestHeader:@"Content-Type" value:@"application/x-www-form-urlencoded"];
+	[self addRequestHeader:@"Content-Type" value:@"application/x-www-form-urlencoded; charset=UTF-8"];
 
 	
 	NSEnumerator *e = [[self postData] keyEnumerator];
@@ -189,7 +200,7 @@
 	int i=0;
 	int count = [[self postData] count]-1;
 	while (key = [e nextObject]) {
-		NSString *data = [NSString stringWithFormat:@"%@=%@%@",[key stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding],[[[self postData] objectForKey:key] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding],(i<count ? @"&" : @"")];
+        NSString *data = [NSString stringWithFormat:@"%@=%@%@", [ASIFormDataRequest encodeURL:(CFStringRef)key], [ASIFormDataRequest encodeURL:(CFStringRef)[[self postData] objectForKey:key]],(i<count ?  @"&" : @"")]; 
 		[self appendPostData:[data dataUsingEncoding:NSUTF8StringEncoding]];
 		i++;
 	}
