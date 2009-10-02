@@ -133,15 +133,16 @@
 	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request start];
 	
+	NSLog([request responseString]);
 	BOOL success = [[request responseString] isEqualToString:@"HTTP/1.1"];
-	GHAssertTrue(success,@"Wrong HTTP version used");
+	GHAssertTrue(success,@"Wrong HTTP version used (May fail when using a proxy that changes the HTTP version!)");
 	
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUseHTTPVersionOne:YES];
 	[request start];
 	
 	success = [[request responseString] isEqualToString:@"HTTP/1.0"];
-	GHAssertTrue(success,@"Wrong HTTP version used");	
+	GHAssertTrue(success,@"Wrong HTTP version used (May fail when using a proxy that changes the HTTP version!)");	
 }
 
 - (void)testUserAgent

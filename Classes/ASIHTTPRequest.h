@@ -426,14 +426,17 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 // Save credentials for this request to the keychain
 - (void)saveCredentialsToKeychain:(NSMutableDictionary *)newCredentials;
 
-// Save creddentials to the keychain
+// Save credentials to the keychain
 + (void)saveCredentials:(NSURLCredential *)credentials forHost:(NSString *)host port:(int)port protocol:(NSString *)protocol realm:(NSString *)realm;
++ (void)saveCredentials:(NSURLCredential *)credentials forProxy:(NSString *)host port:(int)port realm:(NSString *)realm;
 
 // Return credentials from the keychain
 + (NSURLCredential *)savedCredentialsForHost:(NSString *)host port:(int)port protocol:(NSString *)protocol realm:(NSString *)realm;
++ (NSURLCredential *)savedCredentialsForProxy:(NSString *)host port:(int)port protocol:(NSString *)protocol realm:(NSString *)realm;
 
 // Remove credentials from the keychain
 + (void)removeCredentialsForHost:(NSString *)host port:(int)port protocol:(NSString *)protocol realm:(NSString *)realm;
++ (void)removeCredentialsForProxy:(NSString *)host port:(int)port realm:(NSString *)realm;
 
 // We keep track of any cookies we accept, so that we can remove them from the persistent store later
 + (void)setSessionCookies:(NSMutableArray *)newSessionCookies;

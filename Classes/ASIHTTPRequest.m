@@ -436,6 +436,12 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 				[ASIHTTPRequest setSessionCredentials:nil];
 			}
 		}
+		if (sessionProxyCredentials && sessionProxyAuthentication) {
+			if (!CFHTTPMessageApplyCredentialDictionary(request, sessionProxyAuthentication, (CFMutableDictionaryRef)sessionProxyCredentials, NULL)) {
+				[ASIHTTPRequest setSessionProxyAuthentication:NULL];
+				[ASIHTTPRequest setSessionProxyCredentials:nil];
+			}
+		}
 	}
 	
 	// Add cookies from the persistant (mac os global) store
@@ -1251,21 +1257,16 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 
 - (void)saveProxyCredentialsToKeychain:(NSMutableDictionary *)newCredentials
 {
-	NSURLCredential *authenticationCredentials = [NSURLCredential credentialWithUser:[newCredentials objectForKey:(NSString *)kCFHTTPAuthenticationUsername]
-																			password:[newCredentials objectForKey:(NSString *)kCFHTTPAuthenticationPassword]
-																		 persistence:NSURLCredentialPersistencePermanent];
-	
+	NSURLCredential *authenticationCredentials = [NSURLCredential credentialWithUser:[newCredentials objectForKey:(NSString *)kCFHTTPAuthenticationUsername] password:[newCredentials objectForKey:(NSString *)kCFHTTPAuthenticationPassword] persistence:NSURLCredentialPersistencePermanent];
 	if (authenticationCredentials) {
-		[ASIHTTPRequest saveCredentials:authenticationCredentials forHost:[self proxyHost] port:[self proxyPort] protocol:[[self url] scheme] realm:[self proxyAuthenticationRealm]];
+		[ASIHTTPRequest saveCredentials:authenticationCredentials forProxy:[self proxyHost] port:[self proxyPort] realm:[self proxyAuthenticationRealm]];
 	}	
 }
 
 
 - (void)saveCredentialsToKeychain:(NSMutableDictionary *)newCredentials
 {
-	NSURLCredential *authenticationCredentials = [NSURLCredential credentialWithUser:[newCredentials objectForKey:(NSString *)kCFHTTPAuthenticationUsername]
-																			password:[newCredentials objectForKey:(NSString *)kCFHTTPAuthenticationPassword]
-																		 persistence:NSURLCredentialPersistencePermanent];
+	NSURLCredential *authenticationCredentials = [NSURLCredential credentialWithUser:[newCredentials objectForKey:(NSString *)kCFHTTPAuthenticationUsername] password:[newCredentials objectForKey:(NSString *)kCFHTTPAuthenticationPassword] persistence:NSURLCredentialPersistencePermanent];
 	
 	if (authenticationCredentials) {
 		[ASIHTTPRequest saveCredentials:authenticationCredentials forHost:[[self url] host] port:[[[self url] port] intValue] protocol:[[self url] scheme] realm:[self authenticationRealm]];
@@ -1357,8 +1358,9 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 
 	
 	// Ok, that didn't work, let's try the keychain
-	if ((!user || !pass) && useKeychainPersistance) {
-		NSURLCredential *authenticationCredentials = [ASIHTTPRequest savedCredentialsForHost:[self proxyHost] port:[self proxyPort] protocol:[[self url] scheme] realm:[self proxyAuthenticationRealm]];
+	// For authenticating proxies, we'll look in the keychain regardless of the value of useKeychainPersistance
+	if ((!user || !pass)) {
+		NSURLCredential *authenticationCredentials = [ASIHTTPRequest savedCredentialsForProxy:[self proxyHost] port:[self proxyPort] protocol:[[self url] scheme] realm:[self proxyAuthenticationRealm]];
 		if (authenticationCredentials) {
 			user = [authenticationCredentials user];
 			pass = [authenticationCredentials password];
@@ -2054,35 +2056,43 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 
 + (void)setSessionCredentials:(NSMutableDictionary *)newCredentials
 {
-	[sessionCredentials release];
-	sessionCredentials = [newCredentials retain];
+	if (newCredentials != sessionCredentials) {	
+		[sessionCredentials release];
+		sessionCredentials = [newCredentials retain];
+	}
 }
 
 + (void)setSessionAuthentication:(CFHTTPAuthenticationRef)newAuthentication
 {
-	if (sessionAuthentication) {
-		CFRelease(sessionAuthentication);
-	}
-	sessionAuthentication = newAuthentication;
-	if (newAuthentication) {
-		CFRetain(sessionAuthentication);
+	if (newAuthentication != sessionAuthentication) {	
+		if (sessionAuthentication) {
+			CFRelease(sessionAuthentication);
+		}
+		sessionAuthentication = newAuthentication;
+		if (newAuthentication) {
+			CFRetain(sessionAuthentication);
+		}
 	}
 }
 
 + (void)setSessionProxyCredentials:(NSMutableDictionary *)newCredentials
 {
-	[sessionProxyCredentials release];
-	sessionProxyCredentials = [newCredentials retain];
+	if (newCredentials != sessionProxyCredentials) {
+		[sessionProxyCredentials release];
+		sessionProxyCredentials = [newCredentials retain];
+	}
 }
 
 + (void)setSessionProxyAuthentication:(CFHTTPAuthenticationRef)newAuthentication
 {
-	if (sessionProxyAuthentication) {
-		CFRelease(sessionProxyAuthentication);
-	}
-	sessionProxyAuthentication = newAuthentication;
-	if (newAuthentication) {
-		CFRetain(sessionProxyAuthentication);
+	if (sessionProxyAuthentication != newAuthentication) {
+		if (sessionProxyAuthentication) {
+			CFRelease(sessionProxyAuthentication);
+		}
+		sessionProxyAuthentication = newAuthentication;
+		if (newAuthentication) {
+			CFRetain(sessionProxyAuthentication);
+		}
 	}
 }
 
@@ -2091,42 +2101,40 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 
 + (void)saveCredentials:(NSURLCredential *)credentials forHost:(NSString *)host port:(int)port protocol:(NSString *)protocol realm:(NSString *)realm
 {
-	NSURLProtectionSpace *protectionSpace = [[[NSURLProtectionSpace alloc] initWithHost:host
-																				   port:port
-																			   protocol:protocol
-																				  realm:realm
-																   authenticationMethod:NSURLAuthenticationMethodDefault] autorelease];
-	
-	
-	NSURLCredentialStorage *storage = [NSURLCredentialStorage sharedCredentialStorage];
-	[storage setDefaultCredential:credentials forProtectionSpace:protectionSpace];
+	NSURLProtectionSpace *protectionSpace = [[[NSURLProtectionSpace alloc] initWithHost:host port:port protocol:protocol realm:realm authenticationMethod:NSURLAuthenticationMethodDefault] autorelease];
+	[[NSURLCredentialStorage sharedCredentialStorage] setDefaultCredential:credentials forProtectionSpace:protectionSpace];
+}
+
++ (void)saveCredentials:(NSURLCredential *)credentials forProxy:(NSString *)host port:(int)port realm:(NSString *)realm
+{
+	NSURLProtectionSpace *protectionSpace = [[[NSURLProtectionSpace alloc] initWithProxyHost:host port:port type:NSURLProtectionSpaceHTTPProxy realm:realm authenticationMethod:NSURLAuthenticationMethodDefault] autorelease];
+	[[NSURLCredentialStorage sharedCredentialStorage] setDefaultCredential:credentials forProtectionSpace:protectionSpace];
 }
 
 + (NSURLCredential *)savedCredentialsForHost:(NSString *)host port:(int)port protocol:(NSString *)protocol realm:(NSString *)realm
 {
-	NSURLProtectionSpace *protectionSpace = [[[NSURLProtectionSpace alloc] initWithHost:host
-																				   port:port
-																			   protocol:protocol
-																				  realm:realm
-																   authenticationMethod:NSURLAuthenticationMethodDefault] autorelease];
-	
-	
-	NSURLCredentialStorage *storage = [NSURLCredentialStorage sharedCredentialStorage];
-	return [storage defaultCredentialForProtectionSpace:protectionSpace];
+	NSURLProtectionSpace *protectionSpace = [[[NSURLProtectionSpace alloc] initWithHost:host port:port protocol:protocol realm:realm authenticationMethod:NSURLAuthenticationMethodDefault] autorelease];
+	return [[NSURLCredentialStorage sharedCredentialStorage] defaultCredentialForProtectionSpace:protectionSpace];
+}
+
++ (NSURLCredential *)savedCredentialsForProxy:(NSString *)host port:(int)port protocol:(NSString *)protocol realm:(NSString *)realm
+{
+	NSURLProtectionSpace *protectionSpace = [[[NSURLProtectionSpace alloc] initWithProxyHost:host port:port type:NSURLProtectionSpaceHTTPProxy realm:realm authenticationMethod:NSURLAuthenticationMethodDefault] autorelease];
+	return [[NSURLCredentialStorage sharedCredentialStorage] defaultCredentialForProtectionSpace:protectionSpace];
 }
 
 + (void)removeCredentialsForHost:(NSString *)host port:(int)port protocol:(NSString *)protocol realm:(NSString *)realm
 {
-	NSURLProtectionSpace *protectionSpace = [[[NSURLProtectionSpace alloc] initWithHost:host
-																				   port:port
-																			   protocol:protocol
-																				  realm:realm
-																   authenticationMethod:NSURLAuthenticationMethodDefault] autorelease];
-	
-	
+	NSURLProtectionSpace *protectionSpace = [[[NSURLProtectionSpace alloc] initWithHost:host port:port protocol:protocol realm:realm authenticationMethod:NSURLAuthenticationMethodDefault] autorelease];
 	NSURLCredentialStorage *storage = [NSURLCredentialStorage sharedCredentialStorage];
 	[storage removeCredential:[storage defaultCredentialForProtectionSpace:protectionSpace] forProtectionSpace:protectionSpace];
-	
+}
+
++ (void)removeCredentialsForProxy:(NSString *)host port:(int)port realm:(NSString *)realm
+{
+	NSURLProtectionSpace *protectionSpace = [[[NSURLProtectionSpace alloc] initWithProxyHost:host port:port type:NSURLProtectionSpaceHTTPProxy realm:realm authenticationMethod:NSURLAuthenticationMethodDefault] autorelease];
+	NSURLCredentialStorage *storage = [NSURLCredentialStorage sharedCredentialStorage];
+	[storage removeCredential:[storage defaultCredentialForProtectionSpace:protectionSpace] forProtectionSpace:protectionSpace];
 }
 
 
