@@ -40,5 +40,4 @@
 - (void)testThrottlingDownloadBandwidth;
 - (void)testThrottlingUploadBandwidth;
 - (void)testMainThreadDelegateAuthenticationFailure;
-- (void)testFileCleanupWorks;
 @end
