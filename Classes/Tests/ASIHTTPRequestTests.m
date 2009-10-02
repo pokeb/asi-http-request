@@ -898,6 +898,26 @@
 	GHAssertTrue(success,@"Got wrong response status message");
 }
 
+
+- (void)handleDownloadFailed:(ASIHTTPRequest *)request
+{
+	GHFail(@"Download failed for file cleanup test");
+}
+
+// Test for a bug that existed that would attempt to remove the temporary download file twice
+- (void)testFileCleanupWorks
+{
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/i/logo.png"]];
+	NSString *path = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:@"test.png"];
+	if ([[NSFileManager defaultManager] fileExistsAtPath:path]) {
+		[[NSFileManager defaultManager] removeItemAtPath:path error:nil];
+	}
+	[request setDownloadDestinationPath:path]; 
+	[request setDelegate:self]; 
+	[request setDidFailSelector:@selector(handleDownloadFailed:)]; 
+	[request start];
+}
+
 @end
 
 
