@@ -110,12 +110,14 @@
 	[request setPostValue:@"(%20 ? =)" forKey:@"value2"];
 	[request setPostValue:@"£100.00" forKey:@"value3"];
 	[request setPostValue:@"" forKey:@"value4"];
+	[request setPostValue:@"&??aaa=//ciaoèèè" forKey:@"teskey&aa"]; 
+	
 	[request setShouldStreamPostDataFromDisk:YES];
 	[request setPostFormat:ASIURLEncodedPostFormat];
 	[request start];
 
 	
-	BOOL success = ([[request responseString] isEqualToString:@"value1: value1\r\nvalue2: (%20 ? =)\r\nvalue3: £100.00\r\nvalue4: "]);
+	BOOL success = ([[request responseString] isEqualToString:@"value1: value1\r\nvalue2: (%20 ? =)\r\nvalue3: £100.00\r\nvalue4: \r\nteskey&aa: &??aaa=//ciaoèèè"]);
 	GHAssertTrue(success,@"Failed to send the correct post data");			
 }
 
