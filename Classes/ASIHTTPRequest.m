@@ -752,7 +752,7 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 		[ASIHTTPRequest measureBandwidthUsage];
 		
 		// This thread should wait for 1/4 second for the stream to do something. We'll stop early if it does.
-		CFRunLoopRunInMode(ASIHTTPRequestRunMode,0,YES);
+		CFRunLoopRunInMode(ASIHTTPRequestRunMode,0.25,YES);
 	}
 	
 	[pool release];
@@ -764,11 +764,11 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 {
 	[[self cancelledLock] lock];
     if (readStream) {
-        CFReadStreamClose(readStream);
-        CFReadStreamSetClient(readStream, kCFStreamEventNone, NULL, NULL);
-        CFReadStreamUnscheduleFromRunLoop(readStream, CFRunLoopGetCurrent(), ASIHTTPRequestRunMode);
-        CFRelease(readStream);
-        readStream = NULL;
+		CFReadStreamSetClient(readStream, kCFStreamEventNone, NULL, NULL);
+		CFReadStreamUnscheduleFromRunLoop(readStream, CFRunLoopGetCurrent(), ASIHTTPRequestRunMode);
+		CFReadStreamClose(readStream);
+		CFRelease(readStream);
+		readStream = NULL;
     }
 	
 	[[self postBodyReadStream] close];
@@ -1964,11 +1964,11 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 	
 	[[self cancelledLock] lock];
     if (readStream) {
-        CFReadStreamClose(readStream);
-        CFReadStreamSetClient(readStream, kCFStreamEventNone, NULL, NULL);
-        CFReadStreamUnscheduleFromRunLoop(readStream, CFRunLoopGetCurrent(), ASIHTTPRequestRunMode);
-        CFRelease(readStream);
-        readStream = NULL;
+		CFReadStreamSetClient(readStream, kCFStreamEventNone, NULL, NULL);
+		CFReadStreamUnscheduleFromRunLoop(readStream, CFRunLoopGetCurrent(), ASIHTTPRequestRunMode);
+		CFReadStreamClose(readStream);
+		CFRelease(readStream);
+		readStream = NULL;
     }
 	
 	[[self postBodyReadStream] close];
@@ -2007,7 +2007,7 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 			if (!fileError) {
 				[[NSFileManager defaultManager] moveItemAtPath:[self temporaryFileDownloadPath] toPath:[self downloadDestinationPath] error:&moveError];
 				if (moveError) {
-					fileError = [NSError errorWithDomain:NetworkRequestErrorDomain code:ASIFileManagementError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Failed to move file from '%@' to '%@'",[self temporaryFileDownloadPath]],[self downloadDestinationPath],NSLocalizedDescriptionKey,moveError,NSUnderlyingErrorKey,nil]];
+					fileError = [NSError errorWithDomain:NetworkRequestErrorDomain code:ASIFileManagementError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Failed to move file from '%@' to '%@'",[self temporaryFileDownloadPath],[self downloadDestinationPath]],NSLocalizedDescriptionKey,moveError,NSUnderlyingErrorKey,nil]];
 				}
 				[self setTemporaryFileDownloadPath:nil];
 			}
