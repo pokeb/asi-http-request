@@ -313,9 +313,6 @@ IMPORTANT
 	complete = YES;
 }
 
-
-
-
 - (void)testProgressWithAuthentication
 {
 	complete = NO;

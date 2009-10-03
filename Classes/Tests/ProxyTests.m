@@ -66,14 +66,11 @@ static NSString *proxyPassword = @"";
 }
 
 - (void)testProxyAutodetect
-{
-	BOOL success = (![proxyHost isEqualToString:@""] && proxyPort > 0);
-	GHAssertTrue(success,@"You need to supply the details of your proxy to run the proxy autodetect test");	
-	
+{	
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
 	[request start];
 	
-	success = ([request proxyHost] && [request proxyPort]);
+	BOOL success = ([request proxyHost] && [request proxyPort]);
 	GHAssertTrue(success,@"Failed to detect the proxy");		
 }
 
