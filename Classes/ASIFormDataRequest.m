@@ -20,23 +20,28 @@
 @implementation ASIFormDataRequest
 
 #pragma mark utilities
-+ (NSString*) encodeURL:(CFStringRef)string
+- (NSString*)encodeURL:(NSString *)string
 {
-   CFStringRef result = CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault,
-                                                                 string,
-                                                                 NULL,
-                                                                 CFSTR(":/?#[]@!$ &'()*+,;=\"<>%{}|\\^~`"),
-                                                                 kCFStringEncodingUTF8);
-   return [(NSString*) result autorelease];
+	NSString *newString = [(NSString *)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, (CFStringRef)string, NULL, CFSTR(":/?#[]@!$ &'()*+,;=\"<>%{}|\\^~`"), CFStringConvertNSStringEncodingToEncoding([self stringEncoding])) autorelease];
+	if (newString) {
+		return newString;
+	}
+	return @"";
 }
 
 #pragma mark init / dealloc
 
 + (id)requestWithURL:(NSURL *)newURL
 {
-	ASIFormDataRequest *request = [[[self alloc] initWithURL:newURL] autorelease];
-	[request setPostFormat:ASIMultipartFormDataPostFormat];
-	return request;
+	return [[[self alloc] initWithURL:newURL] autorelease];
+}
+
+- (id)initWithURL:(NSURL *)newURL
+{
+	self = [super initWithURL:newURL];
+	[self setPostFormat:ASIMultipartFormDataPostFormat];
+	[self setStringEncoding:NSUTF8StringEncoding];
+	return self;
 }
 
 - (void)dealloc
@@ -134,21 +139,23 @@
 
 - (void)buildMultipartFormDataPostBody
 {
+	NSString *charset = (NSString *)CFStringConvertEncodingToIANACharSetName(CFStringConvertNSStringEncodingToEncoding([self stringEncoding]));
+	
 	// Set your own boundary string only if really obsessive. We don't bother to check if post data contains the boundary, since it's pretty unlikely that it does.
 	NSString *stringBoundary = @"0xKhTmLbOuNdArY";
 	
-	[self addRequestHeader:@"Content-Type" value:[NSString stringWithFormat:@"multipart/form-data; charset=UTF-8; boundary=%@",stringBoundary]];
+	[self addRequestHeader:@"Content-Type" value:[NSString stringWithFormat:@"multipart/form-data; charset=%@; boundary=%@", charset, stringBoundary]];
 	
-	[self appendPostData:[[NSString stringWithFormat:@"--%@\r\n",stringBoundary] dataUsingEncoding:NSUTF8StringEncoding]];
+	[self appendPostData:[[NSString stringWithFormat:@"--%@\r\n",stringBoundary] dataUsingEncoding:[self stringEncoding]]];
 	
 	// Adds post data
-	NSData *endItemBoundary = [[NSString stringWithFormat:@"\r\n--%@\r\n",stringBoundary] dataUsingEncoding:NSUTF8StringEncoding];
+	NSData *endItemBoundary = [[NSString stringWithFormat:@"\r\n--%@\r\n",stringBoundary] dataUsingEncoding:[self stringEncoding]];
 	NSEnumerator *e = [[self postData] keyEnumerator];
 	NSString *key;
 	int i=0;
 	while (key = [e nextObject]) {
-		[self appendPostData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"\r\n\r\n",key] dataUsingEncoding:NSUTF8StringEncoding]];
-		[self appendPostData:[[[self postData] objectForKey:key] dataUsingEncoding:NSUTF8StringEncoding]];
+		[self appendPostData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"\r\n\r\n",key] dataUsingEncoding:[self stringEncoding]]];
+		[self appendPostData:[[[self postData] objectForKey:key] dataUsingEncoding:[self stringEncoding]]];
 		i++;
 		if (i != [[self postData] count] || [[self fileData] count] > 0) { //Only add the boundary if this is not the last item in the post body
 			[self appendPostData:endItemBoundary];
@@ -164,8 +171,8 @@
 		NSString *contentType = [fileInfo objectForKey:@"contentType"];
 		NSString *fileName = [fileInfo objectForKey:@"fileName"];
 		
-		[self appendPostData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"; filename=\"%@\"\r\n", key, fileName] dataUsingEncoding:NSUTF8StringEncoding]];
-		[self appendPostData:[[NSString stringWithFormat:@"Content-Type: %@; charset=UTF-8\r\n\r\n", contentType] dataUsingEncoding:NSUTF8StringEncoding]];
+		[self appendPostData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"; filename=\"%@\"\r\n", key, fileName] dataUsingEncoding:[self stringEncoding]]];
+		[self appendPostData:[[NSString stringWithFormat:@"Content-Type: %@; charset=%@\r\n\r\n", contentType, charset] dataUsingEncoding:[self stringEncoding]]];
 		
 		if ([file isKindOfClass:[NSString class]]) {
 			[self appendPostDataFromFile:file];
@@ -179,7 +186,7 @@
 		}
 	}
 	
-	[self appendPostData:[[NSString stringWithFormat:@"\r\n--%@--\r\n",stringBoundary] dataUsingEncoding:NSUTF8StringEncoding]];
+	[self appendPostData:[[NSString stringWithFormat:@"\r\n--%@--\r\n",stringBoundary] dataUsingEncoding:[self stringEncoding]]];
 	
 }
 
@@ -191,8 +198,9 @@
 		[self buildMultipartFormDataPostBody];
 		return;
 	}
-	
-	[self addRequestHeader:@"Content-Type" value:@"application/x-www-form-urlencoded; charset=UTF-8"];
+	NSString *charset = (NSString *)CFStringConvertEncodingToIANACharSetName(CFStringConvertNSStringEncodingToEncoding([self stringEncoding]));
+
+	[self addRequestHeader:@"Content-Type" value:[NSString stringWithFormat:@"application/x-www-form-urlencoded; charset=%@",charset]];
 
 	
 	NSEnumerator *e = [[self postData] keyEnumerator];
@@ -200,8 +208,8 @@
 	int i=0;
 	int count = [[self postData] count]-1;
 	while (key = [e nextObject]) {
-        NSString *data = [NSString stringWithFormat:@"%@=%@%@", [ASIFormDataRequest encodeURL:(CFStringRef)key], [ASIFormDataRequest encodeURL:(CFStringRef)[[self postData] objectForKey:key]],(i<count ?  @"&" : @"")]; 
-		[self appendPostData:[data dataUsingEncoding:NSUTF8StringEncoding]];
+        NSString *data = [NSString stringWithFormat:@"%@=%@%@", [self encodeURL:key], [self encodeURL:[[self postData] objectForKey:key]],(i<count ?  @"&" : @"")]; 
+		[self appendPostData:[data dataUsingEncoding:[self stringEncoding]]];
 		i++;
 	}
 }
@@ -209,5 +217,5 @@
 @synthesize postData;
 @synthesize fileData;
 @synthesize postFormat;
-
+@synthesize stringEncoding;
 @end

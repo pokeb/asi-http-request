@@ -24,10 +24,12 @@ typedef enum _ASIPostFormat {
 	NSMutableDictionary *fileData;
 	
 	ASIPostFormat postFormat;
+	
+	NSStringEncoding stringEncoding;
 }
 
 #pragma mark utilities 
-+ (NSString*) encodeURL:(CFStringRef) string; 
+- (NSString*)encodeURL:(NSString *)string; 
  
 #pragma mark setup request
 
@@ -48,4 +50,5 @@ typedef enum _ASIPostFormat {
 
 
 @property (assign) ASIPostFormat postFormat;
+@property (assign) NSStringEncoding stringEncoding;
 @end
