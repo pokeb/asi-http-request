@@ -39,7 +39,7 @@
 - (id)initWithURL:(NSURL *)newURL
 {
 	self = [super initWithURL:newURL];
-	[self setPostFormat:ASIMultipartFormDataPostFormat];
+	[self setPostFormat:ASIURLEncodedPostFormat];
 	[self setStringEncoding:NSUTF8StringEncoding];
 	return self;
 }

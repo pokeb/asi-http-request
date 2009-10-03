@@ -121,6 +121,64 @@
 	GHAssertTrue(success,@"Failed to send the correct post data");			
 }
 
+- (void)testCharset
+{
+	NSString *testString = @"£££s don't seem to buy me many €€€s these days";
+	
+	// Test the default (UTF-8) with a url-encoded request
+	NSString *charset = @"utf-8";
+	ASIFormDataRequest *request = [ASIFormDataRequest requestWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/formdata-charset"]];
+	[request setPostValue:testString forKey:@"value"];
+	[request start];
+	BOOL success = ([[request responseString] isEqualToString:[NSString stringWithFormat:@"Got data in %@: %@",charset,testString]]);
+	GHAssertTrue(success,@"Failed to correctly encode the data");	
+	
+	// Test the default (UTF-8) with a multipart/form-data request
+	request = [ASIFormDataRequest requestWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/formdata-charset"]];
+	[request setPostValue:testString forKey:@"value"];
+	[request setPostFormat:ASIMultipartFormDataPostFormat];
+	[request start];
+	success = ([[request responseString] isEqualToString:[NSString stringWithFormat:@"Got data in %@: %@",charset,testString]]);
+	GHAssertTrue(success,@"Failed to correctly encode the data");
+	
+	// Test a different charset
+	testString = @"£££s don't seem to buy me many $$$s these days";
+	charset = @"iso-8859-1";
+	request = [ASIFormDataRequest requestWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/formdata-charset"]];
+	[request setPostValue:testString forKey:@"value"];
+	[request setStringEncoding:NSISOLatin1StringEncoding];
+	[request start];
+	success = ([[request responseString] isEqualToString:[NSString stringWithFormat:@"Got data in %@: %@",charset,testString]]);
+	GHAssertTrue(success,@"Failed to correctly encode the data");	
+	
+	// And again with multipart/form-data request
+	request = [ASIFormDataRequest requestWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/formdata-charset"]];
+	[request setPostValue:testString forKey:@"value"];
+	[request setPostFormat:ASIMultipartFormDataPostFormat];
+	[request setStringEncoding:NSISOLatin1StringEncoding];
+	[request start];
+	success = ([[request responseString] isEqualToString:[NSString stringWithFormat:@"Got data in %@: %@",charset,testString]]);
+	GHAssertTrue(success,@"Failed to correctly encode the data");	
+	
+	// Once more for luck
+	charset = @"windows-1252";
+	request = [ASIFormDataRequest requestWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/formdata-charset"]];
+	[request setPostValue:testString forKey:@"value"];
+	[request setStringEncoding:NSWindowsCP1252StringEncoding];
+	[request start];
+	success = ([[request responseString] isEqualToString:[NSString stringWithFormat:@"Got data in %@: %@",charset,testString]]);
+	GHAssertTrue(success,@"Failed to correctly encode the data");
+
+	request = [ASIFormDataRequest requestWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/formdata-charset"]];
+	[request setPostValue:testString forKey:@"value"];
+	[request setPostFormat:ASIMultipartFormDataPostFormat];
+	[request setStringEncoding:NSWindowsCP1252StringEncoding];
+	[request start];
+	success = ([[request responseString] isEqualToString:[NSString stringWithFormat:@"Got data in %@: %@",charset,testString]]);
+	GHAssertTrue(success,@"Failed to correctly encode the data");	
+
+}
+
 
 
 @end
