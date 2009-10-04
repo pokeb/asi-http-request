@@ -2153,7 +2153,7 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 	[sessionCredentialsLock lock];
 	NSMutableArray *sessionCredentialsList = [[self class] sessionProxyCredentialsStore];
 	for (NSDictionary *theCredentials in sessionCredentialsList) {
-		if ([[theCredentials objectForKey:@"Host"] isEqualTo:[self proxyHost]] && [[theCredentials objectForKey:@"Port"] intValue] == [self proxyPort]) {
+		if ([[theCredentials objectForKey:@"Host"] isEqualToString:[self proxyHost]] && [[theCredentials objectForKey:@"Port"] intValue] == [self proxyPort]) {
 			[sessionCredentialsLock unlock];
 			return theCredentials;
 		}
@@ -2169,8 +2169,8 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 	NSMutableArray *sessionCredentialsList = [[self class] sessionCredentialsStore];
 	// Find an exact match
 	for (NSDictionary *theCredentials in sessionCredentialsList) {
-		if ([[theCredentials objectForKey:@"URL"] isEqualTo:[self url]]) {
-			if (![self responseStatusCode] || [[theCredentials objectForKey:@"AuthenticationRealm"] isEqualTo:[self authenticationRealm]]) {
+		if ([[theCredentials objectForKey:@"URL"] isEqual:[self url]]) {
+			if (![self responseStatusCode] || [[theCredentials objectForKey:@"AuthenticationRealm"] isEqualToString:[self authenticationRealm]]) {
 				[sessionCredentialsLock unlock];
 				return theCredentials;
 			}
@@ -2180,8 +2180,8 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 	NSURL *requestURL = [self url];
 	for (NSDictionary *theCredentials in sessionCredentialsList) {
 		NSURL *theURL = [theCredentials objectForKey:@"URL"];
-		if ([[theURL host] isEqualTo:[requestURL host]] && [[theURL port] isEqualTo:[requestURL port]] && [[theURL scheme] isEqualTo:[requestURL scheme]]) {
-			if (![self responseStatusCode] || [[theCredentials objectForKey:@"AuthenticationRealm"] isEqualTo:[self authenticationRealm]]) {
+		if ([[theURL host] isEqualToString:[requestURL host]] && [[theURL port] isEqualToNumber:[requestURL port]] && [[theURL scheme] isEqualToString:[requestURL scheme]]) {
+			if (![self responseStatusCode] || [[theCredentials objectForKey:@"AuthenticationRealm"] isEqualToString:[self authenticationRealm]]) {
 				[sessionCredentialsLock unlock];
 				return theCredentials;
 			}
