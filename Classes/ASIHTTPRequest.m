@@ -28,9 +28,14 @@ NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
 static const CFOptionFlags kNetworkEvents = kCFStreamEventOpenCompleted | kCFStreamEventHasBytesAvailable | kCFStreamEventEndEncountered | kCFStreamEventErrorOccurred;
 
+// In memory caches of credentials, used on when useSessionPersistance is YES
 static NSMutableArray *sessionCredentialsStore = nil;
 static NSMutableArray *sessionProxyCredentialsStore = nil;
 
+// This lock mediates access to session credentials
+static NSRecursiveLock *sessionCredentialsLock = nil;
+
+// We keep track of cookies we have received here so we can remove them from the sharedHTTPCookieStorage later
 static NSMutableArray *sessionCookies = nil;
 
 // The number of times we will allow requests to redirect before we fail with a redirection error
@@ -2080,6 +2085,9 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 	if (!sessionProxyCredentialsStore) {
 		sessionProxyCredentialsStore = [[NSMutableArray alloc] init];
 	}
+	if (!sessionCredentialsLock) {
+		sessionCredentialsLock = [[NSRecursiveLock alloc] init];
+	}
 	return sessionProxyCredentialsStore;
 }
 
@@ -2088,66 +2096,84 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 	if (!sessionCredentialsStore) {
 		sessionCredentialsStore = [[NSMutableArray alloc] init];
 	}
+	if (!sessionCredentialsLock) {
+		sessionCredentialsLock = [[NSRecursiveLock alloc] init];
+	}
 	return sessionCredentialsStore;
 }
 
 + (void)storeProxyAuthenticationCredentialsInSessionStore:(NSDictionary *)credentials
 {
+	[sessionCredentialsLock lock];
 	[self removeProxyAuthenticationCredentialsFromSessionStore:[credentials objectForKey:@"Credentials"]];
 	[[[self class] sessionProxyCredentialsStore] addObject:credentials];
+	[sessionCredentialsLock unlock];
 }
 
 + (void)storeAuthenticationCredentialsInSessionStore:(NSDictionary *)credentials
 {
+	[sessionCredentialsLock lock];
 	[self removeAuthenticationCredentialsFromSessionStore:[credentials objectForKey:@"Credentials"]];
 	[[[self class] sessionCredentialsStore] addObject:credentials];
+	[sessionCredentialsLock unlock];
 }
 
 + (void)removeProxyAuthenticationCredentialsFromSessionStore:(NSDictionary *)credentials
 {
+	[sessionCredentialsLock lock];
 	NSMutableArray *sessionCredentialsList = [[self class] sessionProxyCredentialsStore];
 	int i;
 	for (i=0; i<[sessionCredentialsList count]; i++) {
 		NSDictionary *theCredentials = [sessionCredentialsList objectAtIndex:i];
 		if ([theCredentials objectForKey:@"Credentials"] == credentials) {
 			[sessionCredentialsList removeObjectAtIndex:i];
+			[sessionCredentialsLock unlock];
 			return;
 		}
-	}		
+	}
+	[sessionCredentialsLock unlock];
 }
 
 + (void)removeAuthenticationCredentialsFromSessionStore:(NSDictionary *)credentials
 {
+	[sessionCredentialsLock lock];
 	NSMutableArray *sessionCredentialsList = [[self class] sessionCredentialsStore];
 	int i;
 	for (i=0; i<[sessionCredentialsList count]; i++) {
 		NSDictionary *theCredentials = [sessionCredentialsList objectAtIndex:i];
 		if ([theCredentials objectForKey:@"Credentials"] == credentials) {
 			[sessionCredentialsList removeObjectAtIndex:i];
+			[sessionCredentialsLock unlock];
 			return;
 		}
-	}		
+	}
+	[sessionCredentialsLock unlock];
 }
 
 - (NSDictionary *)findSessionProxyAuthenticationCredentials
 {
+	[sessionCredentialsLock lock];
 	NSMutableArray *sessionCredentialsList = [[self class] sessionProxyCredentialsStore];
 	for (NSDictionary *theCredentials in sessionCredentialsList) {
 		if ([[theCredentials objectForKey:@"Host"] isEqualTo:[self proxyHost]] && [[theCredentials objectForKey:@"Port"] intValue] == [self proxyPort]) {
+			[sessionCredentialsLock unlock];
 			return theCredentials;
 		}
 	}
+	[sessionCredentialsLock unlock];
 	return nil;
 }
 
 
 - (NSDictionary *)findSessionAuthenticationCredentials
 {
+	[sessionCredentialsLock lock];
 	NSMutableArray *sessionCredentialsList = [[self class] sessionCredentialsStore];
 	// Find an exact match
 	for (NSDictionary *theCredentials in sessionCredentialsList) {
 		if ([[theCredentials objectForKey:@"URL"] isEqualTo:[self url]]) {
 			if (![self responseStatusCode] || [[theCredentials objectForKey:@"AuthenticationRealm"] isEqualTo:[self authenticationRealm]]) {
+				[sessionCredentialsLock unlock];
 				return theCredentials;
 			}
 		}
@@ -2158,10 +2184,12 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 		NSURL *theURL = [theCredentials objectForKey:@"URL"];
 		if ([[theURL host] isEqualTo:[requestURL host]] && [[theURL port] isEqualTo:[requestURL port]] && [[theURL scheme] isEqualTo:[requestURL scheme]]) {
 			if (![self responseStatusCode] || [[theCredentials objectForKey:@"AuthenticationRealm"] isEqualTo:[self authenticationRealm]]) {
+				[sessionCredentialsLock unlock];
 				return theCredentials;
 			}
 		}
 	}
+	[sessionCredentialsLock unlock];
 	return nil;
 }
 
@@ -2250,7 +2278,7 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 + (void)clearSession
 {
 	[[[self class] sessionCredentialsStore] removeAllObjects];
-	[ASIHTTPRequest setSessionCookies:nil];
+	[[self class] setSessionCookies:nil];
 }
 
 #pragma mark gzip decompression

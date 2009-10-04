@@ -456,8 +456,9 @@
 
 - (void)testBasicAuthentication
 {
+	[ASIHTTPRequest clearSession];
 
-	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/basic-authentication"] autorelease];
+	NSURL *url = [NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/basic-authentication"];
 	ASIHTTPRequest *request;
 	BOOL success;
 	NSError *err;
@@ -514,6 +515,17 @@
 	[request start];
 	err = [request error];
 	GHAssertNil(err,@"Failed to use stored credentials");
+	
+	// Ok, now let's test on a different server
+	url = [NSURL URLWithString:@"https://selfsigned.allseeing-i.com/ASIHTTPRequest/tests/basic-authentication"];
+	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request setUseSessionPersistance:YES];
+	[request setUseKeychainPersistance:NO];
+	[request setValidatesSecureCertificate:NO];
+	[request start];
+	success = [[request error] code] == ASIAuthenticationErrorType;
+	GHAssertTrue(success,@"Reused credentials when we shouldn't have");	
+	
 }
 
 
