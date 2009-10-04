@@ -388,8 +388,8 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 #pragma mark http authentication stuff
 
 // Apply credentials to this request
-- (BOOL)applyCredentials:(NSMutableDictionary *)newCredentials;
-- (BOOL)applyProxyCredentials:(NSMutableDictionary *)newCredentials;
+- (BOOL)applyCredentials:(NSDictionary *)newCredentials;
+- (BOOL)applyProxyCredentials:(NSDictionary *)newCredentials;
 
 // Attempt to obtain credentials for this request from the URL, username and password or keychain
 - (NSMutableDictionary *)findCredentials;
@@ -414,17 +414,25 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 - (void)handleStreamComplete;
 - (void)handleStreamError;
 
-#pragma mark managing the session
+# pragma mark session credentials
 
-+ (void)setSessionCredentials:(NSMutableDictionary *)newCredentials;
-+ (void)setSessionAuthentication:(CFHTTPAuthenticationRef)newAuthentication;
-+ (void)setSessionProxyCredentials:(NSMutableDictionary *)newCredentials;
-+ (void)setSessionProxyAuthentication:(CFHTTPAuthenticationRef)newAuthentication;
++ (NSMutableArray *)sessionProxyCredentialsStore;
++ (NSMutableArray *)sessionCredentialsStore;
+
++ (void)storeProxyAuthenticationCredentialsInSessionStore:(NSDictionary *)credentials;
++ (void)storeAuthenticationCredentialsInSessionStore:(NSDictionary *)credentials;
+
++ (void)removeProxyAuthenticationCredentialsFromSessionStore:(NSDictionary *)credentials;
++ (void)removeAuthenticationCredentialsFromSessionStore:(NSDictionary *)credentials;
+
+- (NSDictionary *)findSessionProxyAuthenticationCredentials;
+- (NSDictionary *)findSessionAuthenticationCredentials;
+
 
 #pragma mark keychain storage
 
 // Save credentials for this request to the keychain
-- (void)saveCredentialsToKeychain:(NSMutableDictionary *)newCredentials;
+- (void)saveCredentialsToKeychain:(NSDictionary *)newCredentials;
 
 // Save credentials to the keychain
 + (void)saveCredentials:(NSURLCredential *)credentials forHost:(NSString *)host port:(int)port protocol:(NSString *)protocol realm:(NSString *)realm;

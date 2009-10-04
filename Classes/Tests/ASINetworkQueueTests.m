@@ -625,7 +625,7 @@ IMPORTANT
 	[self setFinishedRequests:[[[NSMutableArray alloc] init] autorelease]];
 	[self setImmediateCancelQueue:[[[NSOperationQueue alloc] init] autorelease]];
 	int i;
-	for (i=0; i<100; i++) {
+	for (i=0; i<25; i++) {
 		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
 		[request setDelegate:self];
 		[request setDidFailSelector:@selector(immediateCancelFail:)];
@@ -645,8 +645,8 @@ IMPORTANT
 		GHFail(@"A request that had already finished called its fail delegate method");
 	}
 	[[self failedRequests] addObject:request];
-	if ([[self failedRequests] count]+[[self finishedRequests] count] > 100) {
-		GHFail(@"We got more than 100 delegate fail/finish calls - this shouldn't happen!");
+	if ([[self failedRequests] count]+[[self finishedRequests] count] > 25) {
+		GHFail(@"We got more than 25 delegate fail/finish calls - this shouldn't happen!");
 	}
 }
 
@@ -660,8 +660,8 @@ IMPORTANT
 		GHFail(@"A request that had already failed called its finish delegate method");
 	}
 	[[self finishedRequests] addObject:request];
-	if ([[self failedRequests] count]+[[self finishedRequests] count] > 100) {
-		GHFail(@"We got more than 100 delegate fail/finish calls - this shouldn't happen!");
+	if ([[self failedRequests] count]+[[self finishedRequests] count] > 25) {
+		GHFail(@"We got more than 25 delegate fail/finish calls - this shouldn't happen!");
 	}
 }
 
