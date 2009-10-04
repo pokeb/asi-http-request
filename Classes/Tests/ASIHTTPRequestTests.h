@@ -29,7 +29,7 @@
 - (void)testCharacterEncoding;
 - (void)testCompressedResponse;
 - (void)testCompressedResponseDownloadToFile;
-- (void)testSSL;
+- (void)test000SSL;
 - (void)testRedirectPreservesSession;
 - (void)testTooMuchRedirection;
 - (void)testRedirectToNewDomain;

@@ -79,8 +79,8 @@ BOOL isBandwidthThrottled = NO;
 
 BOOL shouldThrottleBandwithForWWANOnly = NO;
 
-// Mediates access to the session cookies so requests can't modify them when they are in use
-static NSLock *sessionCookiesLock = nil;
+// Mediates access to the session cookies so requests
+static NSRecursiveLock *sessionCookiesLock = nil;
 
 // This lock ensures delegates only receive one notification that authentication is required at once
 // When using ASIAuthenticationDialogs, it also ensures only one dialog is shown at once
@@ -141,7 +141,8 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 	if (self == [ASIHTTPRequest class]) {
 		progressLock = [[NSRecursiveLock alloc] init];
 		bandwidthThrottlingLock = [[NSLock alloc] init];
-		sessionCookiesLock = [[NSLock alloc] init];
+		sessionCookiesLock = [[NSRecursiveLock alloc] init];
+		sessionCredentialsLock = [[NSRecursiveLock alloc] init];
 		delegateAuthenticationLock = [[NSRecursiveLock alloc] init];
 		bandwidthUsageTracker = [[NSMutableArray alloc] initWithCapacity:5];
 		ASIRequestTimedOutError = [[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIRequestTimedOutErrorType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"The request timed out",NSLocalizedDescriptionKey,nil]] retain];	
@@ -2088,9 +2089,6 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 	if (!sessionProxyCredentialsStore) {
 		sessionProxyCredentialsStore = [[NSMutableArray alloc] init];
 	}
-	if (!sessionCredentialsLock) {
-		sessionCredentialsLock = [[NSRecursiveLock alloc] init];
-	}
 	return sessionProxyCredentialsStore;
 }
 
@@ -2098,9 +2096,6 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 {
 	if (!sessionCredentialsStore) {
 		sessionCredentialsStore = [[NSMutableArray alloc] init];
-	}
-	if (!sessionCredentialsLock) {
-		sessionCredentialsLock = [[NSRecursiveLock alloc] init];
 	}
 	return sessionCredentialsStore;
 }
@@ -2259,9 +2254,6 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 
 + (void)addSessionCookie:(NSHTTPCookie *)newCookie
 {
-	// Called to ensure sessionCookies exists first, as we won't be able to create it when we have the lock
-	[[ASIHTTPRequest sessionCookies] count];
-	
 	[sessionCookiesLock lock];
 	NSHTTPCookie *cookie;
 	int i;
@@ -2280,7 +2272,9 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 // Dump all session data (authentication and cookies)
 + (void)clearSession
 {
+	[sessionCredentialsLock lock];
 	[[[self class] sessionCredentialsStore] removeAllObjects];
+	[sessionCredentialsLock unlock];
 	[[self class] setSessionCookies:nil];
 }
 

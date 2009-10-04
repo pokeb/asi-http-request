@@ -694,13 +694,14 @@
 	GHAssertTrue(success,@"Failed to correctly display increment progress for a partial download");
 }
 
-- (void)testSSL
+// The '000' is to ensure this test runs first, as another test may connect to https://selfsigned.allseeing-i.com and accept the certificate
+- (void)test000SSL
 {
 	NSURL *url = [NSURL URLWithString:@"https://selfsigned.allseeing-i.com"];
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:url];
 	[request start];
 	
-	GHAssertNotNil([request error],@"Failed to generate an error for a self-signed certificate");		
+	GHAssertNotNil([request error],@"Failed to generate an error for a self-signed certificate (Will fail on the second run in the same session!)");		
 	
 	// Just for testing the request generated a custom error description - don't do this! You should look at the domain / code of the underlyingError in your own programs.
 	BOOL success = ([[[request error] localizedDescription] isEqualToString:@"A connection failure occurred: SSL problem (possibily a bad/expired/self-signed certificate)"]);
