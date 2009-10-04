@@ -234,6 +234,7 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 	[postBodyWriteStream release];
 	[postBodyReadStream release];
 	[PACurl release];
+	[responseStatusMessage release];
 	[super dealloc];
 }
 
