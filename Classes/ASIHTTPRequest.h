@@ -351,9 +351,6 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 // Start the read stream. Called by loadRequest, and again to restart the request when authentication is needed
 - (void)startRequest;
 
-// Cancel loading and clean up
-- (void)cancelLoad;
-
 // Call to delete the temporary file used during a file download (if it exists)
 // No need to call this if the request succeeds - it is removed automatically
 - (void)removeTemporaryDownloadFile;

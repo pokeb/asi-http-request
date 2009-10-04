@@ -92,6 +92,7 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 // Private stuff
 @interface ASIHTTPRequest ()
 
+- (void)cancelLoad;
 - (BOOL)askDelegateForCredentials;
 - (BOOL)askDelegateForProxyCredentials;
 + (void)measureBandwidthUsage;
@@ -771,7 +772,7 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 	pool = nil;
 }
 
-// Cancel loading and clean up
+// Cancel loading and clean up. NEVER CALL THIS FROM ANOTHER THREAD!
 - (void)cancelLoad
 {
 	[[self cancelledLock] lock];
