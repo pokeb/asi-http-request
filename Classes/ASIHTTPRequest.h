@@ -304,6 +304,13 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	
 	// True when request is attempting to handle an authentication challenge
 	BOOL authenticationChallengeInProgress;
+	
+	// When YES, ASIHTTPRequests will present credentials from the session store for requests to the same server before being asked for them
+	// This avoids an extra round trip for requests after authentication has succeeded, which is much for efficient for authenticated requests with large bodies, or on slower connections
+	// Set to NO to only present credentials when explictly asked for them
+	// This only affects credentials stored in the session cache when useSessionPersistance is YES. Credentials from the keychain are never presented unless the server asks for them
+	// Default is YES
+	BOOL shouldPresentCredentialsBeforeChallenge;
 }
 
 #pragma mark init / dealloc
@@ -591,4 +598,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 @property (assign) BOOL shouldPresentAuthenticationDialog;
 @property (assign) BOOL shouldPresentProxyAuthenticationDialog;
 @property (assign) BOOL authenticationChallengeInProgress;
+@property (assign) BOOL shouldPresentCredentialsBeforeChallenge;
+@property (assign, readonly) int authenticationRetryCount;
+@property (assign, readonly) int proxyAuthenticationRetryCount;
 @end

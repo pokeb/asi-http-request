@@ -116,8 +116,8 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 @property (retain) NSLock *cancelledLock;
 @property (assign, nonatomic) BOOL haveBuiltPostBody;
 @property (retain, nonatomic) NSOutputStream *fileDownloadOutputStream;
-@property (assign, nonatomic) int authenticationRetryCount;
-@property (assign, nonatomic) int proxyAuthenticationRetryCount;
+@property (assign) int authenticationRetryCount;
+@property (assign) int proxyAuthenticationRetryCount;
 @property (assign, nonatomic) BOOL updatedProgress;
 @property (assign, nonatomic) BOOL needsRedirect;
 @property (assign, nonatomic) int redirectCount;
@@ -159,6 +159,7 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 	self = [super init];
 	[self setRequestMethod:@"GET"];
 
+	[self setShouldPresentCredentialsBeforeChallenge:YES];
 	[self setShouldRedirect:YES];
 	[self setShowAccurateProgress:YES];
 	[self setShouldResetProgressIndicators:YES];
@@ -430,17 +431,19 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 	
 	
 	// If we've already talked to this server and have valid credentials, let's apply them to the request
-	if ([self useSessionPersistance]) {
-		NSDictionary *credentials = [self findSessionAuthenticationCredentials];
-		if (credentials) {
-			if (!CFHTTPMessageApplyCredentialDictionary(request, (CFHTTPAuthenticationRef)[credentials objectForKey:@"Authentication"], (CFDictionaryRef)[credentials objectForKey:@"Credentials"], NULL)) {
-				[[self class] removeAuthenticationCredentialsFromSessionStore:[credentials objectForKey:@"Credentials"]];
+	if ([self shouldPresentCredentialsBeforeChallenge]) {
+		if ([self useSessionPersistance]) {
+			NSDictionary *credentials = [self findSessionAuthenticationCredentials];
+			if (credentials) {
+				if (!CFHTTPMessageApplyCredentialDictionary(request, (CFHTTPAuthenticationRef)[credentials objectForKey:@"Authentication"], (CFDictionaryRef)[credentials objectForKey:@"Credentials"], NULL)) {
+					[[self class] removeAuthenticationCredentialsFromSessionStore:[credentials objectForKey:@"Credentials"]];
+				}
 			}
-		}
-		credentials = [self findSessionProxyAuthenticationCredentials];
-		if (credentials) {
-			if (!CFHTTPMessageApplyCredentialDictionary(request, (CFHTTPAuthenticationRef)[credentials objectForKey:@"Authentication"], (CFDictionaryRef)[credentials objectForKey:@"Credentials"], NULL)) {
-				[[self class] removeProxyAuthenticationCredentialsFromSessionStore:[credentials objectForKey:@"Credentials"]];
+			credentials = [self findSessionProxyAuthenticationCredentials];
+			if (credentials) {
+				if (!CFHTTPMessageApplyCredentialDictionary(request, (CFHTTPAuthenticationRef)[credentials objectForKey:@"Authentication"], (CFDictionaryRef)[credentials objectForKey:@"Credentials"], NULL)) {
+					[[self class] removeProxyAuthenticationCredentialsFromSessionStore:[credentials objectForKey:@"Credentials"]];
+				}
 			}
 		}
 	}
@@ -1351,12 +1354,6 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 		[newCredentials setObject:[self proxyDomain] forKey:(NSString *)kCFHTTPAuthenticationAccountDomain];
 	}
 	
-	// Get the authentication realm
-	[self setProxyAuthenticationRealm:nil];
-	if (!CFHTTPAuthenticationRequiresAccountDomain(proxyAuthentication)) {
-		[self setProxyAuthenticationRealm:[(NSString *)CFHTTPAuthenticationCopyRealm(proxyAuthentication) autorelease]];
-	}
-	
 	NSString *user = nil;
 	NSString *pass = nil;
 	
@@ -1405,12 +1402,6 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 			[self setDomain:@""];
 		}
 		[newCredentials setObject:domain forKey:(NSString *)kCFHTTPAuthenticationAccountDomain];
-	}
-	
-	// Get the authentication realm
-	[self setAuthenticationRealm:nil];
-	if (!CFHTTPAuthenticationRequiresAccountDomain(requestAuthentication)) {
-		[self setAuthenticationRealm:[(NSString *)CFHTTPAuthenticationCopyRealm(requestAuthentication) autorelease]];
 	}
 	
 	// First, let's look at the url to see if the username and password were included
@@ -1539,6 +1530,12 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 		return;
 	}
 	
+	// Get the authentication realm
+	[self setProxyAuthenticationRealm:nil];
+	if (!CFHTTPAuthenticationRequiresAccountDomain(proxyAuthentication)) {
+		[self setProxyAuthenticationRealm:[(NSString *)CFHTTPAuthenticationCopyRealm(proxyAuthentication) autorelease]];
+	}
+	
 	// See if authentication is valid
 	CFStreamError err;		
 	if (!CFHTTPAuthenticationIsValid(proxyAuthentication, &err)) {
@@ -1598,11 +1595,11 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 	if (proxyCredentials) {
 		
 		// We use startRequest rather than starting all over again in load request because NTLM requires we reuse the request
-		if ((([self proxyAuthenticationScheme] != (NSString *)kCFHTTPAuthenticationSchemeNTLM) || proxyAuthenticationRetryCount < 2) && [self applyCredentials:proxyCredentials]) {
+		if ((([self proxyAuthenticationScheme] != (NSString *)kCFHTTPAuthenticationSchemeNTLM) || [self proxyAuthenticationRetryCount] < 2) && [self applyCredentials:proxyCredentials]) {
 			[self startRequest];
 			
 		// We've failed NTLM authentication twice, we should assume our credentials are wrong
-		} else if ([self proxyAuthenticationScheme] == (NSString *)kCFHTTPAuthenticationSchemeNTLM && proxyAuthenticationRetryCount == 2) {
+		} else if ([self proxyAuthenticationScheme] == (NSString *)kCFHTTPAuthenticationSchemeNTLM && [self proxyAuthenticationRetryCount] == 2) {
 			[self failWithError:ASIAuthenticationError];
 			
 		// Something went wrong, we'll have to give up
@@ -1741,6 +1738,12 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 		return;
 	}
 	
+	// Get the authentication realm
+	[self setAuthenticationRealm:nil];
+	if (!CFHTTPAuthenticationRequiresAccountDomain(requestAuthentication)) {
+		[self setAuthenticationRealm:[(NSString *)CFHTTPAuthenticationCopyRealm(requestAuthentication) autorelease]];
+	}
+	
 	// See if authentication is valid
 	CFStreamError err;		
 	if (!CFHTTPAuthenticationIsValid(requestAuthentication, &err)) {
@@ -1799,11 +1802,11 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 	
 	if (requestCredentials) {
 		
-		if ((([self authenticationScheme] != (NSString *)kCFHTTPAuthenticationSchemeNTLM) || authenticationRetryCount < 2) && [self applyCredentials:requestCredentials]) {
+		if ((([self authenticationScheme] != (NSString *)kCFHTTPAuthenticationSchemeNTLM) || [self authenticationRetryCount] < 2) && [self applyCredentials:requestCredentials]) {
 			[self startRequest];
 			
 			// We've failed NTLM authentication twice, we should assume our credentials are wrong
-		} else if ([self authenticationScheme] == (NSString *)kCFHTTPAuthenticationSchemeNTLM && authenticationRetryCount == 2) {
+		} else if ([self authenticationScheme] == (NSString *)kCFHTTPAuthenticationSchemeNTLM && [self authenticationRetryCount ] == 2) {
 			[self failWithError:ASIAuthenticationError];
 			
 		} else {
@@ -2918,6 +2921,7 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 @synthesize shouldPresentProxyAuthenticationDialog;
 @synthesize authenticationChallengeInProgress;
 @synthesize responseStatusMessage;
+@synthesize shouldPresentCredentialsBeforeChallenge;
 @end
 
 

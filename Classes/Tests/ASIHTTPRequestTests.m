@@ -516,6 +516,23 @@
 	err = [request error];
 	GHAssertNil(err,@"Failed to use stored credentials");
 	
+	// Tests shouldPresentCredentialsBeforeChallenge
+	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request setUseSessionPersistance:YES];
+	[request start];
+	
+	success = [request authenticationRetryCount] == 0;
+	GHAssertTrue(success,@"Didn't supply credentials before being asked for them when talking to the same server with shouldPresentCredentialsBeforeChallenge == YES");	
+	
+	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request setUseSessionPersistance:YES];
+	[request setShouldPresentCredentialsBeforeChallenge:NO];
+	[request start];
+	
+	success = [request authenticationRetryCount] == 1;
+	GHAssertTrue(success,@"Supplied credentials before being asked for them");	
+	
+	
 	// Ok, now let's test on a different server
 	url = [NSURL URLWithString:@"https://selfsigned.allseeing-i.com/ASIHTTPRequest/tests/basic-authentication"];
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
