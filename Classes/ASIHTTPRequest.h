@@ -343,6 +343,12 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 // Returns true if the response was gzip compressed
 - (BOOL)isResponseCompressed;
 
+#pragma mark running a request
+
+// Run a request asynchronously by adding it to the global queue
+// (Use [request start] for a synchronous request)
+- (void)startAsynchronous;
+
 #pragma mark request logic
 
 // Main request loop is in here
@@ -418,7 +424,11 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 - (void)handleStreamComplete;
 - (void)handleStreamError;
 
-# pragma mark session credentials
+#pragma mark global queue
+
++ (NSOperationQueue *)sharedRequestQueue;
+
+#pragma mark session credentials
 
 + (NSMutableArray *)sessionProxyCredentialsStore;
 + (NSMutableArray *)sessionCredentialsStore;

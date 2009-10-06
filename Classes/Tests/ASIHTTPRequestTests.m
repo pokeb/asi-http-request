@@ -923,7 +923,64 @@
 	GHAssertTrue(success,@"Got wrong response status message");
 }
 
+- (void)testAsynchronousWithGlobalQueue
+{
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/first"]];
+	[request setUserInfo:[NSDictionary dictionaryWithObject:[NSNumber numberWithInt:1] forKey:@"RequestNumber"]];
+	[request setDidFailSelector:@selector(asyncFail:)];
+	[request setDidFinishSelector:@selector(asyncSuccess:)];
+	[request setDelegate:self];
+	[request startAsynchronous];
+	
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/second"]];
+	[request setUserInfo:[NSDictionary dictionaryWithObject:[NSNumber numberWithInt:2] forKey:@"RequestNumber"]];
+	[request setDidFailSelector:@selector(asyncFail:)];
+	[request setDidFinishSelector:@selector(asyncSuccess:)];
+	[request setDelegate:self];
+	[request startAsynchronous];
+	
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/third"]];
+	[request setUserInfo:[NSDictionary dictionaryWithObject:[NSNumber numberWithInt:3] forKey:@"RequestNumber"]];
+	[request setDidFailSelector:@selector(asyncFail:)];
+	[request setDidFinishSelector:@selector(asyncSuccess:)];
+	[request setDelegate:self];
+	[request startAsynchronous];	
+	
+	request = [ASIHTTPRequest requestWithURL:nil];
+	[request setUserInfo:[NSDictionary dictionaryWithObject:[NSNumber numberWithInt:4] forKey:@"RequestNumber"]];
+	[request setDidFailSelector:@selector(asyncFail:)];
+	[request setDidFinishSelector:@selector(asyncSuccess:)];
+	[request setDelegate:self];
+	[request startAsynchronous];	
+}
+
+
+- (void)asyncFail:(ASIHTTPRequest *)request
+{
+	int requestNumber = [[[request userInfo] objectForKey:@"RequestNumber"] intValue];
+	GHAssertEquals(requestNumber,4,@"Wrong request failed");	
+}
+
+- (void)asyncSuccess:(ASIHTTPRequest *)request
+{
+	int requestNumber = [[[request userInfo] objectForKey:@"RequestNumber"] intValue];
+	GHAssertNotEquals(requestNumber,4,@"Request succeeded when it should have failed");
+	
+	BOOL success;
+	switch (requestNumber) {
+		case 1:
+			success = [[request responseString] isEqualToString:@"This is the expected content for the first string"];
+			break;
+		case 2:
+			success = [[request responseString] isEqualToString:@"This is the expected content for the second string"];
+			break;
+		case 3:
+			success = [[request responseString] isEqualToString:@"This is the expected content for the third string"];
+			break;
+	}
+	GHAssertTrue(success,@"Got wrong request content - very bad!");
+	
+}
+
 
 @end
-
-

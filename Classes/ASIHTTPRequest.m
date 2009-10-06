@@ -93,6 +93,8 @@ static NSRecursiveLock *sessionCookiesLock = nil;
 // This is so it can make use of any credentials supplied for the other request, if they are appropriate
 static NSRecursiveLock *delegateAuthenticationLock = nil;
 
+static NSOperationQueue *sharedRequestQueue = nil;
+
 // Private stuff
 @interface ASIHTTPRequest ()
 
@@ -401,6 +403,15 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 	} else {
 		return [self rawResponseData];
 	}
+}
+
+#pragma mark running a request
+
+// Run a request asynchronously by adding it to the global queue
+// (Use [request start] for a synchronous request)
+- (void)startAsynchronous
+{
+	[[ASIHTTPRequest sharedRequestQueue] addOperation:self];
 }
 
 
@@ -2086,6 +2097,17 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIConnectionFailureErrorType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:reason,NSLocalizedDescriptionKey,underlyingError,NSUnderlyingErrorKey,nil]]];
 	}
     [super cancel];
+}
+
+#pragma mark global queue
+
++ (NSOperationQueue *)sharedRequestQueue
+{
+	if (!sharedRequestQueue) {
+		sharedRequestQueue = [[NSOperationQueue alloc] init];
+		[sharedRequestQueue setMaxConcurrentOperationCount:YES];
+	}
+	return sharedRequestQueue;
 }
 
 # pragma mark session credentials
