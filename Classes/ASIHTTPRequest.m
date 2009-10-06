@@ -72,12 +72,16 @@ static unsigned long maxBandwidthPerSecond = 0;
 // A default figure for throttling bandwidth on mobile devices
 unsigned long const ASIWWANBandwidthThrottleAmount = 14800;
 
+#if TARGET_OS_IPHONE
 // YES when bandwidth throttling is active
 // This flag does not denote whether throttling is turned on - rather whether it is currently in use
 // It will be set to NO when throttling was turned on with setShouldThrottleBandwidthForWWAN, but a WI-FI connection is active
-BOOL isBandwidthThrottled = NO;
+static BOOL isBandwidthThrottled = NO;
 
-BOOL shouldThrottleBandwithForWWANOnly = NO;
+// When YES, bandwidth will be automatically throttled when using WWAN (3G/Edge/GPRS)
+// Wifi will not be throttled
+static BOOL shouldThrottleBandwithForWWANOnly = NO;
+#endif
 
 // Mediates access to the session cookies so requests
 static NSRecursiveLock *sessionCookiesLock = nil;
