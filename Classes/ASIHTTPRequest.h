@@ -416,6 +416,11 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 - (void)attemptToApplyCredentialsAndResume;
 - (void)attemptToApplyProxyCredentialsAndResume;
 
+// Attempt to show the built-in authentication dialog, returns YES if credentials were supplied, NO if user cancelled dialog / dialog is disabled / running on main thread
+// Currently only used on iPhone OS
+- (BOOL)showProxyAuthenticationDialog;
+- (BOOL)showAuthenticationDialog;
+
 #pragma mark stream status handlers
 
 // CFnetwork event handlers
@@ -533,11 +538,11 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 + (void)reachabilityChanged:(NSNotification *)note;
 #endif
 
-
-- (BOOL)showProxyAuthenticationDialog;
-- (BOOL)showAuthenticationDialog;
-
+// Returns the maximum amount of data we can read as part of the current measurement period, and sleeps this thread if our allowance is used up
 + (unsigned long)maxUploadReadLength;
+
+// Determines whether we're on iPhone OS 2.0 at runtime, currently used to determine whether we should apply a workaround for an issue with converting longs to doubles on iPhone OS 2
++ (BOOL)isiPhoneOS2;
 
 @property (retain) NSString *username;
 @property (retain) NSString *password;

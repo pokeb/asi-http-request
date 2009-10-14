@@ -95,6 +95,8 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 
 static NSOperationQueue *sharedRequestQueue = nil;
 
+static BOOL isiPhoneOS2;
+
 // Private stuff
 @interface ASIHTTPRequest ()
 
@@ -157,6 +159,12 @@ static NSOperationQueue *sharedRequestQueue = nil;
 		ASIRequestCancelledError = [[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIRequestCancelledErrorType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"The request was cancelled",NSLocalizedDescriptionKey,nil]] retain];
 		ASIUnableToCreateRequestError = [[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIUnableToCreateRequestErrorType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Unable to create request (bad url?)",NSLocalizedDescriptionKey,nil]] retain];
 		ASITooMuchRedirectionError = [[NSError errorWithDomain:NetworkRequestErrorDomain code:ASITooMuchRedirectionErrorType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"The request failed because it redirected too many times",NSLocalizedDescriptionKey,nil]] retain];	
+
+#if TARGET_OS_IPHONE
+		isiPhoneOS2 = ((floorf([[[UIDevice currentDevice] systemVersion] floatValue]) == 2.0) ? YES : NO);
+#else
+		isiPhoneOS2 = NO;
+#endif
 	}
 	[super initialize];
 }
@@ -698,7 +706,13 @@ static NSOperationQueue *sharedRequestQueue = nil;
 	if (shouldResetProgressIndicators) {
 		double amount = 1;
 		if (showAccurateProgress) {
-			amount = postLength;
+			
+			//Workaround for an issue with converting a long to a double on iPhone OS 2.2.1 with a base SDK >= 3.0
+			if ([ASIHTTPRequest isiPhoneOS2]) {
+				amount = [[NSNumber numberWithUnsignedLongLong:postLength] doubleValue]; 
+			} else {
+				amount = (double)postLength;
+			}
 		}
 		[self resetUploadProgress:amount];
 	}	
@@ -983,7 +997,16 @@ static NSOperationQueue *sharedRequestQueue = nil;
 
 	// Update this request's own upload progress delegate
 	if (uploadProgressDelegate) {
-		[ASIHTTPRequest setProgress:(double)(1.0*(totalBytesSent-uploadBufferSize)/(postLength-uploadBufferSize)) forProgressIndicator:uploadProgressDelegate];
+		
+		double progress;
+		//Workaround for an issue with converting a long to a double on iPhone OS 2.2.1 with a base SDK >= 3.0
+		if ([ASIHTTPRequest isiPhoneOS2]) {
+			progress = [[NSNumber numberWithUnsignedLongLong:(totalBytesSent-uploadBufferSize)/(postLength-uploadBufferSize)] doubleValue]; 
+		} else {
+			progress = (double)(1.0*(totalBytesSent-uploadBufferSize)/(postLength-uploadBufferSize));
+		}
+		
+		[ASIHTTPRequest setProgress:progress forProgressIndicator:uploadProgressDelegate];
 		
 	}
 
@@ -1047,7 +1070,15 @@ static NSOperationQueue *sharedRequestQueue = nil;
 		}
 			
 		if (downloadProgressDelegate && contentLength > 0)  {
-			[ASIHTTPRequest setProgress:(double)(1.0*bytesReadSoFar/(contentLength+partialDownloadSize)) forProgressIndicator:downloadProgressDelegate];
+			double progress;
+			//Workaround for an issue with converting a long to a double on iPhone OS 2.2.1 with a base SDK >= 3.0
+			if ([ASIHTTPRequest isiPhoneOS2]) {
+				progress = [[NSNumber numberWithUnsignedLongLong:bytesReadSoFar/(contentLength+partialDownloadSize)] doubleValue]; 
+			} else {
+				progress = (double)(1.0*bytesReadSoFar/(contentLength+partialDownloadSize));
+			}
+			
+			[ASIHTTPRequest setProgress:progress forProgressIndicator:downloadProgressDelegate];
 		}
 		
 		[self setLastBytesRead:bytesReadSoFar];
@@ -2860,6 +2891,11 @@ static NSOperationQueue *sharedRequestQueue = nil;
 	}
 	[bandwidthThrottlingLock unlock];	
 	return toRead;
+}
+
++ (BOOL)isiPhoneOS2
+{
+	return isiPhoneOS2;
 }
 
 
