@@ -141,8 +141,6 @@ static BOOL isiPhoneOS2;
 
 @implementation ASIHTTPRequest
 
-
-
 #pragma mark init / dealloc
 
 + (void)initialize
@@ -456,15 +454,31 @@ static BOOL isiPhoneOS2;
     }
 	
 	
-	// If we've already talked to this server and have valid credentials, let's apply them to the request
+	
 	if ([self shouldPresentCredentialsBeforeChallenge]) {
+		
+		NSDictionary *credentials = nil;
 		if ([self useSessionPersistance]) {
-			NSDictionary *credentials = [self findSessionAuthenticationCredentials];
-			if (credentials) {
-				if (!CFHTTPMessageApplyCredentialDictionary(request, (CFHTTPAuthenticationRef)[credentials objectForKey:@"Authentication"], (CFDictionaryRef)[credentials objectForKey:@"Credentials"], NULL)) {
-					[[self class] removeAuthenticationCredentialsFromSessionStore:[credentials objectForKey:@"Credentials"]];
-				}
+			credentials = [self findSessionAuthenticationCredentials];
+		}
+		
+		
+		// Do we have credentials that might be for basic authentication set?
+		if ([self username] && [self password] && ![self domain]) {
+			
+			// If we have stored credentials, is this server asking for basic authentication? If we don't have credentials, we'll assume basic
+			if (!credentials || (CFStringRef)[credentials objectForKey:@"AuthenticationScheme"] == kCFHTTPAuthenticationSchemeBasic) {
+				[self addRequestHeader:@"Authorisation" value:[ASIHTTPRequest base64forData:[[NSString stringWithFormat:@"%@:%@",[self username],[self password]] dataUsingEncoding:NSUTF8StringEncoding]]];
 			}
+		}
+		
+		if (credentials && ![[self requestHeaders] objectForKey:@"Authorisation"]) {
+			// If we've already talked to this server and have valid credentials, let's apply them to the request
+			if (!CFHTTPMessageApplyCredentialDictionary(request, (CFHTTPAuthenticationRef)[credentials objectForKey:@"Authentication"], (CFDictionaryRef)[credentials objectForKey:@"Credentials"], NULL)) {
+				[[self class] removeAuthenticationCredentialsFromSessionStore:[credentials objectForKey:@"Credentials"]];
+			}
+		}
+		if ([self useSessionPersistance]) {
 			credentials = [self findSessionProxyAuthenticationCredentials];
 			if (credentials) {
 				if (!CFHTTPMessageApplyCredentialDictionary(request, (CFHTTPAuthenticationRef)[credentials objectForKey:@"Authentication"], (CFDictionaryRef)[credentials objectForKey:@"Credentials"], NULL)) {
@@ -2893,11 +2907,47 @@ static BOOL isiPhoneOS2;
 	return toRead;
 }
 
+#pragma mark miscellany 
+
 + (BOOL)isiPhoneOS2
 {
+	// Value is set in +initialize
 	return isiPhoneOS2;
 }
 
+// From: http://www.cocoadev.com/index.pl?BaseSixtyFour
+
++ (NSString*)base64forData:(NSData*)theData {
+	
+	const uint8_t* input = (const uint8_t*)[theData bytes];
+	NSInteger length = [theData length];
+	
+    static char table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+	
+    NSMutableData* data = [NSMutableData dataWithLength:((length + 2) / 3) * 4];
+    uint8_t* output = (uint8_t*)data.mutableBytes;
+	
+    for (NSInteger i = 0; i < length; i += 3) {
+        NSInteger value = 0;
+        for (NSInteger j = i; j < (i + 3); j++) {
+            value <<= 8;
+			
+            if (j < length) {
+                value |= (0xFF & input[j]);
+            }
+        }
+		
+        NSInteger index = (i / 3) * 4;
+        output[index + 0] =                    table[(value >> 18) & 0x3F];
+        output[index + 1] =                    table[(value >> 12) & 0x3F];
+        output[index + 2] = (i + 1) < length ? table[(value >> 6)  & 0x3F] : '=';
+        output[index + 3] = (i + 2) < length ? table[(value >> 0)  & 0x3F] : '=';
+    }
+	
+    return [[[NSString alloc] initWithData:data encoding:NSASCIIStringEncoding] autorelease];
+}
+
+#pragma mark ===
 
 @synthesize username;
 @synthesize password;

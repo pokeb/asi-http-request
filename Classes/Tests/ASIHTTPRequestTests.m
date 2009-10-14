@@ -557,6 +557,7 @@
 
 - (void)testDigestAuthentication
 {
+	[ASIHTTPRequest removeCredentialsForHost:@"allseeing-i.com" port:0 protocol:@"http" realm:@"Keep out"];
 	[ASIHTTPRequest clearSession];
 	
 	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/digest-authentication"] autorelease];
@@ -564,12 +565,14 @@
 	BOOL success;
 	NSError *err;
 	
+	// Test authentication needed when no credentials supplied
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUseKeychainPersistance:NO];
 	[request start];
 	success = [[request error] code] == ASIAuthenticationErrorType;
 	GHAssertTrue(success,@"Failed to generate permission denied error with no credentials");
 	
+	// Test wrong credentials supplied
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUseKeychainPersistance:NO];
 	[request setUsername:@"wrong"];
@@ -578,6 +581,7 @@
 	success = [[request error] code] == ASIAuthenticationErrorType;
 	GHAssertTrue(success,@"Failed to generate permission denied error with wrong credentials");
 	
+	// Test correct credentials supplied
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUseSessionPersistance:YES];
 	[request setUseKeychainPersistance:YES];
@@ -587,6 +591,7 @@
 	err = [request error];
 	GHAssertNil(err,@"Failed to supply correct username and password");
 	
+	// Ensure credentials are not reused
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUseSessionPersistance:NO];
 	[request setUseKeychainPersistance:NO];
@@ -594,6 +599,7 @@
 	success = [[request error] code] == ASIAuthenticationErrorType;
 	GHAssertTrue(success,@"Reused credentials when we shouldn't have");
 	
+	// Ensure credentials stored in the session are reused
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUseSessionPersistance:YES];
 	[request setUseKeychainPersistance:NO];
@@ -603,11 +609,28 @@
 	
 	[ASIHTTPRequest clearSession];
 	
+	// Ensure credentials stored in the session were wiped
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUseKeychainPersistance:NO];
 	[request start];
 	success = [[request error] code] == ASIAuthenticationErrorType;
 	GHAssertTrue(success,@"Failed to clear credentials");
+	
+	// Ensure credentials stored in the keychain are reused
+	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request setUseKeychainPersistance:YES];
+	[request start];
+	err = [request error];
+	GHAssertNil(err,@"Failed to reuse credentials");
+	
+	[ASIHTTPRequest removeCredentialsForHost:@"allseeing-i.com" port:80 protocol:@"http" realm:@"Keep out"];
+	
+	// Ensure credentials stored in the keychain were wiped
+	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request setUseKeychainPersistance:YES];
+	[request start];
+	success = [[request error] code] == ASIAuthenticationErrorType;
+	GHAssertTrue(success,@"Failed to clear credentials");	
 }
 
 - (void)testNTLMHandshake

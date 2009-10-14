@@ -541,8 +541,16 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 // Returns the maximum amount of data we can read as part of the current measurement period, and sleeps this thread if our allowance is used up
 + (unsigned long)maxUploadReadLength;
 
+#pragma mark miscellany 
+
 // Determines whether we're on iPhone OS 2.0 at runtime, currently used to determine whether we should apply a workaround for an issue with converting longs to doubles on iPhone OS 2
 + (BOOL)isiPhoneOS2;
+
+// Used for generating Authorization header when using basic authentication when shouldPresentCredentialsBeforeChallenge is true
+// And also by ASIS3Request
++ (NSString *)base64forData:(NSData *)theData;
+
+#pragma mark ===
 
 @property (retain) NSString *username;
 @property (retain) NSString *password;

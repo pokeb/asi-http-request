@@ -20,7 +20,7 @@ static NSString *sharedSecretAccessKey = nil;
 @interface ASIS3Request ()
 	- (void)parseError;
 	+ (NSData *)HMACSHA1withKey:(NSString *)key forString:(NSString *)string;
-	+ (NSString *)base64forData:(NSData *)theData;
+	
 	@property (retain, nonatomic) NSString *currentErrorString;
 @end
 
@@ -138,7 +138,7 @@ static NSString *sharedSecretAccessKey = nil;
 	} else {
 		stringToSign = [NSString stringWithFormat:@"%@\n\n\n%@\n%@%@",[self requestMethod],dateString,canonicalizedAmzHeaders,canonicalizedResource];
 	}
-	NSString *signature = [ASIS3Request base64forData:[ASIS3Request HMACSHA1withKey:[self secretAccessKey] forString:stringToSign]];
+	NSString *signature = [ASIHTTPRequest base64forData:[ASIS3Request HMACSHA1withKey:[self secretAccessKey] forString:stringToSign]];
 	NSString *authorizationString = [NSString stringWithFormat:@"AWS %@:%@",[self accessKey],signature];
 	[self addRequestHeader:@"Authorization" value:authorizationString];
 }
@@ -243,40 +243,6 @@ static NSString *sharedSecretAccessKey = nil;
 	
 	return [NSData dataWithBytes:digest length:CC_SHA1_DIGEST_LENGTH];
 }
-
-
-// From: http://www.cocoadev.com/index.pl?BaseSixtyFour
-
-+ (NSString*)base64forData:(NSData*)theData {
-	
-	const uint8_t* input = (const uint8_t*)[theData bytes];
-	NSInteger length = [theData length];
-	
-    static char table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
-	
-    NSMutableData* data = [NSMutableData dataWithLength:((length + 2) / 3) * 4];
-    uint8_t* output = (uint8_t*)data.mutableBytes;
-	
-    for (NSInteger i = 0; i < length; i += 3) {
-        NSInteger value = 0;
-        for (NSInteger j = i; j < (i + 3); j++) {
-            value <<= 8;
-			
-            if (j < length) {
-                value |= (0xFF & input[j]);
-            }
-        }
-		
-        NSInteger index = (i / 3) * 4;
-        output[index + 0] =                    table[(value >> 18) & 0x3F];
-        output[index + 1] =                    table[(value >> 12) & 0x3F];
-        output[index + 2] = (i + 1) < length ? table[(value >> 6)  & 0x3F] : '=';
-        output[index + 3] = (i + 2) < length ? table[(value >> 0)  & 0x3F] : '=';
-    }
-	
-    return [[[NSString alloc] initWithData:data encoding:NSASCIIStringEncoding] autorelease];
-}
-
 
 @synthesize bucket;
 @synthesize path;
