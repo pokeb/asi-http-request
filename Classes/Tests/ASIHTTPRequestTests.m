@@ -125,6 +125,14 @@
 		BOOL success = [[request responseString] isEqualToString:method];
 		GHAssertTrue(success,@"Failed to set the request method correctly");	
 	}
+	
+	// Test to ensure we don't change the request method when we have an unrecognised method already set
+	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request setRequestMethod:@"FINK"];
+	[request appendPostData:[@"King" dataUsingEncoding:NSUTF8StringEncoding]];
+	[request buildPostBody];
+	BOOL success = [[request requestMethod] isEqualToString:@"FINK"];
+	GHAssertTrue(success,@"Erroneously changed request method");	
 }
 
 - (void)testHTTPVersion
