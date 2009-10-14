@@ -23,6 +23,7 @@
 - (void)testDownloadProgress;
 - (void)testUploadProgress;
 - (void)testCookies;
+- (void)testRemoveCredentialsFromKeychain;
 - (void)testBasicAuthentication;
 - (void)testDigestAuthentication;
 - (void)testNTLMHandshake;
@@ -40,4 +41,5 @@
 - (void)testThrottlingDownloadBandwidth;
 - (void)testThrottlingUploadBandwidth;
 - (void)testMainThreadDelegateAuthenticationFailure;
+
 @end
