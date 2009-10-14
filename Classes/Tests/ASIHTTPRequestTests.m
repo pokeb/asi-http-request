@@ -461,6 +461,14 @@
 	GHAssertTrue(success,@"Cookie presented to the server when it should have been removed");
 }
 
+// Test fix for a crash if you tried to remove credentials that didn't exist
+- (void)testRemoveCredentialsFromKeychain
+{
+	[ASIHTTPRequest removeCredentialsForHost:@"apple.com" port:0 protocol:@"http" realm:@"Nothing to see here"];
+	[ASIHTTPRequest removeCredentialsForProxy:@"apple.com" port:0 realm:@"Nothing to see here"];
+	
+}
+
 
 - (void)testBasicAuthentication
 {
