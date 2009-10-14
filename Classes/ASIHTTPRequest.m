@@ -454,28 +454,41 @@ static BOOL isiPhoneOS2;
     }
 	
 	
-	
+	// Do we want to send credentials before we are asked for them?
 	if ([self shouldPresentCredentialsBeforeChallenge]) {
 		
+		// First, see if we have any credentials we can use in the session store
 		NSDictionary *credentials = nil;
 		if ([self useSessionPersistance]) {
 			credentials = [self findSessionAuthenticationCredentials];
 		}
 		
 		
-		// Do we have credentials that might be for basic authentication set?
+		// Are any credentials set on this request that might be used for basic authentication?
 		if ([self username] && [self password] && ![self domain]) {
 			
 			// If we have stored credentials, is this server asking for basic authentication? If we don't have credentials, we'll assume basic
 			if (!credentials || (CFStringRef)[credentials objectForKey:@"AuthenticationScheme"] == kCFHTTPAuthenticationSchemeBasic) {
-				[self addRequestHeader:@"Authorisation" value:[ASIHTTPRequest base64forData:[[NSString stringWithFormat:@"%@:%@",[self username],[self password]] dataUsingEncoding:NSUTF8StringEncoding]]];
+				[self addBasicAuthenticationHeaderWithUsername:[self username] andPassword:[self password]];
 			}
 		}
 		
-		if (credentials && ![[self requestHeaders] objectForKey:@"Authorisation"]) {
-			// If we've already talked to this server and have valid credentials, let's apply them to the request
-			if (!CFHTTPMessageApplyCredentialDictionary(request, (CFHTTPAuthenticationRef)[credentials objectForKey:@"Authentication"], (CFDictionaryRef)[credentials objectForKey:@"Credentials"], NULL)) {
-				[[self class] removeAuthenticationCredentialsFromSessionStore:[credentials objectForKey:@"Credentials"]];
+		if (credentials && ![[self requestHeaders] objectForKey:@"Authorization"]) {
+			
+			// When the Authentication key is set, the credentials were stored after an authentication challenge, so we can let CFNetwork apply them
+			// (credentials for Digest and NTLM will always be stored like this)
+			if ([credentials objectForKey:@"Authentication"]) {
+				
+				// If we've already talked to this server and have valid credentials, let's apply them to the request
+				if (!CFHTTPMessageApplyCredentialDictionary(request, (CFHTTPAuthenticationRef)[credentials objectForKey:@"Authentication"], (CFDictionaryRef)[credentials objectForKey:@"Credentials"], NULL)) {
+					[[self class] removeAuthenticationCredentialsFromSessionStore:[credentials objectForKey:@"Credentials"]];
+				}
+				
+			// If the Authentication key is not set, these credentials were stored after a username and password set on a previous request passed basic authentication
+			// When this happens, we'll need to create the Authorization header ourselves
+			} else {
+				NSDictionary *usernameAndPassword = [credentials objectForKey:@"Credentials"];
+				[self addBasicAuthenticationHeaderWithUsername:[usernameAndPassword objectForKey:(NSString *)kCFHTTPAuthenticationUsername] andPassword:[usernameAndPassword objectForKey:(NSString *)kCFHTTPAuthenticationPassword]];
 			}
 		}
 		if ([self useSessionPersistance]) {
@@ -1238,8 +1251,24 @@ static BOOL isiPhoneOS2;
 		}
 		[self setAuthenticationChallengeInProgress:isAuthenticationChallenge];
 		
-		// We won't reset the download progress delegate if we got an authentication challenge
+		// Authentication succeeded, or no authentication was required
 		if (!isAuthenticationChallenge) {
+			
+			// Did we get here without an authentication challenge? (which can happen when shouldPresentCredentialsBeforeChallenge is YES and basic auth was successful)
+			if (!requestAuthentication && [self username] && [self password] && [self useSessionPersistance]) {
+				
+				NSMutableDictionary *newCredentials = [NSMutableDictionary dictionaryWithCapacity:2];
+				[newCredentials setObject:[self username] forKey:(NSString *)kCFHTTPAuthenticationUsername];
+				[newCredentials setObject:[self password] forKey:(NSString *)kCFHTTPAuthenticationPassword];
+				
+				// Store the credentials in the session 
+				NSMutableDictionary *sessionCredentials = [NSMutableDictionary dictionary];
+				[sessionCredentials setObject:newCredentials forKey:@"Credentials"];
+				[sessionCredentials setObject:[self url] forKey:@"URL"];
+				[sessionCredentials setObject:(NSString *)kCFHTTPAuthenticationSchemeBasic forKey:@"AuthenticationScheme"];
+				[[self class] storeAuthenticationCredentialsInSessionStore:sessionCredentials];
+			}
+			
 			
 			// See if we got a Content-length header
 			NSString *cLength = [responseHeaders valueForKey:@"Content-Length"];
@@ -1933,6 +1962,11 @@ static BOOL isiPhoneOS2;
 	
 }
 
+- (void)addBasicAuthenticationHeaderWithUsername:(NSString *)theUsername andPassword:(NSString *)thePassword
+{
+	[self addRequestHeader:@"Authorization" value:[NSString stringWithFormat:@"Basic %@",[ASIHTTPRequest base64forData:[[NSString stringWithFormat:@"%@:%@",theUsername,thePassword] dataUsingEncoding:NSUTF8StringEncoding]]]];	
+}
+
 
 #pragma mark stream status handlers
 
@@ -2240,21 +2274,24 @@ static BOOL isiPhoneOS2;
 {
 	[sessionCredentialsLock lock];
 	NSMutableArray *sessionCredentialsList = [[self class] sessionCredentialsStore];
-	// Find an exact match
+	// Find an exact match (same url)
 	for (NSDictionary *theCredentials in sessionCredentialsList) {
 		if ([[theCredentials objectForKey:@"URL"] isEqual:[self url]]) {
-			if (![self responseStatusCode] || [[theCredentials objectForKey:@"AuthenticationRealm"] isEqualToString:[self authenticationRealm]]) {
+			// /Just a sanity check to ensure we never choose credentials from a different realm. Can't really do more than that, as either this request or the stored credentials may not have a realm when the other does
+			if (![self responseStatusCode] || (![theCredentials objectForKey:@"AuthenticationRealm"] || [[theCredentials objectForKey:@"AuthenticationRealm"] isEqualToString:[self authenticationRealm]])) {
 				[sessionCredentialsLock unlock];
 				return theCredentials;
 			}
 		}
 	}
-	// Find a rough match
+	// Find a rough match (same host, port, scheme)
 	NSURL *requestURL = [self url];
 	for (NSDictionary *theCredentials in sessionCredentialsList) {
 		NSURL *theURL = [theCredentials objectForKey:@"URL"];
-		if ([[theURL host] isEqualToString:[requestURL host]] && [[theURL port] isEqualToNumber:[requestURL port]] && [[theURL scheme] isEqualToString:[requestURL scheme]]) {
-			if (![self responseStatusCode] || [[theCredentials objectForKey:@"AuthenticationRealm"] isEqualToString:[self authenticationRealm]]) {
+		
+		// Port can be nil!
+		if ([[theURL host] isEqualToString:[requestURL host]] && ([theURL port] == [requestURL port] || [[theURL port] isEqualToNumber:[requestURL port]]) && [[theURL scheme] isEqualToString:[requestURL scheme]]) {
+			if (![self responseStatusCode] || (![theCredentials objectForKey:@"AuthenticationRealm"] || [[theCredentials objectForKey:@"AuthenticationRealm"] isEqualToString:[self authenticationRealm]])) {
 				[sessionCredentialsLock unlock];
 				return theCredentials;
 			}

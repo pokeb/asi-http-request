@@ -421,6 +421,10 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 - (BOOL)showProxyAuthenticationDialog;
 - (BOOL)showAuthenticationDialog;
 
+// Construct a basic authentication header from the username and password supplied, and add it to the request headers
+// Used when shouldPresentCredentialsBeforeChallenge is YES
+- (void)addBasicAuthenticationHeaderWithUsername:(NSString *)theUsername andPassword:(NSString *)thePassword;
+
 #pragma mark stream status handlers
 
 // CFnetwork event handlers
