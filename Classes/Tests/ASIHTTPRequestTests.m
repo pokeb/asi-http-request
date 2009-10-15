@@ -278,14 +278,6 @@
 }
 
 
-
-
-- (void)setProgress:(float)newProgress;
-{
-	progress = newProgress;
-}
-
-
 - (void)testUploadProgress
 {
 	progress = 0;
@@ -700,8 +692,6 @@
 	success = [request authenticationRetryCount] == 0;
 	GHAssertTrue(success,@"Didn't supply credentials before being asked for them, even though they were set in the session and shouldPresentCredentialsBeforeChallenge == YES");	
 	
-	
-	
 }
 
 - (void)testNTLMHandshake
@@ -1084,5 +1074,49 @@
 	
 }
 
+// This is a stress test that looks for thread-safety problems with cancelling requests
+// It will run for 30 seconds, creating a request, then cancelling it and creating another as soon as it gets some indication of progress
+// Uncomment to run on your local webserver. Do not use on a remote server, this test will create 1000s of requests!
 
+//- (void)testCancelStressTest
+//{
+//	[self setCancelStartDate:[NSDate dateWithTimeIntervalSinceNow:30]];
+//	[self performCancelRequest];
+//	while ([[self cancelStartDate] timeIntervalSinceNow] > 0) {
+//		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
+//	}
+//	NSLog(@"Stress test: DONE");
+//}
+//
+//- (void)performCancelRequest
+//{
+//	[self setCancelRequest:[ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://127.0.0.1/ASIHTTPRequest/tests/the_great_american_novel.txt"]]];
+//	if ([[self cancelStartDate] timeIntervalSinceNow] > 0) {
+//		[[self cancelRequest] setUserInfo:[NSDictionary dictionaryWithObject:@"TryTryAgain" forKey:@"WhatShallIDoNext?"]];
+//		[[self cancelRequest] setDownloadProgressDelegate:self];
+//		[[self cancelRequest] setShowAccurateProgress:YES];
+//		NSLog(@"Stress test: Start request %@",[self cancelRequest]);
+//		[[self cancelRequest] startAsynchronous];
+//	}
+//}
+
+
+- (void)setProgress:(float)newProgress;
+{
+	progress = newProgress;
+	
+	// For cancel test
+	if (newProgress > 0 && [self cancelRequest]) {
+			
+		NSLog(@"Stress test: Cancel request %@",[self cancelRequest]);
+		[[self cancelRequest] cancel];
+		
+		[self setCancelRequest:nil];
+		[self performSelector:@selector(performCancelRequest) withObject:nil afterDelay:0.2];
+	}
+}
+
+
+@synthesize cancelRequest;
+@synthesize cancelStartDate;
 @end

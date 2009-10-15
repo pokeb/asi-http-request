@@ -228,7 +228,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	NSConditionLock *authenticationLock;
 	
 	// This lock prevents the operation from being cancelled at an inopportune moment
-	NSLock *cancelledLock;
+	NSRecursiveLock *cancelledLock;
 	
 	// Called on the delegate when the request completes successfully
 	SEL didFinishSelector;

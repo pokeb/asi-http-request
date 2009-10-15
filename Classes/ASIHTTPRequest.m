@@ -122,7 +122,7 @@ static BOOL isiPhoneOS2;
 @property (assign) unsigned long long totalBytesSent;
 @property (assign, nonatomic) unsigned long long lastBytesRead;
 @property (assign, nonatomic) unsigned long long lastBytesSent;
-@property (retain) NSLock *cancelledLock;
+@property (retain) NSRecursiveLock *cancelledLock;
 @property (assign, nonatomic) BOOL haveBuiltPostBody;
 @property (retain, nonatomic) NSOutputStream *fileDownloadOutputStream;
 @property (assign) int authenticationRetryCount;
@@ -189,7 +189,7 @@ static BOOL isiPhoneOS2;
 	[self setDidFinishSelector:@selector(requestFinished:)];
 	[self setDidFailSelector:@selector(requestFailed:)];
 	[self setURL:newURL];
-	[self setCancelledLock:[[[NSLock alloc] init] autorelease]];
+	[self setCancelledLock:[[[NSRecursiveLock alloc] init] autorelease]];
 	return self;
 }
 
@@ -373,14 +373,21 @@ static BOOL isiPhoneOS2;
 
 - (void)cancel
 {
-	// Request may already be complete
-	if ([self complete] || [self isCancelled]) {
+	[[self cancelledLock] lock];
+
+	if ([self isCancelled]) {
+		[[self cancelledLock] unlock];
 		return;
 	}
+	
 	[self failWithError:ASIRequestCancelledError];
-	[super cancel];
-	[self cancelLoad];
 	[self setComplete:YES];
+	[self cancelLoad];
+	[[self cancelledLock] unlock];
+	
+	// Must tell the operation to cancel after we unlock, as this request might be dealloced and then NSLock will log an error
+	[super cancel];
+	
 
 }
 
@@ -429,7 +436,6 @@ static BOOL isiPhoneOS2;
 	
 	[pool release];
 	pool = [[NSAutoreleasePool alloc] init];
-	
 	[self setComplete:NO];
 	
 	if (![self url]) {
@@ -576,7 +582,6 @@ static BOOL isiPhoneOS2;
 	}
 	
 	[self loadRequest];
-	
 }
 
 - (void)startRequest
@@ -755,6 +760,16 @@ static BOOL isiPhoneOS2;
 
 	// Wait for the request to finish
 	while (!complete) {
+
+		// We won't let the request cancel until we're done with this cycle of the loop
+		[[self cancelledLock] lock];
+		
+		
+		// See if our NSOperationQueue told us to cancel
+		if ([self isCancelled] || [self complete]) {
+			[[self cancelledLock] unlock];
+			break;
+		}
 		
 		// This may take a while, so we'll release the pool each cycle to stop a giant backlog of autoreleased objects building up
 		[pool release];
@@ -762,8 +777,7 @@ static BOOL isiPhoneOS2;
 		
 		NSDate *now = [NSDate date];
 		
-		// We won't let the request cancel until we're done with this cycle of the loop
-		[[self cancelledLock] lock];
+
 		
 		// See if we need to timeout
 		if (lastActivityTime && timeOutSeconds > 0 && [now timeIntervalSinceDate:lastActivityTime] > timeOutSeconds) {
@@ -796,12 +810,7 @@ static BOOL isiPhoneOS2;
 			}
 			break;
 		}
-		
-		// See if our NSOperationQueue told us to cancel
-		if ([self isCancelled] || [self complete]) {
-			[[self cancelledLock] unlock];
-			break;
-		}
+	
 		
 		// Find out if we've sent any more data than last time, and reset the timeout if so
 		if (totalBytesSent > lastBytesSent) {
@@ -811,9 +820,7 @@ static BOOL isiPhoneOS2;
 
 		// Find out how much data we've uploaded so far
 		[self setTotalBytesSent:[[(NSNumber *)CFReadStreamCopyProperty(readStream, kCFStreamPropertyHTTPRequestBytesWrittenCount) autorelease] unsignedLongLongValue]];
-		
-		// Updating the progress indicators will attempt to aquire the lock again when needed
-		[[self cancelledLock] unlock];
+			
 		
 		[self updateProgressIndicators];
 		
@@ -822,16 +829,18 @@ static BOOL isiPhoneOS2;
 		
 		// This thread should wait for 1/4 second for the stream to do something. We'll stop early if it does.
 		CFRunLoopRunInMode(ASIHTTPRequestRunMode,0.25,YES);
+
+		
+		[[self cancelledLock] unlock];
+		
 	}
-	
 	[pool release];
 	pool = nil;
 }
 
-// Cancel loading and clean up. NEVER CALL THIS FROM ANOTHER THREAD!
+// Cancel loading and clean up. DO NOT USE THIS TO CANCEL REQUESTS - use [request cancel] instead
 - (void)cancelLoad
 {
-	[[self cancelledLock] lock];
     if (readStream) {
 		CFReadStreamSetClient(readStream, kCFStreamEventNone, NULL, NULL);
 		CFReadStreamUnscheduleFromRunLoop(readStream, CFRunLoopGetCurrent(), ASIHTTPRequestRunMode);
@@ -862,7 +871,6 @@ static BOOL isiPhoneOS2;
 	}
 	
 	[self setResponseHeaders:nil];
-	[[self cancelledLock] unlock];
 }
 
 
@@ -966,9 +974,7 @@ static BOOL isiPhoneOS2;
 
 - (void)updateUploadProgress
 {
-	[[self cancelledLock] lock];
 	if ([self isCancelled]) {
-		[[self cancelledLock] unlock];
 		return;
 	}
 	
@@ -991,7 +997,6 @@ static BOOL isiPhoneOS2;
 	
 
 	
-	[[self cancelledLock] unlock];
 
 	if (totalBytesSent == 0) {
 		return;
@@ -1032,7 +1037,7 @@ static BOOL isiPhoneOS2;
 		} else {
 			progress = (double)(1.0*(totalBytesSent-uploadBufferSize)/(postLength-uploadBufferSize));
 		}
-		
+		[self setUpdatedProgress:YES];
 		[ASIHTTPRequest setProgress:progress forProgressIndicator:uploadProgressDelegate];
 		
 	}
@@ -1096,16 +1101,24 @@ static BOOL isiPhoneOS2;
 			[thePool release];
 		}
 			
-		if (downloadProgressDelegate && contentLength > 0)  {
-			double progress;
-			//Workaround for an issue with converting a long to a double on iPhone OS 2.2.1 with a base SDK >= 3.0
-			if ([ASIHTTPRequest isiPhoneOS2]) {
-				progress = [[NSNumber numberWithUnsignedLongLong:bytesReadSoFar/(contentLength+partialDownloadSize)] doubleValue]; 
-			} else {
-				progress = (double)(1.0*bytesReadSoFar/(contentLength+partialDownloadSize));
+		if (downloadProgressDelegate) {
+			if (contentLength > 0)  {
+				double progress;
+				//Workaround for an issue with converting a long to a double on iPhone OS 2.2.1 with a base SDK >= 3.0
+				if ([ASIHTTPRequest isiPhoneOS2]) {
+					progress = [[NSNumber numberWithUnsignedLongLong:bytesReadSoFar/(contentLength+partialDownloadSize)] doubleValue]; 
+				} else {
+					progress = (double)(1.0*bytesReadSoFar/(contentLength+partialDownloadSize));
+				}
+				[self setUpdatedProgress:YES];
+				[ASIHTTPRequest setProgress:progress forProgressIndicator:downloadProgressDelegate];
+				
+			// Request has finished, but we've never updated the progress
+			// This is either an error, or we got no Content-Length header
+			} else if ([self complete] && ![self updatedProgress]) {
+				[self setUpdatedProgress:YES];
+				[ASIHTTPRequest setProgress:1.0 forProgressIndicator:downloadProgressDelegate];
 			}
-			
-			[ASIHTTPRequest setProgress:progress forProgressIndicator:downloadProgressDelegate];
 		}
 		
 		[self setLastBytesRead:bytesReadSoFar];
@@ -1973,6 +1986,13 @@ static BOOL isiPhoneOS2;
 
 - (void)handleNetworkEvent:(CFStreamEventType)type
 {	
+	[[self cancelledLock] lock];
+	
+	if ([self complete] || [self isCancelled]) {
+		[[self cancelledLock] unlock];
+		return;
+	}
+	
     // Dispatch the stream events.
     switch (type) {
         case kCFStreamEventHasBytesAvailable:
@@ -1990,12 +2010,14 @@ static BOOL isiPhoneOS2;
         default:
             break;
     }
+	
+	[[self cancelledLock] unlock];
+	
 }
 
 
 - (void)handleBytesAvailable
 {
-	
 	if (![self responseHeaders]) {
 		if ([self readResponseHeadersReturningAuthenticationFailure]) {
 			[self attemptToApplyCredentialsAndResume];
@@ -2032,11 +2054,12 @@ static BOOL isiPhoneOS2;
 		}
 		[bandwidthThrottlingLock unlock];
 	}
-
+	
+	
 	
     UInt8 buffer[bufferSize];
     CFIndex bytesRead = CFReadStreamRead(readStream, buffer, sizeof(buffer));
-	
+
 	
     // Less than zero is an error
     if (bytesRead < 0) {
@@ -2074,7 +2097,7 @@ static BOOL isiPhoneOS2;
 }
 
 - (void)handleStreamComplete
-{
+{	
 	//Try to read the headers (if this is a HEAD request handleBytesAvailable may not be called)
 	if (![self responseHeaders]) {
 		if ([self readResponseHeadersReturningAuthenticationFailure]) {
@@ -2090,7 +2113,6 @@ static BOOL isiPhoneOS2;
 	[self setComplete:YES];
 	[self updateProgressIndicators];
 	
-	[[self cancelledLock] lock];
     if (readStream) {
 		CFReadStreamSetClient(readStream, kCFStreamEventNone, NULL, NULL);
 		CFReadStreamUnscheduleFromRunLoop(readStream, CFRunLoopGetCurrent(), ASIHTTPRequestRunMode);
@@ -2141,7 +2163,6 @@ static BOOL isiPhoneOS2;
 			}
 		}
 	}
-	[[self cancelledLock] unlock];
 	[progressLock unlock];
 	
 	if (fileError) {
@@ -2175,7 +2196,7 @@ static BOOL isiPhoneOS2;
 		
 		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIConnectionFailureErrorType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:reason,NSLocalizedDescriptionKey,underlyingError,NSUnderlyingErrorKey,nil]]];
 	}
-    [super cancel];
+	
 }
 
 #pragma mark global queue
@@ -2940,7 +2961,6 @@ static BOOL isiPhoneOS2;
 	}
 
 	if (toRead == 0 || !bandwidthMeasurementDate || [bandwidthMeasurementDate timeIntervalSinceNow] < -0) {
-		//NSLog(@"sleep");
 		[NSThread sleepUntilDate:bandwidthMeasurementDate];
 		[self recordBandwidthUsage];
 	}
