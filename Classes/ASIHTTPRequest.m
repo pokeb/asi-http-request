@@ -670,7 +670,7 @@ static BOOL isiPhoneOS2;
 		} else {
 		
 			#if TARGET_OS_IPHONE
-			#if TARGET_IPHONE_SIMULATOR && __IPHONE_OS_VERSION_MIN_REQUIRED < IPHONE_3_0
+			#if TARGET_IPHONE_SIMULATOR && __IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_3_0
 			// Can't detect proxies in 2.2.1 Simulator
 			NSDictionary *proxySettings = [NSMutableDictionary dictionary];	
 			#else
@@ -2205,7 +2205,7 @@ static BOOL isiPhoneOS2;
 {
 	if (!sharedRequestQueue) {
 		sharedRequestQueue = [[NSOperationQueue alloc] init];
-		[sharedRequestQueue setMaxConcurrentOperationCount:YES];
+		[sharedRequestQueue setMaxConcurrentOperationCount:4];
 	}
 	return sharedRequestQueue;
 }
@@ -2762,7 +2762,7 @@ static BOOL isiPhoneOS2;
 		return nil;
 	}
 	// Obtain the list of proxies by running the autoconfiguration script
-#if TARGET_OS_IPHONE && __IPHONE_OS_VERSION_MIN_REQUIRED < IPHONE_3_0
+#if TARGET_OS_IPHONE && __IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_3_0
 	NSArray *proxies = [(NSArray *)CFNetworkCopyProxiesForAutoConfigurationScript((CFStringRef)script,(CFURLRef)theURL) autorelease];
 #else
 	CFErrorRef err2 = NULL;
