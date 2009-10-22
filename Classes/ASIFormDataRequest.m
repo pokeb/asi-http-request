@@ -119,6 +119,9 @@
 
 - (void)buildPostBody
 {
+	if ([self haveBuiltPostBody]) {
+		return;
+	}
 	if (![self postData] && ![self fileData]) {
 		[super buildPostBody];
 		return;

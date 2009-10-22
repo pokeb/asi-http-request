@@ -79,10 +79,6 @@ typedef enum _ASIS3ErrorType {
 + (id)HEADRequestWithBucket:(NSString *)bucket path:(NSString *)path;
 
 
-// Generates the request headers S3 needs
-// Automatically called before the request begins in startRequest
-- (void)generateS3Headers;
-
 // Uses the supplied date to create a Date header string
 - (void)setDate:(NSDate *)date;
 

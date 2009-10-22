@@ -87,6 +87,9 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	// Dictionary for custom HTTP request headers
 	NSMutableDictionary *requestHeaders;
 	
+	// Set to YES when the request header dictionary has been populated, used to prevent this happening more than once
+	BOOL haveBuiltRequestHeaders;
+	
 	// Will be populated with HTTP response headers from the server
 	NSDictionary *responseHeaders;
 	
@@ -326,6 +329,13 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 // Add a custom header to the request
 - (void)addRequestHeader:(NSString *)header value:(NSString *)value;
 
+// Populate the request headers dictionary. Called before a request is started, or by a HEAD request that needs to borrow them
+- (void)buildRequestHeaders;
+
+// Used to apply authorization header to a request before it is sent (when shouldPresentCredentialsBeforeChallenge is YES)
+- (void)applyAuthorizationHeader;
+
+// Create the post body
 - (void)buildPostBody;
 
 // Called to add data to the post body. Will append to postBody when shouldStreamPostDataFromDisk is false, or write to postBodyWriteStream when true
@@ -364,6 +374,11 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 // Call to remove the file used as the request body
 // No need to call this if the request succeeds and you didn't specify postBodyFilePath manually - it is removed automatically
 - (void)removePostDataFile;
+
+#pragma mark HEAD request
+
+// Used by ASINetworkQueue to create a HEAD request appropriate for this request with the same headers (though you can use it yourself)
+- (ASIHTTPRequest *)HEADRequest;
 
 #pragma mark upload/download progress
 
@@ -625,4 +640,6 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 @property (assign) BOOL shouldPresentCredentialsBeforeChallenge;
 @property (assign, readonly) int authenticationRetryCount;
 @property (assign, readonly) int proxyAuthenticationRetryCount;
+@property (assign) BOOL haveBuiltRequestHeaders;
+@property (assign, nonatomic) BOOL haveBuiltPostBody;
 @end

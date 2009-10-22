@@ -8,7 +8,11 @@
 
 #import "ASITestCase.h"
 
+@class ASINetworkQueue;
+
 @interface ASIS3RequestTests : ASITestCase {
+	ASINetworkQueue *networkQueue;
+	float progress;
 }
 
 - (void)testAuthenticationHeaderGeneration;
@@ -16,4 +20,6 @@
 - (void)testFailure;
 - (void)testListRequest;
 - (void)testSubclasses;
+
+@property (retain,nonatomic) ASINetworkQueue *networkQueue;
 @end

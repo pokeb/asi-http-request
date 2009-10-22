@@ -150,8 +150,7 @@
 		
 		// If this is a GET request and we want accurate progress, perform a HEAD request first to get the content-length
 		if ([[request requestMethod] isEqualToString:@"GET"]) {
-			ASIHTTPRequest *HEADRequest = [[[ASIHTTPRequest alloc] initWithURL:[request url]] autorelease];
-			[HEADRequest setMainRequest:request];
+			ASIHTTPRequest *HEADRequest = [request HEADRequest];
 			[self addHEADOperation:HEADRequest];
 			
 			//Tell the request not to reset the progress indicator when it gets a content-length, as we will get the length from the HEAD request

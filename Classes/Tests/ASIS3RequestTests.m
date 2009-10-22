@@ -49,7 +49,7 @@ static NSString *bucket = @"";
 	[request setDateString:dateString];
 	[request setSecretAccessKey:exampleSecretAccessKey];
 	[request setAccessKey:exampleAccessKey];
-	[request generateS3Headers];
+	[request buildRequestHeaders];
 	BOOL success = [[[request requestHeaders] valueForKey:@"Authorization"] isEqualToString:@"AWS 0PN5J17HBGZHT7JJ3X82:xXjDGYUmKxnwqr5KXNPGldn5LbA="];
 	GHAssertTrue(success,@"Failed to generate the correct authorisation header for a GET request");
 	
@@ -62,7 +62,7 @@ static NSString *bucket = @"";
 	[request setDateString:dateString];
 	[request setSecretAccessKey:exampleSecretAccessKey];
 	[request setAccessKey:exampleAccessKey];
-	[request generateS3Headers];
+	[request buildRequestHeaders];
 	success = [[[request requestHeaders] valueForKey:@"Authorization"] isEqualToString:@"AWS 0PN5J17HBGZHT7JJ3X82:hcicpDDvL9SsO6AkvxqmIWkmOuQ="];
 	GHAssertTrue(success,@"Failed to generate the correct authorisation header for a PUT request");	
 	
@@ -75,7 +75,7 @@ static NSString *bucket = @"";
 	[listRequest setDateString:dateString];
 	[listRequest setSecretAccessKey:exampleSecretAccessKey];
 	[listRequest setAccessKey:exampleAccessKey];
-	[listRequest generateS3Headers];
+	[listRequest buildRequestHeaders];
 	success = [[[listRequest requestHeaders] valueForKey:@"Authorization"] isEqualToString:@"AWS 0PN5J17HBGZHT7JJ3X82:jsRt/rhG+Vtp88HrYL706QhE4w4="];
 	GHAssertTrue(success,@"Failed to generate the correct authorisation header for a list request");
 	
@@ -86,7 +86,7 @@ static NSString *bucket = @"";
 	[request setDateString:dateString];
 	[request setSecretAccessKey:exampleSecretAccessKey];
 	[request setAccessKey:exampleAccessKey];
-	[request generateS3Headers];
+	[request buildRequestHeaders];
 	success = [[[request requestHeaders] valueForKey:@"Authorization"] isEqualToString:@"AWS 0PN5J17HBGZHT7JJ3X82:thdUi9VAkzhkniLj96JIrOPGi0g="];
 	GHAssertTrue(success,@"Failed to generate the correct authorisation header for a list request");	
 	
@@ -99,7 +99,7 @@ static NSString *bucket = @"";
 	[request setDateString:dateString];
 	[request setSecretAccessKey:exampleSecretAccessKey];
 	[request setAccessKey:exampleAccessKey];
-	[request generateS3Headers];
+	[request buildRequestHeaders];
 	success = [[[request requestHeaders] valueForKey:@"Authorization"] isEqualToString:@"AWS 0PN5J17HBGZHT7JJ3X82:dxhSBHoI6eVSPcXJqEghlUzZMnY="];
 	GHAssertTrue(success,@"Failed to generate the correct authorisation header for a list request");		
 }
@@ -424,5 +424,51 @@ static NSString *bucket = @"";
 	success = [instance3 isKindOfClass:[ASIS3BucketObjectSubclass class]];
 	GHAssertTrue(success,@"Convenience constructor failed to return an instance of the correct class");	
 }
+
+
+- (void)s3RequestFailed:(ASIHTTPRequest *)request
+{
+	GHFail(@"Request failed - cannot continue with test");
+	[[self networkQueue] cancelAllOperations];
+}
+
+- (void)s3QueueFinished:(ASINetworkQueue *)queue
+{
+	BOOL success = (progress == 1.0);
+	GHAssertTrue(success,@"Failed to update progress properly");
+}
+
+
+- (void)testQueueProgress
+{
+	[[self networkQueue] cancelAllOperations];
+	[self setNetworkQueue:[ASINetworkQueue queue]];
+	[[self networkQueue] setDelegate:self];
+	[[self networkQueue] setRequestDidFailSelector:@selector(s3RequestFailed:)];
+	[[self networkQueue] setQueueDidFinishSelector:@selector(s3QueueFinished:)];	
+	[[self networkQueue] setDownloadProgressDelegate:self];
+	[[self networkQueue] setShowAccurateProgress:YES];
+	
+	int i;
+	for (i=0; i<5; i++) {
+		NSString *path = [NSString stringWithFormat:@"/images/%hi.jpg",i+1];
+		ASIS3Request *s3Request = [ASIS3Request requestWithBucket:bucket path:path];
+		[s3Request setSecretAccessKey:secretAccessKey];
+		[s3Request setAccessKey:accessKey];
+		NSString *downloadPath = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:[NSString stringWithFormat:@"%hi.jpg",i+1]];
+		[s3Request setDownloadDestinationPath:downloadPath];
+		[[self networkQueue] addOperation:s3Request];
+	}
+	
+	[[self networkQueue] go];
+
+}
+	 
+ - (void)setProgress:(float)newProgress;
+{
+	progress = newProgress;
+}
+
+@synthesize networkQueue;
 
 @end

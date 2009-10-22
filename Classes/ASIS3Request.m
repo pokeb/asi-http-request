@@ -92,10 +92,22 @@ static NSString *sharedSecretAccessKey = nil;
 	[self setDateString:[dateFormatter stringFromDate:date]];	
 }
 
-
-- (void)generateS3Headers
+- (ASIHTTPRequest *)HEADRequest
 {
-	// If an access key / secret access keyu haven't been set for this request, let's use the shared keys
+	ASIS3Request *headRequest = (ASIS3Request *)[super HEADRequest];
+	[headRequest setAccessKey:[self accessKey]];
+	[headRequest setSecretAccessKey:[self secretAccessKey]];
+	[headRequest setPath:[self path]];
+	[headRequest setBucket:[self bucket]];
+	return headRequest;
+}
+
+
+- (void)buildRequestHeaders
+{
+	[super buildRequestHeaders];
+
+	// If an access key / secret access key haven't been set for this request, let's use the shared keys
 	if (![self accessKey]) {
 		[self setAccessKey:[ASIS3Request sharedAccessKey]];
 	}
@@ -141,13 +153,10 @@ static NSString *sharedSecretAccessKey = nil;
 	NSString *signature = [ASIHTTPRequest base64forData:[ASIS3Request HMACSHA1withKey:[self secretAccessKey] forString:stringToSign]];
 	NSString *authorizationString = [NSString stringWithFormat:@"AWS %@:%@",[self accessKey],signature];
 	[self addRequestHeader:@"Authorization" value:authorizationString];
+	
+
 }
 
-- (void)main
-{
-	[self generateS3Headers];
-	[super main];
-}
 
 - (void)requestFinished
 {
