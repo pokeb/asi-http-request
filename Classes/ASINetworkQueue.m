@@ -20,6 +20,8 @@
 
 @implementation ASINetworkQueue
 
+@synthesize userInfo;
+
 - (id)init
 {
 	self = [super init];

@@ -54,7 +54,8 @@
 	// Default for requests in the queue is NO
 	BOOL showAccurateProgress;
 
-	
+	// Storage container for additional queue information.
+	NSDictionary *userInfo;
 }
 
 // Convenience constructor
@@ -105,4 +106,6 @@
 @property (assign) id delegate;
 @property (assign) BOOL showAccurateProgress;
 @property (assign, readonly) int requestsCount;
+@property (assign) NSDictionary *userInfo;
+
 @end
