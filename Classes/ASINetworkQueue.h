@@ -106,6 +106,6 @@
 @property (assign) id delegate;
 @property (assign) BOOL showAccurateProgress;
 @property (assign, readonly) int requestsCount;
-@property (assign) NSDictionary *userInfo;
+@property (retain) NSDictionary *userInfo;
 
 @end
