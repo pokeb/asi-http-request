@@ -43,6 +43,7 @@
 	for (ASIHTTPRequest *request in [self operations]) {
 		[request setDelegate:nil];
 	}
+	[userInfo release];
 	[super dealloc];
 }
 
