@@ -366,6 +366,14 @@ static BOOL isiPhoneOS2;
 	[stream close];
 }
 
+- (void)setDelegate:(id)newDelegate
+{
+	[[self cancelledLock] lock];
+	delegate = newDelegate;
+	[[self cancelledLock] unlock];
+}
+
+
 #pragma mark get information about this request
 
 - (BOOL)isFinished 
@@ -982,6 +990,8 @@ static BOOL isiPhoneOS2;
 
 - (void)setUploadProgressDelegate:(id)newDelegate
 {
+	[[self cancelledLock] lock];
+	
 	uploadProgressDelegate = newDelegate;
 	
 	// If the uploadProgressDelegate is an NSProgressIndicator, we set it's MaxValue to 1.0 so we can treat it similarly to UIProgressViews
@@ -995,11 +1005,14 @@ static BOOL isiPhoneOS2;
 		[invocation setArgument:&max atIndex:2];
 		[invocation invoke];
 		
-	}	
+	}
+	[[self cancelledLock] unlock];
 }
 
 - (void)setDownloadProgressDelegate:(id)newDelegate
 {
+	[[self cancelledLock] lock];
+	
 	downloadProgressDelegate = newDelegate;
 	
 	// If the downloadProgressDelegate is an NSProgressIndicator, we set it's MaxValue to 1.0 so we can treat it similarly to UIProgressViews
@@ -1012,6 +1025,7 @@ static BOOL isiPhoneOS2;
 		[invocation setArgument:&max atIndex:2];
 		[invocation invokeWithTarget:downloadProgressDelegate];
 	}	
+	[[self cancelledLock] unlock];
 }
 
 
@@ -1248,13 +1262,13 @@ static BOOL isiPhoneOS2;
 		return;
 	}
 	// Let the queue know we are done
-	if ([queue respondsToSelector:@selector(requestDidFinish:)]) {
-		[queue performSelectorOnMainThread:@selector(requestDidFinish:) withObject:self waitUntilDone:[NSThread isMainThread]];		
+	if ([[self queue] respondsToSelector:@selector(requestDidFinish:)]) {
+		[[self queue] performSelectorOnMainThread:@selector(requestDidFinish:) withObject:self waitUntilDone:[NSThread isMainThread]];		
 	}
 	
 	// Let the delegate know we are done
-	if (didFinishSelector && [delegate respondsToSelector:didFinishSelector]) {
-		[delegate performSelectorOnMainThread:didFinishSelector withObject:self waitUntilDone:[NSThread isMainThread]];		
+	if ([self didFinishSelector] && [[self delegate] respondsToSelector:[self didFinishSelector]]) {
+		[[self delegate] performSelectorOnMainThread:[self didFinishSelector] withObject:self waitUntilDone:[NSThread isMainThread]];		
 	}
 }
 
@@ -1274,21 +1288,21 @@ static BOOL isiPhoneOS2;
 		[mRequest setError:theError];
 
 		// Let the queue know something went wrong
-		if ([queue respondsToSelector:@selector(requestDidFail:)]) {
-			[queue performSelectorOnMainThread:@selector(requestDidFail:) withObject:mRequest waitUntilDone:[NSThread isMainThread]];		
+		if ([[self queue] respondsToSelector:@selector(requestDidFail:)]) {
+			[[self queue] performSelectorOnMainThread:@selector(requestDidFail:) withObject:mRequest waitUntilDone:[NSThread isMainThread]];		
 		}
 	
 	} else {
 		[self setError:theError];
 		
 		// Let the queue know something went wrong
-		if ([queue respondsToSelector:@selector(requestDidFail:)]) {
-			[queue performSelectorOnMainThread:@selector(requestDidFail:) withObject:self waitUntilDone:[NSThread isMainThread]];		
+		if ([[self queue] respondsToSelector:@selector(requestDidFail:)]) {
+			[[self queue] performSelectorOnMainThread:@selector(requestDidFail:) withObject:self waitUntilDone:[NSThread isMainThread]];		
 		}
 		
 		// Let the delegate know something went wrong
-		if (didFailSelector && [delegate respondsToSelector:didFailSelector]) {
-			[delegate performSelectorOnMainThread:didFailSelector withObject:self waitUntilDone:[NSThread isMainThread]];	
+		if ([self didFailSelector] && [[self delegate] respondsToSelector:[self didFailSelector]]) {
+			[[self delegate] performSelectorOnMainThread:[self didFailSelector] withObject:self waitUntilDone:[NSThread isMainThread]];	
 		}
 	}
 }

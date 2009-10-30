@@ -12,8 +12,6 @@
 
 @interface ASIHTTPRequestTests : ASITestCase {
 	float progress;
-	ASIHTTPRequest *cancelRequest;
-	NSDate *cancelStartDate;
 }
 
 - (void)testBasicDownload;
@@ -47,12 +45,6 @@
 - (void)testThrottlingDownloadBandwidth;
 - (void)testThrottlingUploadBandwidth;
 - (void)testMainThreadDelegateAuthenticationFailure;
-//- (void)testCancelStressTest;
-//- (void)performCancelRequest;
-//- (void)testRedirectStressTest;
-//- (void)performRedirectRequest;
 
 
-@property (retain,nonatomic) ASIHTTPRequest *cancelRequest;
-@property (retain, nonatomic) NSDate *cancelStartDate;
 @end

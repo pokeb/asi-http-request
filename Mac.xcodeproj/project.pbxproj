@@ -40,6 +40,7 @@
 		B5C66396100A4C24004F3C96 /* ASIS3Request.m in Sources */ = {isa = PBXBuildFile; fileRef = B5C66394100A4C24004F3C96 /* ASIS3Request.m */; };
 		B5C66397100A4C24004F3C96 /* ASIS3Request.m in Sources */ = {isa = PBXBuildFile; fileRef = B5C66394100A4C24004F3C96 /* ASIS3Request.m */; };
 		B5C664BC100A6220004F3C96 /* ASIS3RequestTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B5C664BB100A6220004F3C96 /* ASIS3RequestTests.m */; };
+		B5EA45E0109B5A4100E920CB /* StressTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B5EA45DF109B5A4100E920CB /* StressTests.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -103,6 +104,8 @@
 		B5C664BA100A6220004F3C96 /* ASIS3RequestTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIS3RequestTests.h; sourceTree = "<group>"; };
 		B5C664BB100A6220004F3C96 /* ASIS3RequestTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIS3RequestTests.m; sourceTree = "<group>"; };
 		B5E3858B0F76606B00FD7857 /* Tests-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "Tests-Info.plist"; path = "Mac Sample/Tests-Info.plist"; sourceTree = "<group>"; };
+		B5EA45DE109B5A4100E920CB /* StressTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StressTests.h; sourceTree = "<group>"; };
+		B5EA45DF109B5A4100E920CB /* StressTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = StressTests.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -249,6 +252,8 @@
 				B55B5D1F0F76568E0064029C /* ASINetworkQueueTests.m */,
 				B5C664BA100A6220004F3C96 /* ASIS3RequestTests.h */,
 				B5C664BB100A6220004F3C96 /* ASIS3RequestTests.m */,
+				B5EA45DE109B5A4100E920CB /* StressTests.h */,
+				B5EA45DF109B5A4100E920CB /* StressTests.m */,
 				B50244191025D36B002B13E1 /* ProxyTests.h */,
 				B502441A1025D36B002B13E1 /* ProxyTests.m */,
 			);
@@ -367,6 +372,7 @@
 				B565297E101C8D01000499CF /* ASITestCase.m in Sources */,
 				B502441B1025D36B002B13E1 /* ProxyTests.m in Sources */,
 				B522D71F103074AC009A2D22 /* ASIInputStream.m in Sources */,
+				B5EA45E0109B5A4100E920CB /* StressTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

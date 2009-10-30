@@ -61,6 +61,8 @@
 		B5E2A9AC100C89D900B70E26 /* ASIS3ListRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5E2A9AA100C89D900B70E26 /* ASIS3ListRequest.m */; };
 		B5E2A9AD100C89D900B70E26 /* ASIS3BucketObject.m in Sources */ = {isa = PBXBuildFile; fileRef = B5E2A9A7100C89D900B70E26 /* ASIS3BucketObject.m */; };
 		B5E2A9AE100C89D900B70E26 /* ASIS3ListRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5E2A9AA100C89D900B70E26 /* ASIS3ListRequest.m */; };
+		B5EA45AA109B56D800E920CB /* StressTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B5EA45A9109B56D800E920CB /* StressTests.m */; };
+		B5EA45AB109B56D800E920CB /* StressTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B5EA45A9109B56D800E920CB /* StressTests.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -139,6 +141,8 @@
 		B5E2A9A8100C89D900B70E26 /* ASIS3ListRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIS3ListRequest.h; sourceTree = "<group>"; };
 		B5E2A9A9100C89D900B70E26 /* ASIS3BucketObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIS3BucketObject.h; sourceTree = "<group>"; };
 		B5E2A9AA100C89D900B70E26 /* ASIS3ListRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIS3ListRequest.m; sourceTree = "<group>"; };
+		B5EA45A8109B56D800E920CB /* StressTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StressTests.h; sourceTree = "<group>"; };
+		B5EA45A9109B56D800E920CB /* StressTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = StressTests.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -277,6 +281,8 @@
 				B55B60570F765A3C0064029C /* ASINetworkQueueTests.m */,
 				B5C6663C100A82D7004F3C96 /* ASIS3RequestTests.h */,
 				B5C6663D100A82D7004F3C96 /* ASIS3RequestTests.m */,
+				B5EA45A8109B56D800E920CB /* StressTests.h */,
+				B5EA45A9109B56D800E920CB /* StressTests.m */,
 				B5254FF81025F9BF00CF7BC4 /* ProxyTests.h */,
 				B5254FF71025F9BF00CF7BC4 /* ProxyTests.m */,
 			);
@@ -428,6 +434,7 @@
 				B5D145521029E20D004379B8 /* Reachability.m in Sources */,
 				B522DACF1030B2AB009A2D22 /* ASIInputStream.m in Sources */,
 				B59A87C3103EC6F200300252 /* ASIAuthenticationDialog.m in Sources */,
+				B5EA45AB109B56D800E920CB /* StressTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -452,6 +459,7 @@
 				B5D145511029E20D004379B8 /* Reachability.m in Sources */,
 				B522DACE1030B2AB009A2D22 /* ASIInputStream.m in Sources */,
 				B59A87C2103EC6F200300252 /* ASIAuthenticationDialog.m in Sources */,
+				B5EA45AA109B56D800E920CB /* StressTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
