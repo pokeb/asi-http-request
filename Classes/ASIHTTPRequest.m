@@ -436,12 +436,12 @@ static BOOL isiPhoneOS2;
 // Create the request
 - (void)main
 {
-	[pool release];
-	pool = [[NSAutoreleasePool alloc] init];
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	[self setComplete:NO];
 	
 	if (![self url]) {
 		[self failWithError:ASIUnableToCreateRequestError];
+		[pool release];
 		return;		
 	}
 	
@@ -459,6 +459,7 @@ static BOOL isiPhoneOS2;
 	request = CFHTTPMessageCreateRequest(kCFAllocatorDefault, (CFStringRef)[self requestMethod], (CFURLRef)[self url], [self useHTTPVersionOne] ? kCFHTTPVersion1_0 : kCFHTTPVersion1_1);
     if (!request) {
 		[self failWithError:ASIUnableToCreateRequestError];
+		[pool release];
 		return;
     }
 	
@@ -481,6 +482,8 @@ static BOOL isiPhoneOS2;
 	}
 	
 	[self loadRequest];
+	[pool release];
+	
 }
 
 - (void)applyAuthorizationHeader
@@ -786,6 +789,7 @@ static BOOL isiPhoneOS2;
 
 	// Wait for the request to finish
 	while (!complete) {
+		
 
 		// We won't let the request cancel until we're done with this cycle of the loop
 		[[self cancelledLock] lock];
@@ -797,13 +801,11 @@ static BOOL isiPhoneOS2;
 			break;
 		}
 		
-		// This may take a while, so we'll release the pool each cycle to stop a giant backlog of autoreleased objects building up
-		[pool release];
-		pool = [[NSAutoreleasePool alloc] init];
+		// This may take a while, so we'll create a new pool each cycle to stop a giant backlog of autoreleased objects building up
+		NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+		
 		
 		NSDate *now = [NSDate date];
-		
-
 		
 		// See if we need to timeout
 		if (lastActivityTime && timeOutSeconds > 0 && [now timeIntervalSinceDate:lastActivityTime] > timeOutSeconds) {
@@ -816,6 +818,7 @@ static BOOL isiPhoneOS2;
 				[self cancelLoad];
 				[self setComplete:YES];
 				[[self cancelledLock] unlock];
+				[pool release];
 				break;
 			}
 		}
@@ -836,6 +839,7 @@ static BOOL isiPhoneOS2;
 				
 				[self main];
 			}
+			[pool release];
 			break;
 		}
 	
@@ -861,9 +865,10 @@ static BOOL isiPhoneOS2;
 		
 		[[self cancelledLock] unlock];
 		
+		[pool release];
+		
 	}
-	[pool release];
-	pool = nil;
+
 }
 
 // Cancel loading and clean up. DO NOT USE THIS TO CANCEL REQUESTS - use [request cancel] instead

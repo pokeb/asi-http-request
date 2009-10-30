@@ -245,9 +245,6 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	// Number of seconds to wait before timing out - default is 10
 	NSTimeInterval timeOutSeconds;
 	
-	// Autorelease pool for the main loop, since it's highly likely that this operation will run in a thread
-	NSAutoreleasePool *pool;
-	
 	// Will be YES when a HEAD request will handle the content-length before this request starts
 	BOOL shouldResetProgressIndicators;
 	
