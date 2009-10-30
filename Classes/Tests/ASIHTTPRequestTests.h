@@ -17,6 +17,7 @@
 }
 
 - (void)testBasicDownload;
+- (void)testConditionalGET;
 - (void)testTimeOut;
 - (void)testRequestMethod;
 - (void)testHTTPVersion;
@@ -47,6 +48,8 @@
 - (void)testMainThreadDelegateAuthenticationFailure;
 //- (void)testCancelStressTest;
 //- (void)performCancelRequest;
+//- (void)testRedirectStressTest;
+//- (void)performRedirectRequest;
 
 @property (retain,nonatomic) ASIHTTPRequest *cancelRequest;
 @property (retain, nonatomic) NSDate *cancelStartDate;

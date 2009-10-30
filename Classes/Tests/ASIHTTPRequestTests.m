@@ -59,6 +59,32 @@
 	GHAssertTrue(success,@"Failed to generate an error for a bad host");
 }
 
+- (void)testConditionalGET
+{
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/i/logo.png"]];
+	[request start];
+	BOOL success = ([request responseStatusCode] == 200);
+	GHAssertTrue(success, @"Failed to download file, cannot proceed with this test");
+	success = ([[request responseData] length] > 0);
+	GHAssertTrue(success, @"Response length is 0, this shouldn't happen");
+	
+	NSString *etag = [[request responseHeaders] objectForKey:@"Etag"];
+	NSString *lastModified = [[request responseHeaders] objectForKey:@"Last-Modified"];
+	
+	GHAssertNotNil(etag, @"Response didn't return an etag");
+	GHAssertNotNil(lastModified, @"Response didn't return a last modified date");
+	
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/i/logo.png"]];
+	[request addRequestHeader:@"If-Modified-Since" value:lastModified];
+	[request addRequestHeader:@"If-None-Match" value:etag];
+	[request start];
+	success = ([request responseStatusCode] == 304);
+	GHAssertTrue(success, @"Got wrong status code");
+	success = ([[request responseData] length] == 0);
+	GHAssertTrue(success, @"Response length is not 0, this shouldn't happen");
+	
+}
+
 - (void)testCharacterEncoding
 {
 	
@@ -1099,6 +1125,37 @@
 //		[[self cancelRequest] startAsynchronous];
 //	}
 //}
+//
+
+// Another stress test that looks from problems when redirecting. Again, don't run on a non-local server
+
+//- (void)testRedirectStressTest
+//{
+//	[self setCancelStartDate:[NSDate dateWithTimeIntervalSinceNow:30]];
+//	[self performRedirectRequest];
+//	while ([[self cancelStartDate] timeIntervalSinceNow] > 0) {
+//		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
+//	}
+//	NSLog(@"Redirect stress test: DONE");
+//}
+//
+//- (void)performRedirectRequest
+//{
+//	[[ASIHTTPRequest sharedRequestQueue] setMaxConcurrentOperationCount:20];
+//	[self setCancelRequest:[ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://127.0.0.1/ASIHTTPRequest/tests/one_infinite_loop"]]];
+//	if ([[self cancelStartDate] timeIntervalSinceNow] > 0) {
+//		NSLog(@"Redirect stress test: Start request %@",[self cancelRequest]);
+//		[[self cancelRequest] startAsynchronous];
+//		[self performSelector:@selector(cancelRedirectRequest) withObject:nil afterDelay:0.2];
+//	}
+//}
+//
+//- (void)cancelRedirectRequest
+//{
+//	NSLog(@"Redirect stress test: Cancel request %@",[self cancelRequest]);
+//	[[self cancelRequest] cancel];
+//	[self performRedirectRequest];
+//}
 
 
 - (void)setProgress:(float)newProgress;
@@ -1111,10 +1168,13 @@
 		NSLog(@"Stress test: Cancel request %@",[self cancelRequest]);
 		[[self cancelRequest] cancel];
 		
-		[self setCancelRequest:nil];
 		[self performSelector:@selector(performCancelRequest) withObject:nil afterDelay:0.2];
+		[self setCancelRequest:nil];
 	}
 }
+
+
+
 
 
 @synthesize cancelRequest;

@@ -436,7 +436,6 @@ static BOOL isiPhoneOS2;
 // Create the request
 - (void)main
 {
-	
 	[pool release];
 	pool = [[NSAutoreleasePool alloc] init];
 	[self setComplete:NO];
@@ -455,7 +454,7 @@ static BOOL isiPhoneOS2;
 	if (request) {
 		CFRelease(request);
 	}
-	
+
     // Create a new HTTP request.
 	request = CFHTTPMessageCreateRequest(kCFAllocatorDefault, (CFStringRef)[self requestMethod], (CFURLRef)[self url], [self useHTTPVersionOne] ? kCFHTTPVersion1_0 : kCFHTTPVersion1_1);
     if (!request) {
@@ -666,6 +665,7 @@ static BOOL isiPhoneOS2;
 			readStream = CFReadStreamCreateForHTTPRequest(kCFAllocatorDefault, request);
 		}
 	}
+
 	if (!readStream) {
 		[[self cancelledLock] unlock];
 		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIInternalErrorWhileBuildingRequestType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Unable to create read stream",NSLocalizedDescriptionKey,nil]]];
@@ -813,16 +813,15 @@ static BOOL isiPhoneOS2;
 			// This workaround prevents erroneous timeouts in low bandwidth situations (eg iPhone)
 			if (totalBytesSent || postLength <= uploadBufferSize || (uploadBufferSize > 0 && totalBytesSent > uploadBufferSize)) {
 				[self failWithError:ASIRequestTimedOutError];
-				[[self cancelledLock] unlock];
 				[self cancelLoad];
 				[self setComplete:YES];
+				[[self cancelledLock] unlock];
 				break;
 			}
 		}
 		
 		// Do we need to redirect?
 		if ([self needsRedirect]) {
-			[[self cancelledLock] unlock];
 			[self cancelLoad];
 			[self setNeedsRedirect:NO];
 			[self setRedirectCount:[self redirectCount]+1];
@@ -830,8 +829,11 @@ static BOOL isiPhoneOS2;
 				// Some naughty / badly coded website is trying to force us into a redirection loop. This is not cool.
 				[self failWithError:ASITooMuchRedirectionError];
 				[self setComplete:YES];
+				[[self cancelledLock] unlock];
 			} else {
+				[[self cancelledLock] unlock];
 				// Go all the way back to the beginning and build the request again, so that we can apply any new cookies
+				
 				[self main];
 			}
 			break;
@@ -2801,7 +2803,7 @@ static BOOL isiPhoneOS2;
 		return nil;
 	}
 	// Obtain the list of proxies by running the autoconfiguration script
-#if TARGET_OS_IPHONE && __IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_3_0
+#if TARGET_IPHONE_SIMULATOR && __IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_3_0
 	NSArray *proxies = [(NSArray *)CFNetworkCopyProxiesForAutoConfigurationScript((CFStringRef)script,(CFURLRef)theURL) autorelease];
 #else
 	CFErrorRef err2 = NULL;
