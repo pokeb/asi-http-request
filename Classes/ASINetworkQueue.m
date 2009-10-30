@@ -20,8 +20,6 @@
 
 @implementation ASINetworkQueue
 
-@synthesize userInfo;
-
 - (id)init
 {
 	self = [super init];
@@ -39,9 +37,9 @@
 
 - (void)dealloc
 {
-	//We need to clear the delegate on any requests that haven't got around to cleaning up yet, as otherwise they'll try to let us know if something goes wrong, and we'll be long gone by then
+	//We need to clear the queue on any requests that haven't got around to cleaning up yet, as otherwise they'll try to let us know if something goes wrong, and we'll be long gone by then
 	for (ASIHTTPRequest *request in [self operations]) {
-		[request setDelegate:nil];
+		[request setQueue:nil];
 	}
 	[userInfo release];
 	[super dealloc];
@@ -330,5 +328,6 @@
 @synthesize queueDidFinishSelector;
 @synthesize delegate;
 @synthesize showAccurateProgress;
+@synthesize userInfo;
 
 @end

@@ -373,6 +373,12 @@ static BOOL isiPhoneOS2;
 	[[self cancelledLock] unlock];
 }
 
+- (void)setQueue:(id)newQueue
+{
+	[[self cancelledLock] lock];
+	queue = newQueue;
+	[[self cancelledLock] unlock];
+}
 
 #pragma mark get information about this request
 
