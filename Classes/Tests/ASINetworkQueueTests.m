@@ -927,7 +927,6 @@ IMPORTANT
 	NSString *expectedResponse = [[NSString stringWithFormat:@"You are %@ from %@/%@",@"king",@"Castle.Kingdom",hostName] lowercaseString];
 	BOOL success = [[[request responseString] lowercaseString] isEqualToString:expectedResponse];
 	GHAssertTrue(success,@"Failed to send credentials correctly? (Expected: '%@', got '%@')",expectedResponse,[[request responseString] lowercaseString]);
-	
 }
 
 @synthesize immediateCancelQueue;

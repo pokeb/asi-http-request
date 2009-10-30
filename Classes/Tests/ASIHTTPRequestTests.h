@@ -18,6 +18,7 @@
 
 - (void)testBasicDownload;
 - (void)testConditionalGET;
+- (void)testException;
 - (void)testTimeOut;
 - (void)testRequestMethod;
 - (void)testHTTPVersion;
@@ -50,6 +51,7 @@
 //- (void)performCancelRequest;
 //- (void)testRedirectStressTest;
 //- (void)performRedirectRequest;
+
 
 @property (retain,nonatomic) ASIHTTPRequest *cancelRequest;
 @property (retain, nonatomic) NSDate *cancelStartDate;

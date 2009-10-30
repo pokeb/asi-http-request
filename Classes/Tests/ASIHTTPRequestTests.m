@@ -17,6 +17,12 @@
 @interface ASIHTTPRequestSubclass : ASIHTTPRequest {}
 @end
 @implementation ASIHTTPRequestSubclass;
+
+// For testing exceptions are caught
+- (void)loadRequest
+{
+	[[NSException exceptionWithName:@"Test Exception" reason:@"Test Reason" userInfo:nil] raise];
+}
 @end
 
 @implementation ASIHTTPRequestTests
@@ -82,6 +88,18 @@
 	GHAssertTrue(success, @"Got wrong status code");
 	success = ([[request responseData] length] == 0);
 	GHAssertTrue(success, @"Response length is not 0, this shouldn't happen");
+	
+}
+
+- (void)testException
+{
+	ASIHTTPRequestSubclass *request = [ASIHTTPRequestSubclass requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
+	[request start];
+	NSError *error = [request error];
+	GHAssertNotNil(error,@"Failed to generate an error for an exception");
+	
+	BOOL success = [[[error userInfo] objectForKey:NSLocalizedDescriptionKey] isEqualToString:@"Test Exception"];
+	GHAssertTrue(success, @"Generated wrong error for exception");
 	
 }
 
@@ -1100,6 +1118,7 @@
 	
 }
 
+
 // This is a stress test that looks for thread-safety problems with cancelling requests
 // It will run for 30 seconds, creating a request, then cancelling it and creating another as soon as it gets some indication of progress
 // Uncomment to run on your local webserver. Do not use on a remote server, this test will create 1000s of requests!
@@ -1172,6 +1191,7 @@
 		[self setCancelRequest:nil];
 	}
 }
+
 
 
 

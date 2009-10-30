@@ -32,7 +32,8 @@ typedef enum _ASINetworkErrorType {
     ASIInternalErrorWhileBuildingRequestType  = 6,
     ASIInternalErrorWhileApplyingCredentialsType  = 7,
 	ASIFileManagementError = 8,
-	ASITooMuchRedirectionErrorType = 9
+	ASITooMuchRedirectionErrorType = 9,
+	ASIUnhandledExceptionError = 10
 	
 } ASINetworkErrorType;
 
