@@ -621,11 +621,11 @@ IMPORTANT
 // As soon as one request finishes or fails, we'll cancel the others and ensure that no requests are both finished and failed
 - (void)testImmediateCancel
 {
-	[self setFailedRequests:[[[NSMutableArray alloc] init] autorelease]];
-	[self setFinishedRequests:[[[NSMutableArray alloc] init] autorelease]];
+	[self setFailedRequests:[NSMutableArray array]];
+	[self setFinishedRequests:[NSMutableArray array]];
 	[self setImmediateCancelQueue:[[[NSOperationQueue alloc] init] autorelease]];
 	int i;
-	for (i=0; i<25; i++) {
+	for (i=0; i<10; i++) {
 		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
 		[request setDelegate:self];
 		[request setDidFailSelector:@selector(immediateCancelFail:)];
@@ -637,7 +637,7 @@ IMPORTANT
 
 - (void)immediateCancelFail:(ASIHTTPRequest *)request
 {
-	[[self immediateCancelQueue] cancelAllOperations];
+	NSLog(@"Cancel %@",request);
 	if ([[self failedRequests] containsObject:request]) {
 		GHFail(@"A request called its fail delegate method twice");
 	}
@@ -648,11 +648,13 @@ IMPORTANT
 	if ([[self failedRequests] count]+[[self finishedRequests] count] > 25) {
 		GHFail(@"We got more than 25 delegate fail/finish calls - this shouldn't happen!");
 	}
+	[[self immediateCancelQueue] cancelAllOperations];
+
 }
 
 - (void)immediateCancelFinish:(ASIHTTPRequest *)request
 {
-	[[self immediateCancelQueue] cancelAllOperations];
+	NSLog(@"Finish %@",request);
 	if ([[self finishedRequests] containsObject:request]) {
 		GHFail(@"A request called its finish delegate method twice");
 	}
@@ -663,6 +665,7 @@ IMPORTANT
 	if ([[self failedRequests] count]+[[self finishedRequests] count] > 25) {
 		GHFail(@"We got more than 25 delegate fail/finish calls - this shouldn't happen!");
 	}
+	[[self immediateCancelQueue] cancelAllOperations];
 }
 
 // Ensure class convenience constructor returns an instance of our subclass

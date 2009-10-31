@@ -392,7 +392,7 @@ static BOOL isiPhoneOS2;
 {
 	[[self cancelledLock] lock];
 
-	if ([self isCancelled]) {
+	if ([self isCancelled] || [self complete]) {
 		[[self cancelledLock] unlock];
 		return;
 	}
