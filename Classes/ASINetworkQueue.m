@@ -12,10 +12,6 @@
 // Private stuff
 @interface ASINetworkQueue ()
 	@property (assign) int requestsCount;
-	@property (assign) unsigned long long uploadProgressBytes;
-	@property (assign) unsigned long long uploadProgressTotalBytes;
-	@property (assign) unsigned long long downloadProgressBytes;
-	@property (assign) unsigned long long downloadProgressTotalBytes;
 @end
 
 @implementation ASINetworkQueue
@@ -80,10 +76,10 @@
 - (void)cancelAllOperations
 {
 	[self setRequestsCount:0];
-	[self setUploadProgressBytes:0];
-	[self setUploadProgressTotalBytes:0];
-	[self setDownloadProgressBytes:0];
-	[self setDownloadProgressTotalBytes:0];
+	[self setBytesUploadedSoFar:0];
+	[self setTotalBytesToUpload:0];
+	[self setBytesDownloadedSoFar:0];
+	[self setTotalBytesToDownload:0];
 	[super cancelAllOperations];
 	[self updateNetworkActivityIndicator];
 }
@@ -151,7 +147,8 @@
 		
 		// If this is a GET request and we want accurate progress, perform a HEAD request first to get the content-length
 		// We'll only do this before the queue is started
-		// If requests are added after the queue is started they will probably move the progress backwards anyway, so there's no value performing the HEAD requests first
+		// If requests are added after the queue is started they will probably move the overall progress backwards anyway, so there's no value performing the HEAD requests first
+		// Instead, they'll update the total progress if and when they recieve a content-length header
 		if ([[request requestMethod] isEqualToString:@"GET"] && [self isSuspended]) {
 			ASIHTTPRequest *HEADRequest = [request HEADRequest];
 			[self addHEADOperation:HEADRequest];
@@ -164,7 +161,7 @@
 		// If we want to track uploading for this request accurately, we need to add the size of the post content to the total
 		} else if (uploadProgressDelegate) {
 			[request buildPostBody];
-			[self setUploadProgressTotalBytes:[self uploadProgressTotalBytes]+[request postLength]];
+			[self setTotalBytesToUpload:[self totalBytesToUpload]+[request postLength]];
 		}
 	}
 	[request setShowAccurateProgress:[self showAccurateProgress]];
@@ -213,7 +210,7 @@
 	if (![self uploadProgressDelegate]) {
 		return;
 	}
-	[self setUploadProgressTotalBytes:[self uploadProgressTotalBytes] - bytes];
+	[self setTotalBytesToUpload:[self totalBytesToUpload] - bytes];
 	[self incrementUploadProgressBy:0];
 }
 
@@ -222,36 +219,41 @@
 	if (![self uploadProgressDelegate]) {
 		return;
 	}
-	[self setUploadProgressTotalBytes:[self uploadProgressTotalBytes] + bytes];
+	[self setTotalBytesToUpload:[self totalBytesToUpload] + bytes];
 	[self incrementUploadProgressBy:0];
 }
 
 - (void)decrementUploadProgressBy:(unsigned long long)bytes
 {
-	if (![self uploadProgressDelegate] || [self uploadProgressTotalBytes] == 0) {
+	if (![self uploadProgressDelegate] || [self totalBytesToUpload] == 0) {
 		return;
 	}
-	[self setUploadProgressBytes:[self uploadProgressBytes] - bytes];
+	[self setBytesUploadedSoFar:[self bytesUploadedSoFar] - bytes];
 	
-	
-	double progress = ([self uploadProgressBytes]*1.0)/([self uploadProgressTotalBytes]*1.0);
+	double progress;
+	//Workaround for an issue with converting a long to a double on iPhone OS 2.2.1 with a base SDK >= 3.0
+	if ([ASIHTTPRequest isiPhoneOS2]) {
+		progress = [[NSNumber numberWithUnsignedLongLong:[self bytesUploadedSoFar]] doubleValue]/[[NSNumber numberWithUnsignedLongLong:[self totalBytesToUpload]] doubleValue]; 
+	} else {
+		progress = ([self bytesUploadedSoFar]*1.0)/([self totalBytesToUpload]*1.0);
+	}
 	[ASIHTTPRequest setProgress:progress forProgressIndicator:[self uploadProgressDelegate]];
 }
 
 
 - (void)incrementUploadProgressBy:(unsigned long long)bytes
 {
-	if (![self uploadProgressDelegate] || [self uploadProgressTotalBytes] == 0) {
+	if (![self uploadProgressDelegate] || [self totalBytesToUpload] == 0) {
 		return;
 	}
-	[self setUploadProgressBytes:[self uploadProgressBytes] + bytes];
+	[self setBytesUploadedSoFar:[self bytesUploadedSoFar] + bytes];
 	
 	double progress;
 	//Workaround for an issue with converting a long to a double on iPhone OS 2.2.1 with a base SDK >= 3.0
 	if ([ASIHTTPRequest isiPhoneOS2]) {
-		progress = [[NSNumber numberWithUnsignedLongLong:[self uploadProgressBytes]] doubleValue]/[[NSNumber numberWithUnsignedLongLong:[self uploadProgressTotalBytes]] doubleValue]; 
+		progress = [[NSNumber numberWithUnsignedLongLong:[self bytesUploadedSoFar]] doubleValue]/[[NSNumber numberWithUnsignedLongLong:[self totalBytesToUpload]] doubleValue]; 
 	} else {
-		progress = ([self uploadProgressBytes]*1.0)/([self uploadProgressTotalBytes]*1.0);
+		progress = ([self bytesUploadedSoFar]*1.0)/([self totalBytesToUpload]*1.0);
 	}
 	[ASIHTTPRequest setProgress:progress forProgressIndicator:[self uploadProgressDelegate]];
 
@@ -262,23 +264,23 @@
 	if (![self downloadProgressDelegate]) {
 		return;
 	}
-	[self setDownloadProgressTotalBytes:[self downloadProgressTotalBytes] + bytes];
+	[self setTotalBytesToDownload:[self totalBytesToDownload] + bytes];
 	[self incrementDownloadProgressBy:0];
 }
 
 - (void)incrementDownloadProgressBy:(unsigned long long)bytes
 {
-	if (![self downloadProgressDelegate] || [self downloadProgressTotalBytes] == 0) {
+	if (![self downloadProgressDelegate] || [self totalBytesToDownload] == 0) {
 		return;
 	}
-	[self setDownloadProgressBytes:[self downloadProgressBytes] + bytes];
+	[self setBytesDownloadedSoFar:[self bytesDownloadedSoFar] + bytes];
 	
 	double progress;
 	//Workaround for an issue with converting a long to a double on iPhone OS 2.2.1 with a base SDK >= 3.0
 	if ([ASIHTTPRequest isiPhoneOS2]) {
-		progress = [[NSNumber numberWithUnsignedLongLong:[self downloadProgressBytes]] doubleValue]/[[NSNumber numberWithUnsignedLongLong:[self downloadProgressTotalBytes]] doubleValue]; 
+		progress = [[NSNumber numberWithUnsignedLongLong:[self bytesDownloadedSoFar]] doubleValue]/[[NSNumber numberWithUnsignedLongLong:[self totalBytesToDownload]] doubleValue]; 
 	} else {
-		progress = ([self downloadProgressBytes]*1.0)/([self downloadProgressTotalBytes]*1.0);
+		progress = ([self bytesDownloadedSoFar]*1.0)/([self totalBytesToDownload]*1.0);
 	}
 	[ASIHTTPRequest setProgress:progress forProgressIndicator:[self downloadProgressDelegate]];
 }
@@ -318,10 +320,10 @@
 
 
 @synthesize requestsCount;
-@synthesize uploadProgressBytes;
-@synthesize uploadProgressTotalBytes;
-@synthesize downloadProgressBytes;
-@synthesize downloadProgressTotalBytes;
+@synthesize bytesUploadedSoFar;
+@synthesize totalBytesToUpload;
+@synthesize bytesDownloadedSoFar;
+@synthesize totalBytesToDownload;
 @synthesize shouldCancelAllRequestsOnFailure;
 @synthesize uploadProgressDelegate;
 @synthesize downloadProgressDelegate;

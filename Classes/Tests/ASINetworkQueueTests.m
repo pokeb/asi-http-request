@@ -156,7 +156,68 @@ IMPORTANT
 	GHAssertTrue(success,@"Failed to increment progress properly");
 }
 
+- (void)testAddingRequestsToQueueWhileInProgress
+{
+	[[self addMoreRequestsQueue] cancelAllOperations];
+	[self setAddMoreRequestsQueue:[ASINetworkQueue queue]];
+	[[self addMoreRequestsQueue] setDownloadProgressDelegate:self];
+	[[self addMoreRequestsQueue] setDelegate:self];
+	[[self addMoreRequestsQueue] setShowAccurateProgress:NO];
+	[[self addMoreRequestsQueue]  setQueueDidFinishSelector:@selector(addMoreRequestsQueueFinished:)];	
+	
+	requestsFinishedCount = 0;
+	
+	complete = NO;
+	progress = 0;
+	[[self addMoreRequestsQueue] setShowAccurateProgress:YES];
+	
+	int i;
+	for (i=0; i<5; i++) {
+		NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_great_american_novel_(abridged).txt"] autorelease];
+		ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+		[request setDelegate:self];
+		[request setDidFinishSelector:@selector(addedRequestComplete:)];
+		[[self addMoreRequestsQueue] addOperation:request];
+	}	
+	[[self addMoreRequestsQueue] go];
+	
+	// Add another request to the queue each second for 5 seconds
+	for (i=0; i<5; i++) {
+		[self performSelector:@selector(addAnotherRequest) withObject:nil afterDelay:i];
+	}
+	
+	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:10]];
+}
 
+- (void)addAnotherRequest
+{
+	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_great_american_novel_(abridged).txt"] autorelease];
+	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request setDelegate:self];
+	[request setDidFinishSelector:@selector(addedRequestComplete:)];
+	[[self addMoreRequestsQueue] addOperation:request];
+}
+
+- (void)addedRequestComplete:(ASIHTTPRequest *)request
+{
+	requestsFinishedCount++;
+}
+
+- (void)addMoreRequestsQueueFinished:(ASINetworkQueue *)queue
+{
+	// This might get called multiple times if the queue finishes before all the requests can be added
+	// So we'll make sure they're all done first
+	while (requestsFinishedCount < 10) {
+		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1.0]];
+	}
+
+	BOOL success = (progress == 1.0);
+	GHAssertTrue(success,@"Failed to increment progress properly");	
+	
+	// The file we downloaded 10 times is 130050 bytes long
+	success = ([queue totalBytesToDownload] == 130050*10);
+	GHAssertTrue(success,@"Failed to increment total download size properly");	
+}
 
 
 - (void)uploadFailed:(ASIHTTPRequest *)request
@@ -229,12 +290,6 @@ IMPORTANT
 
 - (void)setProgress:(float)newProgress
 {
-	NSLog(@"%f",newProgress);
-	if (newProgress < progress) {
-		GHFail(@"Progress went backwards!");
-	}
-
-
 	progress = newProgress;
 }
 
@@ -988,5 +1043,5 @@ IMPORTANT
 @synthesize cancelQueue;
 @synthesize postQueue;
 @synthesize testNTLMQueue;
-
+@synthesize addMoreRequestsQueue;
 @end

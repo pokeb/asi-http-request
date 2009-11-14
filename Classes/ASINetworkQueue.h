@@ -26,19 +26,19 @@
 	id uploadProgressDelegate;
 	
 	// Total amount uploaded so far for all requests in this queue
-	unsigned long long uploadProgressBytes;
+	unsigned long long bytesUploadedSoFar;
 	
 	// Total amount to be uploaded for all requests in this queue - requests add to this figure as they work out how much data they have to transmit
-	unsigned long long uploadProgressTotalBytes;
+	unsigned long long totalBytesToUpload;
 
 	// Download progress indicator, probably an NSProgressIndicator or UIProgressView
 	id downloadProgressDelegate;
 	
 	// Total amount downloaded so far for all requests in this queue
-	unsigned long long downloadProgressBytes;
+	unsigned long long bytesDownloadedSoFar;
 	
 	// Total amount to be downloaded for all requests in this queue - requests add to this figure as they receive Content-Length headers
-	unsigned long long downloadProgressTotalBytes;
+	unsigned long long totalBytesToDownload;
 	
 	// When YES, the queue will cancel all requests when a request fails. Default is YES
 	BOOL shouldCancelAllRequestsOnFailure;
@@ -107,5 +107,10 @@
 @property (assign) BOOL showAccurateProgress;
 @property (assign, readonly) int requestsCount;
 @property (retain) NSDictionary *userInfo;
+
+@property (assign) unsigned long long bytesUploadedSoFar;
+@property (assign) unsigned long long totalBytesToUpload;
+@property (assign) unsigned long long bytesDownloadedSoFar;
+@property (assign) unsigned long long totalBytesToDownload;
 
 @end
