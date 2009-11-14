@@ -23,6 +23,7 @@
 	ASIHTTPRequest *cancelRequest;
 	NSDate *cancelStartDate;
 	MyDelegate *delegate;
+	NSLock *createRequestLock;
 }
 
 - (void)testCancelStressTest;
@@ -37,4 +38,5 @@
 @property (retain) ASIHTTPRequest *cancelRequest;
 @property (retain) NSDate *cancelStartDate;
 @property (retain) MyDelegate *delegate;
+@property (retain) NSLock *createRequestLock;
 @end

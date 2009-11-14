@@ -61,6 +61,7 @@ IMPORTANT
 
 - (void)testRedirectStressTest
 {
+	[self setCreateRequestLock:[[[NSLock alloc] init] autorelease]];
 	[self setCancelStartDate:[NSDate dateWithTimeIntervalSinceNow:30]];
 	[self performRedirectRequest];
 	while ([[self cancelStartDate] timeIntervalSinceNow] > 0) {
@@ -71,6 +72,7 @@ IMPORTANT
 
 - (void)performRedirectRequest
 {
+	[createRequestLock lock];
 	[[ASIHTTPRequest sharedRequestQueue] setMaxConcurrentOperationCount:20];
 	[self setCancelRequest:[ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://127.0.0.1/ASIHTTPRequest/tests/one_infinite_loop"]]];
 	if ([[self cancelStartDate] timeIntervalSinceNow] > 0) {
@@ -78,6 +80,7 @@ IMPORTANT
 		[[self cancelRequest] startAsynchronous];
 		[self performSelector:@selector(cancelRedirectRequest) withObject:nil afterDelay:0.2];
 	}
+	[createRequestLock unlock];
 }
 
 - (void)cancelRedirectRequest
@@ -90,6 +93,7 @@ IMPORTANT
 // Ensures we can set the delegate while the request is running without problems
 - (void)testSetDelegate
 {
+	[self setCreateRequestLock:[[[NSLock alloc] init] autorelease]];
 	[self setCancelStartDate:[NSDate dateWithTimeIntervalSinceNow:30]];
 	[self performSetDelegateRequest];
 	while ([[self cancelStartDate] timeIntervalSinceNow] > 0) {
@@ -102,6 +106,7 @@ IMPORTANT
 {
 	[self setDelegate:nil];
 	
+	[createRequestLock lock];
 	[self setCancelRequest:[ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://127.0.0.1/ASIHTTPRequest/tests/the_great_american_novel.txt"]]];
 	if ([[self cancelStartDate] timeIntervalSinceNow] > 0) {
 		[self setDelegate:[[[MyDelegate alloc] init] autorelease]];
@@ -112,6 +117,7 @@ IMPORTANT
 		[[self cancelRequest] startAsynchronous];
 		[self performSelectorInBackground:@selector(cancelSetDelegateRequest) withObject:nil];
 	}
+	[createRequestLock unlock];
 }
 
 - (void)cancelSetDelegateRequest
@@ -141,4 +147,5 @@ IMPORTANT
 @synthesize cancelRequest;
 @synthesize cancelStartDate;
 @synthesize delegate;
+@synthesize createRequestLock;
 @end
