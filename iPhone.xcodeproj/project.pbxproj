@@ -62,7 +62,6 @@
 		B5E2A9AD100C89D900B70E26 /* ASIS3BucketObject.m in Sources */ = {isa = PBXBuildFile; fileRef = B5E2A9A7100C89D900B70E26 /* ASIS3BucketObject.m */; };
 		B5E2A9AE100C89D900B70E26 /* ASIS3ListRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5E2A9AA100C89D900B70E26 /* ASIS3ListRequest.m */; };
 		B5EA45AA109B56D800E920CB /* StressTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B5EA45A9109B56D800E920CB /* StressTests.m */; };
-		B5EA45AB109B56D800E920CB /* StressTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B5EA45A9109B56D800E920CB /* StressTests.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -434,7 +433,6 @@
 				B5D145521029E20D004379B8 /* Reachability.m in Sources */,
 				B522DACF1030B2AB009A2D22 /* ASIInputStream.m in Sources */,
 				B59A87C3103EC6F200300252 /* ASIAuthenticationDialog.m in Sources */,
-				B5EA45AB109B56D800E920CB /* StressTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
