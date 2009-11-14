@@ -982,7 +982,7 @@ static BOOL isiPhoneOS2;
 {
 	
 	//Only update progress if this isn't a HEAD request used to preset the content-length
-	if (!mainRequest) {
+	if (![self mainRequest]) {
 		if ([self showAccurateProgress] || ([self complete] && ![self updatedProgress])) {
 			[self updateUploadProgress];
 			[self updateDownloadProgress];
@@ -1352,15 +1352,27 @@ static BOOL isiPhoneOS2;
 			// See if we got a Content-length header
 			NSString *cLength = [responseHeaders valueForKey:@"Content-Length"];
 			if (cLength) {
-				[self setContentLength:CFStringGetIntValue((CFStringRef)cLength)];
-				if ([self mainRequest]) {
-					[[self mainRequest] setContentLength:contentLength];
+				SInt32 length = CFStringGetIntValue((CFStringRef)cLength);
+				
+				// Workaround for Apache HEAD requests for dynamically generated content returning the wrong Content-Length when using gzip
+				if ([self mainRequest] && [self allowCompressedResponse] && length == 20 && [self showAccurateProgress] && [self shouldResetProgressIndicators]) {
+					[[self mainRequest] setShowAccurateProgress:NO];
+					[self resetDownloadProgress:1];
+					
+				} else {
+					[self setContentLength:length];
+					if ([self mainRequest]) {
+						[[self mainRequest] setContentLength:length];
+					}
+
+					if ([self showAccurateProgress] && [self shouldResetProgressIndicators]) {
+						[self resetDownloadProgress:[self contentLength]+[self partialDownloadSize]];
+					}
 				}
-				if ([self showAccurateProgress] && [self shouldResetProgressIndicators]) {
-					[self resetDownloadProgress:[self contentLength]+[self partialDownloadSize]];
-				}
+						 
 			} else if ([self showAccurateProgress] && [self shouldResetProgressIndicators]) {
-				[self resetDownloadProgress:1];				
+				[[self mainRequest] setShowAccurateProgress:NO];
+				[self resetDownloadProgress:1];			
 			}
 			
 			// Handle response text encoding

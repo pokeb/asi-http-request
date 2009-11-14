@@ -150,7 +150,9 @@
 	if ([self showAccurateProgress]) {
 		
 		// If this is a GET request and we want accurate progress, perform a HEAD request first to get the content-length
-		if ([[request requestMethod] isEqualToString:@"GET"]) {
+		// We'll only do this before the queue is started
+		// If requests are added after the queue is started they will probably move the progress backwards anyway, so there's no value performing the HEAD requests first
+		if ([[request requestMethod] isEqualToString:@"GET"] && [self isSuspended]) {
 			ASIHTTPRequest *HEADRequest = [request HEADRequest];
 			[self addHEADOperation:HEADRequest];
 			

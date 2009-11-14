@@ -64,73 +64,100 @@ IMPORTANT
 	[networkQueue setDelegate:self];
 	[networkQueue setShowAccurateProgress:NO];
 	[networkQueue setQueueDidFinishSelector:@selector(queueFinished:)];	
+		
+	int i;
+	for (i=0; i<5; i++) {
+		NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/i/logo.png"] autorelease];
+		ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+		[networkQueue addOperation:request];
+	}
+	[networkQueue go];
+		
+	while (!complete) {
+		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
+	}
 	
-	NSURL *url;	
-//	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com"] autorelease];
-//	ASIHTTPRequest *request1 = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-//	[networkQueue addOperation:request1];
-//	
-//	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com"] autorelease];
-//	ASIHTTPRequest *request2 = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-//	[networkQueue addOperation:request2];
-//	
-//	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com"] autorelease];
-//	ASIHTTPRequest *request3 = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-//	[networkQueue addOperation:request3];
-//
-//	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com"] autorelease];
-//	ASIHTTPRequest *request4 = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-//	[networkQueue addOperation:request4];
-//	
-//	[networkQueue go];
-//		
-//	while (!complete) {
-//		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
-//	}
-//	
-//	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1]];
-	BOOL success = (progress > 0.95);
-//	GHAssertTrue(success,@"Failed to increment progress properly");
-//	
+	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1]];
+	BOOL success = (progress == 1.0);
+	GHAssertTrue(success,@"Failed to increment progress properly");
+	
 
-	
 	//Now test again with accurate progress
 	complete = NO;
 	progress = 0;
 	[networkQueue cancelAllOperations];
 	[networkQueue setShowAccurateProgress:YES];
-
-	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com"] autorelease];
-	ASIHTTPRequest *request1 = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-	[request1 setAllowCompressedResponse:NO];
-	[networkQueue addOperation:request1];
 	
-	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com"] autorelease];
-	ASIHTTPRequest *request2 = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-	[request2 setAllowCompressedResponse:NO];
-	[networkQueue addOperation:request2];
-	
-	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com"] autorelease];
-	ASIHTTPRequest *request3 = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-	[request3 setAllowCompressedResponse:NO];
-	[networkQueue addOperation:request3];
-	
-	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com"] autorelease];
-	ASIHTTPRequest *request4 = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-	[request4 setAllowCompressedResponse:NO];
-	[networkQueue addOperation:request4];
-	
+	for (i=0; i<5; i++) {
+		NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/i/logo.png"] autorelease];
+		ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+		[networkQueue addOperation:request];
+	}	
 	[networkQueue go];
 	
 	while (!complete) {
 		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
 	}
 	
-	// Progress maths are inexact for queues
-	success = (progress > 0.95);
+	success = (progress == 1.0);
 	GHAssertTrue(success,@"Failed to increment progress properly");
 	
 }
+
+- (void)testAccurateProgressFallsBackToSimpleProgress
+{
+	
+	ASINetworkQueue *networkQueue = [ASINetworkQueue queue];
+	[networkQueue setDownloadProgressDelegate:self];
+	[networkQueue setDelegate:self];
+	[networkQueue setShowAccurateProgress:NO];
+	[networkQueue setQueueDidFinishSelector:@selector(queueFinished:)];	
+	
+	// Test accurate progress falls back to simpler progress when responses have no content-length header
+	complete = NO;
+	progress = 0;
+	[networkQueue setShowAccurateProgress:YES];
+	
+	int i;
+	for (i=0; i<5; i++) {
+		NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com"] autorelease];
+		ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+		[request setAllowCompressedResponse:NO]; // A bit hacky - my server will send a chunked response (without content length) when we don't specify that we accept gzip
+		[networkQueue addOperation:request];
+	}	
+	[networkQueue go];
+	
+	while (!complete) {
+		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
+	}
+	
+	BOOL success = (progress == 1.0);
+	GHAssertTrue(success,@"Failed to increment progress properly");
+	
+	// This test will request gzipped content, but the content-length header we get on the HEAD request will be wrong, ASIHTTPRequest should fall back to simple progress
+	// This is to workaround an issue Apache has with HEAD requests for dynamically generated content when accepting gzip - it returns the content-length of a gzipped empty body
+	complete = NO;
+	progress = 0;
+	[networkQueue cancelAllOperations];
+	[networkQueue setShowAccurateProgress:YES];
+	
+	for (i=0; i<5; i++) {
+		NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com"] autorelease];
+		ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+		[networkQueue addOperation:request];
+	}	
+	[networkQueue go];
+	
+	while (!complete) {
+		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
+	}
+	
+	success = (progress == 1.0);
+	GHAssertTrue(success,@"Failed to increment progress properly");
+}
+
+
+
 
 - (void)uploadFailed:(ASIHTTPRequest *)request
 {
@@ -202,10 +229,11 @@ IMPORTANT
 
 - (void)setProgress:(float)newProgress
 {
+	NSLog(@"%f",newProgress);
 	if (newProgress < progress) {
 		GHFail(@"Progress went backwards!");
 	}
-	NSLog(@"%f",newProgress);
+
 
 	progress = newProgress;
 }
