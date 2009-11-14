@@ -524,6 +524,10 @@
 				PRODUCT_NAME = Tests;
 				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
 				SDKROOT = iphoneos2.2.1;
+				WARNING_CFLAGS = (
+					"-Wstrict-selector-match",
+					"-Wundeclared-selector",
+				);
 			};
 			name = Debug;
 		};

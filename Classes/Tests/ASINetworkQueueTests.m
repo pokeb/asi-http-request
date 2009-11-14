@@ -54,7 +54,7 @@ IMPORTANT
 
 
 
-- (void)testProgress
+- (void)testDownloadProgress
 {
 	complete = NO;
 	progress = 0;
@@ -66,27 +66,33 @@ IMPORTANT
 	[networkQueue setQueueDidFinishSelector:@selector(queueFinished:)];	
 	
 	NSURL *url;	
-	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/i/logo.png"] autorelease];
-	ASIHTTPRequest *request1 = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-	[networkQueue addOperation:request1];
-	
-	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/i/trailsnetwork.png"] autorelease];
-	ASIHTTPRequest *request2 = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-	[networkQueue addOperation:request2];
-	
-	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/sharedspace20.png"] autorelease];
-	ASIHTTPRequest *request3 = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-	[networkQueue addOperation:request3];
-	
-	[networkQueue go];
-		
-	while (!complete) {
-		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
-	}
-	
-	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1]];
+//	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com"] autorelease];
+//	ASIHTTPRequest *request1 = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+//	[networkQueue addOperation:request1];
+//	
+//	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com"] autorelease];
+//	ASIHTTPRequest *request2 = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+//	[networkQueue addOperation:request2];
+//	
+//	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com"] autorelease];
+//	ASIHTTPRequest *request3 = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+//	[networkQueue addOperation:request3];
+//
+//	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com"] autorelease];
+//	ASIHTTPRequest *request4 = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+//	[networkQueue addOperation:request4];
+//	
+//	[networkQueue go];
+//		
+//	while (!complete) {
+//		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
+//	}
+//	
+//	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1]];
 	BOOL success = (progress > 0.95);
-	GHAssertTrue(success,@"Failed to increment progress properly");
+//	GHAssertTrue(success,@"Failed to increment progress properly");
+//	
+
 	
 	//Now test again with accurate progress
 	complete = NO;
@@ -94,21 +100,31 @@ IMPORTANT
 	[networkQueue cancelAllOperations];
 	[networkQueue setShowAccurateProgress:YES];
 
-	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/i/logo.png"] autorelease];
-	request1 = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com"] autorelease];
+	ASIHTTPRequest *request1 = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request1 setAllowCompressedResponse:NO];
 	[networkQueue addOperation:request1];
 	
-	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/i/trailsnetwork.png"] autorelease];
-	request2 = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com"] autorelease];
+	ASIHTTPRequest *request2 = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request2 setAllowCompressedResponse:NO];
 	[networkQueue addOperation:request2];
 	
-	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/sharedspace20.png"] autorelease];
-	request3 = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com"] autorelease];
+	ASIHTTPRequest *request3 = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request3 setAllowCompressedResponse:NO];
 	[networkQueue addOperation:request3];
+	
+	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com"] autorelease];
+	ASIHTTPRequest *request4 = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request4 setAllowCompressedResponse:NO];
+	[networkQueue addOperation:request4];
 	
 	[networkQueue go];
 	
-	[networkQueue waitUntilAllOperationsAreFinished];
+	while (!complete) {
+		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
+	}
 	
 	// Progress maths are inexact for queues
 	success = (progress > 0.95);
@@ -186,6 +202,11 @@ IMPORTANT
 
 - (void)setProgress:(float)newProgress
 {
+	if (newProgress < progress) {
+		GHFail(@"Progress went backwards!");
+	}
+	NSLog(@"%f",newProgress);
+
 	progress = newProgress;
 }
 

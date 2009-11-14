@@ -42,7 +42,7 @@ IMPORTANT
 
 - (void)testFailure;
 - (void)testFailureCancelsOtherRequests;
-- (void)testProgress;
+- (void)testDownloadProgress;
 - (void)testUploadProgress;
 - (void)testProgressWithAuthentication;
 - (void)testWithNoListener;
