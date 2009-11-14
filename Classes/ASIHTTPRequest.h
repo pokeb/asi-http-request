@@ -380,7 +380,6 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 
 #pragma mark upload/download progress
 
-// Called on main thread to update progress delegates
 - (void)updateProgressIndicators;
 - (void)resetUploadProgress:(unsigned long long)value;
 - (void)updateUploadProgress;
