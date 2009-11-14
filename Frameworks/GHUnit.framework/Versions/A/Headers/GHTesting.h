@@ -46,6 +46,8 @@
 //  the License.
 //
 
+extern NSString *GHUStackTraceFromException(NSException *e);
+
 // GTM_BEGIN
 BOOL isTestFixtureOfClass(Class aClass, Class testCaseClass);
 // GTM_END
@@ -102,3 +104,6 @@ BOOL isTestFixtureOfClass(Class aClass, Class testCaseClass);
 
 @end
 
+@protocol GHSenTestCase 
+- (void)raiseAfterFailure;
+@end

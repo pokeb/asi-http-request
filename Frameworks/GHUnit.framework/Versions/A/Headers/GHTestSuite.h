@@ -85,6 +85,13 @@ extern NSString *GHUnitTest;
 + (GHTestSuite *)suiteWithTestFilter:(NSString *)testFilter;
 
 /*!
+ Create suite of tests that start with prefix.
+ @param prefix If test case class starts with the prefix; If nil or empty string, returns all tests
+ @param options Compare options
+ */
++ (GHTestSuite *)suiteWithPrefix:(NSString *)prefix options:(NSStringCompareOptions)options;
+
+/*!
  Suite for a single test/method.
  @param testCaseClass
  @param method

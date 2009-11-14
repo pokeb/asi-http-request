@@ -63,7 +63,7 @@ typedef struct {
  */
 extern GHTestStats GHTestStatsMake(NSInteger succeedCount, NSInteger failureCount, NSInteger cancelCount, NSInteger testCount);
 
-const GHTestStats GHTestStatsEmpty;
+extern const GHTestStats GHTestStatsEmpty;
 
 extern NSString *NSStringFromGHTestStats(GHTestStats stats);
 

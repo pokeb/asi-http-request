@@ -7,8 +7,8 @@
 //
 
 #import "GHTestViewModel.h"
-
 @class GHTestOutlineViewModel;
+
 
 @protocol GHTestOutlineViewModelDelegate <NSObject>
 - (void)testOutlineViewModelDidChangeSelection:(GHTestOutlineViewModel *)testOutlineViewModel;

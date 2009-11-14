@@ -77,6 +77,9 @@
 //  the License.
 //
 
+#import "NSException+GHTestFailureExceptions.h"
+#import "NSValue+GHValueFormatter.h"
+
 // GTM_BEGIN
 
 extern NSString *const GHTestFilenameKey;
@@ -100,13 +103,13 @@ NSString *_expression = [NSString stringWithFormat:@"Expected noErr, got %ld for
 if (description) { \
 _expression = [NSString stringWithFormat:@"%@: %@", _expression, GHComposeString(description, ##__VA_ARGS__)]; \
 } \
-[self failWithException:[NSException failureInFile:[NSString stringWithUTF8String:__FILE__] \
+[self failWithException:[NSException ghu_failureInFile:[NSString stringWithUTF8String:__FILE__] \
 atLine:__LINE__ \
 withDescription:_expression]]; \
 } \
 }\
 @catch (id anException) {\
-[self failWithException:[NSException failureInRaise:[NSString stringWithFormat:@"(%s) == noErr fails", #a1] \
+[self failWithException:[NSException ghu_failureInRaise:[NSString stringWithFormat:@"(%s) == noErr fails", #a1] \
 exception:anException \
 inFile:[NSString stringWithUTF8String:__FILE__] \
 atLine:__LINE__ \
@@ -131,13 +134,13 @@ NSString *_expression = [NSString stringWithFormat:@"Expected %s(%ld) but got %l
 if (description) { \
 _expression = [NSString stringWithFormat:@"%@: %@", _expression, GHComposeString(description, ##__VA_ARGS__)]; \
 } \
-[self failWithException:[NSException failureInFile:[NSString stringWithUTF8String:__FILE__] \
+[self failWithException:[NSException ghu_failureInFile:[NSString stringWithUTF8String:__FILE__] \
 atLine:__LINE__ \
 withDescription:_expression]]; \
 } \
 }\
 @catch (id anException) {\
-[self failWithException:[NSException failureInRaise:[NSString stringWithFormat:@"(%s) == (%s) fails", #a1, #a2] \
+[self failWithException:[NSException ghu_failureInRaise:[NSString stringWithFormat:@"(%s) == (%s) fails", #a1, #a2] \
 exception:anException \
 inFile:[NSString stringWithUTF8String:__FILE__] \
 atLine:__LINE__ \
@@ -161,13 +164,13 @@ NSString *_expression = [NSString stringWithFormat:@"(%s) != NULL", #a1]; \
 if (description) { \
 _expression = [NSString stringWithFormat:@"%@: %@", _expression, GHComposeString(description, ##__VA_ARGS__)]; \
 } \
-[self failWithException:[NSException failureInFile:[NSString stringWithUTF8String:__FILE__] \
+[self failWithException:[NSException ghu_failureInFile:[NSString stringWithUTF8String:__FILE__] \
 atLine:__LINE__ \
 withDescription:_expression]]; \
 } \
 }\
 @catch (id anException) {\
-[self failWithException:[NSException failureInRaise:[NSString stringWithFormat:@"(%s) != NULL fails", #a1] \
+[self failWithException:[NSException ghu_failureInRaise:[NSString stringWithFormat:@"(%s) != NULL fails", #a1] \
 exception:anException \
 inFile:[NSString stringWithUTF8String:__FILE__] \
 atLine:__LINE__ \
@@ -190,13 +193,13 @@ NSString *_expression = [NSString stringWithFormat:@"(%s) == NULL", #a1]; \
 if (description) { \
 _expression = [NSString stringWithFormat:@"%@: %@", _expression, GHComposeString(description, ##__VA_ARGS__)]; \
 } \
-[self failWithException:[NSException failureInFile:[NSString stringWithUTF8String:__FILE__] \
+[self failWithException:[NSException ghu_failureInFile:[NSString stringWithUTF8String:__FILE__] \
 atLine:__LINE__ \
 withDescription:_expression]]; \
 } \
 }\
 @catch (id anException) {\
-[self failWithException:[NSException failureInRaise:[NSString stringWithFormat:@"(%s) == NULL fails", #a1] \
+[self failWithException:[NSException ghu_failureInRaise:[NSString stringWithFormat:@"(%s) == NULL fails", #a1] \
 exception:anException \
 inFile:[NSString stringWithUTF8String:__FILE__] \
 atLine:__LINE__ \
@@ -216,7 +219,7 @@ withDescription:GHComposeString(description, ##__VA_ARGS__)]]; \
 do { \
 @try {\
 if (@encode(__typeof__(a1)) != @encode(__typeof__(a2))) { \
-[self failWithException:[NSException failureInFile:[NSString stringWithUTF8String:__FILE__] \
+[self failWithException:[NSException ghu_failureInFile:[NSString stringWithUTF8String:__FILE__] \
 atLine:__LINE__ \
 withDescription:[@"Type mismatch -- " stringByAppendingString:GHComposeString(description, ##__VA_ARGS__)]]]; \
 } else { \
@@ -229,14 +232,14 @@ NSString *_expression = [NSString stringWithFormat:@"(%s) != (%s)", #a1, #a2]; \
 if (description) { \
 _expression = [NSString stringWithFormat:@"%@: %@", _expression, GHComposeString(description, ##__VA_ARGS__)]; \
 } \
-[self failWithException:[NSException failureInFile:[NSString stringWithUTF8String:__FILE__] \
+[self failWithException:[NSException ghu_failureInFile:[NSString stringWithUTF8String:__FILE__] \
 atLine:__LINE__ \
 withDescription:_expression]]; \
 } \
 } \
 } \
 @catch (id anException) {\
-[self failWithException:[NSException failureInRaise:[NSString stringWithFormat:@"(%s) != (%s)", #a1, #a2] \
+[self failWithException:[NSException ghu_failureInRaise:[NSString stringWithFormat:@"(%s) != (%s)", #a1, #a2] \
 exception:anException \
 inFile:[NSString stringWithUTF8String:__FILE__] \
 atLine:__LINE__ \
@@ -263,12 +266,12 @@ NSString *_expression = [NSString stringWithFormat:@"%s('%@') != %s('%@')", #a1,
 if (desc) { \
 _expression = [NSString stringWithFormat:@"%@: %@", _expression, GHComposeString(desc, ##__VA_ARGS__)]; \
 } \
-[self failWithException:[NSException failureInFile:[NSString stringWithUTF8String:__FILE__] \
+[self failWithException:[NSException ghu_failureInFile:[NSString stringWithUTF8String:__FILE__] \
 atLine:__LINE__ \
 withDescription:_expression]]; \
 }\
 @catch (id anException) {\
-[self failWithException:[NSException failureInRaise:[NSString stringWithFormat: @"(%s) != (%s)", #a1, #a2] \
+[self failWithException:[NSException ghu_failureInRaise:[NSString stringWithFormat: @"(%s) != (%s)", #a1, #a2] \
 exception:anException \
 inFile:[NSString stringWithUTF8String:__FILE__] \
 atLine:__LINE__ \
@@ -288,7 +291,7 @@ withDescription:GHComposeString(desc, ##__VA_ARGS__)]]; \
 do { \
 @try {\
 if (@encode(__typeof__(a1)) != @encode(__typeof__(a2))) { \
-[self failWithException:[NSException failureInFile:[NSString stringWithUTF8String:__FILE__] \
+[self failWithException:[NSException ghu_failureInFile:[NSString stringWithUTF8String:__FILE__] \
 atLine:__LINE__ \
 withDescription:[@"Type mismatch -- " stringByAppendingString:GHComposeString(description, ##__VA_ARGS__)]]]; \
 } else { \
@@ -301,7 +304,7 @@ NSString *_expression = [NSString stringWithFormat:@"%s (%lg) %s %s (%lg)", #a1,
 if (description) { \
 _expression = [NSString stringWithFormat:@"%@: %@", _expression, GHComposeString(description, ##__VA_ARGS__)]; \
 } \
-[self failWithException:[NSException failureInFile:[NSString stringWithUTF8String:__FILE__] \
+[self failWithException:[NSException ghu_failureInFile:[NSString stringWithUTF8String:__FILE__] \
 atLine:__LINE__ \
 withDescription:_expression]]; \
 } \
@@ -309,7 +312,7 @@ withDescription:_expression]]; \
 } \
 @catch (id anException) {\
 [self failWithException:[NSException \
-failureInRaise:[NSString stringWithFormat:@"(%s) %s (%s)", #a1, #op, #a2] \
+ghu_failureInRaise:[NSString stringWithFormat:@"(%s) %s (%s)", #a1, #op, #a2] \
 exception:anException \
 inFile:[NSString stringWithUTF8String:__FILE__] \
 atLine:__LINE__ \
@@ -381,14 +384,14 @@ if (a1value == a2value) continue; \
 if ([a1value isKindOfClass:[NSString class]] && \
 [a2value isKindOfClass:[NSString class]] && \
 [a1value compare:a2value options:0] == NSOrderedSame) continue; \
-[self failWithException:[NSException failureInEqualityBetweenObject: a1value \
+[self failWithException:[NSException ghu_failureInEqualityBetweenObject: a1value \
 andObject: a2value \
 inFile: [NSString stringWithUTF8String:__FILE__] \
 atLine: __LINE__ \
 withDescription: GHComposeString(description, ##__VA_ARGS__)]]; \
 }\
 @catch (id anException) {\
-[self failWithException:[NSException failureInRaise:[NSString stringWithFormat: @"(%s) == (%s)", #a1, #a2] \
+[self failWithException:[NSException ghu_failureInRaise:[NSString stringWithFormat: @"(%s) == (%s)", #a1, #a2] \
 exception:anException \
 inFile:[NSString stringWithUTF8String:__FILE__] \
 atLine:__LINE__ \
@@ -415,14 +418,14 @@ id a2value = (a2); \
 if ([a1value isKindOfClass:[NSString class]] && \
 [a2value isKindOfClass:[NSString class]] && \
 [a1value compare:a2value options:0] != NSOrderedSame) continue; \
-[self failWithException:[NSException failureInEqualityBetweenObject: a1value \
+[self failWithException:[NSException ghu_failureInEqualityBetweenObject: a1value \
 andObject: a2value \
 inFile: [NSString stringWithUTF8String:__FILE__] \
 atLine: __LINE__ \
 withDescription: GHComposeString(description, ##__VA_ARGS__)]]; \
 }\
 @catch (id anException) {\
-[self failWithException:[NSException failureInRaise:[NSString stringWithFormat: @"(%s) != (%s)", #a1, #a2] \
+[self failWithException:[NSException ghu_failureInRaise:[NSString stringWithFormat: @"(%s) != (%s)", #a1, #a2] \
 exception:anException \
 inFile:[NSString stringWithUTF8String:__FILE__] \
 atLine:__LINE__ \
@@ -444,14 +447,14 @@ const char* a1value = (a1); \
 const char* a2value = (a2); \
 if (a1value == a2value) continue; \
 if (strcmp(a1value, a2value) == 0) continue; \
-[self failWithException:[NSException failureInEqualityBetweenObject: [NSString stringWithUTF8String:a1value] \
+[self failWithException:[NSException ghu_failureInEqualityBetweenObject: [NSString stringWithUTF8String:a1value] \
 andObject: [NSString stringWithUTF8String:a2value] \
 inFile: [NSString stringWithUTF8String:__FILE__] \
 atLine: __LINE__ \
 withDescription: GHComposeString(description, ##__VA_ARGS__)]]; \
 }\
 @catch (id anException) {\
-[self failWithException:[NSException failureInRaise:[NSString stringWithFormat: @"(%s) == (%s)", #a1, #a2] \
+[self failWithException:[NSException ghu_failureInRaise:[NSString stringWithFormat: @"(%s) == (%s)", #a1, #a2] \
 exception:anException \
 inFile:[NSString stringWithUTF8String:__FILE__] \
 atLine:__LINE__ \
@@ -472,14 +475,14 @@ do { \
 const char* a1value = (a1); \
 const char* a2value = (a2); \
 if (strcmp(a1value, a2value) != 0) continue; \
-[self failWithException:[NSException failureInEqualityBetweenObject: [NSString stringWithUTF8String:a1value] \
+[self failWithException:[NSException ghu_failureInEqualityBetweenObject: [NSString stringWithUTF8String:a1value] \
 andObject: [NSString stringWithUTF8String:a2value] \
 inFile: [NSString stringWithUTF8String:__FILE__] \
 atLine: __LINE__ \
 withDescription: GHComposeString(description, ##__VA_ARGS__)]]; \
 }\
 @catch (id anException) {\
-[self failWithException:[NSException failureInRaise:[NSString stringWithFormat: @"(%s) != (%s)", #a1, #a2] \
+[self failWithException:[NSException ghu_failureInRaise:[NSString stringWithFormat: @"(%s) != (%s)", #a1, #a2] \
 exception:anException \
 inFile:[NSString stringWithUTF8String:__FILE__] \
 atLine:__LINE__ \
@@ -507,14 +510,14 @@ if (a1value == a2value) continue; \
 if ( (@encode(__typeof__(a1value)) == @encode(id)) && \
 (@encode(__typeof__(a2value)) == @encode(id)) && \
 [(id)a1value isEqual: (id)a2value] ) continue; \
-[self failWithException:[NSException failureInEqualityBetweenObject: a1value \
+[self failWithException:[NSException ghu_failureInEqualityBetweenObject: a1value \
 andObject: a2value \
 inFile: [NSString stringWithUTF8String:__FILE__] \
 atLine: __LINE__ \
 withDescription: GHComposeString(description, ##__VA_ARGS__)]]; \
 }\
 @catch (id anException) {\
-[self failWithException:[NSException failureInRaise:[NSString stringWithFormat: @"(%s) == (%s)", #a1, #a2] \
+[self failWithException:[NSException ghu_failureInRaise:[NSString stringWithFormat: @"(%s) == (%s)", #a1, #a2] \
 exception:anException \
 inFile:[NSString stringWithUTF8String:__FILE__] \
 atLine:__LINE__ \
@@ -535,7 +538,7 @@ withDescription:GHComposeString(description, ##__VA_ARGS__)]]; \
 do { \
 @try {\
 if (@encode(__typeof__(a1)) != @encode(__typeof__(a2))) { \
-[self failWithException:[NSException failureInFile:[NSString stringWithUTF8String:__FILE__] \
+[self failWithException:[NSException ghu_failureInFile:[NSString stringWithUTF8String:__FILE__] \
 atLine:__LINE__ \
 withDescription:[@"Type mismatch -- " stringByAppendingString:GHComposeString(description, ##__VA_ARGS__)]]]; \
 } else { \
@@ -544,7 +547,7 @@ __typeof__(a2) a2value = (a2); \
 NSValue *a1encoded = [NSValue value:&a1value withObjCType: @encode(__typeof__(a1))]; \
 NSValue *a2encoded = [NSValue value:&a2value withObjCType: @encode(__typeof__(a2))]; \
 if (![a1encoded isEqualToValue:a2encoded]) { \
-[self failWithException:[NSException failureInEqualityBetweenValue: a1encoded \
+[self failWithException:[NSException ghu_failureInEqualityBetweenValue: a1encoded \
 andValue: a2encoded \
 withAccuracy: nil \
 inFile: [NSString stringWithUTF8String:__FILE__] \
@@ -554,7 +557,7 @@ withDescription: GHComposeString(description, ##__VA_ARGS__)]]; \
 } \
 } \
 @catch (id anException) {\
-[self failWithException:[NSException failureInRaise:[NSString stringWithFormat: @"(%s) == (%s)", #a1, #a2] \
+[self failWithException:[NSException ghu_failureInRaise:[NSString stringWithFormat: @"(%s) == (%s)", #a1, #a2] \
 exception:anException \
 inFile:[NSString stringWithUTF8String:__FILE__] \
 atLine:__LINE__ \
@@ -581,7 +584,7 @@ withDescription:GHComposeString(description, ##__VA_ARGS__)]]; \
 do { \
 @try {\
 if (@encode(__typeof__(a1)) != @encode(__typeof__(a2))) { \
-[self failWithException:[NSException failureInFile:[NSString stringWithUTF8String:__FILE__] \
+[self failWithException:[NSException ghu_failureInFile:[NSString stringWithUTF8String:__FILE__] \
 atLine:__LINE__ \
 withDescription:[@"Type mismatch -- " stringByAppendingString:GHComposeString(description, ##__VA_ARGS__)]]]; \
 } else { \
@@ -592,7 +595,7 @@ if (GHAbsoluteDifference(a1value, a2value) > accuracyvalue) { \
 NSValue *a1encoded = [NSValue value:&a1value withObjCType:@encode(__typeof__(a1))]; \
 NSValue *a2encoded = [NSValue value:&a2value withObjCType:@encode(__typeof__(a2))]; \
 NSValue *accuracyencoded = [NSValue value:&accuracyvalue withObjCType:@encode(__typeof__(accuracy))]; \
-[self failWithException:[NSException failureInEqualityBetweenValue: a1encoded \
+[self failWithException:[NSException ghu_failureInEqualityBetweenValue: a1encoded \
 andValue: a2encoded \
 withAccuracy: accuracyencoded \
 inFile: [NSString stringWithUTF8String:__FILE__] \
@@ -602,7 +605,7 @@ withDescription: GHComposeString(description, ##__VA_ARGS__)]]; \
 } \
 } \
 @catch (id anException) {\
-[self failWithException:[NSException failureInRaise:[NSString stringWithFormat: @"(%s) == (%s)", #a1, #a2] \
+[self failWithException:[NSException ghu_failureInRaise:[NSString stringWithFormat: @"(%s) == (%s)", #a1, #a2] \
 exception:anException \
 inFile:[NSString stringWithUTF8String:__FILE__] \
 atLine:__LINE__ \
@@ -618,7 +621,7 @@ withDescription:GHComposeString(description, ##__VA_ARGS__)]]; \
  _{... A variable number of arguments to the format string. Can be absent.}
  "*/
 #define GHFail(description, ...) \
-[self failWithException:[NSException failureInFile: [NSString stringWithUTF8String:__FILE__] \
+[self failWithException:[NSException ghu_failureInFile: [NSString stringWithUTF8String:__FILE__] \
 atLine: __LINE__ \
 withDescription: GHComposeString(description, ##__VA_ARGS__)]]
 
@@ -637,7 +640,7 @@ id a1value = (a1); \
 if (a1value != nil) { \
 NSString *_a1 = [NSString stringWithUTF8String: #a1]; \
 NSString *_expression = [NSString stringWithFormat:@"((%@) == nil)", _a1]; \
-[self failWithException:[NSException failureInCondition: _expression \
+[self failWithException:[NSException ghu_failureInCondition: _expression \
 isTrue: NO \
 inFile: [NSString stringWithUTF8String:__FILE__] \
 atLine: __LINE__ \
@@ -645,7 +648,7 @@ withDescription: GHComposeString(description, ##__VA_ARGS__)]]; \
 } \
 }\
 @catch (id anException) {\
-[self failWithException:[NSException failureInRaise:[NSString stringWithFormat: @"(%s) == nil fails", #a1] \
+[self failWithException:[NSException ghu_failureInRaise:[NSString stringWithFormat: @"(%s) == nil fails", #a1] \
 exception:anException \
 inFile:[NSString stringWithUTF8String:__FILE__] \
 atLine:__LINE__ \
@@ -667,7 +670,7 @@ id a1value = (a1); \
 if (a1value == nil) { \
 NSString *_a1 = [NSString stringWithUTF8String: #a1]; \
 NSString *_expression = [NSString stringWithFormat:@"((%@) != nil)", _a1]; \
-[self failWithException:[NSException failureInCondition: _expression \
+[self failWithException:[NSException ghu_failureInCondition: _expression \
 isTrue: NO \
 inFile: [NSString stringWithUTF8String:__FILE__] \
 atLine: __LINE__ \
@@ -675,7 +678,7 @@ withDescription: GHComposeString(description, ##__VA_ARGS__)]]; \
 } \
 }\
 @catch (id anException) {\
-[self failWithException:[NSException failureInRaise:[NSString stringWithFormat: @"(%s) != nil fails", #a1] \
+[self failWithException:[NSException ghu_failureInRaise:[NSString stringWithFormat: @"(%s) != nil fails", #a1] \
 exception:anException \
 inFile:[NSString stringWithUTF8String:__FILE__] \
 atLine:__LINE__ \
@@ -695,7 +698,7 @@ do { \
 BOOL _evaluatedExpression = (expr);\
 if (!_evaluatedExpression) {\
 NSString *_expression = [NSString stringWithUTF8String: #expr];\
-[self failWithException:[NSException failureInCondition: _expression \
+[self failWithException:[NSException ghu_failureInCondition: _expression \
 isTrue: YES \
 inFile: [NSString stringWithUTF8String:__FILE__] \
 atLine: __LINE__ \
@@ -717,7 +720,7 @@ do { \
 BOOL _evaluatedExpression = (expr);\
 if (!_evaluatedExpression) {\
 NSString *_expression = [NSString stringWithUTF8String: #expr];\
-[self failWithException:[NSException failureInCondition: _expression \
+[self failWithException:[NSException ghu_failureInCondition: _expression \
 isTrue: NO \
 inFile: [NSString stringWithUTF8String:__FILE__] \
 atLine: __LINE__ \
@@ -725,7 +728,7 @@ withDescription: GHComposeString(description, ##__VA_ARGS__)]]; \
 } \
 } \
 @catch (id anException) {\
-[self failWithException:[NSException failureInRaise:[NSString stringWithFormat: @"(%s) ", #expr] \
+[self failWithException:[NSException ghu_failureInRaise:[NSString stringWithFormat: @"(%s) ", #expr] \
 exception:anException \
 inFile:[NSString stringWithUTF8String:__FILE__] \
 atLine:__LINE__ \
@@ -745,7 +748,7 @@ do { \
 BOOL _evaluatedExpression = (expr);\
 if (_evaluatedExpression) {\
 NSString *_expression = [NSString stringWithUTF8String: #expr];\
-[self failWithException:[NSException failureInCondition: _expression \
+[self failWithException:[NSException ghu_failureInCondition: _expression \
 isTrue: NO \
 inFile: [NSString stringWithUTF8String:__FILE__] \
 atLine: __LINE__ \
@@ -767,7 +770,7 @@ do { \
 BOOL _evaluatedExpression = (expr);\
 if (_evaluatedExpression) {\
 NSString *_expression = [NSString stringWithUTF8String: #expr];\
-[self failWithException:[NSException failureInCondition: _expression \
+[self failWithException:[NSException ghu_failureInCondition: _expression \
 isTrue: YES \
 inFile: [NSString stringWithUTF8String:__FILE__] \
 atLine: __LINE__ \
@@ -775,7 +778,7 @@ withDescription: GHComposeString(description, ##__VA_ARGS__)]]; \
 } \
 } \
 @catch (id anException) {\
-[self failWithException:[NSException failureInRaise:[NSString stringWithFormat: @"!(%s) ", #expr] \
+[self failWithException:[NSException ghu_failureInRaise:[NSString stringWithFormat: @"!(%s) ", #expr] \
 exception:anException \
 inFile:[NSString stringWithUTF8String:__FILE__] \
 atLine:__LINE__ \
@@ -798,7 +801,7 @@ do { \
 @catch (id anException) { \
 continue; \
 }\
-[self failWithException:[NSException failureInRaise: [NSString stringWithUTF8String:#expr] \
+[self failWithException:[NSException ghu_failureInRaise: [NSString stringWithUTF8String:#expr] \
 exception: nil \
 inFile: [NSString stringWithUTF8String:__FILE__] \
 atLine: __LINE__ \
@@ -824,7 +827,7 @@ continue; \
 }\
 @catch (id anException) {\
 NSString *_descrip = GHComposeString(@"(Expected exception: %@) %@", NSStringFromClass([specificException class]), description);\
-[self failWithException:[NSException failureInRaise: [NSString stringWithUTF8String:#expr] \
+[self failWithException:[NSException ghu_failureInRaise: [NSString stringWithUTF8String:#expr] \
 exception: anException \
 inFile: [NSString stringWithUTF8String:__FILE__] \
 atLine: __LINE__ \
@@ -832,7 +835,7 @@ withDescription: GHComposeString(_descrip, ##__VA_ARGS__)]]; \
 continue; \
 }\
 NSString *_descrip = GHComposeString(@"(Expected exception: %@) %@", NSStringFromClass([specificException class]), description);\
-[self failWithException:[NSException failureInRaise: [NSString stringWithUTF8String:#expr] \
+[self failWithException:[NSException ghu_failureInRaise: [NSString stringWithUTF8String:#expr] \
 exception: nil \
 inFile: [NSString stringWithUTF8String:__FILE__] \
 atLine: __LINE__ \
@@ -861,7 +864,7 @@ do { \
 if ([aName isEqualToString: [anException name]]) continue; \
 NSString *_descrip = GHComposeString(@"(Expected exception: %@ (name: %@)) %@", NSStringFromClass([specificException class]), aName, description);\
 [self failWithException: \
-[NSException failureInRaise: [NSString stringWithUTF8String:#expr] \
+[NSException ghu_failureInRaise: [NSString stringWithUTF8String:#expr] \
 exception: anException \
 inFile: [NSString stringWithUTF8String:__FILE__] \
 atLine: __LINE__ \
@@ -871,7 +874,7 @@ continue; \
 @catch (id anException) {\
 NSString *_descrip = GHComposeString(@"(Expected exception: %@) %@", NSStringFromClass([specificException class]), description);\
 [self failWithException: \
-[NSException failureInRaise: [NSString stringWithUTF8String:#expr] \
+[NSException ghu_failureInRaise: [NSString stringWithUTF8String:#expr] \
 exception: anException \
 inFile: [NSString stringWithUTF8String:__FILE__] \
 atLine: __LINE__ \
@@ -880,7 +883,7 @@ continue; \
 }\
 NSString *_descrip = GHComposeString(@"(Expected exception: %@) %@", NSStringFromClass([specificException class]), description);\
 [self failWithException: \
-[NSException failureInRaise: [NSString stringWithUTF8String:#expr] \
+[NSException ghu_failureInRaise: [NSString stringWithUTF8String:#expr] \
 exception: nil \
 inFile: [NSString stringWithUTF8String:__FILE__] \
 atLine: __LINE__ \
@@ -900,7 +903,7 @@ do { \
 (expr);\
 } \
 @catch (id anException) { \
-[self failWithException:[NSException failureInRaise: [NSString stringWithUTF8String:#expr] \
+[self failWithException:[NSException ghu_failureInRaise: [NSString stringWithUTF8String:#expr] \
 exception: anException \
 inFile: [NSString stringWithUTF8String:__FILE__] \
 atLine: __LINE__ \
@@ -923,7 +926,7 @@ do { \
 (expr);\
 } \
 @catch (specificException *anException) { \
-[self failWithException:[NSException failureInRaise: [NSString stringWithUTF8String:#expr] \
+[self failWithException:[NSException ghu_failureInRaise: [NSString stringWithUTF8String:#expr] \
 exception: anException \
 inFile: [NSString stringWithUTF8String:__FILE__] \
 atLine: __LINE__ \
@@ -956,7 +959,7 @@ do { \
 if ([aName isEqualToString: [anException name]]) { \
 NSString *_descrip = GHComposeString(@"(Expected exception: %@ (name: %@)) %@", NSStringFromClass([specificException class]), aName, description);\
 [self failWithException: \
-[NSException failureInRaise: [NSString stringWithUTF8String:#expr] \
+[NSException ghu_failureInRaise: [NSString stringWithUTF8String:#expr] \
 exception: anException \
 inFile: [NSString stringWithUTF8String:__FILE__] \
 atLine: __LINE__ \
@@ -971,30 +974,30 @@ continue; \
 
 
 @interface NSException (GHTestMacros_GTMSenTestAdditions)
-+ (NSException *)failureInFile:(NSString *)filename 
++ (NSException *)ghu_failureInFile:(NSString *)filename 
                         atLine:(int)lineNumber 
                withDescription:(NSString *)formatString, ...;
-+ (NSException *)failureInCondition:(NSString *)condition 
++ (NSException *)ghu_failureInCondition:(NSString *)condition 
                              isTrue:(BOOL)isTrue 
                              inFile:(NSString *)filename 
                              atLine:(int)lineNumber 
                     withDescription:(NSString *)formatString, ...;
-+ (NSException *)failureInEqualityBetweenObject:(id)left
++ (NSException *)ghu_failureInEqualityBetweenObject:(id)left
                                       andObject:(id)right
                                          inFile:(NSString *)filename
                                          atLine:(int)lineNumber
                                 withDescription:(NSString *)formatString, ...;
-+ (NSException *)failureInEqualityBetweenValue:(NSValue *)left 
++ (NSException *)ghu_failureInEqualityBetweenValue:(NSValue *)left 
                                       andValue:(NSValue *)right 
                                   withAccuracy:(NSValue *)accuracy 
                                         inFile:(NSString *)filename 
                                         atLine:(int) ineNumber
                                withDescription:(NSString *)formatString, ...;
-+ (NSException *)failureInRaise:(NSString *)expression 
++ (NSException *)ghu_failureInRaise:(NSString *)expression 
                          inFile:(NSString *)filename 
                          atLine:(int)lineNumber
                 withDescription:(NSString *)formatString, ...;
-+ (NSException *)failureInRaise:(NSString *)expression 
++ (NSException *)ghu_failureInRaise:(NSString *)expression 
                       exception:(NSException *)exception 
                          inFile:(NSString *)filename 
                          atLine:(int)lineNumber 

@@ -110,29 +110,32 @@
 	NSMutableArray */* of GHTestNode*/children_;
 
 	id<GHTestNodeDelegate> delegate_;
+
 }
 
 
-
-@property (readonly, nonatomic) NSString *identifier;
-@property (readonly, nonatomic) NSString *name;
 @property (readonly, nonatomic) NSArray */* of GHTestNode*/children;
 @property (readonly, nonatomic) id<GHTest> test;
-@property (readonly, nonatomic) GHTestStatus status;
-@property (readonly, nonatomic) NSString *statusString;
-@property (readonly, nonatomic) NSString *stackTrace;
-@property (readonly, nonatomic) NSString *log;
-@property (readonly, nonatomic) BOOL isRunning;
-@property (readonly, nonatomic) BOOL isEnded;
-@property (readonly, nonatomic) BOOL isGroupTest; // YES if test has "sub tests"
-
-@property (assign, nonatomic, getter=isSelected) BOOL selected;
 @property (assign, nonatomic) id<GHTestNodeDelegate> delegate;
 
 - (id)initWithTest:(id<GHTest>)test children:(NSArray */*of GHTestNode */)children source:(GHTestViewModel *)source;
 + (GHTestNode *)nodeWithTest:(id<GHTest>)test children:(NSArray */*of GHTestNode */)children source:(GHTestViewModel *)source;
 
+- (NSString *)identifier;
+- (NSString *)name;
 - (NSString *)nameWithStatus;
+
+- (GHTestStatus)status;
+- (NSString *)statusString;
+- (NSString *)stackTrace;
+- (NSString *)log;
+- (BOOL)isRunning;
+- (BOOL)isDisabled;
+- (BOOL)isEnded;
+- (BOOL)isGroupTest; // YES if test has "sub tests"
+
+- (BOOL)isSelected;
+- (void)setSelected:(BOOL)selected;
 
 - (BOOL)hasChildren;
 - (BOOL)failed;

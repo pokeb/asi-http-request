@@ -143,6 +143,11 @@
 
 - (void)cancel;
 
+/*!
+ Write message to console.
+ */
+- (void)log:(NSString *)message;
+
 @end
 
 

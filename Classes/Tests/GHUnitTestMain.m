@@ -28,19 +28,40 @@
 //
 
 #import <Foundation/Foundation.h>
-#import <Foundation/NSDebug.h>
 
 #import <GHUnit/GHUnit.h>
 #import <GHUnit/GHTestApp.h>
 #import <GHUnit/GHTesting.h>
 
+// Default exception handler
+void exceptionHandler(NSException *exception) {	
+	NSLog(@"%@\n%@", [exception reason], GHUStackTraceFromException(exception));
+}
+
 int main(int argc, char *argv[]) {
-	// Setup any NSDebug settings
-	NSDebugEnabled = YES;
-	NSZombieEnabled = YES;
-	NSDeallocateZombies = NO;
-	NSHangOnUncaughtException = YES;
-	setenv("NSAutoreleaseFreedObjectCheckEnabled", "1", 1);
+	
+	/*!
+	 For debugging:
+	 Go into the "Get Info" contextual menu of your (test) executable (inside the "Executables" group in the left panel of XCode). 
+	 Then go in the "Arguments" tab. You can add the following environment variables:
+	 
+	 Default:   Set to:
+	 NSDebugEnabled                        NO       "YES"
+	 NSZombieEnabled                       NO       "YES"
+	 NSDeallocateZombies                   NO       "YES"
+	 NSHangOnUncaughtException             NO       "YES"
+	 
+	 NSEnableAutoreleasePool              YES       "NO"
+	 NSAutoreleaseFreedObjectCheckEnabled  NO       "YES"
+	 NSAutoreleaseHighWaterMark             0       non-negative integer
+	 NSAutoreleaseHighWaterResolution       0       non-negative integer
+	 
+	 For info on these varaiables see NSDebug.h; http://theshadow.uw.hu/iPhoneSDKdoc/Foundation.framework/NSDebug.h.html
+	 
+	 For malloc debugging see: http://developer.apple.com/mac/library/documentation/Performance/Conceptual/ManagingMemory/Articles/MallocDebug.html
+	 */
+	
+	NSSetUncaughtExceptionHandler(&exceptionHandler);
 	
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	
@@ -58,6 +79,8 @@ int main(int argc, char *argv[]) {
 		// To run a different test suite:
 		//GHTestSuite *suite = [GHTestSuite suiteWithTestFilter:@"GHSlowTest,GHAsyncTestCaseTest"];
 		//GHTestApp *app = [[GHTestApp alloc] initWithSuite:suite];
+		// Or set global:
+		//GHUnitTest = @"GHSlowTest";
 		[NSApp run];
 		[app release];		
 	}

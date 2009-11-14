@@ -80,4 +80,6 @@
 - (void)loadDefaults;
 - (void)saveDefaults;
 
+- (BOOL)isShowingDetails;
+
 @end

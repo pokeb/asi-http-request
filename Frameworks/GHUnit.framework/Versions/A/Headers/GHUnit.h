@@ -34,7 +34,9 @@
 #import "GHTestRunner.h"
 
 #ifdef DEBUG
-#define GHUDebug(fmt, ...) NSLog(fmt, ##__VA_ARGS__)
+#define GHUDebug(fmt, ...) do { \
+fputs([[[NSString stringWithFormat:fmt, ##__VA_ARGS__] stringByAppendingString:@"\n"] UTF8String], stdout); \
+} while(0)
 #else
 #define GHUDebug(fmt, ...) do {} while(0)
 #endif

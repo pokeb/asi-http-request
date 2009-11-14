@@ -83,7 +83,7 @@
  - (void)testB { }
  
  // Override any exceptions; By default exceptions are raised, causing a test failure
- - (void)failWithException:(NSException*)exception { }
+ - (void)failWithException:(NSException *)exception { }
  
  @end
  @endcode
