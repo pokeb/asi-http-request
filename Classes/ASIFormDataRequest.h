@@ -26,6 +26,12 @@ typedef enum _ASIPostFormat {
 	ASIPostFormat postFormat;
 	
 	NSStringEncoding stringEncoding;
+	
+#if ASIHTTPREQUEST_DEBUG
+	// Will store a string version of the request body that will be printed to the console when ASIHTTPREQUEST_DEBUG is set in GCC_PREPROCESSOR_DEFINITIONS
+	NSString *debugBodyString;
+#endif
+	
 }
 
 #pragma mark utilities 

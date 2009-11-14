@@ -13,8 +13,16 @@
 @interface ASIFormDataRequest ()
 - (void)buildMultipartFormDataPostBody;
 - (void)buildURLEncodedPostBody;
+- (void)appendPostString:(NSString *)string;
+
 @property (retain) NSMutableDictionary *postData;
 @property (retain) NSMutableDictionary *fileData;
+
+#if ASIHTTPREQUEST_DEBUG
+- (void)addToDebugBody:(NSString *)string;
+@property (retain, nonatomic) NSString *debugBodyString;
+#endif
+
 @end
 
 @implementation ASIFormDataRequest
@@ -46,6 +54,10 @@
 
 - (void)dealloc
 {
+#if ASIHTTPREQUEST_DEBUG
+	[debugBodyString release]; 
+#endif
+	
 	[postData release];
 	[fileData release];
 	[super dealloc];
@@ -122,6 +134,11 @@
 	if ([self haveBuiltPostBody]) {
 		return;
 	}
+	
+#if ASIHTTPREQUEST_DEBUG
+	[self setDebugBodyString:@""];	
+#endif
+	
 	if (![self postData] && ![self fileData]) {
 		[super buildPostBody];
 		return;
@@ -135,13 +152,22 @@
 	} else {
 		[self buildMultipartFormDataPostBody];
 	}
-	
+
 	[super buildPostBody];
+	
+#if ASIHTTPREQUEST_DEBUG
+	NSLog(@"%@",[self debugBodyString]);
+	[self setDebugBodyString:nil];
+#endif
 }
 
 
 - (void)buildMultipartFormDataPostBody
 {
+#if ASIHTTPREQUEST_DEBUG
+	[self addToDebugBody:@"\r\n==== Building a multipart/form-data body ====\r\n"];
+#endif
+	
 	NSString *charset = (NSString *)CFStringConvertEncodingToIANACharSetName(CFStringConvertNSStringEncodingToEncoding([self stringEncoding]));
 	
 	// Set your own boundary string only if really obsessive. We don't bother to check if post data contains the boundary, since it's pretty unlikely that it does.
@@ -149,19 +175,19 @@
 	
 	[self addRequestHeader:@"Content-Type" value:[NSString stringWithFormat:@"multipart/form-data; charset=%@; boundary=%@", charset, stringBoundary]];
 	
-	[self appendPostData:[[NSString stringWithFormat:@"--%@\r\n",stringBoundary] dataUsingEncoding:[self stringEncoding]]];
+	[self appendPostString:[NSString stringWithFormat:@"--%@\r\n",stringBoundary]];
 	
 	// Adds post data
-	NSData *endItemBoundary = [[NSString stringWithFormat:@"\r\n--%@\r\n",stringBoundary] dataUsingEncoding:[self stringEncoding]];
+	NSString *endItemBoundary = [NSString stringWithFormat:@"\r\n--%@\r\n",stringBoundary];
 	NSEnumerator *e = [[self postData] keyEnumerator];
 	NSString *key;
 	int i=0;
 	while (key = [e nextObject]) {
-		[self appendPostData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"\r\n\r\n",key] dataUsingEncoding:[self stringEncoding]]];
-		[self appendPostData:[[[self postData] objectForKey:key] dataUsingEncoding:[self stringEncoding]]];
+		[self appendPostString:[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"\r\n\r\n",key]];
+		[self appendPostString:[[self postData] objectForKey:key]];
 		i++;
 		if (i != [[self postData] count] || [[self fileData] count] > 0) { //Only add the boundary if this is not the last item in the post body
-			[self appendPostData:endItemBoundary];
+			[self appendPostString:endItemBoundary];
 		}
 	}
 	
@@ -174,8 +200,8 @@
 		NSString *contentType = [fileInfo objectForKey:@"contentType"];
 		NSString *fileName = [fileInfo objectForKey:@"fileName"];
 		
-		[self appendPostData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"; filename=\"%@\"\r\n", key, fileName] dataUsingEncoding:[self stringEncoding]]];
-		[self appendPostData:[[NSString stringWithFormat:@"Content-Type: %@; charset=%@\r\n\r\n", contentType, charset] dataUsingEncoding:[self stringEncoding]]];
+		[self appendPostString:[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"; filename=\"%@\"\r\n", key, fileName]];
+		[self appendPostString:[NSString stringWithFormat:@"Content-Type: %@; charset=%@\r\n\r\n", contentType, charset]];
 		
 		if ([file isKindOfClass:[NSString class]]) {
 			[self appendPostDataFromFile:file];
@@ -185,22 +211,32 @@
 		i++;
 		// Only add the boundary if this is not the last item in the post body
 		if (i != [[self fileData] count]) { 
-			[self appendPostData:endItemBoundary];
+			[self appendPostString:endItemBoundary];
 		}
 	}
 	
-	[self appendPostData:[[NSString stringWithFormat:@"\r\n--%@--\r\n",stringBoundary] dataUsingEncoding:[self stringEncoding]]];
+	[self appendPostString:[NSString stringWithFormat:@"\r\n--%@--\r\n",stringBoundary]];
 	
+#if ASIHTTPREQUEST_DEBUG
+	[self addToDebugBody:@"==== End of multipart/form-data body ====\r\n"];
+#endif
 }
 
 - (void)buildURLEncodedPostBody
 {
+
 	// We can't post binary data using application/x-www-form-urlencoded
 	if ([[self fileData] count] > 0) {
 		[self setPostFormat:ASIMultipartFormDataPostFormat];
 		[self buildMultipartFormDataPostBody];
 		return;
 	}
+	
+#if ASIHTTPREQUEST_DEBUG
+	[self addToDebugBody:@"\r\n==== Building an application/x-www-form-urlencoded body ====\r\n"]; 
+#endif
+	
+	
 	NSString *charset = (NSString *)CFStringConvertEncodingToIANACharSetName(CFStringConvertNSStringEncodingToEncoding([self stringEncoding]));
 
 	[self addRequestHeader:@"Content-Type" value:[NSString stringWithFormat:@"application/x-www-form-urlencoded; charset=%@",charset]];
@@ -212,13 +248,53 @@
 	int count = [[self postData] count]-1;
 	while (key = [e nextObject]) {
         NSString *data = [NSString stringWithFormat:@"%@=%@%@", [self encodeURL:key], [self encodeURL:[[self postData] objectForKey:key]],(i<count ?  @"&" : @"")]; 
-		[self appendPostData:[data dataUsingEncoding:[self stringEncoding]]];
+		[self appendPostString:data];
 		i++;
 	}
+#if ASIHTTPREQUEST_DEBUG
+	[self addToDebugBody:@"\r\n==== End of application/x-www-form-urlencoded body ====\r\n"]; 
+#endif
 }
+
+- (void)appendPostString:(NSString *)string
+{
+#if ASIHTTPREQUEST_DEBUG
+	[self addToDebugBody:string];
+#endif
+	[super appendPostData:[string dataUsingEncoding:[self stringEncoding]]];
+}
+
+#if ASIHTTPREQUEST_DEBUG
+- (void)appendPostData:(NSData *)data
+{
+	[self addToDebugBody:[NSString stringWithFormat:@"[%lu bytes of data]",(unsigned long)[data length]]];
+	[super appendPostData:data];
+}
+
+- (void)appendPostDataFromFile:(NSString *)file
+{
+	NSError *err = nil;
+	unsigned long long fileSize = [[[[NSFileManager defaultManager] attributesOfItemAtPath:file error:&err] objectForKey:NSFileSize] unsignedLongLongValue];
+	if (err) {
+		[self addToDebugBody:[NSString stringWithFormat:@"[Error: Failed to obtain the file of the file at '%@']",file]];
+	} else {
+		[self addToDebugBody:[NSString stringWithFormat:@"[%llu bytes of data from file '%@']",fileSize,file]];
+	}
+
+	[super appendPostDataFromFile:file];
+}
+
+- (void)addToDebugBody:(NSString *)string
+{
+	[self setDebugBodyString:[[self debugBodyString] stringByAppendingString:string]];
+}
+#endif
 
 @synthesize postData;
 @synthesize fileData;
 @synthesize postFormat;
 @synthesize stringEncoding;
+#if ASIHTTPREQUEST_DEBUG
+@synthesize debugBodyString;
+#endif
 @end
