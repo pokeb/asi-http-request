@@ -997,7 +997,8 @@ static BOOL isiPhoneOS2;
 	[[self cancelledLock] lock];
 	
 	uploadProgressDelegate = newDelegate;
-	
+
+#if !TARGET_OS_IPHONE
 	// If the uploadProgressDelegate is an NSProgressIndicator, we set it's MaxValue to 1.0 so we can treat it similarly to UIProgressViews
 	SEL selector = @selector(setMaxValue:);
 	if ([uploadProgressDelegate respondsToSelector:selector]) {
@@ -1010,6 +1011,7 @@ static BOOL isiPhoneOS2;
 		[invocation invoke];
 		
 	}
+#endif
 	[[self cancelledLock] unlock];
 }
 
@@ -1018,7 +1020,8 @@ static BOOL isiPhoneOS2;
 	[[self cancelledLock] lock];
 	
 	downloadProgressDelegate = newDelegate;
-	
+
+#if !TARGET_OS_IPHONE
 	// If the downloadProgressDelegate is an NSProgressIndicator, we set it's MaxValue to 1.0 so we can treat it similarly to UIProgressViews
 	SEL selector = @selector(setMaxValue:);
 	if ([downloadProgressDelegate respondsToSelector:selector]) {
@@ -1029,6 +1032,7 @@ static BOOL isiPhoneOS2;
 		[invocation setArgument:&max atIndex:2];
 		[invocation invokeWithTarget:downloadProgressDelegate];
 	}	
+#endif
 	[[self cancelledLock] unlock];
 }
 
@@ -1142,7 +1146,6 @@ static BOOL isiPhoneOS2;
 - (void)updateDownloadProgress
 {
 	
-	
 	// We won't update download progress until we've examined the headers, since we might need to authenticate
 	if ([self responseHeaders] && ([self contentLength] || [self complete])) {
 		
@@ -1220,7 +1223,8 @@ static BOOL isiPhoneOS2;
 
 	SEL selector;
 	[progressLock lock];
-	
+
+#if TARGET_OS_IPHONE
 	// Cocoa Touch: UIProgressView
 	if ([indicator respondsToSelector:@selector(setProgress:)]) {
 		selector = @selector(setProgress:);
@@ -1229,23 +1233,19 @@ static BOOL isiPhoneOS2;
 		[invocation setSelector:selector];
 		float progressFloat = (float)progress; // UIProgressView wants a float for the progress parameter
 		[invocation setArgument:&progressFloat atIndex:2];
-
-		// If we're running in the main thread, update the progress straight away. Otherwise, it's not that urgent
 		[invocation performSelectorOnMainThread:@selector(invokeWithTarget:) withObject:indicator waitUntilDone:[NSThread isMainThread]];
-
-		
+	}
+#else
 	// Cocoa: NSProgressIndicator
-	} else if ([indicator respondsToSelector:@selector(setDoubleValue:)]) {
+	if ([indicator respondsToSelector:@selector(setDoubleValue:)]) {
 		selector = @selector(setDoubleValue:);
 		NSMethodSignature *signature = [[indicator class] instanceMethodSignatureForSelector:selector];
 		NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
 		[invocation setSelector:selector];
 		[invocation setArgument:&progress atIndex:2];
-		
-
 		[invocation performSelectorOnMainThread:@selector(invokeWithTarget:) withObject:indicator waitUntilDone:[NSThread isMainThread]];
-		
 	}
+#endif
 	[progressLock unlock];
 }
 

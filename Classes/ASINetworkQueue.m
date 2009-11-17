@@ -87,7 +87,8 @@
 - (void)setUploadProgressDelegate:(id)newDelegate
 {
 	uploadProgressDelegate = newDelegate;
-	
+
+#if !TARGET_OS_IPHONE
 	// If the uploadProgressDelegate is an NSProgressIndicator, we set it's MaxValue to 1.0 so we can treat it similarly to UIProgressViews
 	SEL selector = @selector(setMaxValue:);
 	if ([[self uploadProgressDelegate] respondsToSelector:selector]) {
@@ -97,14 +98,16 @@
 		[invocation setSelector:selector];
 		[invocation setArgument:&max atIndex:2];
 		[invocation invokeWithTarget:[self uploadProgressDelegate]];
-	}	
+	}
+#endif
 }
 
 
 - (void)setDownloadProgressDelegate:(id)newDelegate
 {
 	downloadProgressDelegate = newDelegate;
-	
+
+#if !TARGET_OS_IPHONE
 	// If the downloadProgressDelegate is an NSProgressIndicator, we set it's MaxValue to 1.0 so we can treat it similarly to UIProgressViews
 	SEL selector = @selector(setMaxValue:);
 	if ([[self downloadProgressDelegate] respondsToSelector:selector]) {
@@ -114,7 +117,8 @@
 		[invocation setSelector:@selector(setMaxValue:)];
 		[invocation setArgument:&max atIndex:2];
 		[invocation invokeWithTarget:[self downloadProgressDelegate]];
-	}	
+	}
+#endif
 }
 
 - (void)addHEADOperation:(NSOperation *)operation
