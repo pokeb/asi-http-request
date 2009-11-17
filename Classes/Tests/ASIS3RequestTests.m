@@ -118,7 +118,7 @@ static NSString *bucket = @"";
 	[request setDateString:dateString];
 	[request setSecretAccessKey:exampleSecretAccessKey];
 	[request setAccessKey:exampleAccessKey];
-	[request start];
+	[request startSynchronous];
 	GHAssertNotNil([request error],@"Failed to generate an error when the request was not correctly signed");
 	
 	BOOL success = ([[request error] code] == ASIS3ResponseErrorType);
@@ -147,7 +147,7 @@ static NSString *bucket = @"";
 	ASIS3Request *request = [ASIS3Request PUTRequestForFile:filePath withBucket:bucket path:path];
 	[request setSecretAccessKey:secretAccessKey];
 	[request setAccessKey:accessKey];
-	[request start];
+	[request startSynchronous];
 	success = [[request responseString] isEqualToString:@""];
 	GHAssertTrue(success,@"Failed to PUT a file to S3");	
 
@@ -155,7 +155,7 @@ static NSString *bucket = @"";
 	request = [ASIS3Request requestWithBucket:bucket path:path];
 	[request setSecretAccessKey:secretAccessKey];
 	[request setAccessKey:accessKey];
-	[request start];
+	[request startSynchronous];
 	success = [[request responseString] isEqualToString:@"This is my content"];
 	GHAssertTrue(success,@"Failed to GET the correct data from S3");
 	
@@ -163,14 +163,14 @@ static NSString *bucket = @"";
 	request = [ASIS3Request COPYRequestFromBucket:bucket path:path toBucket:bucket path:@"/test-copy"];
 	[request setSecretAccessKey:secretAccessKey];
 	[request setAccessKey:accessKey];
-	[request start];
+	[request startSynchronous];
 	GHAssertNil([request error],@"Failed to COPY a file");
 	
 	// GET the copy
 	request = [ASIS3Request requestWithBucket:bucket path:@"/test-copy"];
 	[request setSecretAccessKey:secretAccessKey];
 	[request setAccessKey:accessKey];
-	[request start];
+	[request startSynchronous];
 	success = [[request responseString] isEqualToString:@"This is my content"];
 	GHAssertTrue(success,@"Failed to GET the correct data from S3");	
 	
@@ -179,7 +179,7 @@ static NSString *bucket = @"";
 	request = [ASIS3Request HEADRequestWithBucket:bucket path:@"/test-copy"];
 	[request setSecretAccessKey:secretAccessKey];
 	[request setAccessKey:accessKey];
-	[request start];
+	[request startSynchronous];
 	success = [[request responseString] isEqualToString:@""];
 	GHAssertTrue(success,@"Got a response body for a HEAD request");
 	
@@ -188,7 +188,7 @@ static NSString *bucket = @"";
 	[listRequest setPrefix:@"test"];
 	[listRequest setSecretAccessKey:secretAccessKey];
 	[listRequest setAccessKey:accessKey];
-	[listRequest start];
+	[listRequest startSynchronous];
 	GHAssertNil([listRequest error],@"Failed to download a list from S3");
 	success = [[listRequest bucketObjects] count];
 	GHAssertTrue(success,@"The file didn't show up in the list");	
@@ -198,7 +198,7 @@ static NSString *bucket = @"";
 	[request setSecretAccessKey:secretAccessKey];
 	[request setRequestMethod:@"DELETE"];
 	[request setAccessKey:accessKey];
-	[request start];
+	[request startSynchronous];
 	success = [[request responseString] isEqualToString:@""];
 	GHAssertTrue(success,@"Failed to DELETE the file from S3");	
 	
@@ -207,7 +207,7 @@ static NSString *bucket = @"";
 	[request setSecretAccessKey:secretAccessKey];
 	[request setRequestMethod:@"DELETE"];
 	[request setAccessKey:accessKey];
-	[request start];
+	[request startSynchronous];
 	success = [[request responseString] isEqualToString:@""];
 	GHAssertTrue(success,@"Failed to DELETE the copy from S3");	
 	
@@ -215,7 +215,7 @@ static NSString *bucket = @"";
 	request = [ASIS3Request COPYRequestFromBucket:bucket path:path toBucket:bucket path:@"/test-copy"];
 	[request setSecretAccessKey:secretAccessKey];
 	[request setAccessKey:accessKey];
-	[request start];
+	[request startSynchronous];
 	GHAssertNotNil([request error],@"Failed generate an error for what should have been a failed COPY");
 	
 	success = [[[request error] localizedDescription] isEqualToString:@"The specified key does not exist."];
@@ -243,7 +243,7 @@ static NSString *bucket = @"";
 	[request setAccessKey:accessKey];
 	[request setShouldCompressRequestBody:YES];
 	[request setAccessPolicy:ASIS3AccessPolicyPublicRead]; // We'll make it public
-	[request start];
+	[request startSynchronous];
 	success = [[request responseString] isEqualToString:@""];
 	GHAssertTrue(success,@"Failed to PUT the gzipped file");		
 	
@@ -251,7 +251,7 @@ static NSString *bucket = @"";
 	request = [ASIS3Request requestWithBucket:bucket path:path];
 	[request setSecretAccessKey:secretAccessKey];
 	[request setAccessKey:accessKey];
-	[request start];
+	[request startSynchronous];
 	success = [[request responseString] isEqualToString:text];
 	GHAssertTrue(success,@"Failed to GET the correct data from S3");	
 	
@@ -283,7 +283,7 @@ static NSString *bucket = @"";
 		ASIS3Request *request = [ASIS3Request PUTRequestForFile:filePath withBucket:bucket path:path];
 		[request setSecretAccessKey:secretAccessKey];
 		[request setAccessKey:accessKey];
-		[request start];
+		[request startSynchronous];
 		GHAssertNil([request error],@"Give up on list request test - failed to upload a file");	
 	}
 	
@@ -292,7 +292,7 @@ static NSString *bucket = @"";
 	[listRequest setPrefix:@"test-file"];
 	[listRequest setSecretAccessKey:secretAccessKey];
 	[listRequest setAccessKey:accessKey];
-	[listRequest start];
+	[listRequest startSynchronous];
 	GHAssertNil([listRequest error],@"Failed to download a list from S3");
 	success = ([[listRequest bucketObjects] count] == 5);
 	GHAssertTrue(success,@"List did not contain all files");
@@ -354,7 +354,7 @@ static NSString *bucket = @"";
 	[listRequest setPrefix:@"test-file"];
 	[listRequest setSecretAccessKey:secretAccessKey];
 	[listRequest setAccessKey:accessKey];
-	[listRequest start];
+	[listRequest startSynchronous];
 	GHAssertNil([listRequest error],@"Failed to download a list from S3");
 	success = ([[listRequest bucketObjects] count] == 0);
 	GHAssertTrue(success,@"List contained files that should have been deleted");

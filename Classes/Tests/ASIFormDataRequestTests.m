@@ -39,7 +39,7 @@
 	[request setPostValue:d forKey:@"post_var2"];
 	[request setPostValue:v forKey:@"post_var3"];
 	[request setFile:path forKey:@"file"];
-	[request start];
+	[request startSynchronous];
 
 	BOOL success = ([[request responseString] isEqualToString:[NSString stringWithFormat:@"post_var: %@\r\npost_var2: %@\r\npost_var3: %@\r\nfile_name: %@\r\nfile_size: %hu\r\ncontent_type: %@",@"foo",d,v,@"bigfile",size,@"application/octet-stream"]]);
 	GHAssertTrue(success,@"Failed to upload the correct data (using local file)");	
@@ -50,7 +50,7 @@
 	[request setPostValue:d forKey:@"post_var2"];
 	[request setPostValue:v forKey:@"post_var3"];
 	[request setData:data forKey:@"file"];
-	[request start];
+	[request startSynchronous];
 
 	success = ([[request responseString] isEqualToString:[NSString stringWithFormat:@"post_var: %@\r\npost_var2: %@\r\npost_var3: %@\r\nfile_name: %@\r\nfile_size: %hu\r\ncontent_type: %@",@"foo",d,v,@"file",size,@"application/octet-stream"]]);
 	GHAssertTrue(success,@"Failed to upload the correct data (using NSData)");	
@@ -61,7 +61,7 @@
 	[request setPostValue:d forKey:@"post_var2"];
 	[request setPostValue:v forKey:@"post_var3"];	
 	[request setFile:path withFileName:@"myfile" andContentType:@"text/plain" forKey:@"file"];
-	[request start];
+	[request startSynchronous];
 	
 	success = ([[request responseString] isEqualToString:[NSString stringWithFormat:@"post_var: %@\r\npost_var2: %@\r\npost_var3: %@\r\nfile_name: %@\r\nfile_size: %hu\r\ncontent_type: %@",@"foo",d,v,@"myfile",size,@"text/plain"]]);
 	GHAssertTrue(success,@"Failed to send the correct content-type / file name");	
@@ -72,7 +72,7 @@
 	[request setPostValue:d forKey:@"post_var2"];
 	[request setPostValue:v forKey:@"post_var3"];	
 	[request setData:data withFileName:@"myfile" andContentType:@"text/plain" forKey:@"file"];
-	[request start];
+	[request startSynchronous];
 	
 	success = ([[request responseString] isEqualToString:[NSString stringWithFormat:@"post_var: %@\r\npost_var2: %@\r\npost_var3: %@\r\nfile_name: %@\r\nfile_size: %hu\r\ncontent_type: %@",@"foo",d,v,@"myfile",size,@"text/plain"]]);
 	GHAssertTrue(success,@"Failed to send the correct content-type / file name");	
@@ -88,7 +88,7 @@
 	[request setPostValue:@"there" forKey:@"xxx_non_empty_string"];
 	[request setShouldStreamPostDataFromDisk:YES];
 	[request buildPostBody];
-	[request start];
+	[request startSynchronous];
 	
 	BOOL success = ([[request responseString] isEqualToString:@"a_non_empty_string: hello\r\nzzz_empty_string: \r\nxxx_non_empty_string: there"]);
 	GHAssertTrue(success,@"Failed to send the correct post data");		
@@ -114,7 +114,7 @@
 	
 	[request setShouldStreamPostDataFromDisk:YES];
 	[request setPostFormat:ASIURLEncodedPostFormat];
-	[request start];
+	[request startSynchronous];
 
 	
 	BOOL success = ([[request responseString] isEqualToString:@"value1: value1\r\nvalue2: (%20 ? =)\r\nvalue3: £100.00\r\nvalue4: \r\nteskey&aa: &??aaa=//ciaoèèè"]);
@@ -130,7 +130,7 @@
 	NSString *charset = @"utf-8";
 	ASIFormDataRequest *request = [ASIFormDataRequest requestWithURL:url];
 	[request setPostValue:testString forKey:@"value"];
-	[request start];
+	[request startSynchronous];
 	BOOL success = ([[request responseString] isEqualToString:[NSString stringWithFormat:@"Got data in %@: %@",charset,testString]]);
 	GHAssertTrue(success,@"Failed to correctly encode the data");	
 	
@@ -138,7 +138,7 @@
 	request = [ASIFormDataRequest requestWithURL:url];
 	[request setPostValue:testString forKey:@"value"];
 	[request setPostFormat:ASIMultipartFormDataPostFormat];
-	[request start];
+	[request startSynchronous];
 	success = ([[request responseString] isEqualToString:[NSString stringWithFormat:@"Got data in %@: %@",charset,testString]]);
 	GHAssertTrue(success,@"Failed to correctly encode the data");
 	
@@ -148,7 +148,7 @@
 	request = [ASIFormDataRequest requestWithURL:url];
 	[request setPostValue:testString forKey:@"value"];
 	[request setStringEncoding:NSISOLatin1StringEncoding];
-	[request start];
+	[request startSynchronous];
 	success = ([[request responseString] isEqualToString:[NSString stringWithFormat:@"Got data in %@: %@",charset,testString]]);
 	GHAssertTrue(success,@"Failed to correctly encode the data");	
 	
@@ -157,7 +157,7 @@
 	[request setPostValue:testString forKey:@"value"];
 	[request setPostFormat:ASIMultipartFormDataPostFormat];
 	[request setStringEncoding:NSISOLatin1StringEncoding];
-	[request start];
+	[request startSynchronous];
 	success = ([[request responseString] isEqualToString:[NSString stringWithFormat:@"Got data in %@: %@",charset,testString]]);
 	GHAssertTrue(success,@"Failed to correctly encode the data");	
 	
@@ -166,7 +166,7 @@
 	request = [ASIFormDataRequest requestWithURL:url];
 	[request setPostValue:testString forKey:@"value"];
 	[request setStringEncoding:NSWindowsCP1252StringEncoding];
-	[request start];
+	[request startSynchronous];
 	success = ([[request responseString] isEqualToString:[NSString stringWithFormat:@"Got data in %@: %@",charset,testString]]);
 	GHAssertTrue(success,@"Failed to correctly encode the data");
 
@@ -174,7 +174,7 @@
 	[request setPostValue:testString forKey:@"value"];
 	[request setPostFormat:ASIMultipartFormDataPostFormat];
 	[request setStringEncoding:NSWindowsCP1252StringEncoding];
-	[request start];
+	[request startSynchronous];
 	success = ([[request responseString] isEqualToString:[NSString stringWithFormat:@"Got data in %@: %@",charset,testString]]);
 	GHAssertTrue(success,@"Failed to correctly encode the data");	
 

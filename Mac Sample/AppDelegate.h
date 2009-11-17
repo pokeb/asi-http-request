@@ -37,6 +37,8 @@
 	IBOutlet NSButton *resumeButton;
 	
 	IBOutlet NSTextField *bandwidthUsed;
+	
+	ASIHTTPRequest *bigFetchRequest;
 }
 
 - (IBAction)simpleURLFetch:(id)sender;
@@ -54,4 +56,5 @@
 
 - (IBAction)throttleBandwidth:(id)sender;
 
+@property (assign, nonatomic) ASIHTTPRequest *bigFetchRequest;
 @end

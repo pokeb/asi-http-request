@@ -30,16 +30,22 @@
 
 - (IBAction)simpleURLFetch:(id)sender
 {
-	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com/"]] autorelease];
+	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_great_american_novel_%28abridged%29.txt"]] autorelease];
 	
 	//Customise our user agent, for no real reason
 	[request addRequestHeader:@"User-Agent" value:@"ASIHTTPRequest"];
-	[request start];
+	[request setDelegate:self];
+	[request startSynchronous];
 	if ([request error]) {
 		[htmlSource setString:[[request error] localizedDescription]];
 	} else if ([request responseString]) {
 		[htmlSource setString:[request responseString]];
 	}
+}
+
+- (void)requestFinished:(ASIHTTPRequest *)request
+{
+	[htmlSource setString:[request responseString]];
 }
 
 
@@ -61,7 +67,8 @@
 {
 	[startButton setTitle:@"Start"];
 	[startButton setAction:@selector(URLFetchWithProgress:)];
-	[networkQueue cancelAllOperations];
+	[[self bigFetchRequest] cancel];
+	[self setBigFetchRequest:nil];
 	[resumeButton setEnabled:YES];
 }
 
@@ -71,18 +78,16 @@
 	[startButton setTitle:@"Stop"];
 	[startButton setAction:@selector(stopURLFetchWithProgress:)];
 	
+	// Stop any other requests
 	[networkQueue cancelAllOperations];
-	[networkQueue setShowAccurateProgress:YES];
-	[networkQueue setDownloadProgressDelegate:progressIndicator];
-	[networkQueue setDelegate:self];
-	[networkQueue setRequestDidFinishSelector:@selector(URLFetchWithProgressComplete:)];
 	
-	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://trails-network.net/Downloads/MemexTrails_1.0b1.zip"]] autorelease];
-	[request setDownloadDestinationPath:[[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"MemexTrails_1.0b1.zip"]];
-	[request setTemporaryFileDownloadPath:[[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"MemexTrails_1.0b1.zip.download"]];
-	[request setAllowResumeForFileDownloads:YES];
-	[networkQueue addOperation:request];
-	[networkQueue go];
+	[self setBigFetchRequest:[[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://trails-network.net/Downloads/MemexTrails_1.0b1.zip"]] autorelease]];
+	[[self bigFetchRequest] setDownloadDestinationPath:[[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"MemexTrails_1.0b1.zip"]];
+	[[self bigFetchRequest] setTemporaryFileDownloadPath:[[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"MemexTrails_1.0b1.zip.download"]];
+	[[self bigFetchRequest] setAllowResumeForFileDownloads:YES];
+	[[self bigFetchRequest] setDidFinishSelector:@selector(URLFetchWithProgressComplete:)];
+	[[self bigFetchRequest] setDownloadProgressDelegate:progressIndicator];
+	[[self bigFetchRequest] start];
 }
 
 - (void)URLFetchWithProgressComplete:(ASIHTTPRequest *)request
@@ -279,5 +284,5 @@
 }
 
 
-
+@synthesize bigFetchRequest;
 @end

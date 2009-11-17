@@ -312,6 +312,8 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	// This only affects credentials stored in the session cache when useSessionPersistance is YES. Credentials from the keychain are never presented unless the server asks for them
 	// Default is YES
 	BOOL shouldPresentCredentialsBeforeChallenge;
+	
+	BOOL isSynchronous;
 }
 
 #pragma mark init / dealloc
@@ -353,14 +355,17 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 
 #pragma mark running a request
 
-// Run a request asynchronously by adding it to the global queue
-// (Use [request start] for a synchronous request)
-- (void)startAsynchronous;
+// For an asynchronous request in the current thread, use [request start]
+
+// Run a request asynchronously in the background by adding it to the global queue, where it will run in its own thread
+- (void)startInBackgroundThread;
+
+// Run a request synchronously in the current thread
+- (void)startSynchronous;
+
+
 
 #pragma mark request logic
-
-// Main request loop is in here
-- (void)loadRequest;
 
 // Start the read stream. Called by loadRequest, and again to restart the request when authentication is needed
 - (void)startRequest;
@@ -639,4 +644,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 @property (assign, readonly) int proxyAuthenticationRetryCount;
 @property (assign) BOOL haveBuiltRequestHeaders;
 @property (assign, nonatomic) BOOL haveBuiltPostBody;
+
+@property (assign, readonly) BOOL isSynchronous;
+
 @end
