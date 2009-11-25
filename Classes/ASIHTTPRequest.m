@@ -20,10 +20,6 @@
 #endif
 #import "ASIInputStream.h"
 
-
-// We use our own custom run loop mode as CoreAnimation seems to want to hijack our threads otherwise
-static CFStringRef ASIHTTPRequestRunMode = CFSTR("ASIHTTPRequest");
-
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
 static const CFOptionFlags kNetworkEvents = kCFStreamEventOpenCompleted | kCFStreamEventHasBytesAvailable | kCFStreamEventEndEncountered | kCFStreamEventErrorOccurred;
@@ -134,7 +130,6 @@ static BOOL isiPhoneOS2;
 @property (assign, nonatomic) int redirectCount;
 @property (retain, nonatomic) NSData *compressedPostBody;
 @property (retain, nonatomic) NSString *compressedPostBodyFilePath;
-@property (retain) NSConditionLock *authenticationLock;
 @property (retain) NSString *authenticationRealm;
 @property (retain) NSString *proxyAuthenticationRealm;
 @property (retain) NSString *responseStatusMessage;
@@ -240,7 +235,6 @@ static BOOL isiPhoneOS2;
 	[proxyAuthenticationScheme release];
 	[proxyCredentials release];
 	[url release];
-	[authenticationLock release];
 	[lastActivityTime release];
 	[responseCookies release];
 	[rawResponseData release];
@@ -722,8 +716,6 @@ static BOOL isiPhoneOS2;
 	
 	[self requestStarted];
 	
-	[self setAuthenticationLock:[[[NSConditionLock alloc] initWithCondition:1] autorelease]];
-	
 	[self setComplete:NO];
 	[self setTotalBytesRead:0];
 	[self setLastBytesRead:0];
@@ -850,12 +842,12 @@ static BOOL isiPhoneOS2;
     }
     
     // Schedule the stream
-    CFReadStreamScheduleWithRunLoop(readStream, CFRunLoopGetCurrent(), ASIHTTPRequestRunMode);
+    CFReadStreamScheduleWithRunLoop(readStream, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
     
     // Start the HTTP connection
     if (!CFReadStreamOpen(readStream)) {
         CFReadStreamSetClient(readStream, 0, NULL, NULL);
-        CFReadStreamUnscheduleFromRunLoop(readStream, CFRunLoopGetCurrent(), ASIHTTPRequestRunMode);
+        CFReadStreamUnscheduleFromRunLoop(readStream, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
         CFRelease(readStream);
         readStream = NULL;
 		[[self cancelledLock] unlock];
@@ -884,12 +876,12 @@ static BOOL isiPhoneOS2;
 
 - (void)loadAsynchronous
 {
-	[NSTimer scheduledTimerWithTimeInterval:0.25 target:self selector:@selector(updateStatus:) userInfo:nil repeats:NO];
+	[NSTimer scheduledTimerWithTimeInterval:0.25 target:self selector:@selector(updateStatus:) userInfo:nil repeats:YES];
 	
 	// If we're running asynchronously on the main thread, the runloop will already be running
 	if (![NSThread isMainThread]) {
 		// Will stop automatically when the request is done
-		CFRunLoopRun();	
+		CFRunLoopRun();
 	}
 }
 
@@ -899,7 +891,7 @@ static BOOL isiPhoneOS2;
 {
 	while (!complete) {
 		[self checkRequestStatus];
-		CFRunLoopRunInMode(ASIHTTPRequestRunMode, 0.25, NO);
+		CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.25, NO);
 	}
 }
 
@@ -908,10 +900,9 @@ static BOOL isiPhoneOS2;
 {
 	[self checkRequestStatus];
 	if ([self complete] || [self error]) {
+		[timer invalidate];
 		[self willChangeValueForKey:@"isFinished"];
 		[self didChangeValueForKey:@"isFinished"];
-	} else {
-		[self loadAsynchronous];
 	}
 }
 
@@ -962,26 +953,27 @@ static BOOL isiPhoneOS2;
 		return;
 	}
 	
+	// readStream will be null if we aren't currently running (perhaps we're waiting for a delegate to supply credentials)
 	if (readStream) {
+			
+		// Find out if we've sent any more data than last time, and reset the timeout if so
+		if (totalBytesSent > lastBytesSent) {
+			[self setLastActivityTime:[NSDate date]];
+			[self setLastBytesSent:totalBytesSent];
+		}
 		
-	// Find out if we've sent any more data than last time, and reset the timeout if so
-	if (totalBytesSent > lastBytesSent) {
-		[self setLastActivityTime:[NSDate date]];
-		[self setLastBytesSent:totalBytesSent];
-	}
-	
-	// Find out how much data we've uploaded so far
-	[self setTotalBytesSent:[[(NSNumber *)CFReadStreamCopyProperty(readStream, kCFStreamPropertyHTTPRequestBytesWrittenCount) autorelease] unsignedLongLongValue]];
-	
-	
-	[self updateProgressIndicators];
-	
-	// Measure bandwidth used, and throttle if nescessary
-	[ASIHTTPRequest measureBandwidthUsage];
+		// Find out how much data we've uploaded so far
+		[self setTotalBytesSent:[[(NSNumber *)CFReadStreamCopyProperty(readStream, kCFStreamPropertyHTTPRequestBytesWrittenCount) autorelease] unsignedLongLongValue]];
+		
+		
+		[self updateProgressIndicators];
+		
+		// Measure bandwidth used, and throttle if nescessary
+		[ASIHTTPRequest measureBandwidthUsage];
 	}
 	
 	// This thread should wait for 1/4 second for the stream to do something
-	CFRunLoopRunInMode(ASIHTTPRequestRunMode,0.25,NO);
+	//CFRunLoopRunInMode(kCFRunLoopDefaultMode,0.25,NO);
 	
 	
 	[[self cancelledLock] unlock];
@@ -993,7 +985,7 @@ static BOOL isiPhoneOS2;
 {
     if (readStream) {
 		CFReadStreamSetClient(readStream, kCFStreamEventNone, NULL, NULL);
-		CFReadStreamUnscheduleFromRunLoop(readStream, CFRunLoopGetCurrent(), ASIHTTPRequestRunMode);
+		CFReadStreamUnscheduleFromRunLoop(readStream, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
 		CFReadStreamClose(readStream);
 		CFRelease(readStream);
 		readStream = NULL;
@@ -1750,8 +1742,6 @@ static BOOL isiPhoneOS2;
 - (void)cancelAuthentication
 {
 	[self failWithError:ASIAuthenticationError];
-	[[self authenticationLock] lockWhenCondition:1];
-	[[self authenticationLock] unlockWithCondition:2];
 }
 
 - (BOOL)showProxyAuthenticationDialog
@@ -1761,11 +1751,6 @@ static BOOL isiPhoneOS2;
 	// Cannot show the dialog when we are running on the main thread, as the locks will cause the app to hang
 	if ([self shouldPresentProxyAuthenticationDialog] && ![NSThread isMainThread]) {
 		[ASIAuthenticationDialog performSelectorOnMainThread:@selector(presentProxyAuthenticationDialogForRequest:) withObject:self waitUntilDone:[NSThread isMainThread]];
-		[[self authenticationLock] lockWhenCondition:2];
-		[[self authenticationLock] unlockWithCondition:1];
-		if ([self error]) {
-			return NO;
-		}
 		return YES;
 	}
 	return NO;
@@ -1791,13 +1776,6 @@ static BOOL isiPhoneOS2;
 	
 	if ([authenticationDelegate respondsToSelector:@selector(proxyAuthenticationNeededForRequest:)]) {
 		[authenticationDelegate performSelectorOnMainThread:@selector(proxyAuthenticationNeededForRequest:) withObject:self waitUntilDone:[NSThread isMainThread]];
-		[[self authenticationLock] lockWhenCondition:2];
-		[[self authenticationLock] unlockWithCondition:1];
-		
-		// Was the request cancelled?
-		if ([self error] || [[self mainRequest] error]) {
-			return NO;
-		}
 		return YES;
 	}
 	return NO;
@@ -1941,13 +1919,11 @@ static BOOL isiPhoneOS2;
 		}
 		
 		if ([self askDelegateForProxyCredentials]) {
-			[self attemptToApplyProxyCredentialsAndResume];
 			[delegateAuthenticationLock unlock];
 			return;
 		}
 		
 		if ([self showProxyAuthenticationDialog]) {
-			[self attemptToApplyProxyCredentialsAndResume];
 			[delegateAuthenticationLock unlock];
 			return;
 		}
@@ -1967,11 +1943,6 @@ static BOOL isiPhoneOS2;
 	// Cannot show the dialog when we are running on the main thread, as the locks will cause the app to hang
 	if ([self shouldPresentAuthenticationDialog]) {
 		[ASIAuthenticationDialog performSelectorOnMainThread:@selector(presentAuthenticationDialogForRequest:) withObject:self waitUntilDone:[NSThread isMainThread]];
-		[[self authenticationLock] lockWhenCondition:2];
-		[[self authenticationLock] unlockWithCondition:1];
-		if ([self error]) {
-			return NO;
-		}
 		return YES;
 	}
 	return NO;
@@ -1982,11 +1953,6 @@ static BOOL isiPhoneOS2;
 
 - (BOOL)askDelegateForCredentials
 {
-//	// Can't use delegate authentication when running on the main thread
-//	if ([NSThread isMainThread]) {
-//		return NO;
-//	}
-	
 	// If we have a delegate, we'll see if it can handle proxyAuthenticationNeededForRequest:.
 	// Otherwise, we'll try the queue (if this request is part of one) and it will pass the message on to its own delegate
 	id authenticationDelegate = [self delegate];
@@ -1996,13 +1962,6 @@ static BOOL isiPhoneOS2;
 	
 	if ([authenticationDelegate respondsToSelector:@selector(authenticationNeededForRequest:)]) {
 		[authenticationDelegate performSelectorOnMainThread:@selector(authenticationNeededForRequest:) withObject:self waitUntilDone:[NSThread isMainThread]];
-		//[[self authenticationLock] lockWhenCondition:2];
-//		[[self authenticationLock] unlockWithCondition:1];
-//		
-//		// Was the request cancelled?
-//		if ([self error] || [[self mainRequest] error]) {
-//			return NO;
-		//}
 		return YES;
 	}
 	return NO;
@@ -2077,12 +2036,10 @@ static BOOL isiPhoneOS2;
 			[self setLastActivityTime:nil];
 			
 			if ([self askDelegateForCredentials]) {
-				[self attemptToApplyCredentialsAndResume];
 				[delegateAuthenticationLock unlock];
 				return;
 			}
 			if ([self showAuthenticationDialog]) {
-				[self attemptToApplyCredentialsAndResume];
 				[delegateAuthenticationLock unlock];
 				return;
 			}
@@ -2150,7 +2107,6 @@ static BOOL isiPhoneOS2;
 		}
 		
 		if ([self showAuthenticationDialog]) {
-			[self attemptToApplyCredentialsAndResume];
 			[delegateAuthenticationLock unlock];
 			return;
 		}
@@ -2304,7 +2260,7 @@ static BOOL isiPhoneOS2;
 	
     if (readStream) {
 		CFReadStreamSetClient(readStream, kCFStreamEventNone, NULL, NULL);
-		CFReadStreamUnscheduleFromRunLoop(readStream, CFRunLoopGetCurrent(), ASIHTTPRequestRunMode);
+		CFReadStreamUnscheduleFromRunLoop(readStream, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
 		CFReadStreamClose(readStream);
 		CFRelease(readStream);
 		readStream = NULL;
@@ -3268,7 +3224,6 @@ static BOOL isiPhoneOS2;
 @synthesize needsRedirect;
 @synthesize redirectCount;
 @synthesize shouldCompressRequestBody;
-@synthesize authenticationLock;
 @synthesize needsProxyAuthentication;
 @synthesize proxyCredentials;
 @synthesize proxyHost;

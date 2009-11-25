@@ -228,9 +228,6 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	// Last amount of data sent (used for incrementing progress)
 	unsigned long long lastBytesSent;
 	
-	// This lock will block the request until the delegate supplies authentication info
-	NSConditionLock *authenticationLock;
-	
 	// This lock prevents the operation from being cancelled at an inopportune moment
 	NSRecursiveLock *cancelledLock;
 	
