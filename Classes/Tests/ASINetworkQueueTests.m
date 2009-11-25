@@ -77,7 +77,7 @@ IMPORTANT
 	[networkQueue setDelegate:self];
 	[networkQueue setRequestDidFailSelector:@selector(delegateTestFailed:)];
 	
-	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_great_american_novel_%28abridged%29.txt"]];
 	[request setTimeOutSeconds:0.01];
 	[networkQueue addOperation:request];
 	[networkQueue go];

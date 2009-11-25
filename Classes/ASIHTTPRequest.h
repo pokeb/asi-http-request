@@ -317,6 +317,8 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	BOOL shouldPresentCredentialsBeforeChallenge;
 	
 	BOOL isSynchronous;
+	
+	BOOL inProgress;
 }
 
 #pragma mark init / dealloc
@@ -358,7 +360,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 
 #pragma mark running a request
 
-// For an asynchronous request in the current thread, use [request start]
+
 
 // Run a request asynchronously in the background by adding it to the global queue, where it will run in its own thread
 - (void)startInBackgroundThread;
@@ -366,6 +368,8 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 // Run a request synchronously in the current thread
 - (void)startSynchronous;
 
+// Run a request asynchronously in the current thread
+- (void)startAsynchronous;
 
 
 #pragma mark request logic
@@ -653,5 +657,5 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 @property (assign, nonatomic) BOOL haveBuiltPostBody;
 
 @property (assign, readonly) BOOL isSynchronous;
-
+@property (assign, readonly) BOOL inProgress;
 @end

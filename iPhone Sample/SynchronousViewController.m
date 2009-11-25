@@ -18,7 +18,7 @@
 	//Customise our user agent, for no real reason
 	[request addRequestHeader:@"User-Agent" value:@"ASIHTTPRequest"];
 	
-	[request start];
+	[request startSynchronous];
 	if ([request error]) {
 		[htmlSource setText:[[request error] localizedDescription]];
 	} else if ([request responseString]) {

@@ -74,17 +74,18 @@
 	// Test default delegate methods
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
 	[request setDelegate:self];
-	[request start];
-	GHAssertTrue(started,@"Failed to call the delegate method when the request started");	
-	GHAssertTrue(finished,@"Failed to call the delegate method when the request finished");
+	[request startSynchronous];
 	
 	// Hacky, but this test won't run on the main thread, we have to hope the delegate methods will be called in this time
 	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:2]];
 	
-	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
+	GHAssertTrue(started,@"Failed to call the delegate method when the request started");	
+	GHAssertTrue(finished,@"Failed to call the delegate method when the request finished");
+	
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_great_american_novel_%28abridged%29.txt"]];
 	[request setDelegate:self];
 	[request setTimeOutSeconds:0.01];
-	[request start];
+	[request startSynchronous];
 	
 	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:2]];
 	
@@ -99,18 +100,18 @@
 	[request setDelegate:self];
 	[request setDidStartSelector:@selector(delegateTestStarted:)];
 	[request setDidFinishSelector:@selector(delegateTestFinished:)];
-	[request start];
+	[request startSynchronous];
 	
 	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:2]];
 	
 	GHAssertTrue(started,@"Failed to call the delegate method when the request started");	
 	GHAssertTrue(finished,@"Failed to call the delegate method when the request finished");
 	
-	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_great_american_novel_%28abridged%29.txt"]];
 	[request setDidFailSelector:@selector(delegateTestFailed:)];
 	[request setDelegate:self];
 	[request setTimeOutSeconds:0.01];
-	[request start];
+	[request startSynchronous];
 	
 	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:2]];
 	
@@ -218,7 +219,7 @@
 
 - (void)testTimeOut
 {
-	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com"] autorelease];
+	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_great_american_novel_%28abridged%29.txt"] autorelease];
 	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setTimeOutSeconds:0.0001]; //It's pretty unlikely we will be able to grab the data this quickly, so the request should timeout
 	[request startSynchronous];
@@ -414,7 +415,7 @@
 	[request startSynchronous];
 	
 	// Wait for the progress to catch up
-	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
+	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:2]];
 	
 	BOOL success = (progress > 0.95);
 	GHAssertTrue(success,@"Failed to properly increment upload progress %f != 1.0",progress);	

@@ -184,16 +184,15 @@
 - (IBAction)fetchTopSecretInformation:(id)sender
 {
 	[networkQueue cancelAllOperations];
-	[networkQueue setRequestDidFinishSelector:@selector(topSecretFetchComplete:)];
-	[networkQueue setDelegate:self];
 	
 	[progressIndicator setDoubleValue:0];
 	
 	ASIHTTPRequest *request;
 	request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com/top_secret/"]] autorelease];
+	[request setDidFinishSelector:@selector(topSecretFetchComplete:)];
+
 	[request setUseKeychainPersistance:[keychainCheckbox state]];
-	[networkQueue addOperation:request];
-	[networkQueue go];
+	[request startAsynchronous];
 
 }
 

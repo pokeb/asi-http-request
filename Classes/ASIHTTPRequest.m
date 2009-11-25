@@ -139,6 +139,7 @@ static BOOL isiPhoneOS2;
 @property (retain) NSString *proxyAuthenticationRealm;
 @property (retain) NSString *responseStatusMessage;
 @property (assign) BOOL isSynchronous;
+@property (assign) BOOL inProgress;
 @end
 
 
@@ -443,6 +444,7 @@ static BOOL isiPhoneOS2;
 
 - (void)startSynchronous
 {
+	[self setInProgress:YES];
 	@try {	
 		if (![self isCancelled] && ![self complete]) {
 			[self setIsSynchronous:YES];
@@ -453,12 +455,39 @@ static BOOL isiPhoneOS2;
 		NSError *underlyingError = [NSError errorWithDomain:NetworkRequestErrorDomain code:ASIUnhandledExceptionError userInfo:[exception userInfo]];
 		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIUnhandledExceptionError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[exception name],NSLocalizedDescriptionKey,[exception reason],NSLocalizedFailureReasonErrorKey,underlyingError,NSUnderlyingErrorKey,nil]]];
 	}
+	[self setInProgress:NO];
 }
 
 - (void)start
 {
+	
+#if TARGET_OS_IPHONE
+	[self performSelectorInBackground:@selector(startAsynchronous) withObject:nil];
+#else
+	
+    SInt32 versionMajor;
+	OSErr err = Gestalt(gestaltSystemVersionMajor, &versionMajor);
+	if (err != noErr) {
+		[NSException raise:@"FailedToDetectOSVersion" format:@"Unable to determine OS version, must give up"];
+	}
+	// GCD will manage the operation in its thread pool on Snow Leopard
+	if (versionMajor >= 6) {
+		[self startAsynchronous];
+		
+	// On Leopard, we'll create the thread ourselves
+	} else {
+		[self performSelectorInBackground:@selector(startAsynchronous) withObject:nil];		
+	}
+#endif
+}
+
+- (void)startAsynchronous
+{
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	
+	// If this request is autoreleased, it will be dealloced the next time this runloop gets run
+	[self retain];
+	[self setInProgress:YES];	
 	@try {	
 		if ([self isCancelled] || [self complete])
 		{
@@ -467,13 +496,18 @@ static BOOL isiPhoneOS2;
 		} else {
 			[self willChangeValueForKey:@"isExecuting"];
 			[self didChangeValueForKey:@"isExecuting"];
+			
+
 			[self main];
+
 		}
 		
 	} @catch (NSException *exception) {
 		NSError *underlyingError = [NSError errorWithDomain:NetworkRequestErrorDomain code:ASIUnhandledExceptionError userInfo:[exception userInfo]];
 		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIUnhandledExceptionError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[exception name],NSLocalizedDescriptionKey,[exception reason],NSLocalizedFailureReasonErrorKey,underlyingError,NSUnderlyingErrorKey,nil]]];
 	}	
+	[self setInProgress:NO];
+	[self release];
 	[pool release];
 }
 
@@ -491,7 +525,7 @@ static BOOL isiPhoneOS2;
 }
 
 - (BOOL)isExecuting {
-	return ![self complete];
+	return [self inProgress];
 }
 
 
@@ -1929,7 +1963,7 @@ static BOOL isiPhoneOS2;
 // Mac authentication dialog coming soon!
 #if TARGET_OS_IPHONE
 	// Cannot show the dialog when we are running on the main thread, as the locks will cause the app to hang
-	if ([self shouldPresentAuthenticationDialog] && ![NSThread isMainThread]) {
+	if ([self shouldPresentAuthenticationDialog]) {
 		[ASIAuthenticationDialog performSelectorOnMainThread:@selector(presentAuthenticationDialogForRequest:) withObject:self waitUntilDone:[NSThread isMainThread]];
 		[[self authenticationLock] lockWhenCondition:2];
 		[[self authenticationLock] unlockWithCondition:1];
@@ -2263,7 +2297,8 @@ static BOOL isiPhoneOS2;
 		return;
 	}
 	[progressLock lock];	
-	
+	// Find out how much data we've uploaded so far
+	[self setTotalBytesSent:[[(NSNumber *)CFReadStreamCopyProperty(readStream, kCFStreamPropertyHTTPRequestBytesWrittenCount) autorelease] unsignedLongLongValue]];
 	[self setComplete:YES];
 	[self updateProgressIndicators];
 	
@@ -3248,6 +3283,7 @@ static BOOL isiPhoneOS2;
 @synthesize shouldPresentCredentialsBeforeChallenge;
 @synthesize haveBuiltRequestHeaders;
 @synthesize isSynchronous;
+@synthesize inProgress;
 @end
 
 
