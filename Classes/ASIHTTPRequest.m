@@ -2986,6 +2986,7 @@ static BOOL isiPhoneOS2;
 			interval++;
 		}
 	}
+	
 	//NSLog(@"Used: %qi",bandwidthUsedInLastSecond);
 	[bandwidthUsageTracker addObject:[NSNumber numberWithUnsignedLong:bandwidthUsedInLastSecond]];
 	[bandwidthMeasurementDate release];
@@ -3025,12 +3026,15 @@ static BOOL isiPhoneOS2;
 	if (maxBandwidthPerSecond > 0) {	
 		// How much data can we still send or receive this second?
 		long long bytesRemaining = (long long)maxBandwidthPerSecond - (long long)bandwidthUsedInLastSecond;
-				
-		// Have we used up our allowance?
-		if (bytesRemaining < 8) {
 			
-			// Yes, put this request to sleep until a second is up
-			[NSThread sleepUntilDate:bandwidthMeasurementDate];
+	
+		// Have we used up our allowance?
+		if (bytesRemaining < 0) {
+			
+			// Yes, put this request to sleep until a second is up, with extra added punishment sleeping time for being very naughty (we have used more bandwidth than we were allowed)
+			double extraSleepyTime = (-bytesRemaining/(maxBandwidthPerSecond*1.0));
+			
+			[NSThread sleepUntilDate:[bandwidthMeasurementDate dateByAddingTimeInterval:extraSleepyTime]];
 			[self recordBandwidthUsage];
 		}
 	}
