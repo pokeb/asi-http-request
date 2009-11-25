@@ -12,9 +12,13 @@
 
 @interface ASIHTTPRequestTests : ASITestCase {
 	float progress;
+	BOOL started;
+	BOOL finished;
+	BOOL failed;
 }
 
 - (void)testBasicDownload;
+- (void)testDelegateMethods;
 - (void)testConditionalGET;
 - (void)testException;
 - (void)testTimeOut;
@@ -46,5 +50,12 @@
 - (void)testThrottlingUploadBandwidth;
 - (void)testMainThreadDelegateAuthenticationFailure;
 
+
+- (void)requestStarted:(ASIHTTPRequest *)request;
+- (void)requestFinished:(ASIHTTPRequest *)request;
+- (void)requestFailed:(ASIHTTPRequest *)request;
+- (void)delegateTestStarted:(ASIHTTPRequest *)request;
+- (void)delegateTestFinished:(ASIHTTPRequest *)request;
+- (void)delegateTestFailed:(ASIHTTPRequest *)request;
 
 @end

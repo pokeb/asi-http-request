@@ -53,6 +53,56 @@ IMPORTANT
 }
 
 
+- (void)testDelegateMethods
+{
+	started = NO;
+	finished = NO;
+	failed = NO;
+
+	ASINetworkQueue *networkQueue = [ASINetworkQueue queue];
+	[networkQueue setDelegate:self];
+	[networkQueue setRequestDidStartSelector:@selector(delegateTestStarted:)];
+	[networkQueue setRequestDidFinishSelector:@selector(delegateTestFinished:)];
+	
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
+	[networkQueue addOperation:request];
+	[networkQueue go];
+	
+	[networkQueue waitUntilAllOperationsAreFinished];
+	
+	GHAssertTrue(started,@"Failed to call the delegate method when the request started");	
+	GHAssertTrue(finished,@"Failed to call the delegate method when the request finished");
+	
+	networkQueue = [ASINetworkQueue queue];
+	[networkQueue setDelegate:self];
+	[networkQueue setRequestDidFailSelector:@selector(delegateTestFailed:)];
+	
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
+	[request setTimeOutSeconds:0.01];
+	[networkQueue addOperation:request];
+	[networkQueue go];
+	
+	[networkQueue waitUntilAllOperationsAreFinished];
+	
+	GHAssertTrue(failed,@"Failed to call the delegate method when the request failed");
+	
+}
+
+- (void)delegateTestStarted:(ASIHTTPRequest *)request
+{
+	started = YES;
+}
+
+- (void)delegateTestFinished:(ASIHTTPRequest *)request
+{
+	finished = YES;
+}
+
+- (void)delegateTestFailed:(ASIHTTPRequest *)request
+{
+	failed = YES;
+}
+
 
 - (void)testDownloadProgress
 {
@@ -285,14 +335,17 @@ IMPORTANT
 	
 }
 
+// Will be called on Mac OS
+- (void)setDoubleValue:(double)newProgress;
+{
+	progress = (float)newProgress;
+}
 
-
-
-- (void)setProgress:(float)newProgress
+// Will be called on iPhone OS
+- (void)setProgress:(float)newProgress;
 {
 	progress = newProgress;
 }
-
 
 
 - (void)testFailure

@@ -189,6 +189,7 @@ static BOOL isiPhoneOS2;
 	[self setUseCookiePersistance:YES];
 	[self setValidatesSecureCertificate:YES];
 	[self setRequestCookies:[[[NSMutableArray alloc] init] autorelease]];
+	[self setDidStartSelector:@selector(requestStarted:)];
 	[self setDidFinishSelector:@selector(requestFinished:)];
 	[self setDidFailSelector:@selector(requestFailed:)];
 	[self setURL:newURL];
@@ -685,6 +686,8 @@ static BOOL isiPhoneOS2;
 		return;
 	}
 	
+	[self requestStarted];
+	
 	[self setAuthenticationLock:[[[NSConditionLock alloc] initWithCondition:1] autorelease]];
 	
 	[self setComplete:NO];
@@ -1052,7 +1055,8 @@ static BOOL isiPhoneOS2;
 	[[self cancelledLock] lock];
 	
 	uploadProgressDelegate = newDelegate;
-	
+
+#if !TARGET_OS_IPHONE
 	// If the uploadProgressDelegate is an NSProgressIndicator, we set it's MaxValue to 1.0 so we can treat it similarly to UIProgressViews
 	SEL selector = @selector(setMaxValue:);
 	if ([uploadProgressDelegate respondsToSelector:selector]) {
@@ -1065,6 +1069,7 @@ static BOOL isiPhoneOS2;
 		[invocation invoke];
 		
 	}
+#endif
 	[[self cancelledLock] unlock];
 }
 
@@ -1073,7 +1078,8 @@ static BOOL isiPhoneOS2;
 	[[self cancelledLock] lock];
 	
 	downloadProgressDelegate = newDelegate;
-	
+
+#if !TARGET_OS_IPHONE
 	// If the downloadProgressDelegate is an NSProgressIndicator, we set it's MaxValue to 1.0 so we can treat it similarly to UIProgressViews
 	SEL selector = @selector(setMaxValue:);
 	if ([downloadProgressDelegate respondsToSelector:selector]) {
@@ -1084,6 +1090,7 @@ static BOOL isiPhoneOS2;
 		[invocation setArgument:&max atIndex:2];
 		[invocation invokeWithTarget:downloadProgressDelegate];
 	}	
+#endif
 	[[self cancelledLock] unlock];
 }
 
@@ -1197,7 +1204,6 @@ static BOOL isiPhoneOS2;
 - (void)updateDownloadProgress
 {
 	
-	
 	// We won't update download progress until we've examined the headers, since we might need to authenticate
 	if ([self responseHeaders] && ([self contentLength] || [self complete])) {
 		
@@ -1272,7 +1278,8 @@ static BOOL isiPhoneOS2;
 
 	SEL selector;
 	[progressLock lock];
-	
+
+#if TARGET_OS_IPHONE
 	// Cocoa Touch: UIProgressView
 	if ([indicator respondsToSelector:@selector(setProgress:)]) {
 		selector = @selector(setProgress:);
@@ -1281,28 +1288,41 @@ static BOOL isiPhoneOS2;
 		[invocation setSelector:selector];
 		float progressFloat = (float)progress; // UIProgressView wants a float for the progress parameter
 		[invocation setArgument:&progressFloat atIndex:2];
-
-		// If we're running in the main thread, update the progress straight away. Otherwise, it's not that urgent
 		[invocation performSelectorOnMainThread:@selector(invokeWithTarget:) withObject:indicator waitUntilDone:[NSThread isMainThread]];
-
-		
+	}
+#else
 	// Cocoa: NSProgressIndicator
-	} else if ([indicator respondsToSelector:@selector(setDoubleValue:)]) {
+	if ([indicator respondsToSelector:@selector(setDoubleValue:)]) {
 		selector = @selector(setDoubleValue:);
 		NSMethodSignature *signature = [[indicator class] instanceMethodSignatureForSelector:selector];
 		NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
 		[invocation setSelector:selector];
 		[invocation setArgument:&progress atIndex:2];
-		
-
 		[invocation performSelectorOnMainThread:@selector(invokeWithTarget:) withObject:indicator waitUntilDone:[NSThread isMainThread]];
-		
 	}
+#endif
 	[progressLock unlock];
 }
 
 
 #pragma mark handling request complete / failure
+
+
+- (void)requestStarted
+{
+	if ([self error] || [self mainRequest]) {
+		return;
+	}
+	// Let the queue know we have started
+	if ([[self queue] respondsToSelector:@selector(requestDidStart:)]) {
+		[[self queue] performSelectorOnMainThread:@selector(requestDidStart:) withObject:self waitUntilDone:[NSThread isMainThread]];		
+	}
+	
+	// Let the delegate know we have started
+	if ([self didStartSelector] && [[self delegate] respondsToSelector:[self didStartSelector]]) {
+		[[self delegate] performSelectorOnMainThread:[self didStartSelector] withObject:self waitUntilDone:[NSThread isMainThread]];		
+	}
+}
 
 // Subclasses might override this method to process the result in the same thread
 // If you do this, don't forget to call [super requestFinished] to let the queue / delegate know we're done
@@ -2161,7 +2181,7 @@ static BOOL isiPhoneOS2;
 	if ([self needsRedirect]) {
 		return;
 	}
-	int bufferSize = 2048;
+	long long bufferSize = 2048;
 	if (contentLength > 262144) {
 		bufferSize = 65536;
 	} else if (contentLength > 65536) {
@@ -2174,13 +2194,13 @@ static BOOL isiPhoneOS2;
 	if ([[self class] isBandwidthThrottled]) {
 		[bandwidthThrottlingLock lock];
 		if (maxBandwidthPerSecond > 0) {
-			long long maxSize  = (long long)maxBandwidthPerSecond-(long long)bandwidthUsedInLastSecond;
-			if (maxSize < 0) {
+			long long maxiumumSize  = (long long)maxBandwidthPerSecond-(long long)bandwidthUsedInLastSecond;
+			if (maxiumumSize < 0) {
 				// We aren't supposed to read any more data right now, but we'll read a single byte anyway so the CFNetwork's buffer isn't full
 				bufferSize = 1;
-			} else if (maxSize/4 < bufferSize) {
+			} else if (maxiumumSize/4 < bufferSize) {
 				// We were going to fetch more data that we should be allowed, so we'll reduce the size of our read
-				bufferSize = maxSize/4;
+				bufferSize = maxiumumSize/4;
 			}
 		}
 		if (bufferSize < 1) {
@@ -2382,7 +2402,7 @@ static BOOL isiPhoneOS2;
 {
 	[sessionCredentialsLock lock];
 	NSMutableArray *sessionCredentialsList = [[self class] sessionProxyCredentialsStore];
-	int i;
+	NSUInteger i;
 	for (i=0; i<[sessionCredentialsList count]; i++) {
 		NSDictionary *theCredentials = [sessionCredentialsList objectAtIndex:i];
 		if ([theCredentials objectForKey:@"Credentials"] == credentials) {
@@ -2398,7 +2418,7 @@ static BOOL isiPhoneOS2;
 {
 	[sessionCredentialsLock lock];
 	NSMutableArray *sessionCredentialsList = [[self class] sessionCredentialsStore];
-	int i;
+	NSUInteger i;
 	for (i=0; i<[sessionCredentialsList count]; i++) {
 		NSDictionary *theCredentials = [sessionCredentialsList objectAtIndex:i];
 		if ([theCredentials objectForKey:@"Credentials"] == credentials) {
@@ -2998,8 +3018,8 @@ static BOOL isiPhoneOS2;
 	bandwidthMeasurementDate = [[NSDate dateWithTimeIntervalSinceNow:1] retain];
 	bandwidthUsedInLastSecond = 0;
 	
-	int measurements = [bandwidthUsageTracker count];
-	unsigned long long totalBytes = 0;
+	NSUInteger measurements = [bandwidthUsageTracker count];
+	unsigned long totalBytes = 0;
 	for (NSNumber *bytes in bandwidthUsageTracker) {
 		totalBytes += [bytes unsignedLongValue];
 	}
@@ -3086,7 +3106,7 @@ static BOOL isiPhoneOS2;
 	[bandwidthThrottlingLock lock];
 	
 	// We'll split our bandwidth allowance into 4 (which is the default for an ASINetworkQueue's max concurrent operations count) to give all running requests a fighting chance of reading data this cycle
-	long long toRead = maxBandwidthPerSecond/4;
+	unsigned long toRead = maxBandwidthPerSecond/4;
 	if (maxBandwidthPerSecond > 0 && (bandwidthUsedInLastSecond + toRead > maxBandwidthPerSecond)) {
 		toRead = maxBandwidthPerSecond-bandwidthUsedInLastSecond;
 		if (toRead < 0) {
@@ -3132,11 +3152,11 @@ static BOOL isiPhoneOS2;
             }
         }
 		
-        NSInteger index = (i / 3) * 4;
-        output[index + 0] =                    table[(value >> 18) & 0x3F];
-        output[index + 1] =                    table[(value >> 12) & 0x3F];
-        output[index + 2] = (i + 1) < length ? table[(value >> 6)  & 0x3F] : '=';
-        output[index + 3] = (i + 2) < length ? table[(value >> 0)  & 0x3F] : '=';
+        NSInteger theIndex = (i / 3) * 4;
+        output[theIndex + 0] =                    table[(value >> 18) & 0x3F];
+        output[theIndex + 1] =                    table[(value >> 12) & 0x3F];
+        output[theIndex + 2] = (i + 1) < length ? table[(value >> 6)  & 0x3F] : '=';
+        output[theIndex + 3] = (i + 2) < length ? table[(value >> 0)  & 0x3F] : '=';
     }
 	
     return [[[NSString alloc] initWithData:data encoding:NSASCIIStringEncoding] autorelease];
@@ -3160,6 +3180,7 @@ static BOOL isiPhoneOS2;
 @synthesize useCookiePersistance;
 @synthesize downloadDestinationPath;
 @synthesize temporaryFileDownloadPath;
+@synthesize didStartSelector;
 @synthesize didFinishSelector;
 @synthesize didFailSelector;
 @synthesize authenticationRealm;
