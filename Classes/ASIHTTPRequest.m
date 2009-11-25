@@ -185,6 +185,7 @@ static BOOL isiPhoneOS2;
 	[self setUseCookiePersistance:YES];
 	[self setValidatesSecureCertificate:YES];
 	[self setRequestCookies:[[[NSMutableArray alloc] init] autorelease]];
+	[self setDidStartSelector:@selector(requestStarted:)];
 	[self setDidFinishSelector:@selector(requestFinished:)];
 	[self setDidFailSelector:@selector(requestFailed:)];
 	[self setURL:newURL];
@@ -642,6 +643,8 @@ static BOOL isiPhoneOS2;
 		[[self cancelledLock] unlock];
 		return;
 	}
+	
+	[self requestStarted];
 	
 	[self setAuthenticationLock:[[[NSConditionLock alloc] initWithCondition:1] autorelease]];
 	
@@ -1251,6 +1254,23 @@ static BOOL isiPhoneOS2;
 
 
 #pragma mark handling request complete / failure
+
+
+- (void)requestStarted
+{
+	if ([self error] || [self mainRequest]) {
+		return;
+	}
+	// Let the queue know we have started
+	if ([[self queue] respondsToSelector:@selector(requestDidStart:)]) {
+		[[self queue] performSelectorOnMainThread:@selector(requestDidStart:) withObject:self waitUntilDone:[NSThread isMainThread]];		
+	}
+	
+	// Let the delegate know we have started
+	if ([self didStartSelector] && [[self delegate] respondsToSelector:[self didStartSelector]]) {
+		[[self delegate] performSelectorOnMainThread:[self didStartSelector] withObject:self waitUntilDone:[NSThread isMainThread]];		
+	}
+}
 
 // Subclasses might override this method to process the result in the same thread
 // If you do this, don't forget to call [super requestFinished] to let the queue / delegate know we're done
@@ -3108,6 +3128,7 @@ static BOOL isiPhoneOS2;
 @synthesize useCookiePersistance;
 @synthesize downloadDestinationPath;
 @synthesize temporaryFileDownloadPath;
+@synthesize didStartSelector;
 @synthesize didFinishSelector;
 @synthesize didFailSelector;
 @synthesize authenticationRealm;

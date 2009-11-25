@@ -12,9 +12,13 @@
 
 @interface ASIHTTPRequestTests : ASITestCase {
 	float progress;
+	BOOL started;
+	BOOL finished;
+	BOOL failed;
 }
 
 - (void)testBasicDownload;
+- (void)testDelegateMethods;
 - (void)testConditionalGET;
 - (void)testException;
 - (void)testTimeOut;

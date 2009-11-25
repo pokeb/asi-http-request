@@ -177,6 +177,13 @@
 
 }
 
+- (void)requestDidStart:(ASIHTTPRequest *)request
+{
+	if ([self requestDidStartSelector]) {
+		[[self delegate] performSelector:[self requestDidStartSelector] withObject:request];
+	}
+}
+
 - (void)requestDidFail:(ASIHTTPRequest *)request
 {
 	[self setRequestsCount:[self requestsCount]-1];
@@ -331,6 +338,7 @@
 @synthesize shouldCancelAllRequestsOnFailure;
 @synthesize uploadProgressDelegate;
 @synthesize downloadProgressDelegate;
+@synthesize requestDidStartSelector;
 @synthesize requestDidFinishSelector;
 @synthesize requestDidFailSelector;
 @synthesize queueDidFinishSelector;

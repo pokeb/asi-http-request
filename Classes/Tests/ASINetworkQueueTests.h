@@ -41,6 +41,10 @@ IMPORTANT
 	
 	ASINetworkQueue *addMoreRequestsQueue;
 	int requestsFinishedCount;
+	
+	BOOL started;
+	BOOL finished;
+	BOOL failed;
 }
 
 - (void)testFailure;

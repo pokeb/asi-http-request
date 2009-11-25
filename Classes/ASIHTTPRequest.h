@@ -234,6 +234,9 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	// This lock prevents the operation from being cancelled at an inopportune moment
 	NSRecursiveLock *cancelledLock;
 	
+	// Called on the delegate when the request starts
+	SEL didStartSelector;
+	
 	// Called on the delegate when the request completes successfully
 	SEL didFinishSelector;
 	
@@ -393,6 +396,9 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 + (void)setProgress:(double)progress forProgressIndicator:(id)indicator;
 
 #pragma mark handling request complete / failure
+
+// Called when a request starts, lets the delegate now via didStartSelector
+- (void)requestStarted;
 
 // Called when a request completes successfully, lets the delegate now via didFinishSelector
 - (void)requestFinished;
@@ -588,6 +594,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 @property (assign) BOOL useSessionPersistance;
 @property (retain) NSString *downloadDestinationPath;
 @property (retain) NSString *temporaryFileDownloadPath;
+@property (assign) SEL didStartSelector;
 @property (assign) SEL didFinishSelector;
 @property (assign) SEL didFailSelector;
 @property (retain,readonly) NSString *authenticationRealm;

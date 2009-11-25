@@ -13,6 +13,9 @@
 	// Delegate will get didFail + didFinish messages (if set)
 	id delegate;
 
+	// Will be called when a request starts with the request as the argument
+	SEL requestDidStartSelector;
+	
 	// Will be called when a request completes with the request as the argument
 	SEL requestDidFinishSelector;
 	
@@ -99,6 +102,7 @@
 @property (assign,setter=setUploadProgressDelegate:) id uploadProgressDelegate;
 @property (assign,setter=setDownloadProgressDelegate:) id downloadProgressDelegate;
 
+@property (assign) SEL requestDidStartSelector;
 @property (assign) SEL requestDidFinishSelector;
 @property (assign) SEL requestDidFailSelector;
 @property (assign) SEL queueDidFinishSelector;

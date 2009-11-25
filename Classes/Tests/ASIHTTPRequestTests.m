@@ -65,6 +65,85 @@
 	GHAssertTrue(success,@"Failed to generate an error for a bad host");
 }
 
+- (void)testDelegateMethods
+{
+	started = NO;
+	finished = NO;
+	failed = NO;
+	
+	// Test default delegate methods
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
+	[request setDelegate:self];
+	[request start];
+	GHAssertTrue(started,@"Failed to call the delegate method when the request started");	
+	GHAssertTrue(finished,@"Failed to call the delegate method when the request finished");
+	
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
+	[request setDelegate:self];
+	[request setTimeOutSeconds:0.01];
+	[request start];
+	GHAssertTrue(failed,@"Failed to call the delegate method when the request failed");
+	
+	started = NO;
+	finished = NO;
+	failed = NO;
+	
+	// Test custom delegate methods
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
+	[request setDelegate:self];
+	[request setDidStartSelector:@selector(delegateTestStarted:)];
+	[request setDidFinishSelector:@selector(delegateTestFinished:)];
+	[request start];
+	
+	// Hacky, but this test won't run on the main thread, we have to hope the delegate methods will be called in this time
+	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:2]];
+	
+	GHAssertTrue(started,@"Failed to call the delegate method when the request started");	
+	GHAssertTrue(finished,@"Failed to call the delegate method when the request finished");
+	
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
+	[request setDidFailSelector:@selector(delegateTestFailed:)];
+	[request setDelegate:self];
+	[request setTimeOutSeconds:0.01];
+	[request start];
+	
+	// Hacky, but this test won't run on the main thread, we have to hope the delegate methods will be called in this time
+	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:2]];
+	
+	GHAssertTrue(failed,@"Failed to call the delegate method when the request failed");
+	
+}
+
+- (void)requestStarted:(ASIHTTPRequest *)request
+{
+	started = YES;
+}
+
+- (void)requestFinished:(ASIHTTPRequest *)request
+{
+	finished = YES;
+}
+
+- (void)requestFailed:(ASIHTTPRequest *)request
+{
+	failed = YES;
+}
+
+- (void)delegateTestStarted:(ASIHTTPRequest *)request
+{
+	started = YES;
+}
+
+- (void)delegateTestFinished:(ASIHTTPRequest *)request
+{
+	finished = YES;
+}
+
+- (void)delegateTestFailed:(ASIHTTPRequest *)request
+{
+	failed = YES;
+}
+
 - (void)testConditionalGET
 {
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/i/logo.png"]];
