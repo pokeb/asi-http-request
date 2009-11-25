@@ -1098,27 +1098,7 @@
 	
 }
 
-- (void)authenticationNeededForRequest:(ASIHTTPRequest *)request
-{
-	GHAssertTrue(NO,@"Delegate asked for authentication when running on the main thread");
-}
 
-- (void)testMainThreadDelegateAuthenticationFailure
-{
-	[ASIHTTPRequest clearSession];
-	//GHUnit will not run this function on the main thread, so we'll need to move it there
-	[self performSelectorOnMainThread:@selector(fetchOnMainThread) withObject:nil waitUntilDone:YES];
-		
-}
-
-- (void)fetchOnMainThread
-{
-	// Ensure the delegate is not called when we are running on the main thread
-	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/basic-authentication"]];
-	[request setDelegate:self];
-	[request startSynchronous];
-	GHAssertNotNil([request error],@"Failed to generate an authentication error");		
-}
 
 - (void)testFetchToInvalidPath
 {
@@ -1143,35 +1123,35 @@
 	GHAssertTrue(success,@"Got wrong response status message");
 }
 
-- (void)testAsynchronousWithGlobalQueue
+- (void)testAsynchronous
 {
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/first"]];
 	[request setUserInfo:[NSDictionary dictionaryWithObject:[NSNumber numberWithInt:1] forKey:@"RequestNumber"]];
 	[request setDidFailSelector:@selector(asyncFail:)];
 	[request setDidFinishSelector:@selector(asyncSuccess:)];
 	[request setDelegate:self];
-	[request startInBackgroundThread];
+	[request startAsynchronous];
 	
 	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/second"]];
 	[request setUserInfo:[NSDictionary dictionaryWithObject:[NSNumber numberWithInt:2] forKey:@"RequestNumber"]];
 	[request setDidFailSelector:@selector(asyncFail:)];
 	[request setDidFinishSelector:@selector(asyncSuccess:)];
 	[request setDelegate:self];
-	[request startInBackgroundThread];
+	[request startAsynchronous];
 	
 	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/third"]];
 	[request setUserInfo:[NSDictionary dictionaryWithObject:[NSNumber numberWithInt:3] forKey:@"RequestNumber"]];
 	[request setDidFailSelector:@selector(asyncFail:)];
 	[request setDidFinishSelector:@selector(asyncSuccess:)];
 	[request setDelegate:self];
-	[request startInBackgroundThread];	
+	[request startAsynchronous];	
 	
 	request = [ASIHTTPRequest requestWithURL:nil];
 	[request setUserInfo:[NSDictionary dictionaryWithObject:[NSNumber numberWithInt:4] forKey:@"RequestNumber"]];
 	[request setDidFailSelector:@selector(asyncFail:)];
 	[request setDidFinishSelector:@selector(asyncSuccess:)];
 	[request setDelegate:self];
-	[request startInBackgroundThread];	
+	[request startAsynchronous];	
 }
 
 

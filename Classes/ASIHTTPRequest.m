@@ -89,7 +89,6 @@ static NSRecursiveLock *sessionCookiesLock = nil;
 // This is so it can make use of any credentials supplied for the other request, if they are appropriate
 static NSRecursiveLock *delegateAuthenticationLock = nil;
 
-static NSOperationQueue *sharedRequestQueue = nil;
 
 static BOOL isiPhoneOS2;
 
@@ -429,13 +428,6 @@ static BOOL isiPhoneOS2;
 
 #pragma mark running a request
 
-// Run a request asynchronously by adding it to the global queue
-// (Use [request start] for a synchronous request)
-- (void)startInBackgroundThread
-{
-	[[ASIHTTPRequest sharedRequestQueue] addOperation:self];
-}
-
 - (void)startSynchronous
 {
 	[self setInProgress:YES];
@@ -456,9 +448,10 @@ static BOOL isiPhoneOS2;
 {
 	
 #if TARGET_OS_IPHONE
+	runningInOwnThread = YES;
 	[self performSelectorInBackground:@selector(startAsynchronous) withObject:nil];
 #else
-	
+	runningInOwnThread = YES;
     SInt32 versionMajor;
 	OSErr err = Gestalt(gestaltSystemVersionMajor, &versionMajor);
 	if (err != noErr) {
@@ -879,7 +872,7 @@ static BOOL isiPhoneOS2;
 	[NSTimer scheduledTimerWithTimeInterval:0.25 target:self selector:@selector(updateStatus:) userInfo:nil repeats:YES];
 	
 	// If we're running asynchronously on the main thread, the runloop will already be running
-	if (![NSThread isMainThread]) {
+	if (runningInOwnThread) {
 		// Will stop automatically when the request is done
 		CFRunLoopRun();
 	}
@@ -2103,6 +2096,7 @@ static BOOL isiPhoneOS2;
 			return;
 		}
 		if ([self askDelegateForCredentials]) {
+			[delegateAuthenticationLock unlock];
 			return;
 		}
 		
@@ -2342,17 +2336,6 @@ static BOOL isiPhoneOS2;
 		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIConnectionFailureErrorType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:reason,NSLocalizedDescriptionKey,underlyingError,NSUnderlyingErrorKey,nil]]];
 	}
 	
-}
-
-#pragma mark global queue
-
-+ (NSOperationQueue *)sharedRequestQueue
-{
-	if (!sharedRequestQueue) {
-		sharedRequestQueue = [[NSOperationQueue alloc] init];
-		[sharedRequestQueue setMaxConcurrentOperationCount:4];
-	}
-	return sharedRequestQueue;
 }
 
 # pragma mark session credentials

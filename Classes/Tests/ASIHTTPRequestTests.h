@@ -48,7 +48,6 @@
 - (void)testTimeOutWithoutDownloadDelegate;
 - (void)testThrottlingDownloadBandwidth;
 - (void)testThrottlingUploadBandwidth;
-- (void)testMainThreadDelegateAuthenticationFailure;
 
 
 - (void)requestStarted:(ASIHTTPRequest *)request;

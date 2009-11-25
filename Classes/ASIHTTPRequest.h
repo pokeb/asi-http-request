@@ -316,6 +316,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	BOOL isSynchronous;
 	
 	BOOL inProgress;
+	BOOL runningInOwnThread;
 }
 
 #pragma mark init / dealloc
@@ -357,10 +358,6 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 
 #pragma mark running a request
 
-
-
-// Run a request asynchronously in the background by adding it to the global queue, where it will run in its own thread
-- (void)startInBackgroundThread;
 
 // Run a request synchronously in the current thread
 - (void)startSynchronous;
@@ -456,10 +453,6 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 - (void)handleBytesAvailable;
 - (void)handleStreamComplete;
 - (void)handleStreamError;
-
-#pragma mark global queue
-
-+ (NSOperationQueue *)sharedRequestQueue;
 
 #pragma mark session credentials
 
