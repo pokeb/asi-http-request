@@ -25,6 +25,7 @@ IMPORTANT
 	BOOL request_didfail;
 	BOOL request_succeeded;
 	float progress;
+	int addedRequests;
 	
 	NSOperationQueue *immediateCancelQueue;
 	NSMutableArray *failedRequests;

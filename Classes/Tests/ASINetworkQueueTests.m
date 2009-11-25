@@ -213,7 +213,7 @@ IMPORTANT
 	[[self addMoreRequestsQueue] setDownloadProgressDelegate:self];
 	[[self addMoreRequestsQueue] setDelegate:self];
 	[[self addMoreRequestsQueue] setShowAccurateProgress:NO];
-	[[self addMoreRequestsQueue]  setQueueDidFinishSelector:@selector(addMoreRequestsQueueFinished:)];	
+	[[self addMoreRequestsQueue]setQueueDidFinishSelector:@selector(addMoreRequestsQueueFinished:)];	
 	
 	requestsFinishedCount = 0;
 	
@@ -232,15 +232,22 @@ IMPORTANT
 	[[self addMoreRequestsQueue] go];
 	
 	// Add another request to the queue each second for 5 seconds
+	addedRequests = 0;
 	for (i=0; i<5; i++) {
 		[self performSelector:@selector(addAnotherRequest) withObject:nil afterDelay:i];
 	}
 	
-	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:10]];
+	while (addedRequests < 5) {
+		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1]];
+	}
+	
+	// Must wait or subsequent tests will reset our progress
+	[[self addMoreRequestsQueue] waitUntilAllOperationsAreFinished];
 }
 
 - (void)addAnotherRequest
 {
+	addedRequests++;
 	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_great_american_novel_(abridged).txt"] autorelease];
 	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setDelegate:self];
