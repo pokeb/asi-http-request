@@ -470,7 +470,7 @@ static BOOL isiPhoneOS2;
 	if (err != noErr) {
 		[NSException raise:@"FailedToDetectOSVersion" format:@"Unable to determine OS version, must give up"];
 	}
-	// GCD will manage the operation in its thread pool on Snow Leopard
+	// GCD will run the operation in its thread pool on Snow Leopard
 	if (versionMajor >= 6) {
 		[self startAsynchronous];
 		
@@ -962,6 +962,8 @@ static BOOL isiPhoneOS2;
 		return;
 	}
 	
+	if (readStream) {
+		
 	// Find out if we've sent any more data than last time, and reset the timeout if so
 	if (totalBytesSent > lastBytesSent) {
 		[self setLastActivityTime:[NSDate date]];
@@ -976,6 +978,7 @@ static BOOL isiPhoneOS2;
 	
 	// Measure bandwidth used, and throttle if nescessary
 	[ASIHTTPRequest measureBandwidthUsage];
+	}
 	
 	// This thread should wait for 1/4 second for the stream to do something
 	CFRunLoopRunInMode(ASIHTTPRequestRunMode,0.25,NO);
@@ -1740,8 +1743,7 @@ static BOOL isiPhoneOS2;
 // Called by delegate or authentication dialog to resume loading once authentication info has been populated
 - (void)retryUsingSuppliedCredentials
 {
-	[[self authenticationLock] lockWhenCondition:1];
-	[[self authenticationLock] unlockWithCondition:2];
+	[self attemptToApplyCredentialsAndResume];
 }
 
 // Called by delegate or authentication dialog to cancel authentication
@@ -1980,10 +1982,10 @@ static BOOL isiPhoneOS2;
 
 - (BOOL)askDelegateForCredentials
 {
-	// Can't use delegate authentication when running on the main thread
-	if ([NSThread isMainThread]) {
-		return NO;
-	}
+//	// Can't use delegate authentication when running on the main thread
+//	if ([NSThread isMainThread]) {
+//		return NO;
+//	}
 	
 	// If we have a delegate, we'll see if it can handle proxyAuthenticationNeededForRequest:.
 	// Otherwise, we'll try the queue (if this request is part of one) and it will pass the message on to its own delegate
@@ -1994,13 +1996,13 @@ static BOOL isiPhoneOS2;
 	
 	if ([authenticationDelegate respondsToSelector:@selector(authenticationNeededForRequest:)]) {
 		[authenticationDelegate performSelectorOnMainThread:@selector(authenticationNeededForRequest:) withObject:self waitUntilDone:[NSThread isMainThread]];
-		[[self authenticationLock] lockWhenCondition:2];
-		[[self authenticationLock] unlockWithCondition:1];
-		
-		// Was the request cancelled?
-		if ([self error] || [[self mainRequest] error]) {
-			return NO;
-		}
+		//[[self authenticationLock] lockWhenCondition:2];
+//		[[self authenticationLock] unlockWithCondition:1];
+//		
+//		// Was the request cancelled?
+//		if ([self error] || [[self mainRequest] error]) {
+//			return NO;
+		//}
 		return YES;
 	}
 	return NO;
@@ -2144,8 +2146,6 @@ static BOOL isiPhoneOS2;
 			return;
 		}
 		if ([self askDelegateForCredentials]) {
-			[self attemptToApplyCredentialsAndResume];
-			[delegateAuthenticationLock unlock];
 			return;
 		}
 		
