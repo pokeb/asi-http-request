@@ -444,6 +444,12 @@ static BOOL isiPhoneOS2;
 	[self setInProgress:NO];
 }
 
+- (void)startInBackgroundThread
+{
+	runningInOwnThread = YES;
+	[self performSelectorInBackground:@selector(startAsynchronous) withObject:nil];	
+}
+
 - (void)start
 {
 	
@@ -1741,8 +1747,7 @@ static BOOL isiPhoneOS2;
 {
 // Mac authentication dialog coming soon!
 #if TARGET_OS_IPHONE
-	// Cannot show the dialog when we are running on the main thread, as the locks will cause the app to hang
-	if ([self shouldPresentProxyAuthenticationDialog] && ![NSThread isMainThread]) {
+	if ([self shouldPresentProxyAuthenticationDialog]) {
 		[ASIAuthenticationDialog performSelectorOnMainThread:@selector(presentProxyAuthenticationDialogForRequest:) withObject:self waitUntilDone:[NSThread isMainThread]];
 		return YES;
 	}
@@ -1755,11 +1760,7 @@ static BOOL isiPhoneOS2;
 
 - (BOOL)askDelegateForProxyCredentials
 {
-	// Can't use delegate authentication when running on the main thread
-	if ([NSThread isMainThread]) {
-		return NO;
-	}
-	
+
 	// If we have a delegate, we'll see if it can handle proxyAuthenticationNeededForRequest:.
 	// Otherwise, we'll try the queue (if this request is part of one) and it will pass the message on to its own delegate
 	id authenticationDelegate = [self delegate];
@@ -1933,7 +1934,6 @@ static BOOL isiPhoneOS2;
 {
 // Mac authentication dialog coming soon!
 #if TARGET_OS_IPHONE
-	// Cannot show the dialog when we are running on the main thread, as the locks will cause the app to hang
 	if ([self shouldPresentAuthenticationDialog]) {
 		[ASIAuthenticationDialog performSelectorOnMainThread:@selector(presentAuthenticationDialogForRequest:) withObject:self waitUntilDone:[NSThread isMainThread]];
 		return YES;

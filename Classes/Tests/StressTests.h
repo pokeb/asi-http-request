@@ -35,6 +35,8 @@
 - (void)testSetDelegate;
 - (void)performSetDelegateRequest;
 
+- (void)setProgress:(float)newProgress;
+
 @property (retain) ASIHTTPRequest *cancelRequest;
 @property (retain) NSDate *cancelStartDate;
 @property (retain) MyDelegate *delegate;

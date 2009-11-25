@@ -365,6 +365,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 // Run a request asynchronously in the current thread
 - (void)startAsynchronous;
 
+- (void)startInBackgroundThread;
 
 #pragma mark request logic
 
