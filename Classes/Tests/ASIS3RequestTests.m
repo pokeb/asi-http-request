@@ -40,12 +40,12 @@ static NSString *bucket = @"";
 {
 	NSString *exampleSecretAccessKey = @"uV3F3YluFJax1cknvbcGwgjvx4QpvB+leU8dUj2o";
 	NSString *exampleAccessKey = @"0PN5J17HBGZHT7JJ3X82";
-	NSString *bucket = @"johnsmith";
+	NSString *exampleBucket = @"johnsmith";
 	
 	// Test GET
 	NSString *path = @"/photos/puppy.jpg";
 	NSString *dateString = @"Tue, 27 Mar 2007 19:36:42 +0000";
-	ASIS3Request *request = [ASIS3Request requestWithBucket:bucket path:path];
+	ASIS3Request *request = [ASIS3Request requestWithBucket:exampleBucket path:path];
 	[request setDateString:dateString];
 	[request setSecretAccessKey:exampleSecretAccessKey];
 	[request setAccessKey:exampleAccessKey];
@@ -56,7 +56,7 @@ static NSString *bucket = @"";
 	// Test PUT
 	path = @"/photos/puppy.jpg";
 	dateString = @"Tue, 27 Mar 2007 21:15:45 +0000";
-	request = [ASIS3Request requestWithBucket:bucket path:path];
+	request = [ASIS3Request requestWithBucket:exampleBucket path:path];
 	[request setRequestMethod:@"PUT"];
 	[request setMimeType:@"image/jpeg"];
 	[request setDateString:dateString];
@@ -68,7 +68,7 @@ static NSString *bucket = @"";
 	
 	// Test List
 	dateString = @"Tue, 27 Mar 2007 19:42:41 +0000";
-	ASIS3ListRequest *listRequest = [ASIS3ListRequest listRequestWithBucket:bucket];
+	ASIS3ListRequest *listRequest = [ASIS3ListRequest listRequestWithBucket:exampleBucket];
 	[listRequest setPrefix:@"photos"];
 	[listRequest setMaxResultCount:50];
 	[listRequest setMarker:@"puppy"];
@@ -82,7 +82,7 @@ static NSString *bucket = @"";
 	// Test fetch ACL
 	path = @"/?acl";
 	dateString = @"Tue, 27 Mar 2007 19:44:46 +0000";
-	request = [ASIS3Request requestWithBucket:bucket path:path];
+	request = [ASIS3Request requestWithBucket:exampleBucket path:path];
 	[request setDateString:dateString];
 	[request setSecretAccessKey:exampleSecretAccessKey];
 	[request setAccessKey:exampleAccessKey];
@@ -92,10 +92,10 @@ static NSString *bucket = @"";
 	
 	// Test Unicode keys
 	// (I think Amazon's name for this example is misleading since this test actually only uses URL encoded strings)
-	bucket = @"dictionary";
+	exampleBucket = @"dictionary";
 	path = @"/fran%C3%A7ais/pr%c3%a9f%c3%a8re";
 	dateString = @"Wed, 28 Mar 2007 01:49:49 +0000";
-	request = [ASIS3Request requestWithBucket:bucket path:path];
+	request = [ASIS3Request requestWithBucket:exampleBucket path:path];
 	[request setDateString:dateString];
 	[request setSecretAccessKey:exampleSecretAccessKey];
 	[request setAccessKey:exampleAccessKey];
@@ -111,10 +111,10 @@ static NSString *bucket = @"";
 	// We're actually going to try with the Amazon example details, but the request will fail because the date is old
 	NSString *exampleSecretAccessKey = @"uV3F3YluFJax1cknvbcGwgjvx4QpvB+leU8dUj2o";
 	NSString *exampleAccessKey = @"0PN5J17HBGZHT7JJ3X82";
-	NSString *bucket = @"johnsmith";
+	NSString *exampleBucket = @"johnsmith";
 	NSString *path = @"/photos/puppy.jpg";
 	NSString *dateString = @"Tue, 27 Mar 2007 19:36:42 +0000";
-	ASIS3Request *request = [ASIS3Request requestWithBucket:bucket path:path];
+	ASIS3Request *request = [ASIS3Request requestWithBucket:exampleBucket path:path];
 	[request setDateString:dateString];
 	[request setSecretAccessKey:exampleSecretAccessKey];
 	[request setAccessKey:exampleAccessKey];

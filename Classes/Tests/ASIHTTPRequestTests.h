@@ -51,4 +51,11 @@
 - (void)testMainThreadDelegateAuthenticationFailure;
 
 
+- (void)requestStarted:(ASIHTTPRequest *)request;
+- (void)requestFinished:(ASIHTTPRequest *)request;
+- (void)requestFailed:(ASIHTTPRequest *)request;
+- (void)delegateTestStarted:(ASIHTTPRequest *)request;
+- (void)delegateTestFinished:(ASIHTTPRequest *)request;
+- (void)delegateTestFailed:(ASIHTTPRequest *)request;
+
 @end

@@ -2129,7 +2129,7 @@ static BOOL isiPhoneOS2;
 	if ([self needsRedirect]) {
 		return;
 	}
-	int bufferSize = 2048;
+	long long bufferSize = 2048;
 	if (contentLength > 262144) {
 		bufferSize = 65536;
 	} else if (contentLength > 65536) {
@@ -2142,13 +2142,13 @@ static BOOL isiPhoneOS2;
 	if ([[self class] isBandwidthThrottled]) {
 		[bandwidthThrottlingLock lock];
 		if (maxBandwidthPerSecond > 0) {
-			long long maxSize  = (long long)maxBandwidthPerSecond-(long long)bandwidthUsedInLastSecond;
-			if (maxSize < 0) {
+			long long maxiumumSize  = (long long)maxBandwidthPerSecond-(long long)bandwidthUsedInLastSecond;
+			if (maxiumumSize < 0) {
 				// We aren't supposed to read any more data right now, but we'll read a single byte anyway so the CFNetwork's buffer isn't full
 				bufferSize = 1;
-			} else if (maxSize/4 < bufferSize) {
+			} else if (maxiumumSize/4 < bufferSize) {
 				// We were going to fetch more data that we should be allowed, so we'll reduce the size of our read
-				bufferSize = maxSize/4;
+				bufferSize = maxiumumSize/4;
 			}
 		}
 		if (bufferSize < 1) {
@@ -2350,7 +2350,7 @@ static BOOL isiPhoneOS2;
 {
 	[sessionCredentialsLock lock];
 	NSMutableArray *sessionCredentialsList = [[self class] sessionProxyCredentialsStore];
-	int i;
+	NSUInteger i;
 	for (i=0; i<[sessionCredentialsList count]; i++) {
 		NSDictionary *theCredentials = [sessionCredentialsList objectAtIndex:i];
 		if ([theCredentials objectForKey:@"Credentials"] == credentials) {
@@ -2366,7 +2366,7 @@ static BOOL isiPhoneOS2;
 {
 	[sessionCredentialsLock lock];
 	NSMutableArray *sessionCredentialsList = [[self class] sessionCredentialsStore];
-	int i;
+	NSUInteger i;
 	for (i=0; i<[sessionCredentialsList count]; i++) {
 		NSDictionary *theCredentials = [sessionCredentialsList objectAtIndex:i];
 		if ([theCredentials objectForKey:@"Credentials"] == credentials) {
@@ -2966,8 +2966,8 @@ static BOOL isiPhoneOS2;
 	bandwidthMeasurementDate = [[NSDate dateWithTimeIntervalSinceNow:1] retain];
 	bandwidthUsedInLastSecond = 0;
 	
-	int measurements = [bandwidthUsageTracker count];
-	unsigned long long totalBytes = 0;
+	NSUInteger measurements = [bandwidthUsageTracker count];
+	unsigned long totalBytes = 0;
 	for (NSNumber *bytes in bandwidthUsageTracker) {
 		totalBytes += [bytes unsignedLongValue];
 	}
@@ -3054,7 +3054,7 @@ static BOOL isiPhoneOS2;
 	[bandwidthThrottlingLock lock];
 	
 	// We'll split our bandwidth allowance into 4 (which is the default for an ASINetworkQueue's max concurrent operations count) to give all running requests a fighting chance of reading data this cycle
-	long long toRead = maxBandwidthPerSecond/4;
+	unsigned long toRead = maxBandwidthPerSecond/4;
 	if (maxBandwidthPerSecond > 0 && (bandwidthUsedInLastSecond + toRead > maxBandwidthPerSecond)) {
 		toRead = maxBandwidthPerSecond-bandwidthUsedInLastSecond;
 		if (toRead < 0) {
@@ -3100,11 +3100,11 @@ static BOOL isiPhoneOS2;
             }
         }
 		
-        NSInteger index = (i / 3) * 4;
-        output[index + 0] =                    table[(value >> 18) & 0x3F];
-        output[index + 1] =                    table[(value >> 12) & 0x3F];
-        output[index + 2] = (i + 1) < length ? table[(value >> 6)  & 0x3F] : '=';
-        output[index + 3] = (i + 2) < length ? table[(value >> 0)  & 0x3F] : '=';
+        NSInteger theIndex = (i / 3) * 4;
+        output[theIndex + 0] =                    table[(value >> 18) & 0x3F];
+        output[theIndex + 1] =                    table[(value >> 12) & 0x3F];
+        output[theIndex + 2] = (i + 1) < length ? table[(value >> 6)  & 0x3F] : '=';
+        output[theIndex + 3] = (i + 2) < length ? table[(value >> 0)  & 0x3F] : '=';
     }
 	
     return [[[NSString alloc] initWithData:data encoding:NSASCIIStringEncoding] autorelease];

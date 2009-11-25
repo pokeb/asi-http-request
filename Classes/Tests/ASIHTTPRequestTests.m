@@ -78,10 +78,16 @@
 	GHAssertTrue(started,@"Failed to call the delegate method when the request started");	
 	GHAssertTrue(finished,@"Failed to call the delegate method when the request finished");
 	
+	// Hacky, but this test won't run on the main thread, we have to hope the delegate methods will be called in this time
+	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:2]];
+	
 	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
 	[request setDelegate:self];
 	[request setTimeOutSeconds:0.01];
 	[request start];
+	
+	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:2]];
+	
 	GHAssertTrue(failed,@"Failed to call the delegate method when the request failed");
 	
 	started = NO;
@@ -95,7 +101,6 @@
 	[request setDidFinishSelector:@selector(delegateTestFinished:)];
 	[request start];
 	
-	// Hacky, but this test won't run on the main thread, we have to hope the delegate methods will be called in this time
 	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:2]];
 	
 	GHAssertTrue(started,@"Failed to call the delegate method when the request started");	
@@ -107,7 +112,6 @@
 	[request setTimeOutSeconds:0.01];
 	[request start];
 	
-	// Hacky, but this test won't run on the main thread, we have to hope the delegate methods will be called in this time
 	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:2]];
 	
 	GHAssertTrue(failed,@"Failed to call the delegate method when the request failed");
@@ -188,7 +192,7 @@
 	NSArray *IANAEncodings = [NSArray arrayWithObjects:@"UTF-8",@"US-ASCII",@"ISO-8859-1",@"UTF-16",nil];
 	NSUInteger NSStringEncodings[] = {NSUTF8StringEncoding,NSASCIIStringEncoding,NSISOLatin1StringEncoding,NSUnicodeStringEncoding};
 	
-	int i;
+	NSUInteger i;
 	for (i=0; i<[IANAEncodings count]; i++) {
 		NSURL *url = [[[NSURL alloc] initWithString:[NSString stringWithFormat:@"http://allseeing-i.com/ASIHTTPRequest/tests/Character-Encoding/%@",[IANAEncodings objectAtIndex:i]]] autorelease];
 		ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
@@ -394,7 +398,7 @@
 	[request start];
 	
 	// Wait for the progress to catch up
-	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
+	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:2]];
 	
 	BOOL success = (progress > 0.95);
 	GHAssertTrue(success,@"Failed to properly increment download progress %f != 1.0",progress);	
@@ -1197,6 +1201,14 @@
 	
 }
 
+
+// Will be called on Mac OS
+- (void)setDoubleValue:(double)newProgress;
+{
+	progress = (float)newProgress;
+}
+
+// Will be called on iPhone OS
 - (void)setProgress:(float)newProgress;
 {
 	progress = newProgress;

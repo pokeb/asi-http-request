@@ -335,14 +335,17 @@ IMPORTANT
 	
 }
 
+// Will be called on Mac OS
+- (void)setDoubleValue:(double)newProgress;
+{
+	progress = (float)newProgress;
+}
 
-
-
-- (void)setProgress:(float)newProgress
+// Will be called on iPhone OS
+- (void)setProgress:(float)newProgress;
 {
 	progress = newProgress;
 }
-
 
 
 - (void)testFailure

@@ -181,7 +181,7 @@
 	NSString *endItemBoundary = [NSString stringWithFormat:@"\r\n--%@\r\n",stringBoundary];
 	NSEnumerator *e = [[self postData] keyEnumerator];
 	NSString *key;
-	int i=0;
+	NSUInteger i=0;
 	while (key = [e nextObject]) {
 		[self appendPostString:[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"\r\n\r\n",key]];
 		[self appendPostString:[[self postData] objectForKey:key]];
