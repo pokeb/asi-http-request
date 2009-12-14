@@ -681,7 +681,7 @@ static BOOL isiPhoneOS2;
     } else {
 		
 		// If we have a request body, we'll stream it from memory using our custom stream, so that we can measure bandwidth use and it can be bandwidth-throttled if nescessary
-		if ([self postBody]) {
+		if ([self postBody] && [[self postBody] length] > 0) {
 			if ([self shouldCompressRequestBody] && [self compressedPostBody]) {
 				[self setPostBodyReadStream:[ASIInputStream inputStreamWithData:[self compressedPostBody]]];
 			} else if ([self postBody]) {
@@ -2196,6 +2196,7 @@ static BOOL isiPhoneOS2;
 			[rawResponseData appendBytes:buffer length:bytesRead];
 		}
     }
+
 }
 
 - (void)handleStreamComplete
