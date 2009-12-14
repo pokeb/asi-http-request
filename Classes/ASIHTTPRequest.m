@@ -13,7 +13,7 @@
 #import "ASIHTTPRequest.h"
 #import <zlib.h>
 #if TARGET_OS_IPHONE
-#import "ASIReachability.h"
+#import "Reachability.h"
 #import "ASIAuthenticationDialog.h"
 #else
 #import <SystemConfiguration/SystemConfiguration.h>
@@ -3017,7 +3017,7 @@ static BOOL isiPhoneOS2;
 	if (throttle) {
 		[ASIHTTPRequest throttleBandwidthForWWANUsingLimit:ASIWWANBandwidthThrottleAmount];
 	} else {
-		[[NSNotificationCenter defaultCenter] removeObserver:self name:@"kNetworkReachabilityChangedNotification" object:nil];
+		[ASIHTTPRequest unsubscribeFromNetworkReachabilityNotifications];
 		[ASIHTTPRequest setMaxBandwidthPerSecond:0];
 		[bandwidthThrottlingLock lock];
 		shouldThrottleBandwithForWWANOnly = NO;
@@ -3030,23 +3030,48 @@ static BOOL isiPhoneOS2;
 	[bandwidthThrottlingLock lock];
 	shouldThrottleBandwithForWWANOnly = YES;
 	maxBandwidthPerSecond = limit;
-	[ASIReachability sharedReachability]; // make sure there is a reachability instance
-	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reachabilityChanged:) name:@"kNetworkReachabilityChangedNotification" object:nil];
+	[ASIHTTPRequest registerForNetworkReachabilityNotifications];	
 	[bandwidthThrottlingLock unlock];
 	[ASIHTTPRequest reachabilityChanged:nil];
 }
 
+#pragma mark reachability
+
++ (void)registerForNetworkReachabilityNotifications
+{
+#if REACHABILITY_20_API
+	[[Reachability reachabilityForInternetConnection] startNotifer];
+#else
+	[[Reachability sharedReachability] setNetworkStatusNotificationsEnabled:YES];
+#endif
+	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reachabilityChanged:) name:@"kNetworkReachabilityChangedNotification" object:nil];
+}
+
+
++ (void)unsubscribeFromNetworkReachabilityNotifications
+{
+	[[NSNotificationCenter defaultCenter] removeObserver:self name:@"kNetworkReachabilityChangedNotification" object:nil];
+	
+}
+
++ (BOOL)isNetworkReachableViaWWAN
+{
+#if REACHABILITY_20_API
+	return ([[Reachability reachabilityForInternetConnection] currentReachabilityStatus] == ReachableViaWWAN);	
+#else
+	return ([[Reachability sharedReachability] internetConnectionStatus] == ReachableViaCarrierDataNetwork);
+#endif
+}
+
 + (void)reachabilityChanged:(NSNotification *)note
 {
-	[bandwidthThrottlingLock lock];	
-	if ([[ASIReachability sharedReachability] reachableViaWWAN]) {
-		isBandwidthThrottled = YES;
-	} else {
-		isBandwidthThrottled = NO;
-	}
+	[bandwidthThrottlingLock lock];
+	isBandwidthThrottled = [ASIHTTPRequest isNetworkReachableViaWWAN];
 	[bandwidthThrottlingLock unlock];
 }
 #endif
+
+
 
 + (unsigned long)maxUploadReadLength
 {
@@ -3069,6 +3094,7 @@ static BOOL isiPhoneOS2;
 	[bandwidthThrottlingLock unlock];	
 	return toRead;
 }
+
 
 #pragma mark miscellany 
 

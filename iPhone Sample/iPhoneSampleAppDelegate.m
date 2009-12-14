@@ -8,6 +8,7 @@
 
 #import "iPhoneSampleAppDelegate.h"
 #import "ASIHTTPRequest.h"
+#import "Reachability.h"
 
 @implementation iPhoneSampleAppDelegate
 
@@ -26,7 +27,21 @@
 - (void)applicationDidFinishLaunching:(UIApplication *)application {
     
     // Add the tab bar controller's current view as a subview of the window
-    [window addSubview:tabBarController.view];
+    [window addSubview:[tabBarController view]];
+	[[tabBarController view] setFrame:CGRectMake(0,47,320,433)];
+	[NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(updateStatus:) userInfo:nil repeats:YES];
+}
+
+// This is really just so I can test reachability + throttling is working. Please don't use a timer to do this in your own apps!
+- (void)updateStatus:(NSTimer *)timer
+{
+	NSString *connectionType;
+	if ([ASIHTTPRequest isNetworkReachableViaWWAN]) {
+		connectionType = @"Connected via WWAN";
+	} else {
+		connectionType = @"Not connected via WWAN";
+	}	
+	[statusMessage setText:[NSString stringWithFormat:@"%@ (%luKB / second)",connectionType, [ASIHTTPRequest averageBandwidthUsedPerSecond]/1024]];
 }
 
 
