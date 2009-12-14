@@ -13,13 +13,12 @@
 #import "ASIHTTPRequest.h"
 #import <zlib.h>
 #if TARGET_OS_IPHONE
-#import "Reachability.h"
+#import "ASIReachability.h"
 #import "ASIAuthenticationDialog.h"
 #else
 #import <SystemConfiguration/SystemConfiguration.h>
 #endif
 #import "ASIInputStream.h"
-
 
 // We use our own custom run loop mode as CoreAnimation seems to want to hijack our threads otherwise
 static CFStringRef ASIHTTPRequestRunMode = CFSTR("ASIHTTPRequest");
@@ -3031,7 +3030,7 @@ static BOOL isiPhoneOS2;
 	[bandwidthThrottlingLock lock];
 	shouldThrottleBandwithForWWANOnly = YES;
 	maxBandwidthPerSecond = limit;
-	[[Reachability sharedReachability] setNetworkStatusNotificationsEnabled:YES];
+	[ASIReachability sharedReachability]; // make sure there is a reachability instance
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reachabilityChanged:) name:@"kNetworkReachabilityChangedNotification" object:nil];
 	[bandwidthThrottlingLock unlock];
 	[ASIHTTPRequest reachabilityChanged:nil];
@@ -3040,7 +3039,7 @@ static BOOL isiPhoneOS2;
 + (void)reachabilityChanged:(NSNotification *)note
 {
 	[bandwidthThrottlingLock lock];	
-	if ([[Reachability sharedReachability] internetConnectionStatus] == ReachableViaCarrierDataNetwork) {
+	if ([[ASIReachability sharedReachability] reachableViaWWAN]) {
 		isBandwidthThrottled = YES;
 	} else {
 		isBandwidthThrottled = NO;
