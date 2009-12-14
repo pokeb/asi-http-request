@@ -1214,6 +1214,7 @@
 	progress = newProgress;
 }
 
+#if TARGET_OS_IPHONE
 - (void)testReachability
 {
 #if REACHABILITY_20_API
@@ -1227,5 +1228,5 @@
 		NSLog(@"Not connected via WWAN");
 	}
 }
-
+#endif
 @end

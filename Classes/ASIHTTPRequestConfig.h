@@ -18,6 +18,8 @@ There are two versions of Apple's Reachability class, both of which are included
  
  *    Version 1.5 is the old version, but it is compatible with both iPhone OS 2.2.1 and iPhone OS 3.0 and later. You should use this if your application needs to work on iPhone OS 2.2.1.
       To use Version 1.5, set this to 0, and include Reachbility.h + Reachbility.m from the Reachability 1.5 folder in your project
+
+This config option is not used for apps targeting Mac OS X 
 */
 
 #define REACHABILITY_20_API 0

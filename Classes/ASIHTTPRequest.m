@@ -3003,7 +3003,11 @@ static BOOL isiPhoneOS2;
 	}
 	
 	// Are we performing bandwidth throttling?
+#if TARGET_OS_IPHONE
 	if (isBandwidthThrottled || (!shouldThrottleBandwithForWWANOnly && (maxBandwidthPerSecond))) {
+#else
+	if (maxBandwidthPerSecond) {
+#endif
 		// How much data can we still send or receive this second?
 		long long bytesRemaining = (long long)maxBandwidthPerSecond - (long long)bandwidthUsedInLastSecond;
 				

@@ -55,5 +55,7 @@
 - (void)delegateTestStarted:(ASIHTTPRequest *)request;
 - (void)delegateTestFinished:(ASIHTTPRequest *)request;
 - (void)delegateTestFailed:(ASIHTTPRequest *)request;
+#if TARGET_OS_IPHONE
 - (void)testReachability;
+#endif
 @end
