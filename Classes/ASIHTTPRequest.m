@@ -105,6 +105,13 @@ static BOOL isiPhoneOS2;
 + (void)measureBandwidthUsage;
 + (void)recordBandwidthUsage;
 
+#if TARGET_OS_IPHONE
++ (void)registerForNetworkReachabilityNotifications;
++ (void)unsubscribeFromNetworkReachabilityNotifications;
+// Called when the status of the network changes
++ (void)reachabilityChanged:(NSNotification *)note;
+#endif
+
 @property (assign) BOOL complete;
 @property (retain) NSDictionary *responseHeaders;
 @property (retain) NSArray *responseCookies;
@@ -2996,7 +3003,7 @@ static BOOL isiPhoneOS2;
 	}
 	
 	// Are we performing bandwidth throttling?
-	if (maxBandwidthPerSecond > 0) {	
+	if (isBandwidthThrottled || (!shouldThrottleBandwithForWWANOnly && (maxBandwidthPerSecond))) {
 		// How much data can we still send or receive this second?
 		long long bytesRemaining = (long long)maxBandwidthPerSecond - (long long)bandwidthUsedInLastSecond;
 				
@@ -3020,6 +3027,7 @@ static BOOL isiPhoneOS2;
 		[ASIHTTPRequest unsubscribeFromNetworkReachabilityNotifications];
 		[ASIHTTPRequest setMaxBandwidthPerSecond:0];
 		[bandwidthThrottlingLock lock];
+		isBandwidthThrottled = NO;
 		shouldThrottleBandwithForWWANOnly = NO;
 		[bandwidthThrottlingLock unlock];
 	}

@@ -560,14 +560,9 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 
 
 #pragma mark reachability
-+ (void)registerForNetworkReachabilityNotifications;
-+ (void)unsubscribeFromNetworkReachabilityNotifications;
-
 // Returns YES when an iPhone OS device is connected via WWAN, false when connected via WIFI or not connected
 + (BOOL)isNetworkReachableViaWWAN;
 
-// Called when the status of the network changes
-+ (void)reachabilityChanged:(NSNotification *)note;
 #endif
 
 // Returns the maximum amount of data we can read as part of the current measurement period, and sleeps this thread if our allowance is used up

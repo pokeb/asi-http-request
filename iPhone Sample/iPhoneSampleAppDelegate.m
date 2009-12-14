@@ -37,11 +37,15 @@
 {
 	NSString *connectionType;
 	if ([ASIHTTPRequest isNetworkReachableViaWWAN]) {
-		connectionType = @"Connected via WWAN";
+		connectionType = @"Using WWAN";
 	} else {
-		connectionType = @"Not connected via WWAN";
-	}	
-	[statusMessage setText:[NSString stringWithFormat:@"%@ (%luKB / second)",connectionType, [ASIHTTPRequest averageBandwidthUsedPerSecond]/1024]];
+		connectionType = @"Not using WWAN";
+	}
+	NSString *throttling = @"Throttling OFF";
+	if ([ASIHTTPRequest isBandwidthThrottled]) {
+		throttling = @"Throttling ON";
+	}
+	[statusMessage setText:[NSString stringWithFormat:@"%@ / %luKB per second / %@",connectionType, [ASIHTTPRequest averageBandwidthUsedPerSecond]/1024,throttling]];
 }
 
 
