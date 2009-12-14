@@ -2868,7 +2868,9 @@ static BOOL isiPhoneOS2;
 	NSError *err = nil;
 	NSString *script = [NSString stringWithContentsOfURL:pacScriptURL usedEncoding:&encoding error:&err];
 	if (err) {
-		return nil;
+		// If we can't fetch the PAC, we'll assume no proxies
+		// Some people have a PAC configured that is not always available, so I think this is the best behaviour
+		return [NSArray array];
 	}
 	// Obtain the list of proxies by running the autoconfiguration script
 #if TARGET_IPHONE_SIMULATOR && __IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_3_0
