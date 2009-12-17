@@ -11,6 +11,7 @@
 @interface iPhoneSampleAppDelegate : NSObject <UIApplicationDelegate, UITabBarControllerDelegate> {
     UIWindow *window;
     UITabBarController *tabBarController;
+	IBOutlet UILabel *statusMessage;
 
 }
 

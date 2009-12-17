@@ -5,13 +5,13 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleDisplayName</key>
-	<string>ASIHTTPRequest Unit Tests</string>
+	<string>ASIHTTPRequestTests</string>
 	<key>CFBundleExecutable</key>
 	<string>${EXECUTABLE_NAME}</string>
 	<key>CFBundleIconFile</key>
 	<string>iphone-tests-icon.png</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.your.company.blah</string>
+	<string>com.allseeinginteractive.asihttprequest.tests</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundlePackageType</key>

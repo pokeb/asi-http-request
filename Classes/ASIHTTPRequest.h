@@ -15,6 +15,9 @@
 	#import <CFNetwork/CFNetwork.h>
 #endif
 #import <stdio.h>
+#import "ASIHTTPRequestConfig.h"
+
+extern NSString *ASIHTTPRequestVersion;
 
 // Make targeting 2.2.1 more reliable
 // See: http://www.blumtnwerx.com/blog/2009/06/cross-sdk-code-hygiene-in-xcode/
@@ -556,8 +559,11 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 // Turns on throttling automatically when WWAN is connected using a custom limit, and turns it off automatically when it isn't
 + (void)throttleBandwidthForWWANUsingLimit:(unsigned long)limit;
 
-// Called when the status of the network changes
-+ (void)reachabilityChanged:(NSNotification *)note;
+
+#pragma mark reachability
+// Returns YES when an iPhone OS device is connected via WWAN, false when connected via WIFI or not connected
++ (BOOL)isNetworkReachableViaWWAN;
+
 #endif
 
 // Returns the maximum amount of data we can read as part of the current measurement period, and sleeps this thread if our allowance is used up

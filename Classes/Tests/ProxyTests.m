@@ -20,9 +20,17 @@ static NSString *proxyPassword = @"";
 
 - (void)testAutoConfigureWithPAC
 {
-	// To run this test, specify the location of the pac script that is available at http://developer.apple.com/samplecode/CFProxySupportTool/listing1.html
-	NSString *pacurl = @"file:///Users/ben/Desktop/test.pac";
+
+	NSString *pacurl = @"file:///non-existent.pac";
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
+	[request setPACurl:[NSURL URLWithString:pacurl]];
+	[request start];
+	GHAssertNil([request proxyHost],@"Shouldn't use a proxy here");
+	GHAssertNil([request error],@"Request failed when unable to fetch PAC (should assume no proxy instead)");
+	
+	// To run this test, specify the location of the pac script that is available at http://developer.apple.com/samplecode/CFProxySupportTool/listing1.html
+	pacurl = @"file:///Users/ben/Desktop/test.pac";
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
 	[request setPACurl:[NSURL URLWithString:pacurl]];
 	[request start];
 

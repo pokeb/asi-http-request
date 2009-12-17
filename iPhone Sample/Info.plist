@@ -9,7 +9,7 @@
 	<key>CFBundleIconFile</key>
 	<string>iphone-icon.png</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.your.company.blah</string>
+	<string>com.allseeinginteractive.asihttprequest.sample</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundlePackageType</key>

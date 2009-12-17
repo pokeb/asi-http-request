@@ -48,13 +48,13 @@
 - (void)testTimeOutWithoutDownloadDelegate;
 - (void)testThrottlingDownloadBandwidth;
 - (void)testThrottlingUploadBandwidth;
-
-
 - (void)requestStarted:(ASIHTTPRequest *)request;
 - (void)requestFinished:(ASIHTTPRequest *)request;
 - (void)requestFailed:(ASIHTTPRequest *)request;
 - (void)delegateTestStarted:(ASIHTTPRequest *)request;
 - (void)delegateTestFinished:(ASIHTTPRequest *)request;
 - (void)delegateTestFailed:(ASIHTTPRequest *)request;
-
+#if TARGET_OS_IPHONE
+- (void)testReachability;
+#endif
 @end

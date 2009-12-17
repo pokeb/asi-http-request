@@ -8,6 +8,7 @@
 
 #import <Foundation/Foundation.h>
 #import "ASIHTTPRequest.h"
+#import "ASIHTTPRequestConfig.h"
 
 typedef enum _ASIPostFormat {
     ASIMultipartFormDataPostFormat = 0,

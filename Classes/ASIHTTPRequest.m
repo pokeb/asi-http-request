@@ -20,6 +20,9 @@
 #endif
 #import "ASIInputStream.h"
 
+// Automatically set on build
+NSString *ASIHTTPRequestVersion = @"v1.2-21 2009-12-17";
+
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
 static const CFOptionFlags kNetworkEvents = kCFStreamEventOpenCompleted | kCFStreamEventHasBytesAvailable | kCFStreamEventEndEncountered | kCFStreamEventErrorOccurred;
@@ -103,6 +106,13 @@ static BOOL isiPhoneOS2;
 - (BOOL)askDelegateForProxyCredentials;
 + (void)measureBandwidthUsage;
 + (void)recordBandwidthUsage;
+
+#if TARGET_OS_IPHONE
++ (void)registerForNetworkReachabilityNotifications;
++ (void)unsubscribeFromNetworkReachabilityNotifications;
+// Called when the status of the network changes
++ (void)reachabilityChanged:(NSNotification *)note;
+#endif
 
 @property (assign) BOOL complete;
 @property (retain) NSDictionary *responseHeaders;
@@ -748,7 +758,7 @@ static BOOL isiPhoneOS2;
     } else {
 		
 		// If we have a request body, we'll stream it from memory using our custom stream, so that we can measure bandwidth use and it can be bandwidth-throttled if nescessary
-		if ([self postBody]) {
+		if ([self postBody] && [[self postBody] length] > 0) {
 			if ([self shouldCompressRequestBody] && [self compressedPostBody]) {
 				[self setPostBodyReadStream:[ASIInputStream inputStreamWithData:[self compressedPostBody]]];
 			} else if ([self postBody]) {
@@ -2232,6 +2242,7 @@ static BOOL isiPhoneOS2;
 			[rawResponseData appendBytes:buffer length:bytesRead];
 		}
     }
+
 }
 
 - (void)handleStreamComplete
@@ -2887,7 +2898,9 @@ static BOOL isiPhoneOS2;
 	NSError *err = nil;
 	NSString *script = [NSString stringWithContentsOfURL:pacScriptURL usedEncoding:&encoding error:&err];
 	if (err) {
-		return nil;
+		// If we can't fetch the PAC, we'll assume no proxies
+		// Some people have a PAC configured that is not always available, so I think this is the best behaviour
+		return [NSArray array];
 	}
 	// Obtain the list of proxies by running the autoconfiguration script
 #if TARGET_IPHONE_SIMULATOR && __IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_3_0
@@ -3023,7 +3036,11 @@ static BOOL isiPhoneOS2;
 	}
 	
 	// Are we performing bandwidth throttling?
-	if (maxBandwidthPerSecond > 0) {	
+#if TARGET_OS_IPHONE
+	if (isBandwidthThrottled || (!shouldThrottleBandwithForWWANOnly && (maxBandwidthPerSecond))) {
+#else
+	if (maxBandwidthPerSecond) {
+#endif
 		// How much data can we still send or receive this second?
 		long long bytesRemaining = (long long)maxBandwidthPerSecond - (long long)bandwidthUsedInLastSecond;
 			
@@ -3047,9 +3064,10 @@ static BOOL isiPhoneOS2;
 	if (throttle) {
 		[ASIHTTPRequest throttleBandwidthForWWANUsingLimit:ASIWWANBandwidthThrottleAmount];
 	} else {
-		[[NSNotificationCenter defaultCenter] removeObserver:self name:@"kNetworkReachabilityChangedNotification" object:nil];
+		[ASIHTTPRequest unsubscribeFromNetworkReachabilityNotifications];
 		[ASIHTTPRequest setMaxBandwidthPerSecond:0];
 		[bandwidthThrottlingLock lock];
+		isBandwidthThrottled = NO;
 		shouldThrottleBandwithForWWANOnly = NO;
 		[bandwidthThrottlingLock unlock];
 	}
@@ -3060,23 +3078,48 @@ static BOOL isiPhoneOS2;
 	[bandwidthThrottlingLock lock];
 	shouldThrottleBandwithForWWANOnly = YES;
 	maxBandwidthPerSecond = limit;
-	[[Reachability sharedReachability] setNetworkStatusNotificationsEnabled:YES];
-	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reachabilityChanged:) name:@"kNetworkReachabilityChangedNotification" object:nil];
+	[ASIHTTPRequest registerForNetworkReachabilityNotifications];	
 	[bandwidthThrottlingLock unlock];
 	[ASIHTTPRequest reachabilityChanged:nil];
 }
 
+#pragma mark reachability
+
++ (void)registerForNetworkReachabilityNotifications
+{
+#if REACHABILITY_20_API
+	[[Reachability reachabilityForInternetConnection] startNotifer];
+#else
+	[[Reachability sharedReachability] setNetworkStatusNotificationsEnabled:YES];
+#endif
+	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reachabilityChanged:) name:@"kNetworkReachabilityChangedNotification" object:nil];
+}
+
+
++ (void)unsubscribeFromNetworkReachabilityNotifications
+{
+	[[NSNotificationCenter defaultCenter] removeObserver:self name:@"kNetworkReachabilityChangedNotification" object:nil];
+	
+}
+
++ (BOOL)isNetworkReachableViaWWAN
+{
+#if REACHABILITY_20_API
+	return ([[Reachability reachabilityForInternetConnection] currentReachabilityStatus] == ReachableViaWWAN);	
+#else
+	return ([[Reachability sharedReachability] internetConnectionStatus] == ReachableViaCarrierDataNetwork);
+#endif
+}
+
 + (void)reachabilityChanged:(NSNotification *)note
 {
-	[bandwidthThrottlingLock lock];	
-	if ([[Reachability sharedReachability] internetConnectionStatus] == ReachableViaCarrierDataNetwork) {
-		isBandwidthThrottled = YES;
-	} else {
-		isBandwidthThrottled = NO;
-	}
+	[bandwidthThrottlingLock lock];
+	isBandwidthThrottled = [ASIHTTPRequest isNetworkReachableViaWWAN];
 	[bandwidthThrottlingLock unlock];
 }
 #endif
+
+
 
 + (unsigned long)maxUploadReadLength
 {
@@ -3099,6 +3142,7 @@ static BOOL isiPhoneOS2;
 	[bandwidthThrottlingLock unlock];	
 	return toRead;
 }
+
 
 #pragma mark miscellany 
 

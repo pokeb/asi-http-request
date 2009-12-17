@@ -1195,4 +1195,19 @@
 	progress = newProgress;
 }
 
+#if TARGET_OS_IPHONE
+- (void)testReachability
+{
+#if REACHABILITY_20_API
+	NSLog(@"Using Reachability 2.0 API");
+#else
+	NSLog(@"Using Reachability 1.5 API");
+#endif
+	if ([ASIHTTPRequest isNetworkReachableViaWWAN]) {
+		NSLog(@"Connected via WWAN");
+	} else {
+		NSLog(@"Not connected via WWAN");
+	}
+}
+#endif
 @end
