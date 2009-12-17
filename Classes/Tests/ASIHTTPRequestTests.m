@@ -1095,9 +1095,7 @@
 	success = (interval < -3);
 	GHAssertTrue(success,@"Failed to throttle upload");		
 	GHAssertNil([request error],@"Request generated an error - timeout?");	
-	
 }
-
 
 
 - (void)testFetchToInvalidPath

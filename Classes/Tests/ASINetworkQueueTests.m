@@ -899,23 +899,23 @@ IMPORTANT
 	
 	// We'll test first without throttling
 	int i;
-//	for (i=0; i<5; i++) {
-//		// This image is around 18KB in size, for 90KB total download size
-//		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/i/logo.png"]];
-//		[networkQueue addOperation:request];
-//	}
-//	
+	for (i=0; i<5; i++) {
+		// This image is around 18KB in size, for 90KB total download size
+		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/i/logo.png"]];
+		[networkQueue addOperation:request];
+	}
+	
 	NSDate *date = [NSDate date];
-//	[networkQueue go];
-//	
-//	while (!complete) {
-//		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
-//	}
-//	
-//	
+	[networkQueue go];
+	
+	while (!complete) {
+		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
+	}
+	
+	
 	NSTimeInterval interval =[date timeIntervalSinceNow];
 	BOOL success = (interval > -6);
-//	GHAssertTrue(success,@"Downloaded the data too slowly - either this is a bug, or your internet connection is too slow to run this test (must be able to download 90KB in less than 6 seconds, without throttling)");
+	GHAssertTrue(success,@"Downloaded the data too slowly - either this is a bug, or your internet connection is too slow to run this test (must be able to download 90KB in less than 6 seconds, without throttling)");
 
 	
 	// Reset the queue
