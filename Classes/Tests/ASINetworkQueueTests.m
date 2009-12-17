@@ -801,7 +801,6 @@ IMPORTANT
 
 - (void)immediateCancelFail:(ASIHTTPRequest *)request
 {
-	NSLog(@"Cancel %@",request);
 	if ([[self failedRequests] containsObject:request]) {
 		GHFail(@"A request called its fail delegate method twice");
 	}
@@ -1013,7 +1012,7 @@ IMPORTANT
 	[ASIHTTPRequest setMaxBandwidthPerSecond:0];
 	
 	interval =[date timeIntervalSinceNow];
-	success = (interval < -11);
+	success = (interval < -10);
 	GHAssertTrue(success,@"Failed to throttle upload");		
 	
 }

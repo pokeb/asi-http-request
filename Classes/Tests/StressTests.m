@@ -61,7 +61,6 @@ IMPORTANT
 
 - (void)testRedirectStressTest
 {
-	[self setCreateRequestLock:[[[NSLock alloc] init] autorelease]];
 	[self setCancelStartDate:[NSDate dateWithTimeIntervalSinceNow:30]];
 	[self performRedirectRequest];
 	while ([[self cancelStartDate] timeIntervalSinceNow] > 0) {
@@ -72,14 +71,12 @@ IMPORTANT
 
 - (void)performRedirectRequest
 {
-	[createRequestLock lock];
 	[self setCancelRequest:[ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://127.0.0.1/ASIHTTPRequest/tests/one_infinite_loop"]]];
 	if ([[self cancelStartDate] timeIntervalSinceNow] > 0) {
 		NSLog(@"Redirect stress test: Start request %@",[self cancelRequest]);
 		[[self cancelRequest] start];
 		[self performSelector:@selector(cancelRedirectRequest) withObject:nil afterDelay:0.2];
 	}
-	[createRequestLock unlock];
 }
 
 - (void)cancelRedirectRequest

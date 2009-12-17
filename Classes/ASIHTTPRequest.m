@@ -21,7 +21,7 @@
 #import "ASIInputStream.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.2-31 2009-12-17";
+NSString *ASIHTTPRequestVersion = @"v1.2-32 2009-12-17";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -441,7 +441,7 @@ static BOOL isiPhoneOS2;
 
 - (void)startSynchronous
 {
-#if ASIHTTPREQUEST_DEBUG
+#if DEBUG_REQUEST_STATUS || DEBUG_THROTTLING
 	NSLog(@"Starting synchronous request %@",self);
 #endif
 	[self setInProgress:YES];
@@ -461,7 +461,7 @@ static BOOL isiPhoneOS2;
 
 - (void)start
 {
-#if ASIHTTPREQUEST_DEBUG
+#if DEBUG_REQUEST_STATUS || DEBUG_THROTTLING
 	NSLog(@"Starting asynchronous request %@",self);
 #endif
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
@@ -873,7 +873,6 @@ static BOOL isiPhoneOS2;
 	if (![NSThread isMainThread]) {
 		// Will stop automatically when the request is done
 		CFRunLoopRun();
-		NSLog(@"Run loop done for %@",self);
 	}
 }
 
@@ -961,7 +960,7 @@ static BOOL isiPhoneOS2;
 		
 		// Find out how much data we've uploaded so far
 		[self setTotalBytesSent:[[(NSNumber *)CFReadStreamCopyProperty(readStream, kCFStreamPropertyHTTPRequestBytesWrittenCount) autorelease] unsignedLongLongValue]];
-		
+		[ASIHTTPRequest incrementBandwidthUsedInLastSecond:(unsigned long)(totalBytesSent-lastBytesSent)];		
 		
 		[self updateProgressIndicators];
 
@@ -1352,7 +1351,7 @@ static BOOL isiPhoneOS2;
 // If you do this, don't forget to call [super requestFinished] to let the queue / delegate know we're done
 - (void)requestFinished
 {
-#if ASIHTTPREQUEST_DEBUG
+#if DEBUG_REQUEST_STATUS || DEBUG_THROTTLING
 	NSLog(@"Request finished: %@",self);
 #endif
 	if ([self error] || [self mainRequest]) {
@@ -2198,7 +2197,6 @@ static BOOL isiPhoneOS2;
     UInt8 buffer[bufferSize];
     CFIndex bytesRead = CFReadStreamRead(readStream, buffer, sizeof(buffer));
 
-	//NSLog(@"Request %@ has read %hi bytes",self,bytesRead);	
     // Less than zero is an error
     if (bytesRead < 0) {
         [self handleStreamError];
@@ -2946,7 +2944,6 @@ static BOOL isiPhoneOS2;
 	}
 	[ASIHTTPRequest measureBandwidthUsage];
 	if ([ASIHTTPRequest isBandwidthThrottled]) {
-		//NSLog(@"%@",[NSString stringWithFormat:@"%luKB / second",[ASIHTTPRequest averageBandwidthUsedPerSecond]/1024]);
 		[bandwidthThrottlingLock lock];
 		// Handle throttling
 		if (throttleWakeUpTime) {
@@ -2954,12 +2951,16 @@ static BOOL isiPhoneOS2;
 				if (readStreamIsScheduled) {
 					CFReadStreamSetClient(readStream, kCFStreamEventNone, NULL, NULL);
 					CFReadStreamUnscheduleFromRunLoop(readStream, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
+					#if DEBUG_THROTTLING
 					NSLog(@"Sleeping request %@ until after %@",self,throttleWakeUpTime);
+					#endif
 					readStreamIsScheduled = NO;
 				}
 			} else {
 				if (!readStreamIsScheduled) {
+					#if DEBUG_THROTTLING
 					NSLog(@"Waking up request %@",self);
+					#endif
 					CFStreamClientContext ctxt = {0, self, NULL, NULL, NULL};
 					CFReadStreamSetClient(readStream, kNetworkEvents, ReadStreamClientCallBack, &ctxt);
 					CFReadStreamScheduleWithRunLoop(readStream, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
@@ -3006,7 +3007,6 @@ static BOOL isiPhoneOS2;
 {
 	[bandwidthThrottlingLock lock];
 	bandwidthUsedInLastSecond += bytes;
-	//NSLog(@"used in last second: %lu",bandwidthUsedInLastSecond);
 	[bandwidthThrottlingLock unlock];
 }
 
@@ -3021,12 +3021,12 @@ static BOOL isiPhoneOS2;
 			interval++;
 		}
 	}
-	
-	NSLog(@"Used: %qi in last period",bandwidthUsedInLastSecond);
+	#if DEBUG_THROTTLING
+	NSLog(@"===Used: %u bytes of bandwidth in last measurement period===",bandwidthUsedInLastSecond);
+	#endif
 	[bandwidthUsageTracker addObject:[NSNumber numberWithUnsignedLong:bandwidthUsedInLastSecond]];
 	[bandwidthMeasurementDate release];
 	bandwidthMeasurementDate = [[NSDate dateWithTimeIntervalSinceNow:1] retain];
-	NSLog(@"---New BandWidth measurement date--- %@",bandwidthMeasurementDate);
 	bandwidthUsedInLastSecond = 0;
 	
 	NSUInteger measurements = [bandwidthUsageTracker count];
@@ -3066,9 +3066,7 @@ static BOOL isiPhoneOS2;
 #endif
 		// How much data can we still send or receive this second?
 		long long bytesRemaining = (long long)maxBandwidthPerSecond - (long long)bandwidthUsedInLastSecond;
-		
-		//NSLog(@"%lld bytes allowance remaining",bytesRemaining);
-	
+			
 		// Have we used up our allowance?
 		if (bytesRemaining < 0) {
 			
