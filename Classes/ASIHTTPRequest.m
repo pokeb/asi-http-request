@@ -21,7 +21,7 @@
 #import "ASIInputStream.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.2-32 2009-12-17";
+NSString *ASIHTTPRequestVersion = @"v1.2-33 2009-12-17";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -394,6 +394,9 @@ static BOOL isiPhoneOS2;
 
 - (void)cancel
 {
+	#if DEBUG_REQUEST_STATUS
+	NSLog(@"Request cancelled: %@",self);
+	#endif
 	[[self cancelledLock] lock];
 
 	if ([self isCancelled] || [self complete]) {
@@ -913,8 +916,6 @@ static BOOL isiPhoneOS2;
 	
 	[self performThrottling];
 	
-	
-	
 	// See if we need to timeout
 	if (lastActivityTime && timeOutSeconds > 0 && [now timeIntervalSinceDate:lastActivityTime] > timeOutSeconds) {
 		
@@ -1069,7 +1070,6 @@ static BOOL isiPhoneOS2;
 			[self updateDownloadProgress];
 		}
 	}
-	
 }
 
 
@@ -1152,9 +1152,6 @@ static BOOL isiPhoneOS2;
 		}
 	}
 	
-
-	
-
 	if (totalBytesSent == 0) {
 		return;
 	}
@@ -1372,6 +1369,9 @@ static BOOL isiPhoneOS2;
 // If you do this, don't forget to call [super failWithError:] to let the queue / delegate know we're done
 - (void)failWithError:(NSError *)theError
 {
+#if DEBUG_REQUEST_STATUS || DEBUG_THROTTLING
+	NSLog(@"Request failed: %@",self);
+#endif
 	[self setComplete:YES];
 	
 	if ([self isCancelled] || [self error]) {
@@ -1531,6 +1531,10 @@ static BOOL isiPhoneOS2;
 					// This means manually added cookies will not be added to the redirect request - only those stored in the global persistent store
 					// But, this is probably the safest option - we might be redirecting to a different domain
 					[self setRequestCookies:[NSMutableArray array]];
+					
+					#if DEBUG_REQUEST_STATUS
+						NSLog(@"Request will redirect (code: %hi): %@",self,[self responseStatusCode]);
+					#endif
 				}
 			}
 			
