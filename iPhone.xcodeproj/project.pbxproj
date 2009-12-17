@@ -16,6 +16,7 @@
 		B522DACE1030B2AB009A2D22 /* ASIInputStream.m in Sources */ = {isa = PBXBuildFile; fileRef = B522DACD1030B2AB009A2D22 /* ASIInputStream.m */; };
 		B522DACF1030B2AB009A2D22 /* ASIInputStream.m in Sources */ = {isa = PBXBuildFile; fileRef = B522DACD1030B2AB009A2D22 /* ASIInputStream.m */; };
 		B5254FF91025F9BF00CF7BC4 /* ProxyTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B5254FF71025F9BF00CF7BC4 /* ProxyTests.m */; };
+		B52D4A2F10DA4ED5008E8365 /* PerformanceTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B52D4A2E10DA4ED5008E8365 /* PerformanceTests.m */; };
 		B551DCAF10D6A11200EC1CBF /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = B551DCAE10D6A11200EC1CBF /* Reachability.m */; };
 		B551DCF610D6A8A900EC1CBF /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = B551DCAE10D6A11200EC1CBF /* Reachability.m */; };
 		B55B604D0F765A320064029C /* ASIFormDataRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B60460F765A320064029C /* ASIFormDataRequest.m */; };
@@ -76,6 +77,8 @@
 		B522DACD1030B2AB009A2D22 /* ASIInputStream.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIInputStream.m; sourceTree = "<group>"; };
 		B5254FF71025F9BF00CF7BC4 /* ProxyTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ProxyTests.m; sourceTree = "<group>"; };
 		B5254FF81025F9BF00CF7BC4 /* ProxyTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ProxyTests.h; sourceTree = "<group>"; };
+		B52D4A2D10DA4ED5008E8365 /* PerformanceTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PerformanceTests.h; sourceTree = "<group>"; };
+		B52D4A2E10DA4ED5008E8365 /* PerformanceTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PerformanceTests.m; sourceTree = "<group>"; };
 		B551DB4610D6938500EC1CBF /* ASIHTTPRequestConfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIHTTPRequestConfig.h; sourceTree = "<group>"; };
 		B551DCAD10D6A11200EC1CBF /* Reachability.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Reachability.h; sourceTree = "<group>"; };
 		B551DCAE10D6A11200EC1CBF /* Reachability.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Reachability.m; sourceTree = "<group>"; };
@@ -296,6 +299,8 @@
 				B5EA45A9109B56D800E920CB /* StressTests.m */,
 				B5254FF81025F9BF00CF7BC4 /* ProxyTests.h */,
 				B5254FF71025F9BF00CF7BC4 /* ProxyTests.m */,
+				B52D4A2D10DA4ED5008E8365 /* PerformanceTests.h */,
+				B52D4A2E10DA4ED5008E8365 /* PerformanceTests.m */,
 			);
 			path = Tests;
 			sourceTree = "<group>";
@@ -500,6 +505,7 @@
 				B5EA45AA109B56D800E920CB /* StressTests.m in Sources */,
 				B5728DD210AED64F004F4CE6 /* GHUnitIPhoneTestMain.m in Sources */,
 				B551DCF610D6A8A900EC1CBF /* Reachability.m in Sources */,
+				B52D4A2F10DA4ED5008E8365 /* PerformanceTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
