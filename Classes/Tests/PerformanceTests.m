@@ -33,10 +33,10 @@
 	[self setRequestsComplete:0];
 	[self setTestStartDate:[NSDate date]];
 	int i;
-	for (i=0; i<5; i++) {
+	for (i=0; i<10; i++) {
 		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_great_american_novel_(abridged).txt"]];
 		[request setDelegate:self];
-		[request startAsynchronous];
+		[request start];
 	}
 }
 
@@ -49,8 +49,8 @@
 {
 	bytesDownloaded += [[request responseData] length];
 	requestsComplete++;
-	if (requestsComplete == 5) {
-		NSLog(@"ASIHTTPRequest: Completed 5 (downloaded %lu bytes) requests in %f seconds",bytesDownloaded,[[NSDate date] timeIntervalSinceDate:[self testStartDate]]);
+	if (requestsComplete == 10) {
+		NSLog(@"ASIHTTPRequest: Completed 10 (downloaded %lu bytes) requests in %f seconds",bytesDownloaded,[[NSDate date] timeIntervalSinceDate:[self testStartDate]]);
 	}
 }
 
@@ -67,7 +67,7 @@
 	[self setResponseData:[NSMutableArray arrayWithCapacity:5]]; 
 	
 	int i;
-	for (i=0; i<5; i++) {
+	for (i=0; i<10; i++) {
 		NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_great_american_novel_(abridged).txt"] cachePolicy:NSURLRequestReloadIgnoringLocalCacheData timeoutInterval:10];
 		[[self responseData] addObject:[NSMutableData data]];
 		NSURLConnectionSubclass *connection = [[[NSURLConnectionSubclass alloc] initWithRequest:request delegate:self startImmediately:YES] autorelease];
@@ -94,8 +94,8 @@
 {
 	bytesDownloaded += [[responseData objectAtIndex:[connection tag]] length];
 	requestsComplete++;
-	if (requestsComplete == 5) {
-		NSLog(@"NSURLConnection: Completed 5 (downloaded %lu bytes) requests in %f seconds",bytesDownloaded,[[NSDate date] timeIntervalSinceDate:[self testStartDate]]);
+	if (requestsComplete == 10) {
+		NSLog(@"NSURLConnection: Completed 10 (downloaded %lu bytes) requests in %f seconds",bytesDownloaded,[[NSDate date] timeIntervalSinceDate:[self testStartDate]]);
 	}		
 }
 

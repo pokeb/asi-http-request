@@ -319,7 +319,6 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	BOOL isSynchronous;
 	
 	BOOL inProgress;
-	BOOL runningInOwnThread;
 }
 
 #pragma mark init / dealloc
@@ -362,13 +361,9 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 #pragma mark running a request
 
 
-// Run a request synchronously in the current thread
+// Run a request synchronously in the current thread (use start to run asynchronously)
 - (void)startSynchronous;
 
-// Run a request asynchronously in the current thread
-- (void)startAsynchronous;
-
-- (void)startInBackgroundThread;
 
 #pragma mark request logic
 

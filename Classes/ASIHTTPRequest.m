@@ -21,7 +21,7 @@
 #import "ASIInputStream.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.2-21 2009-12-17";
+NSString *ASIHTTPRequestVersion = @"v1.2-30 2009-12-17";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -454,41 +454,12 @@ static BOOL isiPhoneOS2;
 	[self setInProgress:NO];
 }
 
-- (void)startInBackgroundThread
-{
-	runningInOwnThread = YES;
-	[self performSelectorInBackground:@selector(startAsynchronous) withObject:nil];	
-}
 
 - (void)start
 {
-	
-#if TARGET_OS_IPHONE
-	runningInOwnThread = YES;
-	[self performSelectorInBackground:@selector(startAsynchronous) withObject:nil];
-#else
-	runningInOwnThread = YES;
-    SInt32 versionMajor;
-	OSErr err = Gestalt(gestaltSystemVersionMajor, &versionMajor);
-	if (err != noErr) {
-		[NSException raise:@"FailedToDetectOSVersion" format:@"Unable to determine OS version, must give up"];
-	}
-	// GCD will run the operation in its thread pool on Snow Leopard
-	if (versionMajor >= 6) {
-		[self startAsynchronous];
-		
-	// On Leopard, we'll create the thread ourselves
-	} else {
-		[self performSelectorInBackground:@selector(startAsynchronous) withObject:nil];		
-	}
-#endif
-}
-
-- (void)startAsynchronous
-{
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	
-	// If this request is autoreleased, it will be dealloced the next time this runloop gets run
+	// If this request is autoreleased, it may be dealloced the next time this runloop gets run
 	[self retain];
 	[self setInProgress:YES];	
 	@try {	
@@ -888,9 +859,10 @@ static BOOL isiPhoneOS2;
 	[NSTimer scheduledTimerWithTimeInterval:0.25 target:self selector:@selector(updateStatus:) userInfo:nil repeats:YES];
 	
 	// If we're running asynchronously on the main thread, the runloop will already be running
-	if (runningInOwnThread) {
+	if (![NSThread isMainThread]) {
 		// Will stop automatically when the request is done
 		CFRunLoopRun();
+		NSLog(@"Run loop done for %@",self);
 	}
 }
 
@@ -912,6 +884,7 @@ static BOOL isiPhoneOS2;
 		[timer invalidate];
 		[self willChangeValueForKey:@"isFinished"];
 		[self didChangeValueForKey:@"isFinished"];
+		CFRunLoopStop(CFRunLoopGetCurrent());
 	}
 }
 
@@ -3050,7 +3023,7 @@ static BOOL isiPhoneOS2;
 			
 			// Yes, put this request to sleep until a second is up, with extra added punishment sleeping time for being very naughty (we have used more bandwidth than we were allowed)
 			double extraSleepyTime = (-bytesRemaining/(maxBandwidthPerSecond*1.0));
-			
+
 			[NSThread sleepUntilDate:[bandwidthMeasurementDate dateByAddingTimeInterval:extraSleepyTime]];
 			[self recordBandwidthUsage];
 		}
