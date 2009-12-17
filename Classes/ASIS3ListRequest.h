@@ -1,6 +1,6 @@
 //
 //  ASIS3ListRequest.h
-//  Mac
+//  Part of ASIHTTPRequest -> http://allseeing-i.com/ASIHTTPRequest
 //
 //  Created by Ben Copsey on 13/07/2009.
 //  Copyright 2009 All-Seeing Interactive. All rights reserved.

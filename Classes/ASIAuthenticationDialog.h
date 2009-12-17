@@ -1,6 +1,6 @@
 //
 //  ASIAuthenticationDialog.h
-//  iPhone
+//  Part of ASIHTTPRequest -> http://allseeing-i.com/ASIHTTPRequest
 //
 //  Created by Ben Copsey on 21/08/2009.
 //  Copyright 2009 All-Seeing Interactive. All rights reserved.

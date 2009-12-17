@@ -1,6 +1,6 @@
 //
 //  ASIInputStream.m
-//  asi-http-request
+//  Part of ASIHTTPRequest -> http://allseeing-i.com/ASIHTTPRequest
 //
 //  Created by Ben Copsey on 10/08/2009.
 //  Copyright 2009 All-Seeing Interactive. All rights reserved.

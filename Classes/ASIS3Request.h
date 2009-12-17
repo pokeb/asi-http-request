@@ -1,5 +1,6 @@
 //
 //  ASIS3Request.h
+//  Part of ASIHTTPRequest -> http://allseeing-i.com/ASIHTTPRequest
 //
 //  Created by Ben Copsey on 30/06/2009.
 //  Copyright 2009 All-Seeing Interactive. All rights reserved.
