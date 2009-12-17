@@ -26,4 +26,4 @@ This config option is not used for apps targeting Mac OS X
 
 
 // When set to 1, requests will print debug information to the console (currently only used by ASIFormDataRequest)
-#define ASIHTTPREQUEST_DEBUG 0
+#define ASIHTTPREQUEST_DEBUG 1

@@ -21,7 +21,7 @@
 #import "ASIInputStream.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.2-30 2009-12-17";
+NSString *ASIHTTPRequestVersion = @"v1.2-31 2009-12-17";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -92,6 +92,7 @@ static NSRecursiveLock *sessionCookiesLock = nil;
 // This is so it can make use of any credentials supplied for the other request, if they are appropriate
 static NSRecursiveLock *delegateAuthenticationLock = nil;
 
+static NSDate *throttleWakeUpTime = nil;
 
 static BOOL isiPhoneOS2;
 
@@ -440,6 +441,9 @@ static BOOL isiPhoneOS2;
 
 - (void)startSynchronous
 {
+#if ASIHTTPREQUEST_DEBUG
+	NSLog(@"Starting synchronous request %@",self);
+#endif
 	[self setInProgress:YES];
 	@try {	
 		if (![self isCancelled] && ![self complete]) {
@@ -457,6 +461,9 @@ static BOOL isiPhoneOS2;
 
 - (void)start
 {
+#if ASIHTTPREQUEST_DEBUG
+	NSLog(@"Starting asynchronous request %@",self);
+#endif
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	
 	// If this request is autoreleased, it may be dealloced the next time this runloop gets run
@@ -822,8 +829,12 @@ static BOOL isiPhoneOS2;
     }
     
     // Schedule the stream
-    CFReadStreamScheduleWithRunLoop(readStream, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
-    
+	if (!throttleWakeUpTime || [throttleWakeUpTime timeIntervalSinceDate:[NSDate date]] < 0) {
+		CFReadStreamScheduleWithRunLoop(readStream, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
+		readStreamIsScheduled = YES;		
+	}
+
+	
     // Start the HTTP connection
     if (!CFReadStreamOpen(readStream)) {
         CFReadStreamSetClient(readStream, 0, NULL, NULL);
@@ -897,9 +908,13 @@ static BOOL isiPhoneOS2;
 	if ([self isCancelled] || [self complete]) {
 		[[self cancelledLock] unlock];
 		return;
-	}	
+	}
 	
 	NSDate *now = [NSDate date];
+	
+	[self performThrottling];
+	
+	
 	
 	// See if we need to timeout
 	if (lastActivityTime && timeOutSeconds > 0 && [now timeIntervalSinceDate:lastActivityTime] > timeOutSeconds) {
@@ -949,9 +964,7 @@ static BOOL isiPhoneOS2;
 		
 		
 		[self updateProgressIndicators];
-		
-		// Measure bandwidth used, and throttle if nescessary
-		[ASIHTTPRequest measureBandwidthUsage];
+
 	}
 	
 	// This thread should wait for 1/4 second for the stream to do something
@@ -1339,6 +1352,9 @@ static BOOL isiPhoneOS2;
 // If you do this, don't forget to call [super requestFinished] to let the queue / delegate know we're done
 - (void)requestFinished
 {
+#if ASIHTTPREQUEST_DEBUG
+	NSLog(@"Request finished: %@",self);
+#endif
 	if ([self error] || [self mainRequest]) {
 		return;
 	}
@@ -2132,6 +2148,7 @@ static BOOL isiPhoneOS2;
             break;
     }
 	
+	[self performThrottling];
 	[[self cancelledLock] unlock];
 	
 }
@@ -2177,11 +2194,11 @@ static BOOL isiPhoneOS2;
 	}
 	
 	
-	
+
     UInt8 buffer[bufferSize];
     CFIndex bytesRead = CFReadStreamRead(readStream, buffer, sizeof(buffer));
 
-	
+	//NSLog(@"Request %@ has read %hi bytes",self,bytesRead);	
     // Less than zero is an error
     if (bytesRead < 0) {
         [self handleStreamError];
@@ -2922,6 +2939,38 @@ static BOOL isiPhoneOS2;
 
 #pragma mark bandwidth measurement / throttling
 
+- (void)performThrottling
+{
+	if (!readStream) {
+		return;
+	}
+	[ASIHTTPRequest measureBandwidthUsage];
+	if ([ASIHTTPRequest isBandwidthThrottled]) {
+		//NSLog(@"%@",[NSString stringWithFormat:@"%luKB / second",[ASIHTTPRequest averageBandwidthUsedPerSecond]/1024]);
+		[bandwidthThrottlingLock lock];
+		// Handle throttling
+		if (throttleWakeUpTime) {
+			if ([throttleWakeUpTime timeIntervalSinceDate:[NSDate date]] > 0) {
+				if (readStreamIsScheduled) {
+					CFReadStreamSetClient(readStream, kCFStreamEventNone, NULL, NULL);
+					CFReadStreamUnscheduleFromRunLoop(readStream, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
+					NSLog(@"Sleeping request %@ until after %@",self,throttleWakeUpTime);
+					readStreamIsScheduled = NO;
+				}
+			} else {
+				if (!readStreamIsScheduled) {
+					NSLog(@"Waking up request %@",self);
+					CFStreamClientContext ctxt = {0, self, NULL, NULL, NULL};
+					CFReadStreamSetClient(readStream, kNetworkEvents, ReadStreamClientCallBack, &ctxt);
+					CFReadStreamScheduleWithRunLoop(readStream, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
+					readStreamIsScheduled = YES;
+				}
+			}
+		} 
+		[bandwidthThrottlingLock unlock];
+	}	
+}
+
 + (BOOL)isBandwidthThrottled
 {
 #if TARGET_OS_IPHONE
@@ -2973,10 +3022,11 @@ static BOOL isiPhoneOS2;
 		}
 	}
 	
-	//NSLog(@"Used: %qi",bandwidthUsedInLastSecond);
+	NSLog(@"Used: %qi in last period",bandwidthUsedInLastSecond);
 	[bandwidthUsageTracker addObject:[NSNumber numberWithUnsignedLong:bandwidthUsedInLastSecond]];
 	[bandwidthMeasurementDate release];
 	bandwidthMeasurementDate = [[NSDate dateWithTimeIntervalSinceNow:1] retain];
+	NSLog(@"---New BandWidth measurement date--- %@",bandwidthMeasurementDate);
 	bandwidthUsedInLastSecond = 0;
 	
 	NSUInteger measurements = [bandwidthUsageTracker count];
@@ -3005,7 +3055,7 @@ static BOOL isiPhoneOS2;
 	[bandwidthThrottlingLock lock];
 
 	if (!bandwidthMeasurementDate || [bandwidthMeasurementDate timeIntervalSinceNow] < -0) {
-		[self recordBandwidthUsage];
+		[ASIHTTPRequest recordBandwidthUsage];
 	}
 	
 	// Are we performing bandwidth throttling?
@@ -3016,16 +3066,16 @@ static BOOL isiPhoneOS2;
 #endif
 		// How much data can we still send or receive this second?
 		long long bytesRemaining = (long long)maxBandwidthPerSecond - (long long)bandwidthUsedInLastSecond;
-			
+		
+		//NSLog(@"%lld bytes allowance remaining",bytesRemaining);
 	
 		// Have we used up our allowance?
 		if (bytesRemaining < 0) {
 			
 			// Yes, put this request to sleep until a second is up, with extra added punishment sleeping time for being very naughty (we have used more bandwidth than we were allowed)
 			double extraSleepyTime = (-bytesRemaining/(maxBandwidthPerSecond*1.0));
-
-			[NSThread sleepUntilDate:[bandwidthMeasurementDate dateByAddingTimeInterval:extraSleepyTime]];
-			[self recordBandwidthUsage];
+			[throttleWakeUpTime release];
+			throttleWakeUpTime = [[bandwidthMeasurementDate dateByAddingTimeInterval:extraSleepyTime] retain];
 		}
 	}
 	[bandwidthThrottlingLock unlock];
@@ -3109,7 +3159,8 @@ static BOOL isiPhoneOS2;
 	}
 
 	if (toRead == 0 || !bandwidthMeasurementDate || [bandwidthMeasurementDate timeIntervalSinceNow] < -0) {
-		[NSThread sleepUntilDate:bandwidthMeasurementDate];
+		[throttleWakeUpTime release];
+		throttleWakeUpTime = [bandwidthMeasurementDate retain];
 		[self recordBandwidthUsage];
 	}
 	[bandwidthThrottlingLock unlock];	

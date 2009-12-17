@@ -319,6 +319,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	BOOL isSynchronous;
 	
 	BOOL inProgress;
+	BOOL readStreamIsScheduled;
 }
 
 #pragma mark init / dealloc
@@ -538,6 +539,8 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 
 // Get a rough average (for the last 5 seconds) of how much bandwidth is being used, in bytes
 + (unsigned long)averageBandwidthUsedPerSecond;
+
+- (void)performThrottling;
 
 // Will return YES is bandwidth throttling is currently in use
 + (BOOL)isBandwidthThrottled;
