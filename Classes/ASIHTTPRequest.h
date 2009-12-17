@@ -320,6 +320,10 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	
 	BOOL inProgress;
 	BOOL readStreamIsScheduled;
+	
+	// When set to yes, this request will create a thread to run itself in
+	// On Snow Leopard, requests using a queue will always run in a background thread, so this does nothing when using a queue on that platform
+	BOOL shouldRunInBackgroundThread;
 }
 
 #pragma mark init / dealloc
@@ -362,9 +366,11 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 #pragma mark running a request
 
 
-// Run a request synchronously in the current thread (use start to run asynchronously)
+// Run a request synchronously, and return control when the request completes or fails
 - (void)startSynchronous;
 
+// Run request in the background
+- (void)startAsynchronous;
 
 #pragma mark request logic
 
@@ -653,4 +659,5 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 
 @property (assign, readonly) BOOL isSynchronous;
 @property (assign, readonly) BOOL inProgress;
+@property (assign) BOOL shouldRunInBackgroundThread;
 @end

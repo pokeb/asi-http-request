@@ -21,7 +21,7 @@
 #import "ASIInputStream.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.2-34 2009-12-17";
+NSString *ASIHTTPRequestVersion = @"v1.2-35 2009-12-17";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -461,8 +461,16 @@ static BOOL isiPhoneOS2;
 	[self setInProgress:NO];
 }
 
-
 - (void)start
+{
+	if ([self shouldRunInBackgroundThread]) {
+		[self performSelectorInBackground:@selector(startAsynchronous) withObject:nil];
+	} else {
+		[self startAsynchronous];
+	}
+}
+
+- (void)startAsynchronous
 {
 #if DEBUG_REQUEST_STATUS || DEBUG_THROTTLING
 	NSLog(@"Starting asynchronous request %@",self);
@@ -3089,8 +3097,6 @@ static BOOL isiPhoneOS2;
 	[bandwidthThrottlingLock unlock];
 }
 	
-	
-	
 + (unsigned long)maxUploadReadLength
 {
 	
@@ -3112,7 +3118,6 @@ static BOOL isiPhoneOS2;
 	[bandwidthThrottlingLock unlock];	
 	return (unsigned long)toRead;
 }
-	
 	
 
 #if TARGET_OS_IPHONE
@@ -3303,6 +3308,7 @@ static BOOL isiPhoneOS2;
 @synthesize haveBuiltRequestHeaders;
 @synthesize isSynchronous;
 @synthesize inProgress;
+@synthesize shouldRunInBackgroundThread;
 @end
 
 
