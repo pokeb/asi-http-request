@@ -1,6 +1,6 @@
 //
 //  ASIHTTPRequestTests.m
-//  asi-http-request
+//  Part of ASIHTTPRequest -> http://allseeing-i.com/ASIHTTPRequest
 //
 //  Created by Ben Copsey on 01/08/2008.
 //  Copyright 2008 All-Seeing Interactive. All rights reserved.

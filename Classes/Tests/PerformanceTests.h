@@ -1,12 +1,12 @@
 //
 //  PerformanceTests.h
-//  Mac
+//  Part of ASIHTTPRequest -> http://allseeing-i.com/ASIHTTPRequest
 //
 //  Created by Ben Copsey on 17/12/2009.
 //  Copyright 2009 All-Seeing Interactive. All rights reserved.
 //
 
-#import <Cocoa/Cocoa.h>
+#import <Foundation/Foundation.h>
 #import "ASITestCase.h"
 
 @interface PerformanceTests : ASITestCase {
