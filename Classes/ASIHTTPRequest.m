@@ -21,7 +21,7 @@
 #import "ASIInputStream.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.2-36 2009-12-17";
+NSString *ASIHTTPRequestVersion = @"v1.2-39 2009-12-17";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -103,6 +103,11 @@ static BOOL isiPhoneOS2;
 - (void)loadAsynchronous;
 - (void)checkRequestStatus;
 - (void)cancelLoad;
+
+- (void)destroyReadStream;
+- (void)scheduleReadStream;
+- (void)scheduleReadStream;
+
 - (BOOL)askDelegateForCredentials;
 - (BOOL)askDelegateForProxyCredentials;
 + (void)measureBandwidthUsage;
@@ -841,17 +846,13 @@ static BOOL isiPhoneOS2;
     
     // Schedule the stream
 	if (!throttleWakeUpTime || [throttleWakeUpTime timeIntervalSinceDate:[NSDate date]] < 0) {
-		CFReadStreamScheduleWithRunLoop(readStream, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
-		readStreamIsScheduled = YES;		
+		[self scheduleReadStream];		
 	}
 
 	
     // Start the HTTP connection
     if (!CFReadStreamOpen(readStream)) {
-        CFReadStreamSetClient(readStream, 0, NULL, NULL);
-        CFReadStreamUnscheduleFromRunLoop(readStream, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
-        CFRelease(readStream);
-        readStream = NULL;
+        [self destroyReadStream];
 		[[self cancelledLock] unlock];
 		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIInternalErrorWhileBuildingRequestType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Unable to start HTTP connection",NSLocalizedDescriptionKey,nil]]];
         return;
@@ -986,13 +987,7 @@ static BOOL isiPhoneOS2;
 // Cancel loading and clean up. DO NOT USE THIS TO CANCEL REQUESTS - use [request cancel] instead
 - (void)cancelLoad
 {
-    if (readStream) {
-		CFReadStreamSetClient(readStream, kCFStreamEventNone, NULL, NULL);
-		CFReadStreamUnscheduleFromRunLoop(readStream, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
-		CFReadStreamClose(readStream);
-		CFRelease(readStream);
-		readStream = NULL;
-    }
+    [self destroyReadStream];
 	
 	[[self postBodyReadStream] close];
 	
@@ -2263,13 +2258,7 @@ static BOOL isiPhoneOS2;
 	[self setComplete:YES];
 	[self updateProgressIndicators];
 	
-    if (readStream) {
-		CFReadStreamSetClient(readStream, kCFStreamEventNone, NULL, NULL);
-		CFReadStreamUnscheduleFromRunLoop(readStream, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
-		CFReadStreamClose(readStream);
-		CFRelease(readStream);
-		readStream = NULL;
-    }
+	[self destroyReadStream];
 	
 	[[self postBodyReadStream] close];
 	
@@ -2346,8 +2335,43 @@ static BOOL isiPhoneOS2;
 		
 		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIConnectionFailureErrorType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:reason,NSLocalizedDescriptionKey,underlyingError,NSUnderlyingErrorKey,nil]]];
 	}
-	
 }
+
+#pragma mark managing the read stream
+
+- (void)destroyReadStream
+{
+    if (readStream) {
+		CFReadStreamSetClient(readStream, kCFStreamEventNone, NULL, NULL);
+		CFReadStreamUnscheduleFromRunLoop(readStream, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
+		CFReadStreamClose(readStream);
+		CFRelease(readStream);
+		readStream = NULL;
+    }	
+}
+
+- (void)scheduleReadStream
+{
+	if (readStream && !readStreamIsScheduled) {
+		// Reset the timeout
+		[self setLastActivityTime:[NSDate date]];
+		CFStreamClientContext ctxt = {0, self, NULL, NULL, NULL};
+		CFReadStreamSetClient(readStream, kNetworkEvents, ReadStreamClientCallBack, &ctxt);
+		CFReadStreamScheduleWithRunLoop(readStream, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
+		readStreamIsScheduled = YES;
+	}
+}
+
+- (void)unscheduleReadStream
+{
+	if (readStream && readStreamIsScheduled) {
+		CFReadStreamSetClient(readStream, kCFStreamEventNone, NULL, NULL);
+		CFReadStreamUnscheduleFromRunLoop(readStream, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
+		readStreamIsScheduled = NO;
+	}
+}
+
+
 
 # pragma mark session credentials
 
@@ -2961,36 +2985,25 @@ static BOOL isiPhoneOS2;
 		if (throttleWakeUpTime) {
 			if ([throttleWakeUpTime timeIntervalSinceDate:[NSDate date]] > 0) {
 				if (readStreamIsScheduled) {
-					CFReadStreamSetClient(readStream, kCFStreamEventNone, NULL, NULL);
-					CFReadStreamUnscheduleFromRunLoop(readStream, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
+					[self unscheduleReadStream];
 					#if DEBUG_THROTTLING
 					NSLog(@"Sleeping request %@ until after %@",self,throttleWakeUpTime);
 					#endif
-					readStreamIsScheduled = NO;
 				}
 			} else {
 				if (!readStreamIsScheduled) {
+					[self scheduleReadStream];
 					#if DEBUG_THROTTLING
 					NSLog(@"Waking up request %@",self);
 					#endif
-					
-					// Reset the timeout
-					[self setLastActivityTime:[NSDate date]];
-					CFStreamClientContext ctxt = {0, self, NULL, NULL, NULL};
-					CFReadStreamSetClient(readStream, kNetworkEvents, ReadStreamClientCallBack, &ctxt);
-					CFReadStreamScheduleWithRunLoop(readStream, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
-					readStreamIsScheduled = YES;
 				}
 			}
 		} 
 		[bandwidthThrottlingLock unlock];
+		
+	// Bandwidth throttling must have been turned off since we last looked, let's re-schedule the stream
 	} else if (!readStreamIsScheduled) {
-		// Reset the timeout
-		[self setLastActivityTime:[NSDate date]];
-		CFStreamClientContext ctxt = {0, self, NULL, NULL, NULL};
-		CFReadStreamSetClient(readStream, kNetworkEvents, ReadStreamClientCallBack, &ctxt);
-		CFReadStreamScheduleWithRunLoop(readStream, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
-		readStreamIsScheduled = YES;			
+		[self scheduleReadStream];			
 	}
 }
 

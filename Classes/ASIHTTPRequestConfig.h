@@ -26,10 +26,6 @@
 // ======
 
 /*
-Turn off any features you don't need for a speed boost
-*/
-
-/*
 ASIHTTPRequest uses Apple's Reachability class (http://developer.apple.com/iphone/library/samplecode/Reachability/) to turn bandwidth throttling on and off automatically when shouldThrottleBandwidthForWWAN is set to YES  on iPhone OS
 
 There are two versions of Apple's Reachability class, both of which are included in the source distribution of ASIHTTPRequest in the External/Reachability folder.
