@@ -21,16 +21,18 @@ static NSLock *readLock = nil;
 	}
 }
 
-+ (id)inputStreamWithFileAtPath:(NSString *)path
++ (id)inputStreamWithFileAtPath:(NSString *)path request:(ASIHTTPRequest *)request
 {
 	ASIInputStream *stream = [[[self alloc] init] autorelease];
+	[stream setRequest:request];
 	[stream setStream:[NSInputStream inputStreamWithFileAtPath:path]];
 	return stream;
 }
 
-+ (id)inputStreamWithData:(NSData *)data
++ (id)inputStreamWithData:(NSData *)data request:(ASIHTTPRequest *)request
 {
 	ASIInputStream *stream = [[[self alloc] init] autorelease];
+	[stream setRequest:request];
 	[stream setStream:[NSInputStream inputStreamWithData:data]];
 	return stream;
 }
@@ -54,6 +56,7 @@ static NSLock *readLock = nil;
 		} else if (toRead == 0) {
 			toRead = 1;
 		}
+		[request performThrottling];
 	}
 	[ASIHTTPRequest incrementBandwidthUsedInLastSecond:toRead];
 	[readLock unlock];
@@ -73,4 +76,5 @@ static NSLock *readLock = nil;
 }
 
 @synthesize stream;
+@synthesize request;
 @end

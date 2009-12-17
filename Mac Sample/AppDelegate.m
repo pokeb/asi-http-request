@@ -192,7 +192,7 @@
 	[request setDidFinishSelector:@selector(topSecretFetchComplete:)];
 	[request setDelegate:self];
 	[request setUseKeychainPersistance:[keychainCheckbox state]];
-	[request startAsynchronous];
+	[request start];
 
 }
 

@@ -7,6 +7,27 @@
 //
 
 
+// ======
+// Debug output configuration options
+// ======
+
+// When set to 1 ASIHTTPRequests will print information about what a request is doing
+#define DEBUG_REQUEST_STATUS 0
+
+// When set to 1, ASIFormDataRequests will print information about the request body to the console
+#define DEBUG_FORM_DATA_REQUEST 0
+
+// When set to 1, ASIHTTPRequests will print information about bandwidth throttling to the console
+#define DEBUG_THROTTLING 0
+
+
+// ======
+// Reachability API (iPhone only)
+// ======
+
+/*
+Turn off any features you don't need for a speed boost
+*/
 
 /*
 ASIHTTPRequest uses Apple's Reachability class (http://developer.apple.com/iphone/library/samplecode/Reachability/) to turn bandwidth throttling on and off automatically when shouldThrottleBandwidthForWWAN is set to YES  on iPhone OS
@@ -24,17 +45,4 @@ This config option is not used for apps targeting Mac OS X
 
 #define REACHABILITY_20_API 0
 
-
-/*
-Debug output configuration options
-*/
-
-// When set to 1 ASIHTTPRequests will print information about what a request is doing
-#define DEBUG_REQUEST_STATUS 0
-
-// When set to 1, ASIFormDataRequests will print information about the request body to the console
-#define DEBUG_FORM_DATA_REQUEST 0
-
-// When set to 1, ASIHTTPRequests will print information about bandwidth throttling to the console
-#define DEBUG_THROTTLING 0
 

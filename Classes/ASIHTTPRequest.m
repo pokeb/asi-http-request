@@ -21,7 +21,7 @@
 #import "ASIInputStream.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.2-33 2009-12-17";
+NSString *ASIHTTPRequestVersion = @"v1.2-34 2009-12-17";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -731,9 +731,9 @@ static BOOL isiPhoneOS2;
 		
 		// Are we gzipping the request body?
 		if ([self compressedPostBodyFilePath] && [[NSFileManager defaultManager] fileExistsAtPath:[self compressedPostBodyFilePath]]) {
-			[self setPostBodyReadStream:[ASIInputStream inputStreamWithFileAtPath:[self compressedPostBodyFilePath]]];
+			[self setPostBodyReadStream:[ASIInputStream inputStreamWithFileAtPath:[self compressedPostBodyFilePath] request:self]];
 		} else {
-			[self setPostBodyReadStream:[ASIInputStream inputStreamWithFileAtPath:[self postBodyFilePath]]];
+			[self setPostBodyReadStream:[ASIInputStream inputStreamWithFileAtPath:[self postBodyFilePath] request:self]];
 		}
 		readStream = CFReadStreamCreateForStreamedHTTPRequest(kCFAllocatorDefault, request,(CFReadStreamRef)[self postBodyReadStream]);
     } else {
@@ -741,9 +741,9 @@ static BOOL isiPhoneOS2;
 		// If we have a request body, we'll stream it from memory using our custom stream, so that we can measure bandwidth use and it can be bandwidth-throttled if nescessary
 		if ([self postBody] && [[self postBody] length] > 0) {
 			if ([self shouldCompressRequestBody] && [self compressedPostBody]) {
-				[self setPostBodyReadStream:[ASIInputStream inputStreamWithData:[self compressedPostBody]]];
+				[self setPostBodyReadStream:[ASIInputStream inputStreamWithData:[self compressedPostBody] request:self]];
 			} else if ([self postBody]) {
-				[self setPostBodyReadStream:[ASIInputStream inputStreamWithData:[self postBody]]];
+				[self setPostBodyReadStream:[ASIInputStream inputStreamWithData:[self postBody] request:self]];
 			}
 			readStream = CFReadStreamCreateForStreamedHTTPRequest(kCFAllocatorDefault, request,(CFReadStreamRef)[self postBodyReadStream]);
 		
@@ -917,7 +917,7 @@ static BOOL isiPhoneOS2;
 	[self performThrottling];
 	
 	// See if we need to timeout
-	if (lastActivityTime && timeOutSeconds > 0 && [now timeIntervalSinceDate:lastActivityTime] > timeOutSeconds) {
+	if (readStreamIsScheduled && lastActivityTime && timeOutSeconds > 0 && [now timeIntervalSinceDate:lastActivityTime] > timeOutSeconds) {
 		
 		// Prevent timeouts before 128KB* has been sent when the size of data to upload is greater than 128KB* (*32KB on iPhone 3.0 SDK)
 		// This is to workaround the fact that kCFStreamPropertyHTTPRequestBytesWrittenCount is the amount written to the buffer, not the amount actually sent
@@ -2965,6 +2965,9 @@ static BOOL isiPhoneOS2;
 					#if DEBUG_THROTTLING
 					NSLog(@"Waking up request %@",self);
 					#endif
+					
+					// Reset the timeout
+					[self setLastActivityTime:[NSDate date]];
 					CFStreamClientContext ctxt = {0, self, NULL, NULL, NULL};
 					CFReadStreamSetClient(readStream, kNetworkEvents, ReadStreamClientCallBack, &ctxt);
 					CFReadStreamScheduleWithRunLoop(readStream, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
@@ -2973,7 +2976,14 @@ static BOOL isiPhoneOS2;
 			}
 		} 
 		[bandwidthThrottlingLock unlock];
-	}	
+	} else if (!readStreamIsScheduled) {
+		// Reset the timeout
+		[self setLastActivityTime:[NSDate date]];
+		CFStreamClientContext ctxt = {0, self, NULL, NULL, NULL};
+		CFReadStreamSetClient(readStream, kNetworkEvents, ReadStreamClientCallBack, &ctxt);
+		CFReadStreamScheduleWithRunLoop(readStream, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
+		readStreamIsScheduled = YES;			
+	}
 }
 
 + (BOOL)isBandwidthThrottled
@@ -3044,10 +3054,6 @@ static BOOL isiPhoneOS2;
 + (unsigned long)averageBandwidthUsedPerSecond
 {
 	[bandwidthThrottlingLock lock];
-	
-	if (!bandwidthMeasurementDate || [bandwidthMeasurementDate timeIntervalSinceNow] < 0) {
-		[self recordBandwidthUsage];
-	}
 	unsigned long amount = 	averageBandwidthUsedPerSecond;
 	[bandwidthThrottlingLock unlock];
 	return amount;
@@ -3063,11 +3069,11 @@ static BOOL isiPhoneOS2;
 	}
 	
 	// Are we performing bandwidth throttling?
-#if TARGET_OS_IPHONE
+	#if TARGET_OS_IPHONE
 	if (isBandwidthThrottled || (!shouldThrottleBandwithForWWANOnly && (maxBandwidthPerSecond))) {
-#else
+	#else
 	if (maxBandwidthPerSecond) {
-#endif
+	#endif
 		// How much data can we still send or receive this second?
 		long long bytesRemaining = (long long)maxBandwidthPerSecond - (long long)bandwidthUsedInLastSecond;
 			
@@ -3082,6 +3088,32 @@ static BOOL isiPhoneOS2;
 	}
 	[bandwidthThrottlingLock unlock];
 }
+	
+	
+	
++ (unsigned long)maxUploadReadLength
+{
+	
+	[bandwidthThrottlingLock lock];
+	
+	// We'll split our bandwidth allowance into 4 (which is the default for an ASINetworkQueue's max concurrent operations count) to give all running requests a fighting chance of reading data this cycle
+	long long toRead = maxBandwidthPerSecond/4;
+	if (maxBandwidthPerSecond > 0 && (bandwidthUsedInLastSecond + toRead > maxBandwidthPerSecond)) {
+		toRead = (long long)maxBandwidthPerSecond-(long long)bandwidthUsedInLastSecond;
+		if (toRead < 0) {
+			toRead = 0;
+		}
+	}
+	
+	if (toRead == 0 || !bandwidthMeasurementDate || [bandwidthMeasurementDate timeIntervalSinceNow] < -0) {
+		[throttleWakeUpTime release];
+		throttleWakeUpTime = [bandwidthMeasurementDate retain];
+	}
+	[bandwidthThrottlingLock unlock];	
+	return (unsigned long)toRead;
+}
+	
+	
 
 #if TARGET_OS_IPHONE
 + (void)setShouldThrottleBandwidthForWWAN:(BOOL)throttle
@@ -3143,31 +3175,6 @@ static BOOL isiPhoneOS2;
 	[bandwidthThrottlingLock unlock];
 }
 #endif
-
-
-
-+ (unsigned long)maxUploadReadLength
-{
-
-	[bandwidthThrottlingLock lock];
-	
-	// We'll split our bandwidth allowance into 4 (which is the default for an ASINetworkQueue's max concurrent operations count) to give all running requests a fighting chance of reading data this cycle
-	unsigned long toRead = maxBandwidthPerSecond/4;
-	if (maxBandwidthPerSecond > 0 && (bandwidthUsedInLastSecond + toRead > maxBandwidthPerSecond)) {
-		toRead = maxBandwidthPerSecond-bandwidthUsedInLastSecond;
-		if (toRead < 0) {
-			toRead = 0;
-		}
-	}
-
-	if (toRead == 0 || !bandwidthMeasurementDate || [bandwidthMeasurementDate timeIntervalSinceNow] < -0) {
-		[throttleWakeUpTime release];
-		throttleWakeUpTime = [bandwidthMeasurementDate retain];
-		[self recordBandwidthUsage];
-	}
-	[bandwidthThrottlingLock unlock];	
-	return toRead;
-}
 
 
 #pragma mark miscellany 
