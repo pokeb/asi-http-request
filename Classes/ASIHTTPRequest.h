@@ -17,6 +17,7 @@
 #import <stdio.h>
 #import "ASIHTTPRequestConfig.h"
 
+extern NSString *ASIHTTPRequestVersion;
 
 // Make targeting 2.2.1 more reliable
 // See: http://www.blumtnwerx.com/blog/2009/06/cross-sdk-code-hygiene-in-xcode/

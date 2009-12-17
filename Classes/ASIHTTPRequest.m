@@ -20,6 +20,9 @@
 #endif
 #import "ASIInputStream.h"
 
+// Automatically set on build
+NSString *ASIHTTPRequestVersion = @"v1.2-18 2009-12-17";
+
 // We use our own custom run loop mode as CoreAnimation seems to want to hijack our threads otherwise
 static CFStringRef ASIHTTPRequestRunMode = CFSTR("ASIHTTPRequest");
 

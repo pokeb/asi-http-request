@@ -354,6 +354,7 @@
 				1D60588D0D05DD3D006BFB54 /* Resources */,
 				1D60588E0D05DD3D006BFB54 /* Sources */,
 				1D60588F0D05DD3D006BFB54 /* Frameworks */,
+				B52D492810DA4041008E8365 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -371,6 +372,7 @@
 				B55B60C30F765BB00064029C /* Resources */,
 				B55B60C40F765BB00064029C /* Sources */,
 				B55B60C50F765BB00064029C /* Frameworks */,
+				B52D492410DA403A008E8365 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -422,6 +424,35 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		B52D492410DA403A008E8365 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = ./set_version_number.sh;
+		};
+		B52D492810DA4041008E8365 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = ./set_version_number.sh;
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		1D60588E0D05DD3D006BFB54 /* Sources */ = {
