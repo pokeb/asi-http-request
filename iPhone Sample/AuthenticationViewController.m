@@ -8,28 +8,19 @@
 
 #import "AuthenticationViewController.h"
 #import "ASIHTTPRequest.h"
-#import "ASINetworkQueue.h"
 
 @implementation AuthenticationViewController
 
-- (void)awakeFromNib
-{
-	[self setNetworkQueue:[[[ASINetworkQueue alloc] init] autorelease]];
-}
-
 - (IBAction)fetchTopSecretInformation:(id)sender
 {
-	[networkQueue cancelAllOperations];
-	[networkQueue setRequestDidFinishSelector:@selector(topSecretFetchComplete:)];
-	[networkQueue setRequestDidFailSelector:@selector(topSecretFetchFailed:)];
-	[networkQueue setDelegate:self];
-	
-	
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/top_secret/"]];
 	[request setUseKeychainPersistance:[useKeychain isOn]];
+	[request setDelegate:self];
 	[request setShouldPresentAuthenticationDialog:[useBuiltInDialog isOn]];
-	[networkQueue addOperation:request];
-	[networkQueue go];
+	[request setDidFinishSelector:@selector(topSecretFetchComplete:)];
+	[request setDidFailSelector:@selector(topSecretFetchFailed:)];
+	[request setShouldRunInBackgroundThread:YES];
+	[request start];
 	
 }
 
@@ -109,13 +100,11 @@
 
 - (void)dealloc
 {
-	[networkQueue release];
 	[requestRequiringAuthentication release];
 	[requestRequiringProxyAuthentication release];
     [super dealloc];
 }
 
-@synthesize networkQueue;
 @synthesize requestRequiringAuthentication;
 @synthesize requestRequiringProxyAuthentication;
 @end

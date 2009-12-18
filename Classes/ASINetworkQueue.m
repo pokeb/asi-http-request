@@ -146,6 +146,9 @@
 	[self setRequestsCount:[self requestsCount]+1];
 	
 	ASIHTTPRequest *request = (ASIHTTPRequest *)operation;
+	if ([self runRequestsInBackgroundThread]) {
+		[request setShouldRunInBackgroundThread:YES];
+	}
 	
 	if ([self showAccurateProgress]) {
 		
@@ -155,6 +158,9 @@
 		// Instead, they'll update the total progress if and when they recieve a content-length header
 		if ([[request requestMethod] isEqualToString:@"GET"] && [self isSuspended]) {
 			ASIHTTPRequest *HEADRequest = [request HEADRequest];
+			if ([self runRequestsInBackgroundThread]) {
+				[HEADRequest setShouldRunInBackgroundThread:YES];
+			}
 			[self addHEADOperation:HEADRequest];
 			
 			//Tell the request not to reset the progress indicator when it gets a content-length, as we will get the length from the HEAD request
@@ -345,5 +351,5 @@
 @synthesize delegate;
 @synthesize showAccurateProgress;
 @synthesize userInfo;
-
+@synthesize runRequestsInBackgroundThread;
 @end

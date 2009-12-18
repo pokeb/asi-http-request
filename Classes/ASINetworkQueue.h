@@ -59,6 +59,11 @@
 
 	// Storage container for additional queue information.
 	NSDictionary *userInfo;
+	
+	// When set to YES, the queue will run requests (and HEAD requests it creates) in a background thread
+	// On Snow Leopard, this does nothing, all requests that run in a queue run in a background thread (via GCD)
+	// Default is NO
+	BOOL runRequestsInBackgroundThread;
 }
 
 // Convenience constructor
@@ -117,4 +122,5 @@
 @property (assign) unsigned long long bytesDownloadedSoFar;
 @property (assign) unsigned long long totalBytesToDownload;
 
+@property (assign) BOOL runRequestsInBackgroundThread;
 @end

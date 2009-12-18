@@ -28,6 +28,35 @@ IMPORTANT
 
 @implementation ASINetworkQueueTests
 
+// Just a santity check to make sure running requests in a background thread still works with the new (1.5) code
+- (void)testBackgroundThreadedRequests
+{
+	complete = NO;
+	ASINetworkQueue *networkQueue = [ASINetworkQueue queue];
+	[networkQueue setRunRequestsInBackgroundThread:YES];
+	[networkQueue setDelegate:self];
+	[networkQueue setQueueDidFinishSelector:@selector(backgroundQueueDone:)];	
+	
+	int i;
+	for (i=0; i<5; i++) {
+		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
+		[networkQueue addOperation:request];
+	}
+	[networkQueue go];
+	
+	while (!complete) {
+		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
+	}	
+}
+
+
+- (void)backgroundQueueDone:(ASINetworkQueue *)queue
+{
+	complete = YES;
+	BOOL success = ([NSThread currentThread] == [NSThread mainThread]);
+	GHAssertTrue(success,@"Failed to call a delegate method in the main thread");	
+}
+
 - (void)testDelegateAuthenticationCredentialsReuse
 {
 	complete = NO;
@@ -758,28 +787,7 @@ IMPORTANT
 	complete = YES;
 }
 
-// A test for a potential crasher that used to exist when requests were cancelled
-// We aren't testing a specific condition here, but rather attempting to trigger a crash
-// This test is commented out because it may generate enough load to kill a low-memory server
-// PLEASE DO NOT RUN THIS TEST ON A NON-LOCAL SERVER
-/*
-- (void)testCancelStressTest
-{
-	[self setCancelQueue:[ASINetworkQueue queue]];
-	
-	// Increase the risk of this crash
-	[[self cancelQueue] setMaxConcurrentOperationCount:25];
-	int i;
-	for (i=0; i<100; i++) {
-		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://127.0.0.1"]];
-		[[self cancelQueue] addOperation:request];
-	}
-	[[self cancelQueue] go];
-	[NSThread sleepUntilDate:[NSDate dateWithTimeIntervalSinceNow:2]];
-	[[self cancelQueue] cancelAllOperations];
-	[self setCancelQueue:nil];
-}
-*/
+
 
 // Not strictly an ASINetworkQueue test, but queue related
 // As soon as one request finishes or fails, we'll cancel the others and ensure that no requests are both finished and failed

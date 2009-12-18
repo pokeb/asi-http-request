@@ -47,7 +47,7 @@ IMPORTANT
 	BOOL finished;
 	BOOL failed;
 }
-
+- (void)testBackgroundThreadedRequests;
 - (void)testFailure;
 - (void)testFailureCancelsOtherRequests;
 - (void)testDownloadProgress;
@@ -64,10 +64,6 @@ IMPORTANT
 
 - (void)testMultipleDownloadsThrottlingBandwidth;
 - (void)testMultipleUploadsThrottlingBandwidth;
-
-/*
-- (void)testCancelStressTest;
-*/
 
 - (void)testDelegateAuthenticationCredentialsReuse;
 - (void)testPOSTWithAuthentication;

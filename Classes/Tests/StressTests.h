@@ -26,6 +26,8 @@
 	NSLock *createRequestLock;
 }
 
+- (void)testCancelQueue;
+
 - (void)testCancelStressTest;
 - (void)performCancelRequest;
 

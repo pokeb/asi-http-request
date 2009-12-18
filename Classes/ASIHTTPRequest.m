@@ -21,7 +21,7 @@
 #import "ASIInputStream.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.2-40 2009-12-17";
+NSString *ASIHTTPRequestVersion = @"v1.2-43 2009-12-18";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -468,11 +468,37 @@ static BOOL isiPhoneOS2;
 
 - (void)start
 {
+#if TARGET_OS_IPHONE
 	if ([self shouldRunInBackgroundThread]) {
 		[self performSelectorInBackground:@selector(startAsynchronous) withObject:nil];
 	} else {
 		[self startAsynchronous];
 	}
+#else
+	// If we aren't running in a queue, behave as normal
+	if (![self queue]) {
+		if ([self shouldRunInBackgroundThread]) {
+			[self performSelectorInBackground:@selector(startAsynchronous) withObject:nil];
+		} else {
+			[self startAsynchronous];
+		}
+		return;
+	}
+	
+    SInt32 versionMajor;
+	OSErr err = Gestalt(gestaltSystemVersionMajor, &versionMajor);
+	if (err != noErr) {
+		[NSException raise:@"FailedToDetectOSVersion" format:@"Unable to determine OS version, must give up"];
+	}
+	// GCD will run the operation in its thread pool on Snow Leopard
+	if (versionMajor >= 6) {
+		[self startAsynchronous];
+		
+	// On Leopard, we'll create the thread ourselves
+	} else {
+		[self performSelectorInBackground:@selector(startAsynchronous) withObject:nil];		
+	}
+#endif
 }
 
 - (void)startAsynchronous
@@ -530,7 +556,6 @@ static BOOL isiPhoneOS2;
 // Create the request
 - (void)main
 {
-
 	[self setComplete:NO];
 	
 	if (![self url]) {
@@ -735,6 +760,7 @@ static BOOL isiPhoneOS2;
 		[self setRawResponseData:[[[NSMutableData alloc] init] autorelease]];
     }
     // Create the stream for the request
+	readStreamIsScheduled = NO;
 	
 	// Do we need to stream the request body from disk
 	if ([self shouldStreamPostDataFromDisk] && [self postBodyFilePath] && [[NSFileManager defaultManager] fileExistsAtPath:[self postBodyFilePath]]) {
@@ -840,22 +866,6 @@ static BOOL isiPhoneOS2;
 		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIInternalErrorWhileBuildingRequestType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Unable to setup read stream",NSLocalizedDescriptionKey,nil]]];
         return;
     }
-    
-    // Schedule the stream
-	if (!throttleWakeUpTime || [throttleWakeUpTime timeIntervalSinceDate:[NSDate date]] < 0) {
-		[self scheduleReadStream];		
-	}
-
-	
-    // Start the HTTP connection
-    if (!CFReadStreamOpen(readStream)) {
-        [self destroyReadStream];
-		[[self cancelledLock] unlock];
-		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIInternalErrorWhileBuildingRequestType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Unable to start HTTP connection",NSLocalizedDescriptionKey,nil]]];
-        return;
-    }
-	[[self cancelledLock] unlock];
-	
 	
 	if (shouldResetProgressIndicators) {
 		double amount = 1;
@@ -872,6 +882,14 @@ static BOOL isiPhoneOS2;
 	}	
 	// Record when the request started, so we can timeout if nothing happens
 	[self setLastActivityTime:[NSDate date]];	
+	
+	
+	// Schedule the stream
+	if (!throttleWakeUpTime || [throttleWakeUpTime timeIntervalSinceDate:[NSDate date]] < 0) {
+		[self scheduleReadStream];		
+	}
+	
+	[[self cancelledLock] unlock];
 }
 
 - (void)loadAsynchronous
@@ -897,7 +915,7 @@ static BOOL isiPhoneOS2;
 
 // This gets fired every 1/4 of a second in asynchronous requests to update the progress and work out if we need to timeout
 - (void)updateStatus:(NSTimer*)timer
-{
+{	
 	[self checkRequestStatus];
 	if ([self complete] || [self error]) {
 		[timer invalidate];
@@ -923,7 +941,7 @@ static BOOL isiPhoneOS2;
 	[self performThrottling];
 	
 	// See if we need to timeout
-	if (readStreamIsScheduled && lastActivityTime && timeOutSeconds > 0 && [now timeIntervalSinceDate:lastActivityTime] > timeOutSeconds) {
+	if (readStream && readStreamIsScheduled && lastActivityTime && timeOutSeconds > 0 && [now timeIntervalSinceDate:lastActivityTime] > timeOutSeconds) {
 		
 		// Prevent timeouts before 128KB* has been sent when the size of data to upload is greater than 128KB* (*32KB on iPhone 3.0 SDK)
 		// This is to workaround the fact that kCFStreamPropertyHTTPRequestBytesWrittenCount is the amount written to the buffer, not the amount actually sent
@@ -2356,6 +2374,13 @@ static BOOL isiPhoneOS2;
 		CFReadStreamSetClient(readStream, kNetworkEvents, ReadStreamClientCallBack, &ctxt);
 		CFReadStreamScheduleWithRunLoop(readStream, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
 		readStreamIsScheduled = YES;
+		
+		// Start the HTTP connection
+		if (!CFReadStreamOpen(readStream)) {
+			[self destroyReadStream];
+			[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIInternalErrorWhileBuildingRequestType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Unable to start HTTP connection",NSLocalizedDescriptionKey,nil]]];
+			return;
+		}
 	}
 }
 

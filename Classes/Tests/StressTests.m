@@ -15,7 +15,7 @@ IMPORTANT
 
 #import "StressTests.h"
 #import "ASIHTTPRequest.h"
-
+#import "ASINetworkQueue.h"
 
 
 
@@ -31,6 +31,38 @@ IMPORTANT
 
 
 @implementation StressTests
+
+// A test for a potential crasher that used to exist when requests were cancelled
+// We aren't testing a specific condition here, but rather attempting to trigger a crash
+- (void)testCancelQueue
+{
+	ASINetworkQueue *queue = [ASINetworkQueue queue];
+	
+	// Increase the risk of this crash
+	[queue setMaxConcurrentOperationCount:25];
+	int i;
+	for (i=0; i<100; i++) {
+		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://127.0.0.1"]];
+		[queue addOperation:request];
+	}
+	[queue go];
+	[NSThread sleepUntilDate:[NSDate dateWithTimeIntervalSinceNow:2]];
+	[queue cancelAllOperations];
+	
+	// Run the test again with requests running on a background thread
+	queue = [ASINetworkQueue queue];
+	[queue setRunRequestsInBackgroundThread:YES];
+
+	[queue setMaxConcurrentOperationCount:25];
+	for (i=0; i<100; i++) {
+		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://127.0.0.1"]];
+		[queue addOperation:request];
+	}
+	[queue go];
+	[NSThread sleepUntilDate:[NSDate dateWithTimeIntervalSinceNow:2]];
+	[queue cancelAllOperations];
+	
+}
 
 // This test looks for thread-safety problems with cancelling requests
 // It will run for 30 seconds, creating a request, then cancelling it and creating another as soon as it gets some indication of progress
@@ -143,6 +175,9 @@ IMPORTANT
 		[self setCancelRequest:nil];
 	}
 }
+
+
+
 
 
 @synthesize cancelRequest;
