@@ -21,7 +21,7 @@
 #import "ASIInputStream.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.2-43 2009-12-18";
+NSString *ASIHTTPRequestVersion = @"v1.2-44 2009-12-18";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -867,6 +867,16 @@ static BOOL isiPhoneOS2;
         return;
     }
 	
+	// Start the HTTP connection
+	if (!CFReadStreamOpen(readStream)) {
+		[self destroyReadStream];
+		[[self cancelledLock] unlock];
+		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIInternalErrorWhileBuildingRequestType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Unable to start HTTP connection",NSLocalizedDescriptionKey,nil]]];
+		return;
+	}
+	
+	[[self cancelledLock] unlock];
+	
 	if (shouldResetProgressIndicators) {
 		double amount = 1;
 		if (showAccurateProgress) {
@@ -883,17 +893,16 @@ static BOOL isiPhoneOS2;
 	// Record when the request started, so we can timeout if nothing happens
 	[self setLastActivityTime:[NSDate date]];	
 	
-	
-	// Schedule the stream
-	if (!throttleWakeUpTime || [throttleWakeUpTime timeIntervalSinceDate:[NSDate date]] < 0) {
-		[self scheduleReadStream];		
-	}
-	
-	[[self cancelledLock] unlock];
+
 }
 
 - (void)loadAsynchronous
 {
+	// Schedule the stream
+	if (!readStreamIsScheduled && (!throttleWakeUpTime || [throttleWakeUpTime timeIntervalSinceDate:[NSDate date]] < 0)) {
+		[self scheduleReadStream];		
+	}
+	
 	[NSTimer scheduledTimerWithTimeInterval:0.25 target:self selector:@selector(updateStatus:) userInfo:nil repeats:YES];
 	
 	// If we're running asynchronously on the main thread, the runloop will already be running
@@ -907,6 +916,11 @@ static BOOL isiPhoneOS2;
 // This is the main loop for synchronous requests.
 - (void)loadSynchronous
 {
+	// Schedule the stream
+	if (!readStreamIsScheduled && (!throttleWakeUpTime || [throttleWakeUpTime timeIntervalSinceDate:[NSDate date]] < 0)) {
+		[self scheduleReadStream];		
+	}
+	
 	while (!complete) {
 		[self checkRequestStatus];
 		CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.25, NO);
@@ -968,7 +982,6 @@ static BOOL isiPhoneOS2;
 		} else {
 			[[self cancelledLock] unlock];
 			// Go all the way back to the beginning and build the request again, so that we can apply any new cookies
-			
 			[self main];
 		}
 		return;
@@ -990,10 +1003,6 @@ static BOOL isiPhoneOS2;
 		[self updateProgressIndicators];
 
 	}
-	
-	// This thread should wait for 1/4 second for the stream to do something
-	//CFRunLoopRunInMode(kCFRunLoopDefaultMode,0.25,NO);
-	
 	
 	[[self cancelledLock] unlock];
 }
@@ -2358,7 +2367,9 @@ static BOOL isiPhoneOS2;
 {
     if (readStream) {
 		CFReadStreamSetClient(readStream, kCFStreamEventNone, NULL, NULL);
-		CFReadStreamUnscheduleFromRunLoop(readStream, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
+		if (readStreamIsScheduled) {
+			CFReadStreamUnscheduleFromRunLoop(readStream, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
+		}
 		CFReadStreamClose(readStream);
 		CFRelease(readStream);
 		readStream = NULL;
@@ -2370,24 +2381,14 @@ static BOOL isiPhoneOS2;
 	if (readStream && !readStreamIsScheduled) {
 		// Reset the timeout
 		[self setLastActivityTime:[NSDate date]];
-		CFStreamClientContext ctxt = {0, self, NULL, NULL, NULL};
-		CFReadStreamSetClient(readStream, kNetworkEvents, ReadStreamClientCallBack, &ctxt);
 		CFReadStreamScheduleWithRunLoop(readStream, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
 		readStreamIsScheduled = YES;
-		
-		// Start the HTTP connection
-		if (!CFReadStreamOpen(readStream)) {
-			[self destroyReadStream];
-			[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIInternalErrorWhileBuildingRequestType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Unable to start HTTP connection",NSLocalizedDescriptionKey,nil]]];
-			return;
-		}
 	}
 }
 
 - (void)unscheduleReadStream
 {
 	if (readStream && readStreamIsScheduled) {
-		CFReadStreamSetClient(readStream, kCFStreamEventNone, NULL, NULL);
 		CFReadStreamUnscheduleFromRunLoop(readStream, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
 		readStreamIsScheduled = NO;
 	}

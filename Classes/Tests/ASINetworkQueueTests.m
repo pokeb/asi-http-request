@@ -695,6 +695,7 @@ IMPORTANT
 	[request setDownloadDestinationPath:downloadPath];
 	[request setTemporaryFileDownloadPath:temporaryPath];
 	[request setAllowResumeForFileDownloads:YES];
+	[networkQueue setRunRequestsInBackgroundThread:YES];
 	[networkQueue addOperation:request];
 	[networkQueue go];
 	 
@@ -754,6 +755,7 @@ IMPORTANT
 	[networkQueue setDownloadProgressDelegate:self];
 	[networkQueue setShowAccurateProgress:YES];
 	[networkQueue setDelegate:self];
+	[networkQueue setRunRequestsInBackgroundThread:YES];
 	[networkQueue setQueueDidFinishSelector:@selector(queueFinished:)];	
 	
 	request = [[[ASIHTTPRequest alloc] initWithURL:downloadURL] autorelease];
