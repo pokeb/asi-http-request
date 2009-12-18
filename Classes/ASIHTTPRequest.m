@@ -21,7 +21,7 @@
 #import "ASIInputStream.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.2-22 2009-12-18";
+NSString *ASIHTTPRequestVersion = @"v1.2-23 2009-12-18";
 
 // We use our own custom run loop mode as CoreAnimation seems to want to hijack our threads otherwise
 static CFStringRef ASIHTTPRequestRunMode = CFSTR("ASIHTTPRequest");
@@ -1449,7 +1449,13 @@ static BOOL isiPhoneOS2;
 			// Do we need to redirect?
 			if ([self shouldRedirect] && [responseHeaders valueForKey:@"Location"]) {
 				if ([self responseStatusCode] > 300 && [self responseStatusCode] < 308 && [self responseStatusCode] != 304) {
-					if ([self responseStatusCode] == 303) {
+					
+					// We redirect 301, 302 and 303 response codes as GET requests
+					// According to RFC 2616 this is wrong, but this is what most browsers do, so it's probably what you're expecting to happen
+					// See also:
+					// http://allseeing-i.lighthouseapp.com/projects/27881/tickets/27-302-redirection-issue
+					
+					if ([self responseStatusCode] < 304) {
 						[self setRequestMethod:@"GET"];
 						[self setPostBody:nil];
 						[self setPostLength:0];

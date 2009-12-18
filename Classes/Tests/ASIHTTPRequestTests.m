@@ -303,6 +303,7 @@
 - (void)testAutomaticRedirection
 {
 	ASIHTTPRequest *request;
+	ASIFormDataRequest *request2;
 	BOOL success;
 	int i;
 	for (i=301; i<308; i++) {
@@ -316,12 +317,19 @@
 		success = [[request responseString] isEqualToString:[NSString stringWithFormat:@"Non-redirected content with %hi status code",i]];
 		GHAssertTrue(success,[NSString stringWithFormat:@"Got the wrong content when not redirecting after a %hi",i]);
 	
-		request = [ASIHTTPRequest requestWithURL:url];
-		[request start];
-		success = [[request responseString] isEqualToString:[NSString stringWithFormat:@"Redirected content after a %hi status code",i]];
+		request2 = [ASIFormDataRequest requestWithURL:url];
+		[request2 setPostValue:@"foo" forKey:@"eep"];
+		[request2 start];
+		
+		NSString *method = @"GET";
+		if (i>304) {
+			method = @"POST";
+		}
+		
+		success = [[request2 responseString] isEqualToString:[NSString stringWithFormat:@"Redirected as %@ after a %hi status code",method,i]];
 		GHAssertTrue(success,[NSString stringWithFormat:@"Got the wrong content when redirecting after a %hi",i]);
 	
-		success = ([request responseStatusCode] == 200);
+		success = ([request2 responseStatusCode] == 200);
 		GHAssertTrue(success,[NSString stringWithFormat:@"Got the wrong status code (expected %hi)",i]);
 
 	}
