@@ -46,6 +46,7 @@ IMPORTANT
 	BOOL started;
 	BOOL finished;
 	BOOL failed;
+	BOOL headFailed;
 }
 - (void)testBackgroundThreadedRequests;
 - (void)testFailure;
@@ -67,7 +68,7 @@ IMPORTANT
 
 - (void)testDelegateAuthenticationCredentialsReuse;
 - (void)testPOSTWithAuthentication;
-
+- (void)testHEADFailure;
 @property (retain) NSOperationQueue *immediateCancelQueue;
 @property (retain) NSMutableArray *failedRequests;
 @property (retain) NSMutableArray *finishedRequests;
