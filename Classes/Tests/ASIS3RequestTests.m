@@ -220,6 +220,35 @@ static NSString *bucket = @"";
 	
 	success = [[[request error] localizedDescription] isEqualToString:@"The specified key does not exist."];
 	GHAssertTrue(success, @"Got the wrong error message");	
+	
+	// PUT some data
+	NSData *data = [@"Hello" dataUsingEncoding:NSUTF8StringEncoding];
+	request = [ASIS3Request PUTRequestForData:data withBucket:bucket path:path];
+	[request setMimeType:@"text/plain"];
+	[request setSecretAccessKey:secretAccessKey];
+	[request setAccessKey:accessKey];
+	[request start];
+	success = [[request responseString] isEqualToString:@""];
+	GHAssertTrue(success,@"Failed to PUT data to S3");
+	
+	// GET the data to check it uploaded properly
+	request = [ASIS3Request requestWithBucket:bucket path:path];
+	[request setSecretAccessKey:secretAccessKey];
+	[request setAccessKey:accessKey];
+	[request start];
+	success = [[request responseString] isEqualToString:@"Hello"];
+	GHAssertTrue(success,@"Failed to GET the correct data from S3");	
+	
+	// clean up (Delete it)
+	request = [ASIS3Request requestWithBucket:bucket path:path];
+	[request setSecretAccessKey:secretAccessKey];
+	[request setRequestMethod:@"DELETE"];
+	[request setAccessKey:accessKey];
+	[request start];
+	success = [[request responseString] isEqualToString:@""];
+	GHAssertTrue(success,@"Failed to DELETE the file from S3");	
+	
+	
 }
 
 // Will upload a file to S3, gzipping it before uploading
@@ -463,7 +492,13 @@ static NSString *bucket = @"";
 	[[self networkQueue] go];
 
 }
-	 
+	
+// Will be called on Mac OS
+- (void)setDoubleValue:(double)newProgress;
+{
+	progress = (float)newProgress;
+}
+
  - (void)setProgress:(float)newProgress;
 {
 	progress = newProgress;

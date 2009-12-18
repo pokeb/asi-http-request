@@ -37,6 +37,14 @@ static NSString *sharedSecretAccessKey = nil;
 	return request;
 }
 
++ (id)PUTRequestForData:(NSData *)data withBucket:(NSString *)bucket path:(NSString *)path
+{
+	ASIS3Request *request = [self requestWithBucket:bucket path:path];
+	[request appendPostData:data];
+	[request setRequestMethod:@"PUT"];
+	return request;
+}
+
 + (id)PUTRequestForFile:(NSString *)filePath withBucket:(NSString *)bucket path:(NSString *)path
 {
 	ASIS3Request *request = [self requestWithBucket:bucket path:path];
