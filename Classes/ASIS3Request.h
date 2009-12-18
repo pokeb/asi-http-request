@@ -69,6 +69,9 @@ typedef enum _ASIS3ErrorType {
 // Create a PUT request using the file at filePath as the body
 + (id)PUTRequestForFile:(NSString *)filePath withBucket:(NSString *)bucket path:(NSString *)path;
 
+// Create a PUT request using the supplied NSData as the body (set the mime-type manually with setMimeType: if necessary)
++ (id)PUTRequestForData:(NSData *)data withBucket:(NSString *)bucket path:(NSString *)path;
+	
 // Create a DELETE request for the object at path
 + (id)DELETERequestWithBucket:(NSString *)bucket path:(NSString *)path;
 
