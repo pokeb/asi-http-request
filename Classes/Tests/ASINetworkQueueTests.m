@@ -1089,6 +1089,33 @@ IMPORTANT
 	GHAssertTrue(success,@"Failed to send credentials correctly? (Expected: '%@', got '%@')",expectedResponse,[[request responseString] lowercaseString]);
 }
 
+// Test for a bug where failing head requests would not notify the original request's delegate of the failure
+- (void)testHEADFailure
+{
+	headFailed = NO;
+	ASINetworkQueue *queue = [ASINetworkQueue queue];
+	[queue setShowAccurateProgress:YES];
+	
+	[queue setDelegate:self];
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://999.123"]];
+	[request setDelegate:self];
+	[request setDidFailSelector:@selector(HEADFail:)];
+	[queue addOperation:request];
+	[queue go];
+	
+	[queue waitUntilAllOperationsAreFinished];
+	
+	// Hope the request gets around to notifying the delegate in time
+	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:2]];
+	
+	GHAssertTrue(headFailed,@"Failed to notify the request's delegate");
+}
+
+- (void)HEADFail:(ASIHTTPRequest *)request
+{
+	headFailed = YES;	
+}
+
 @synthesize immediateCancelQueue;
 @synthesize failedRequests;
 @synthesize finishedRequests;
