@@ -237,13 +237,13 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	// This lock prevents the operation from being cancelled at an inopportune moment
 	NSRecursiveLock *cancelledLock;
 	
-	// Called on the delegate when the request starts
+	// Called on the delegate (if implemented) when the request starts. Default is requestStarted:
 	SEL didStartSelector;
 	
-	// Called on the delegate when the request completes successfully
+	// Called on the delegate (if implemented) when the request completes successfully. Default is requestFinished:
 	SEL didFinishSelector;
 	
-	// Called on the delegate when the request fails
+	// Called on the delegate (if implemented) when the request fails. Default is requestFailed:
 	SEL didFailSelector;
 	
 	// Used for recording when something last happened during the request, we will compare this value with the current date to time out requests when appropriate
@@ -400,13 +400,13 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 
 #pragma mark handling request complete / failure
 
-// Called when a request starts, lets the delegate now via didStartSelector
+// Called when a request starts, lets the delegate know via didStartSelector
 - (void)requestStarted;
 
-// Called when a request completes successfully, lets the delegate now via didFinishSelector
+// Called when a request completes successfully, lets the delegate know via didFinishSelector
 - (void)requestFinished;
 
-// Called when a request fails, and lets the delegate now via didFailSelector
+// Called when a request fails, and lets the delegate know via didFailSelector
 - (void)failWithError:(NSError *)theError;
 
 #pragma mark parsing HTTP response headers
