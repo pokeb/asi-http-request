@@ -612,51 +612,52 @@ static BOOL isiPhoneOS2;
 - (void)applyAuthorizationHeader
 {
 	// Do we want to send credentials before we are asked for them?
-	if ([self shouldPresentCredentialsBeforeChallenge]) {
+	if (![self shouldPresentCredentialsBeforeChallenge]) {
+		return;
+	}
 		
-		// First, see if we have any credentials we can use in the session store
-		NSDictionary *credentials = nil;
-		if ([self useSessionPersistance]) {
-			credentials = [self findSessionAuthenticationCredentials];
+	// First, see if we have any credentials we can use in the session store
+	NSDictionary *credentials = nil;
+	if ([self useSessionPersistance]) {
+		credentials = [self findSessionAuthenticationCredentials];
+	}
+	
+	
+	// Are any credentials set on this request that might be used for basic authentication?
+	if ([self username] && [self password] && ![self domain]) {
+		
+		// If we have stored credentials, is this server asking for basic authentication? If we don't have credentials, we'll assume basic
+		if (!credentials || (CFStringRef)[credentials objectForKey:@"AuthenticationScheme"] == kCFHTTPAuthenticationSchemeBasic) {
+			[self addBasicAuthenticationHeaderWithUsername:[self username] andPassword:[self password]];
 		}
+	}
+	
+	if (credentials && ![[self requestHeaders] objectForKey:@"Authorization"]) {
 		
-		
-		// Are any credentials set on this request that might be used for basic authentication?
-		if ([self username] && [self password] && ![self domain]) {
+		// When the Authentication key is set, the credentials were stored after an authentication challenge, so we can let CFNetwork apply them
+		// (credentials for Digest and NTLM will always be stored like this)
+		if ([credentials objectForKey:@"Authentication"]) {
 			
-			// If we have stored credentials, is this server asking for basic authentication? If we don't have credentials, we'll assume basic
-			if (!credentials || (CFStringRef)[credentials objectForKey:@"AuthenticationScheme"] == kCFHTTPAuthenticationSchemeBasic) {
-				[self addBasicAuthenticationHeaderWithUsername:[self username] andPassword:[self password]];
+			// If we've already talked to this server and have valid credentials, let's apply them to the request
+			if (!CFHTTPMessageApplyCredentialDictionary(request, (CFHTTPAuthenticationRef)[credentials objectForKey:@"Authentication"], (CFDictionaryRef)[credentials objectForKey:@"Credentials"], NULL)) {
+				[[self class] removeAuthenticationCredentialsFromSessionStore:[credentials objectForKey:@"Credentials"]];
 			}
-		}
-		
-		if (credentials && ![[self requestHeaders] objectForKey:@"Authorization"]) {
 			
-			// When the Authentication key is set, the credentials were stored after an authentication challenge, so we can let CFNetwork apply them
-			// (credentials for Digest and NTLM will always be stored like this)
-			if ([credentials objectForKey:@"Authentication"]) {
-				
-				// If we've already talked to this server and have valid credentials, let's apply them to the request
-				if (!CFHTTPMessageApplyCredentialDictionary(request, (CFHTTPAuthenticationRef)[credentials objectForKey:@"Authentication"], (CFDictionaryRef)[credentials objectForKey:@"Credentials"], NULL)) {
-					[[self class] removeAuthenticationCredentialsFromSessionStore:[credentials objectForKey:@"Credentials"]];
-				}
-				
-				// If the Authentication key is not set, these credentials were stored after a username and password set on a previous request passed basic authentication
-				// When this happens, we'll need to create the Authorization header ourselves
-			} else {
-				NSDictionary *usernameAndPassword = [credentials objectForKey:@"Credentials"];
-				[self addBasicAuthenticationHeaderWithUsername:[usernameAndPassword objectForKey:(NSString *)kCFHTTPAuthenticationUsername] andPassword:[usernameAndPassword objectForKey:(NSString *)kCFHTTPAuthenticationPassword]];
+			// If the Authentication key is not set, these credentials were stored after a username and password set on a previous request passed basic authentication
+			// When this happens, we'll need to create the Authorization header ourselves
+		} else {
+			NSDictionary *usernameAndPassword = [credentials objectForKey:@"Credentials"];
+			[self addBasicAuthenticationHeaderWithUsername:[usernameAndPassword objectForKey:(NSString *)kCFHTTPAuthenticationUsername] andPassword:[usernameAndPassword objectForKey:(NSString *)kCFHTTPAuthenticationPassword]];
+		}
+	}
+	if ([self useSessionPersistance]) {
+		credentials = [self findSessionProxyAuthenticationCredentials];
+		if (credentials) {
+			if (!CFHTTPMessageApplyCredentialDictionary(request, (CFHTTPAuthenticationRef)[credentials objectForKey:@"Authentication"], (CFDictionaryRef)[credentials objectForKey:@"Credentials"], NULL)) {
+				[[self class] removeProxyAuthenticationCredentialsFromSessionStore:[credentials objectForKey:@"Credentials"]];
 			}
 		}
-		if ([self useSessionPersistance]) {
-			credentials = [self findSessionProxyAuthenticationCredentials];
-			if (credentials) {
-				if (!CFHTTPMessageApplyCredentialDictionary(request, (CFHTTPAuthenticationRef)[credentials objectForKey:@"Authentication"], (CFDictionaryRef)[credentials objectForKey:@"Credentials"], NULL)) {
-					[[self class] removeProxyAuthenticationCredentialsFromSessionStore:[credentials objectForKey:@"Credentials"]];
-				}
-			}
-		}
-	}	
+	}
 }
 
 - (void)buildRequestHeaders
