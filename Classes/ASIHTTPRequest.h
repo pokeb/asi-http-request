@@ -324,6 +324,13 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	// When set to yes, this request will create a thread to run itself in
 	// On Snow Leopard, requests using a queue will always run in a background thread, so this does nothing when using a queue on that platform
 	BOOL shouldRunInBackgroundThread;
+	
+	// Set to allow a request to automatically retry itself on timeout
+	// Default is zero - timeout will stop the request
+	int numberOfTimesToRetryOnTimeout;
+
+	// The number of times this request has retried (when numberOfTimesToRetryOnTimeout > 0)
+	int retryCount;
 }
 
 #pragma mark init / dealloc
@@ -373,9 +380,6 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 - (void)startAsynchronous;
 
 #pragma mark request logic
-
-// Start the read stream. Called by loadRequest, and again to restart the request when authentication is needed
-- (void)startRequest;
 
 // Call to delete the temporary file used during a file download (if it exists)
 // No need to call this if the request succeeds - it is removed automatically
@@ -660,4 +664,6 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 @property (assign, readonly) BOOL isSynchronous;
 @property (assign, readonly) BOOL inProgress;
 @property (assign) BOOL shouldRunInBackgroundThread;
+@property (assign) int numberOfTimesToRetryOnTimeout;
+@property (assign, readonly) int retryCount;
 @end

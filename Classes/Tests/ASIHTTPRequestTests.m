@@ -1216,4 +1216,15 @@
 	}
 }
 #endif
+
+- (void)testAutomaticRetry
+{
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
+	[request setTimeOutSeconds:0.001];
+	[request setNumberOfTimesToRetryOnTimeout:5];
+	[request startSynchronous];
+	GHAssertNotNil([request error],@"Request failed to timeout, cannot proceed with test");
+	BOOL success = ([request retryCount] == 5);
+	GHAssertTrue(success,@"Request failed to retry on timeout");
+}
 @end

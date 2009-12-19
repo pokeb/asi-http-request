@@ -57,4 +57,5 @@
 #if TARGET_OS_IPHONE
 - (void)testReachability;
 #endif
+- (void)testAutomaticRetry;
 @end

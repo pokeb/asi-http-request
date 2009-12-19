@@ -21,7 +21,7 @@
 #import "ASIInputStream.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.2-45 2009-12-18";
+NSString *ASIHTTPRequestVersion = @"v1.2-51 2009-12-19";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -106,12 +106,15 @@ static BOOL isiPhoneOS2;
 
 - (void)destroyReadStream;
 - (void)scheduleReadStream;
-- (void)scheduleReadStream;
+- (void)unscheduleReadStream;
 
 - (BOOL)askDelegateForCredentials;
 - (BOOL)askDelegateForProxyCredentials;
 + (void)measureBandwidthUsage;
 + (void)recordBandwidthUsage;
+
+// Start the read stream. Called by loadRequest, and again to restart the request when authentication is needed
+- (void)startRequest;
 
 #if TARGET_OS_IPHONE
 + (void)registerForNetworkReachabilityNotifications;
@@ -150,6 +153,7 @@ static BOOL isiPhoneOS2;
 @property (retain) NSString *responseStatusMessage;
 @property (assign) BOOL isSynchronous;
 @property (assign) BOOL inProgress;
+@property (assign) int retryCount;
 @end
 
 
@@ -533,7 +537,6 @@ static BOOL isiPhoneOS2;
 	[pool release];
 }
 
-
 #pragma mark concurrency
 
 - (BOOL)isConcurrent
@@ -751,7 +754,7 @@ static BOOL isiPhoneOS2;
 	[self setTotalBytesRead:0];
 	[self setLastBytesRead:0];
 	
-	// If we're retrying a request after an authentication failure, let's remove any progress we made
+	// If we're retrying a request, let's remove any progress we made
 	if ([self lastBytesSent] > 0) {
 		[self removeUploadProgressSoFar];
 	}
@@ -967,6 +970,15 @@ static BOOL isiPhoneOS2;
 		// This is to workaround the fact that kCFStreamPropertyHTTPRequestBytesWrittenCount is the amount written to the buffer, not the amount actually sent
 		// This workaround prevents erroneous timeouts in low bandwidth situations (eg iPhone)
 		if (totalBytesSent || postLength <= uploadBufferSize || (uploadBufferSize > 0 && totalBytesSent > uploadBufferSize)) {
+			
+			// Do we need to auto-retry this request?
+			if ([self numberOfTimesToRetryOnTimeout] > [self retryCount]) {
+				[self setRetryCount:[self retryCount]+1];
+				[self unscheduleReadStream];
+				[[self cancelledLock] unlock];
+				[self startRequest];
+				return;
+			}
 			[self failWithError:ASIRequestTimedOutError];
 			[self cancelLoad];
 			[self setComplete:YES];
@@ -3356,6 +3368,8 @@ static BOOL isiPhoneOS2;
 @synthesize isSynchronous;
 @synthesize inProgress;
 @synthesize shouldRunInBackgroundThread;
+@synthesize numberOfTimesToRetryOnTimeout;
+@synthesize retryCount;
 @end
 
 
