@@ -124,6 +124,18 @@ static NSDateFormatter *dateFormatter = nil;
 	[self setCurrentContent:[[self currentContent] stringByAppendingString:string]];
 }
 
+#pragma mark NSCopying
+
+- (id)copyWithZone:(NSZone *)zone
+{
+	ASIS3ListRequest *newRequest = [super copyWithZone:zone];
+	[newRequest setPrefix:[self prefix]];
+	[newRequest setMarker:[self marker]];
+	[newRequest setMaxResultCount:[self maxResultCount]];
+	[newRequest setDelimiter:[self path]];
+	return newRequest;
+}
+
 
 @synthesize currentContent;
 @synthesize currentElement;

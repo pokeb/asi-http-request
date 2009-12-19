@@ -16,7 +16,7 @@ typedef enum _ASIPostFormat {
 	
 } ASIPostFormat;
 
-@interface ASIFormDataRequest : ASIHTTPRequest {
+@interface ASIFormDataRequest : ASIHTTPRequest <NSCopying> {
 
 	// Parameters that will be POSTed to the url
 	NSMutableDictionary *postData;

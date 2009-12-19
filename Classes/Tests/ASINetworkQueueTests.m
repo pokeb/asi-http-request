@@ -1131,6 +1131,20 @@ IMPORTANT
 	headFailed = YES;	
 }
 
+- (void)testCopy
+{
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+
+	ASINetworkQueue *queue = [ASINetworkQueue queue];
+	ASINetworkQueue *queue2 = [queue copy];
+	GHAssertNotNil(queue2,@"Failed to create a copy");
+	
+	[pool release];
+	
+	BOOL success = ([queue2 retainCount] > 0);
+	GHAssertTrue(success,@"Failed to create a retained copy");
+}
+
 @synthesize immediateCancelQueue;
 @synthesize failedRequests;
 @synthesize finishedRequests;

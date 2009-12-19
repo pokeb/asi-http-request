@@ -24,9 +24,9 @@ typedef enum _ASIS3ErrorType {
 
 // Prevent warning about missing NSXMLParserDelegate on Leopard and iPhone
 #if !TARGET_OS_IPHONE && MAC_OS_X_VERSION_10_5 < MAC_OS_X_VERSION_MAX_ALLOWED
-@interface ASIS3Request : ASIHTTPRequest <NSXMLParserDelegate> {
+@interface ASIS3Request : ASIHTTPRequest <NSCopying, NSXMLParserDelegate> {
 #else
-@interface ASIS3Request : ASIHTTPRequest {
+@interface ASIS3Request : ASIHTTPRequest <NSCopying> {
 
 #endif
 	// Your S3 access key. Set it on the request, or set it globally using [ASIS3Request setSharedAccessKey:]

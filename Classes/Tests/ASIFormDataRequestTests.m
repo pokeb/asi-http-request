@@ -180,6 +180,20 @@
 
 }
 
+- (void)testCopy
+{
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	
+	ASIFormDataRequest *request = [ASIFormDataRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
+	ASIFormDataRequest *request2 = [request copy];
+	GHAssertNotNil(request2,@"Failed to create a copy");
+	
+	[pool release];
+	BOOL success = ([request2 retainCount] == 1);
+	GHAssertTrue(success,@"Failed to create a retained copy");
+	success = ([request2 isKindOfClass:[ASIFormDataRequest class]]);
+	GHAssertTrue(success,@"Copy is of wrong class");
+}
 
 
 @end

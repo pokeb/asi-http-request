@@ -290,6 +290,18 @@
 }
 #endif
 
+#pragma mark NSCopying
+
+- (id)copyWithZone:(NSZone *)zone
+{
+	ASIFormDataRequest *newRequest = [super copyWithZone:zone];
+	[newRequest setPostData:[[[self postData] copyWithZone:zone] autorelease]];
+	[newRequest setFileData:[[[self fileData] copyWithZone:zone] autorelease]];
+	[newRequest setPostFormat:[self postFormat]];
+	[newRequest setStringEncoding:[self stringEncoding]];
+	return newRequest;
+}
+
 @synthesize postData;
 @synthesize fileData;
 @synthesize postFormat;

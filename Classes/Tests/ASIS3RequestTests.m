@@ -504,6 +504,49 @@ static NSString *bucket = @"";
 	progress = newProgress;
 }
 
+
+- (void)testCopy
+{
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+
+	ASIS3Request *request = [ASIS3Request requestWithBucket:@"foo" path:@"eep"];
+	ASIS3Request *request2 = [request copy];
+	GHAssertNotNil(request2,@"Failed to create a copy");
+	
+	[pool release];
+	
+	BOOL success = ([request2 retainCount] > 0);
+	GHAssertTrue(success,@"Failed to create a retained copy");
+	success = ([request2 isKindOfClass:[ASIS3Request class]]);
+	GHAssertTrue(success,@"Copy is of wrong class");
+	
+	pool = [[NSAutoreleasePool alloc] init];
+
+	
+	ASIS3ListRequest *request3 = [ASIS3ListRequest listRequestWithBucket:@"foo"];
+	ASIS3ListRequest *request4 = [request3 copy];
+	GHAssertNotNil(request4,@"Failed to create a copy");
+	
+	[pool release];
+	
+	success = ([request4 retainCount] > 0);
+	GHAssertTrue(success,@"Failed to create a retained copy");
+	success = ([request4 isKindOfClass:[ASIS3ListRequest class]]);
+	GHAssertTrue(success,@"Copy is of wrong class");
+	
+	pool = [[NSAutoreleasePool alloc] init];
+
+	
+	ASIS3BucketObject *bucketObject = [ASIS3BucketObject objectWithBucket:@"foo"];
+	ASIS3BucketObject *bucketObject2 = [bucketObject copy];
+	GHAssertNotNil(bucketObject2,@"Failed to create a copy");
+	
+	[pool release];
+	
+	success = ([bucketObject2 retainCount] > 0);
+	GHAssertTrue(success,@"Failed to create a retained copy");
+}
+
 @synthesize networkQueue;
 
 @end

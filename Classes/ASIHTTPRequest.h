@@ -48,7 +48,7 @@ extern NSString* const NetworkRequestErrorDomain;
 // This number is not official, as far as I know there is no officially documented bandwidth limit
 extern unsigned long const ASIWWANBandwidthThrottleAmount;
 
-@interface ASIHTTPRequest : NSOperation {
+@interface ASIHTTPRequest : NSOperation <NSCopying> {
 	
 	// The url for this operation, should include GET params in the query string where appropriate
 	NSURL *url; 

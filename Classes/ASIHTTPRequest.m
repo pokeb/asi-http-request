@@ -21,7 +21,7 @@
 #import "ASIInputStream.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.2-51 2009-12-19";
+NSString *ASIHTTPRequestVersion = @"v1.2-52 2009-12-19";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -941,9 +941,11 @@ static BOOL isiPhoneOS2;
 {	
 	[self checkRequestStatus];
 	if ([self complete] || [self error]) {
+		if (![self error]) {
+			[self willChangeValueForKey:@"isFinished"];
+			[self didChangeValueForKey:@"isFinished"];
+		}
 		[timer invalidate];
-		[self willChangeValueForKey:@"isFinished"];
-		[self didChangeValueForKey:@"isFinished"];
 		CFRunLoopStop(CFRunLoopGetCurrent());
 	}
 }
@@ -1423,14 +1425,14 @@ static BOOL isiPhoneOS2;
 		return;
 	}
 	
+	[self setError:theError];
+	
 	ASIHTTPRequest *failedRequest = self;
 	
 	// If this is a HEAD request created by an ASINetworkQueue or compatible queue delegate, make the main request fail
 	if ([self mainRequest]) {
 		failedRequest = [self mainRequest];
 	}
-	
-	[failedRequest setError:theError];
 
 	// Let the queue know something went wrong
 	if ([[failedRequest queue] respondsToSelector:@selector(requestDidFail:)]) {
@@ -1440,6 +1442,12 @@ static BOOL isiPhoneOS2;
 	// Let the delegate know something went wrong
 	if ([failedRequest didFailSelector] && [[failedRequest delegate] respondsToSelector:[failedRequest didFailSelector]]) {
 		[[failedRequest delegate] performSelectorOnMainThread:[failedRequest didFailSelector] withObject:failedRequest waitUntilDone:[NSThread isMainThread]];	
+	}
+	[self willChangeValueForKey:@"isFinished"];
+	[self didChangeValueForKey:@"isFinished"];
+	
+	if ([self mainRequest]) {
+		[[self mainRequest] failWithError:[self error]];
 	}
 }
 
@@ -2413,9 +2421,58 @@ static BOOL isiPhoneOS2;
 	}
 }
 
+#pragma mark NSCopying
 
+- (id)copyWithZone:(NSZone *)zone
+{
+	// Don't forget - this will return a retained copy!
+	ASIHTTPRequest *newRequest = [[[self class] alloc] initWithURL:[self url]];
+	[newRequest setDelegate:[self delegate]];
+	[newRequest setRequestMethod:[self requestMethod]];
+	[newRequest setPostBody:[self postBody]];
+	[newRequest setShouldStreamPostDataFromDisk:[self shouldStreamPostDataFromDisk]];
+	[newRequest setPostBodyFilePath:[self postBodyFilePath]];
+	[newRequest setRequestHeaders:[[[self requestHeaders] copyWithZone:zone] autorelease]];
+	[newRequest setRequestCookies:[[[self requestCookies] copyWithZone:zone] autorelease]];
+	[newRequest setUseCookiePersistance:[self useCookiePersistance]];
+	[newRequest setUseKeychainPersistance:[self useKeychainPersistance]];
+	[newRequest setUseSessionPersistance:[self useSessionPersistance]];
+	[newRequest setAllowCompressedResponse:[self allowCompressedResponse]];
+	[newRequest setDownloadDestinationPath:[self downloadDestinationPath]];
+	[newRequest setTemporaryFileDownloadPath:[self temporaryFileDownloadPath]];
+	[newRequest setUsername:[self username]];
+	[newRequest setPassword:[self password]];
+	[newRequest setDomain:[self domain]];
+	[newRequest setProxyUsername:[self proxyUsername]];
+	[newRequest setProxyPassword:[self proxyPassword]];
+	[newRequest setProxyDomain:[self proxyDomain]];
+	[newRequest setProxyHost:[self proxyHost]];
+	[newRequest setProxyPort:[self proxyPort]];
+	[newRequest setUploadProgressDelegate:[self uploadProgressDelegate]];
+	[newRequest setDownloadProgressDelegate:[self downloadProgressDelegate]];
+	[newRequest setShouldPresentAuthenticationDialog:[self shouldPresentAuthenticationDialog]];
+	[newRequest setShouldPresentProxyAuthenticationDialog:[self shouldPresentProxyAuthenticationDialog]];
+	[newRequest setPostLength:[self postLength]];
+	[newRequest setHaveBuiltPostBody:[self haveBuiltPostBody]];
+	[newRequest setDidStartSelector:[self didStartSelector]];
+	[newRequest setDidFinishSelector:[self didFinishSelector]];
+	[newRequest setDidFailSelector:[self didFailSelector]];
+	[newRequest setTimeOutSeconds:[self timeOutSeconds]];
+	[newRequest setShouldResetProgressIndicators:[self shouldResetProgressIndicators]];
+	[newRequest setShowAccurateProgress:[self showAccurateProgress]];
+	[newRequest setDefaultResponseEncoding:[self defaultResponseEncoding]];
+	[newRequest setAllowResumeForFileDownloads:[self allowResumeForFileDownloads]];
+	[newRequest setUserInfo:[[[self userInfo] copyWithZone:zone] autorelease]];
+	[newRequest setUseHTTPVersionOne:[self useHTTPVersionOne]];
+	[newRequest setShouldRedirect:[self shouldRedirect]];
+	[newRequest setValidatesSecureCertificate:[self validatesSecureCertificate]];
+	[newRequest setPACurl:[self PACurl]];
+	[newRequest setShouldPresentCredentialsBeforeChallenge:[self shouldPresentCredentialsBeforeChallenge]];
+	[newRequest setNumberOfTimesToRetryOnTimeout:[self numberOfTimesToRetryOnTimeout]];
+	return newRequest;
+}
 
-# pragma mark session credentials
+#pragma mark session credentials
 
 + (NSMutableArray *)sessionProxyCredentialsStore
 {

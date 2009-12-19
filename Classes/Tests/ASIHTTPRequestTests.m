@@ -1227,4 +1227,19 @@
 	BOOL success = ([request retryCount] == 5);
 	GHAssertTrue(success,@"Request failed to retry on timeout");
 }
+
+- (void)testCopy
+{
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
+	ASIHTTPRequest *request2 = [request copy];
+	
+	[pool release];
+	
+	GHAssertNotNil(request2,@"Failed to create a copy");
+	BOOL success = ([request2 retainCount] == 1);
+	GHAssertTrue(success,@"Failed to create a retained copy");
+}
+
 @end

@@ -216,6 +216,20 @@ static NSString *sharedSecretAccessKey = nil;
 	[self setCurrentErrorString:[[self currentErrorString] stringByAppendingString:string]];
 }
 
+- (id)copyWithZone:(NSZone *)zone
+{
+	ASIS3Request *newRequest = [super copyWithZone:zone];
+	[newRequest setAccessKey:[self accessKey]];
+	[newRequest setSecretAccessKey:[self secretAccessKey]];
+	[newRequest setBucket:[self bucket]];
+	[newRequest setPath:[self path]];
+	[newRequest setMimeType:[self mimeType]];
+	[newRequest setAccessPolicy:[self accessPolicy]];
+	[newRequest setSourceBucket:[self sourceBucket]];
+	[newRequest setSourcePath:[self sourcePath]];
+	return newRequest;
+}
+
 
 #pragma mark Shared access keys
 
