@@ -9,6 +9,7 @@
 #import "PerformanceTests.h"
 #import "ASIHTTPRequest.h"
 
+
 @interface NSURLConnectionSubclass : NSURLConnection {
 	int tag;
 }
@@ -21,9 +22,103 @@
 
 @implementation PerformanceTests
 
+- (void)setUp
+{
+	[self setTestURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
+}
+
+- (void)testASIHTTPRequestSynchronousPerformance
+{
+	[self performSelectorOnMainThread:@selector(runSynchronousASIHTTPRequests) withObject:nil waitUntilDone:YES];
+}
+
+
+- (void)runSynchronousASIHTTPRequests
+{
+	int runTimes = 10;
+	NSTimeInterval times[runTimes];
+	int i;
+	for (i=0; i<runTimes; i++) {
+		NSDate *startTime = [NSDate date];
+		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:testURL];
+		//Send the same headers as NSURLRequest
+		[request addRequestHeader:@"Pragma" value:@"no-cache"];
+		[request addRequestHeader:@"Accept" value:@"*/*"];
+		[request addRequestHeader:@"Accept-Language" value:@"en/us"];
+		[request setUseCookiePersistance:NO];
+		[request setUseSessionPersistance:NO];
+		//[request setShouldRunInBackgroundThread:YES];
+		[request startSynchronous];
+		if ([request error]) {
+			NSLog(@"Request failed - cannot proceed with test");
+			return;
+		}
+		times[i] = [[NSDate date] timeIntervalSinceDate:startTime];
+	}
+	NSTimeInterval bestTime = 1000;
+	NSTimeInterval worstTime = 0;
+	NSTimeInterval totalTime = 0;
+	for (i=0; i<runTimes; i++) {
+		if (times[i] < bestTime) {
+			bestTime = times[i];
+		}
+		if (times[i] > worstTime) {
+			worstTime = times[i];
+		}
+		totalTime += times[i];
+	}
+	NSLog(@"Ran runTimes requests in %f seconds (average time: %f secs / best time: %f secs / worst time: %f secs)",totalTime,totalTime/runTimes,bestTime,worstTime);
+}
+
+
+- (void)testNSURLConnectionSynchronousPerformance
+{
+	[self performSelectorOnMainThread:@selector(runSynchronousNSURLConnections) withObject:nil waitUntilDone:YES];
+}
+
+
+- (void)runSynchronousNSURLConnections
+{
+	int runTimes = 10;
+	NSTimeInterval times[runTimes];
+	int i;
+	for (i=0; i<runTimes; i++) {
+		NSDate *startTime = [NSDate date];
+		
+		NSURLResponse *response = nil;
+		NSError *error = nil;
+		NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:testURL cachePolicy:NSURLRequestReloadIgnoringLocalCacheData timeoutInterval:10];
+		[NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
+		if (error) {
+			NSLog(@"Request failed - cannot proceed with test");
+			return;
+		}
+		times[i] = [[NSDate date] timeIntervalSinceDate:startTime];
+	}
+	NSTimeInterval bestTime = 1000;
+	NSTimeInterval worstTime = 0;
+	NSTimeInterval totalTime = 0;
+	for (i=0; i<runTimes; i++) {
+		if (times[i] < bestTime) {
+			bestTime = times[i];
+		}
+		if (times[i] > worstTime) {
+			worstTime = times[i];
+		}
+		totalTime += times[i];
+	}
+	NSLog(@"Ran runTimes requests in %f seconds (average time: %f secs / best time: %f secs / worst time: %f secs)",totalTime,totalTime/runTimes,bestTime,worstTime);
+}
+
+
 - (void)testASIHTTPRequestAsyncPerformance
 {
 	[self performSelectorOnMainThread:@selector(startASIHTTPRequests) withObject:nil waitUntilDone:NO];
+}
+
+- (void)testASIHTTPRequestAsyncPerformanceWithQueue
+{
+	[self performSelectorOnMainThread:@selector(startASIHTTPRequestsWithQueue) withObject:nil waitUntilDone:NO];
 }
 
 
@@ -35,8 +130,30 @@
 	int i;
 	for (i=0; i<10; i++) {
 		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_great_american_novel_(abridged).txt"]];
+		//Send the same headers as NSURLRequest
+		[request addRequestHeader:@"Pragma" value:@"no-cache"];
+		[request addRequestHeader:@"Accept" value:@"*/*"];
+		[request addRequestHeader:@"Accept-Language" value:@"en/us"];
 		[request setDelegate:self];
 		[request start];
+	}
+}
+
+- (void)startASIHTTPRequestsWithQueue
+{
+	bytesDownloaded = 0;
+	[self setRequestsComplete:0];
+	[self setTestStartDate:[NSDate date]];
+	int i;
+	NSOperationQueue *queue = [[[NSOperationQueue alloc] init] autorelease];
+	for (i=0; i<10; i++) {
+		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_great_american_novel_(abridged).txt"]];
+		//Send the same headers as NSURLRequest
+		[request addRequestHeader:@"Pragma" value:@"no-cache"];
+		[request addRequestHeader:@"Accept" value:@"*/*"];
+		[request addRequestHeader:@"Accept-Language" value:@"en/us"];
+		[request setDelegate:self];
+		[queue addOperation:request];
 	}
 }
 
@@ -99,6 +216,7 @@
 	}		
 }
 
+@synthesize testURL;
 @synthesize requestsComplete;
 @synthesize testStartDate;
 @synthesize responseData;

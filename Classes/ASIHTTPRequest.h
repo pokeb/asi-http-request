@@ -331,6 +331,14 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 
 	// The number of times this request has retried (when numberOfTimesToRetryOnTimeout > 0)
 	int retryCount;
+	
+	// When YES, requests will keep the connection to the server alive for a while to allow subsequent requests to re-use it for a substatial speed-boost
+	// Persistent connections only work when the server sends a 'Keep-Alive' header
+	// Default is YES
+	BOOL shouldAttemptPersistentConnection;
+	
+	// Set to yes when an appropriate keep-alive header is found
+	BOOL canUsePersistentConnection;
 }
 
 #pragma mark init / dealloc
@@ -666,4 +674,5 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 @property (assign) BOOL shouldRunInBackgroundThread;
 @property (assign) int numberOfTimesToRetryOnTimeout;
 @property (assign, readonly) int retryCount;
+@property (assign) BOOL shouldAttemptPersistentConnection;
 @end
