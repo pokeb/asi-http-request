@@ -24,7 +24,8 @@
 
 - (void)setUp
 {
-	[self setTestURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
+	[self setTestURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_great_american_novel_%28abridged%29.txt"]];
+	//[self setTestURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
 }
 
 - (void)testASIHTTPRequestSynchronousPerformance
@@ -47,7 +48,6 @@
 		[request addRequestHeader:@"Accept-Language" value:@"en/us"];
 		[request setUseCookiePersistance:NO];
 		[request setUseSessionPersistance:NO];
-		//[request setShouldRunInBackgroundThread:YES];
 		[request startSynchronous];
 		if ([request error]) {
 			NSLog(@"Request failed - cannot proceed with test");
@@ -116,7 +116,7 @@
 	[self performSelectorOnMainThread:@selector(startASIHTTPRequests) withObject:nil waitUntilDone:NO];
 }
 
-- (void)testASIHTTPRequestAsyncPerformanceWithQueue
+- (void)testQueuedASIHTTPRequestAsyncPerformance
 {
 	[self performSelectorOnMainThread:@selector(startASIHTTPRequestsWithQueue) withObject:nil waitUntilDone:NO];
 }
@@ -129,13 +129,15 @@
 	[self setTestStartDate:[NSDate date]];
 	int i;
 	for (i=0; i<10; i++) {
-		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_great_american_novel_(abridged).txt"]];
+		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:testURL];
 		//Send the same headers as NSURLRequest
 		[request addRequestHeader:@"Pragma" value:@"no-cache"];
 		[request addRequestHeader:@"Accept" value:@"*/*"];
 		[request addRequestHeader:@"Accept-Language" value:@"en/us"];
+		[request setUseCookiePersistance:NO];
+		[request setUseSessionPersistance:NO];
 		[request setDelegate:self];
-		[request start];
+		[request startAsynchronous];
 	}
 }
 
@@ -146,13 +148,17 @@
 	[self setTestStartDate:[NSDate date]];
 	int i;
 	NSOperationQueue *queue = [[[NSOperationQueue alloc] init] autorelease];
+	[queue setMaxConcurrentOperationCount:4];
 	for (i=0; i<10; i++) {
-		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_great_american_novel_(abridged).txt"]];
+		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:testURL];
 		//Send the same headers as NSURLRequest
 		[request addRequestHeader:@"Pragma" value:@"no-cache"];
 		[request addRequestHeader:@"Accept" value:@"*/*"];
 		[request addRequestHeader:@"Accept-Language" value:@"en/us"];
+		[request setUseCookiePersistance:NO];
+		[request setUseSessionPersistance:NO];
 		[request setDelegate:self];
+		[request setShouldRunInBackgroundThread:YES];
 		[queue addOperation:request];
 	}
 }
@@ -185,7 +191,7 @@
 	
 	int i;
 	for (i=0; i<10; i++) {
-		NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_great_american_novel_(abridged).txt"] cachePolicy:NSURLRequestReloadIgnoringLocalCacheData timeoutInterval:10];
+		NSURLRequest *request = [NSURLRequest requestWithURL:testURL cachePolicy:NSURLRequestReloadIgnoringLocalCacheData timeoutInterval:10];
 		[[self responseData] addObject:[NSMutableData data]];
 		NSURLConnectionSubclass *connection = [[[NSURLConnectionSubclass alloc] initWithRequest:request delegate:self startImmediately:YES] autorelease];
 		[connection setTag:i];		
