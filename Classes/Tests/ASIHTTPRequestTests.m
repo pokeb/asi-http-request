@@ -320,7 +320,7 @@
 	
 		request2 = [ASIFormDataRequest requestWithURL:url];
 		[request2 setPostValue:@"foo" forKey:@"eep"];
-		[request2 start];
+		[request2 startSynchronous];
 		
 		NSString *method = @"GET";
 		if (i>304) {

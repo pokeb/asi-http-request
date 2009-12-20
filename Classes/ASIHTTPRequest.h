@@ -25,7 +25,6 @@ extern NSString *ASIHTTPRequestVersion;
 	#define __IPHONE_3_0 30000
 #endif
 
-
 typedef enum _ASINetworkErrorType {
     ASIConnectionFailureErrorType = 1,
     ASIRequestTimedOutErrorType = 2,
@@ -339,6 +338,10 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	
 	// Set to yes when an appropriate keep-alive header is found
 	BOOL canUsePersistentConnection;
+	
+	NSTimeInterval closeStreamTime;
+	
+	int usedStreamNumber;
 }
 
 #pragma mark init / dealloc
@@ -431,8 +434,8 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 
 // Reads the response headers to find the content length, encoding, cookies for the session 
 // Also initiates request redirection when shouldRedirect is true
-// Returns true if the request needs a username and password (or if those supplied were incorrect)
-- (BOOL)readResponseHeadersReturningAuthenticationFailure;
+// And works out if HTTP auth is required
+- (void)readResponseHeaders;
 
 #pragma mark http authentication stuff
 
