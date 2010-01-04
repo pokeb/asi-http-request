@@ -358,7 +358,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = ./set_version_number.sh;
+			shellScript = ./set_version_number.rb;
 		};
 		B52D490910DA4009008E8365 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -371,7 +371,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = ./set_version_number.sh;
+			shellScript = ./set_version_number.rb;
 		};
 /* End PBXShellScriptBuildPhase section */
 
