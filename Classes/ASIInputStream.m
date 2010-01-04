@@ -60,19 +60,19 @@ static NSLock *readLock = nil;
 	}
 	[ASIHTTPRequest incrementBandwidthUsedInLastSecond:toRead];
 	[readLock unlock];
-	return [[self stream] read:buffer maxLength:toRead];
+	return [stream read:buffer maxLength:toRead];
 }
 
 // If we get asked to perform a method we don't have (which is almost all of them), we'll just forward the message to our stream
 
 - (NSMethodSignature *)methodSignatureForSelector:(SEL)aSelector
 {
-	return [[self stream] methodSignatureForSelector:aSelector];
+	return [stream methodSignatureForSelector:aSelector];
 }
 	 
 - (void)forwardInvocation:(NSInvocation *)anInvocation
 {
-	[anInvocation invokeWithTarget:[self stream]];
+	[anInvocation invokeWithTarget:stream];
 }
 
 @synthesize stream;

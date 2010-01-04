@@ -341,7 +341,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	
 	NSTimeInterval closeStreamTime;
 	
-	int usedStreamNumber;
+	NSMutableDictionary *usedConnection;
 }
 
 #pragma mark init / dealloc

@@ -139,6 +139,7 @@
 	[request setPostValue:testString forKey:@"value"];
 	[request setPostFormat:ASIMultipartFormDataPostFormat];
 	[request startSynchronous];
+	NSLog(@"%@",[request responseString]);
 	success = ([[request responseString] isEqualToString:[NSString stringWithFormat:@"Got data in %@: %@",charset,testString]]);
 	GHAssertTrue(success,@"Failed to correctly encode the data");
 	
