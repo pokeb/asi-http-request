@@ -21,7 +21,7 @@
 #import "ASIInputStream.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.2-58 2010-01-04";
+NSString *ASIHTTPRequestVersion = @"v1.2-59 2010-01-04";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -893,7 +893,9 @@ static BOOL isiPhoneOS2;
 				
 			// Check if we should have expired this connection
 			} else if ([[[self usedConnection] objectForKey:@"expires"] timeIntervalSinceNow] < 0) {
+				#if DEBUG_PERSISTENT_CONNECTIONS
 				NSLog(@"Not re-using connection #%hi because it has expired",[[[self usedConnection] objectForKey:@"id"] intValue]);
+				#endif
 				[persistentConnectionsPool removeObject:[self usedConnection]];
 				[self setUsedConnection:nil];
 			}
@@ -911,7 +913,9 @@ static BOOL isiPhoneOS2;
 						[self setUsedConnection:connection];
 						break;
 					} else {
+						#if DEBUG_PERSISTENT_CONNECTIONS
 						NSLog(@"Not re-using connection #%hi because it has expired",[[connection objectForKey:@"id"] intValue]);
+						#endif
 						[persistentConnectionsPool removeObject:connection];
 						i--;
 					}
@@ -936,8 +940,9 @@ static BOOL isiPhoneOS2;
 		[[self usedConnection] setObject:[NSNumber numberWithInt:nextRequestID] forKey:@"request"];				 
 		CFReadStreamSetProperty((CFReadStreamRef)[self readStream],  kCFStreamPropertyHTTPAttemptPersistentConnection, kCFBooleanTrue);
 		
-
-		NSLog(@"%@ will use connection #%hi",self,[[[self usedConnection] objectForKey:@"id"] intValue]);
+		#if DEBUG_PERSISTENT_CONNECTIONS
+		NSLog(@"Request #%hi will use connection #%hi",nextRequestID,[[[self usedConnection] objectForKey:@"id"] intValue]);
+		#endif
 		CFReadStreamSetProperty((CFReadStreamRef)[self readStream], CFSTR("ASIStreamID"), [[self usedConnection] objectForKey:@"id"]);
 	
 	}
@@ -1496,6 +1501,9 @@ static BOOL isiPhoneOS2;
 	// Invalidate the current connection so subsequent requests don't attempt to reuse it
 	if (theError && [theError code] != ASIAuthenticationErrorType && [theError code] != ASITooMuchRedirectionErrorType) {
 		[connectionsLock lock];
+		#if DEBUG_PERSISTENT_CONNECTIONS
+		NSLog(@"Request #%@ failed and will invalidate connection #%@",[[self usedConnection] objectForKey:@"request"],[[self usedConnection] objectForKey:@"id"]);
+		#endif
 		[[self usedConnection] removeObjectForKey:@"request"];
 		[persistentConnectionsPool removeObject:[self usedConnection]];
 		[connectionsLock unlock];
@@ -2391,7 +2399,6 @@ static BOOL isiPhoneOS2;
 
 - (void)handleStreamComplete
 {	
-	NSLog(@"Request using connection #%hi complete",[[[self usedConnection] objectForKey:@"id"] intValue]);
 	//Try to read the headers (if this is a HEAD request handleBytesAvailable may not be called)
 	if (![self responseHeaders]) {
 		[self readResponseHeaders];
@@ -2451,7 +2458,9 @@ static BOOL isiPhoneOS2;
 	
 	[connectionsLock lock];
 	[self unscheduleReadStream];
-	NSLog(@"removing request %@ from #%@",[[self usedConnection] objectForKey:@"request"], [[self usedConnection] objectForKey:@"id"]);
+	#if DEBUG_PERSISTENT_CONNECTIONS
+	NSLog(@"Request #%@ finished using connection #%@",[[self usedConnection] objectForKey:@"request"], [[self usedConnection] objectForKey:@"id"]);
+	#endif
 	[[self usedConnection] removeObjectForKey:@"request"];
 	[[self usedConnection] setObject:[NSDate dateWithTimeIntervalSinceNow:closeStreamTime] forKey:@"expires"];
 	[connectionsLock unlock];
@@ -2566,8 +2575,10 @@ static BOOL isiPhoneOS2;
 		[connectionsLock unlock];
 		return;
 	}
-	if (![connection objectForKey:@"request"] && [connection objectForKey:@"stream"]) { 
+	if (![connection objectForKey:@"request"] && [connection objectForKey:@"stream"]) {
+		#if DEBUG_PERSISTENT_CONNECTIONS
 		NSLog(@"Closing unused persistent connection #%hi",[[connection objectForKey:@"id"] intValue]);
+		#endif
 		CFReadStreamRef stream = (CFReadStreamRef)[connection objectForKey:@"stream"];
 		CFStreamStatus status = CFReadStreamGetStatus(stream);
 		if (status != kCFStreamStatusClosed && status != kCFStreamStatusError) {

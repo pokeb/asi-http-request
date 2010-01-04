@@ -20,6 +20,8 @@
 // When set to 1, ASIHTTPRequests will print information about bandwidth throttling to the console
 #define DEBUG_THROTTLING 0
 
+// When set to 1, ASIHTTPRequests will print information about persistent connections to the console
+#define DEBUG_PERSISTENT_CONNECTIONS 0
 
 // ======
 // Reachability API (iPhone only)
