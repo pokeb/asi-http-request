@@ -227,7 +227,7 @@ static NSString *bucket = @"";
 	[request setMimeType:@"text/plain"];
 	[request setSecretAccessKey:secretAccessKey];
 	[request setAccessKey:accessKey];
-	[request start];
+	[request startSynchronous];
 	success = [[request responseString] isEqualToString:@""];
 	GHAssertTrue(success,@"Failed to PUT data to S3");
 	
@@ -235,7 +235,7 @@ static NSString *bucket = @"";
 	request = [ASIS3Request requestWithBucket:bucket path:path];
 	[request setSecretAccessKey:secretAccessKey];
 	[request setAccessKey:accessKey];
-	[request start];
+	[request startSynchronous];
 	success = [[request responseString] isEqualToString:@"Hello"];
 	GHAssertTrue(success,@"Failed to GET the correct data from S3");	
 	
@@ -244,7 +244,7 @@ static NSString *bucket = @"";
 	[request setSecretAccessKey:secretAccessKey];
 	[request setRequestMethod:@"DELETE"];
 	[request setAccessKey:accessKey];
-	[request start];
+	[request startSynchronous];
 	success = [[request responseString] isEqualToString:@""];
 	GHAssertTrue(success,@"Failed to DELETE the file from S3");	
 	

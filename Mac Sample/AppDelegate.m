@@ -87,7 +87,7 @@
 	[[self bigFetchRequest] setAllowResumeForFileDownloads:YES];
 	[[self bigFetchRequest] setDidFinishSelector:@selector(URLFetchWithProgressComplete:)];
 	[[self bigFetchRequest] setDownloadProgressDelegate:progressIndicator];
-	[[self bigFetchRequest] start];
+	[[self bigFetchRequest] startAsynchronous];
 }
 
 - (void)URLFetchWithProgressComplete:(ASIHTTPRequest *)request
@@ -193,7 +193,7 @@
 	//[request setShouldRunInBackgroundThread:YES];
 	[request setDelegate:self];
 	[request setUseKeychainPersistance:[keychainCheckbox state]];
-	[request start];
+	[request startAsynchronous];
 
 }
 
@@ -237,7 +237,7 @@
 - (void)authSheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo {
 	ASIHTTPRequest *request = (ASIHTTPRequest *)contextInfo;
     if (returnCode == NSOKButton) {
-		if ([request needsProxyAuthentication]) {
+		if ([request authenticationNeeded] == ASIProxyAuthenticationNeeded) {
 			[request setProxyUsername:[[[username stringValue] copy] autorelease]];
 			[request setProxyPassword:[[[password stringValue] copy] autorelease]];			
 		} else {

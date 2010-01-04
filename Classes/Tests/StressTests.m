@@ -83,7 +83,7 @@ IMPORTANT
 		[[self cancelRequest] setDownloadProgressDelegate:self];
 		[[self cancelRequest] setShowAccurateProgress:YES];
 		NSLog(@"Stress test: Start request %@",[self cancelRequest]);
-		[[self cancelRequest] start];
+		[[self cancelRequest] startAsynchronous];
 	}
 }
 
@@ -105,7 +105,7 @@ IMPORTANT
 	[self setCancelRequest:[ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://127.0.0.1/ASIHTTPRequest/tests/one_infinite_loop"]]];
 	if ([[self cancelStartDate] timeIntervalSinceNow] > 0) {
 		NSLog(@"Redirect stress test: Start request %@",[self cancelRequest]);
-		[[self cancelRequest] start];
+		[[self cancelRequest] startAsynchronous];
 		[self performSelector:@selector(cancelRedirectRequest) withObject:nil afterDelay:0.2];
 	}
 }
@@ -141,7 +141,7 @@ IMPORTANT
 		[[self cancelRequest] setDelegate:delegate];
 		[[self cancelRequest] setShowAccurateProgress:YES];
 		NSLog(@"Set delegate stress test: Start request %@",[self cancelRequest]);
-		[[self cancelRequest] start];
+		[[self cancelRequest] startAsynchronous];
 		[self performSelectorInBackground:@selector(cancelSetDelegateRequest) withObject:nil];
 	}
 	[createRequestLock unlock];
