@@ -158,7 +158,6 @@
 		[request setUseCookiePersistance:NO];
 		[request setUseSessionPersistance:NO];
 		[request setDelegate:self];
-		[request setShouldRunInBackgroundThread:YES];
 		[queue addOperation:request];
 	}
 }

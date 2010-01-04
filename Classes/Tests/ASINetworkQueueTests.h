@@ -48,7 +48,6 @@ IMPORTANT
 	BOOL failed;
 	BOOL headFailed;
 }
-- (void)testBackgroundThreadedRequests;
 - (void)testFailure;
 - (void)testFailureCancelsOtherRequests;
 - (void)testDownloadProgress;

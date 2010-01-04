@@ -307,11 +307,8 @@
 	ASIFormDataRequest *request2;
 	BOOL success;
 	int i;
-	for (i=306; i<308; i++) {
-		if (i == 305) { // 304s will not contain a body, as per rfc2616. Will test 304 handling in a future test when we have etag support
-			continue;
-		}
-		NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://allseeing-i.com/ASIHTTPRequest/tests/redirect/%hi",i]];
+	for (i=301; i<305; i++) {
+		NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://asi/ASIHTTPRequest/tests/redirect/%hi",i]];
 		request = [ASIHTTPRequest requestWithURL:url];
 		[request setShouldRedirect:NO];
 		[request startSynchronous];
@@ -336,6 +333,22 @@
 		success = ([request2 responseStatusCode] == 200);
 		GHAssertTrue(success,[NSString stringWithFormat:@"Got the wrong status code (expected %hi)",i]);
 
+	}
+}
+
+// Using a persistent connection for HTTP 305-307 would cause crashes on the redirect, not really sure why
+// Since 305 (use proxy) wasn't properly supported anyway, 306 is unused, and clients are supposed to confirm redirects for 307, I've simply removed automatic redirect for these codes
+- (void)test30xCrash
+{
+	int i;
+	for (i=305; i<308; i++) {
+		ASIFormDataRequest *request = [ASIFormDataRequest requestWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://asi/ASIHTTPRequest/tests/redirect/%hi",i]]];
+		[request setPostValue:@"foo" forKey:@"eep"];
+		[request setShouldRedirect:NO];
+		[request startSynchronous];
+		request = [ASIFormDataRequest requestWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://asi/ASIHTTPRequest/tests/redirect/%hi",i]]];
+		[request setPostValue:@"foo" forKey:@"eep"];
+		[request startSynchronous];
 	}
 }
 

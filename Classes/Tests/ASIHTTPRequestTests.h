@@ -25,6 +25,8 @@
 - (void)testRequestMethod;
 - (void)testHTTPVersion;
 - (void)testUserAgent;
+- (void)testAutomaticRedirection;
+- (void)test30xCrash;
 - (void)testUploadContentLength;
 - (void)testDownloadContentLength;
 - (void)testFileDownload;

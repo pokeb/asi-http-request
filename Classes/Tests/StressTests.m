@@ -51,7 +51,6 @@ IMPORTANT
 	
 	// Run the test again with requests running on a background thread
 	queue = [ASINetworkQueue queue];
-	[queue setRunRequestsInBackgroundThread:YES];
 
 	[queue setMaxConcurrentOperationCount:25];
 	for (i=0; i<100; i++) {

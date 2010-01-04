@@ -25,6 +25,12 @@ extern NSString *ASIHTTPRequestVersion;
 	#define __IPHONE_3_0 30000
 #endif
 
+typedef enum _ASIAuthenticationState {
+	ASINoAuthenticationNeededYet = 0,
+	ASIHTTPAuthenticationNeeded = 1,
+	ASIProxyAuthenticationNeeded = 2
+} ASIAuthenticationState;
+
 typedef enum _ASINetworkErrorType {
     ASIConnectionFailureErrorType = 1,
     ASIRequestTimedOutErrorType = 2,
@@ -163,7 +169,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	
 	// Used for sending and receiving data
     CFHTTPMessageRef request;	
-	CFReadStreamRef readStream;
+	NSInputStream *readStream;
 	
 	// Used for authentication
     CFHTTPAuthenticationRef requestAuthentication; 
@@ -177,9 +183,6 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	
 	// Realm for authentication when credentials are required
 	NSString *authenticationRealm;
-	
-	// And now, the same thing, but for authenticating proxies
-	BOOL needsProxyAuthentication;
 	
 	// When YES, ASIHTTPRequest will present a dialog allowing users to enter credentials when no-matching credentials were found for a server that requires authentication
 	// The dialog will not be shown if your delegate responds to authenticationNeededForRequest:
@@ -305,8 +308,8 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	// URL for a PAC (Proxy Auto Configuration) file. If you want to set this yourself, it's probably best if you use a local file
 	NSURL *PACurl;
 	
-	// True when request is attempting to handle an authentication challenge
-	BOOL authenticationChallengeInProgress;
+	// See ASIAuthenticationState values above. 0 == default == No authentication needed yet
+	ASIAuthenticationState authenticationNeeded;
 	
 	// When YES, ASIHTTPRequests will present credentials from the session store for requests to the same server before being asked for them
 	// This avoids an extra round trip for requests after authentication has succeeded, which is much for efficient for authenticated requests with large bodies, or on slower connections
@@ -319,10 +322,6 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	
 	BOOL inProgress;
 	BOOL readStreamIsScheduled;
-	
-	// When set to yes, this request will create a thread to run itself in
-	// On Snow Leopard, requests using a queue will always run in a background thread, so this does nothing when using a queue on that platform
-	BOOL shouldRunInBackgroundThread;
 	
 	// Set to allow a request to automatically retry itself on timeout
 	// Default is zero - timeout will stop the request
@@ -659,13 +658,12 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 @property (assign) BOOL shouldRedirect;
 @property (assign) BOOL validatesSecureCertificate;
 @property (assign) BOOL shouldCompressRequestBody;
-@property (assign) BOOL needsProxyAuthentication;
 @property (retain) NSURL *PACurl;
 @property (retain) NSString *authenticationScheme;
 @property (retain) NSString *proxyAuthenticationScheme;
 @property (assign) BOOL shouldPresentAuthenticationDialog;
 @property (assign) BOOL shouldPresentProxyAuthenticationDialog;
-@property (assign) BOOL authenticationChallengeInProgress;
+@property (assign, readonly) ASIAuthenticationState authenticationNeeded;
 @property (assign) BOOL shouldPresentCredentialsBeforeChallenge;
 @property (assign, readonly) int authenticationRetryCount;
 @property (assign, readonly) int proxyAuthenticationRetryCount;
@@ -674,7 +672,6 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 
 @property (assign, readonly) BOOL isSynchronous;
 @property (assign, readonly) BOOL inProgress;
-@property (assign) BOOL shouldRunInBackgroundThread;
 @property (assign) int numberOfTimesToRetryOnTimeout;
 @property (assign, readonly) int retryCount;
 @property (assign) BOOL shouldAttemptPersistentConnection;

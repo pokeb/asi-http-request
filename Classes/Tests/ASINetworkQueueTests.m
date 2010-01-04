@@ -28,35 +28,6 @@ IMPORTANT
 
 @implementation ASINetworkQueueTests
 
-// Just a santity check to make sure running requests in a background thread still works with the new (1.5) code
-- (void)testBackgroundThreadedRequests
-{
-	complete = NO;
-	ASINetworkQueue *networkQueue = [ASINetworkQueue queue];
-	[networkQueue setRunRequestsInBackgroundThread:YES];
-	[networkQueue setDelegate:self];
-	[networkQueue setQueueDidFinishSelector:@selector(backgroundQueueDone:)];	
-	
-	int i;
-	for (i=0; i<5; i++) {
-		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
-		[networkQueue addOperation:request];
-	}
-	[networkQueue go];
-	
-	while (!complete) {
-		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
-	}	
-}
-
-
-- (void)backgroundQueueDone:(ASINetworkQueue *)queue
-{
-	complete = YES;
-	BOOL success = ([NSThread currentThread] == [NSThread mainThread]);
-	GHAssertTrue(success,@"Failed to call a delegate method in the main thread");	
-}
-
 - (void)testDelegateAuthenticationCredentialsReuse
 {
 	complete = NO;
@@ -695,7 +666,6 @@ IMPORTANT
 	[request setDownloadDestinationPath:downloadPath];
 	[request setTemporaryFileDownloadPath:temporaryPath];
 	[request setAllowResumeForFileDownloads:YES];
-	[networkQueue setRunRequestsInBackgroundThread:YES];
 	[networkQueue addOperation:request];
 	[networkQueue go];
 	 
@@ -755,7 +725,6 @@ IMPORTANT
 	[networkQueue setDownloadProgressDelegate:self];
 	[networkQueue setShowAccurateProgress:YES];
 	[networkQueue setDelegate:self];
-	[networkQueue setRunRequestsInBackgroundThread:YES];
 	[networkQueue setQueueDidFinishSelector:@selector(queueFinished:)];	
 	
 	request = [[[ASIHTTPRequest alloc] initWithURL:downloadURL] autorelease];
