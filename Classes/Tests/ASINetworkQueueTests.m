@@ -182,11 +182,12 @@ IMPORTANT
 	BOOL success = (progress == 1.0);
 	GHAssertTrue(success,@"Failed to increment progress properly");
 	
+	[networkQueue cancelAllOperations];
+	
 	// This test will request gzipped content, but the content-length header we get on the HEAD request will be wrong, ASIHTTPRequest should fall back to simple progress
 	// This is to workaround an issue Apache has with HEAD requests for dynamically generated content when accepting gzip - it returns the content-length of a gzipped empty body
 	complete = NO;
 	progress = 0;
-	[networkQueue cancelAllOperations];
 	[networkQueue setShowAccurateProgress:YES];
 	
 	for (i=0; i<5; i++) {

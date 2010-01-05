@@ -21,7 +21,7 @@
 #import "ASIInputStream.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.2-66 2010-01-05";
+NSString *ASIHTTPRequestVersion = @"v1.2-67 2010-01-05";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -1036,7 +1036,7 @@ static BOOL isiPhoneOS2;
 {
 	// We must invalidate the old timer here, not before we've created and scheduled a new timer
 	// This is because the timer may be the only thing retaining an asynchronous request
-	if (timer != [self statusTimer]) {
+	if ([self statusTimer] && timer != [self statusTimer]) {
 		[[self statusTimer] invalidate];
 		[[self statusTimer] release];
 	}
@@ -2323,7 +2323,6 @@ static BOOL isiPhoneOS2;
 
 #pragma mark stream status handlers
 
-
 - (void)handleNetworkEvent:(CFStreamEventType)type
 {	
 	[[self cancelledLock] lock];
@@ -2364,9 +2363,6 @@ static BOOL isiPhoneOS2;
 	// So far, I've only seen this in the stress tests, so it might never happen in real-world situations.
 	if (!CFReadStreamHasBytesAvailable((CFReadStreamRef)[self readStream])) {
 		return;
-	}
-	if (![self responseHeaders]) {
-		[self readResponseHeaders];
 	}
 
 	long long bufferSize = 16384;
@@ -2439,7 +2435,6 @@ static BOOL isiPhoneOS2;
 
 - (void)handleStreamComplete
 {	
-	//Try to read the headers (if this is a HEAD request handleBytesAvailable may not be called)
 	if (![self responseHeaders]) {
 		[self readResponseHeaders];
 	}
@@ -2536,7 +2531,7 @@ static BOOL isiPhoneOS2;
 	[self willChangeValueForKey:@"isFinished"];
 	[self didChangeValueForKey:@"isFinished"];
 	[self setInProgress:NO];
-	CFRunLoopStop(CFRunLoopGetCurrent());
+	// We leave stopping the runloop to the timer, since it needs to clean itself up first or we'll leak
 }
 
 
