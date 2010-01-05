@@ -416,21 +416,29 @@
 
 - (void)testDownloadProgress
 {
+	// We run tests that measure progress on the main thread because otherwise we can't depend on the progress delegate being notified before we need to test it's working
+	[self performSelectorOnMainThread:@selector(performDownloadProgressTest) withObject:nil waitUntilDone:YES];
+}
+
+- (void)performDownloadProgressTest
+{
 	progress = 0;
 	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/i/logo.png"] autorelease];
 	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setDownloadProgressDelegate:self];
 	[request startSynchronous];
-	
-	// Wait for the progress to catch up
-	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:2]];
-	
-	BOOL success = (progress > 0.95);
+
+	BOOL success = (progress == 1.0);
 	GHAssertTrue(success,@"Failed to properly increment download progress %f != 1.0",progress);	
 }
 
-
 - (void)testUploadProgress
+{
+	// We run tests that measure progress on the main thread because otherwise we can't depend on the progress delegate being notified before we need to test it's working
+	[self performSelectorOnMainThread:@selector(performUploadProgressTest) withObject:nil waitUntilDone:YES];	
+}
+
+- (void)performUploadProgressTest
 {
 	progress = 0;
 	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ignore"]] autorelease];
@@ -438,20 +446,25 @@
 	[request setUploadProgressDelegate:self];
 	[request startSynchronous];
 	
-	// Wait for the progress to catch up
-	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:2]];
 	
-	BOOL success = (progress > 0.95);
+	BOOL success = (progress == 1.0);
 	GHAssertTrue(success,@"Failed to properly increment upload progress %f != 1.0",progress);	
 }
 
 - (void)testPostBodyStreamedFromDisk
 {
+	// We run tests that measure progress on the main thread because otherwise we can't depend on the progress delegate being notified before we need to test it's working
+	[self performSelectorOnMainThread:@selector(performPostBodyStreamedFromDiskTest) withObject:nil waitUntilDone:YES];
+	
+}
+
+- (void)performPostBodyStreamedFromDiskTest
+{
 	NSURL *url = [NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/print_request_body"];
 	NSString *requestBody = @"This is the request body";
 	NSString *requestContentPath = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:@"testfile.txt"];
 	[[requestBody dataUsingEncoding:NSUTF8StringEncoding] writeToFile:requestContentPath atomically:NO];
-
+	
 	
 	// Test using a user-specified file as the request body (useful for PUT)
 	progress = 0;
@@ -462,10 +475,7 @@
 	[request setPostBodyFilePath:requestContentPath];
 	[request startSynchronous];
 	
-	// Wait for the progress to catch up
-	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
-	
-	BOOL success = (progress > 0.95);
+	BOOL success = (progress == 1.0);
 	GHAssertTrue(success,@"Failed to properly increment upload progress %f != 1.0",progress);
 	
 	success = [[request responseString] isEqualToString:requestBody];
@@ -481,16 +491,12 @@
 	[request appendPostDataFromFile:requestContentPath];
 	[request startSynchronous];
 	
-	// Wait for the progress to catch up
-	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
-	
-	success = (progress > 0.95);
+	success = (progress == 1.0);
 	GHAssertTrue(success,@"Failed to properly increment upload progress %f != 1.0",progress);
 	
 	success = [[request responseString] isEqualToString:requestBody];
-	GHAssertTrue(success,@"Failed upload the correct request body");
+	GHAssertTrue(success,@"Failed upload the correct request body");		
 }
-
 
 
 
@@ -906,6 +912,13 @@
 
 - (void)testPartialFetch
 {
+	// We run tests that measure progress on the main thread because otherwise we can't depend on the progress delegate being notified before we need to test it's working
+	[self performSelectorOnMainThread:@selector(performPartialFetchTest) withObject:nil waitUntilDone:YES];	
+
+}
+					
+- (void)performPartialFetchTest
+{
 	NSString *downloadPath = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:@"testfile.txt"];
 	NSString *tempPath = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:@"tempfile.txt"];
 	NSString *partialContent = @"This file should be exactly 163 bytes long when encoded as UTF8, Unix line breaks with no BOM.\n";
@@ -920,8 +933,6 @@
 	[request setDownloadProgressDelegate:self];
 	[request startSynchronous];
 	
-
-	
 	BOOL success = ([request contentLength] == 68);
 	GHAssertTrue(success,@"Failed to download a segment of the data");
 	
@@ -930,11 +941,8 @@
 	NSString *newPartialContent = [content substringFromIndex:95];
 	success = ([newPartialContent isEqualToString:@"This is the content we ought to be getting if we start from byte 95."]);
 	GHAssertTrue(success,@"Failed to append the correct data to the end of the file?");
-
-	// Wait for the progress to catch up
-	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
 	
-	success = (progress > 0.95);
+	success = (progress == 1.0);
 	GHAssertTrue(success,@"Failed to correctly display increment progress for a partial download");
 }
 

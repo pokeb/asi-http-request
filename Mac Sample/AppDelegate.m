@@ -190,7 +190,6 @@
 	ASIHTTPRequest *request;
 	request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com/top_secret/"]] autorelease];
 	[request setDidFinishSelector:@selector(topSecretFetchComplete:)];
-	//[request setShouldRunInBackgroundThread:YES];
 	[request setDelegate:self];
 	[request setUseKeychainPersistance:[keychainCheckbox state]];
 	[request startAsynchronous];

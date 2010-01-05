@@ -21,7 +21,7 @@
 #import "ASIInputStream.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.2-61 2010-01-04";
+NSString *ASIHTTPRequestVersion = @"v1.2-62 2010-01-05";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -166,7 +166,6 @@ static BOOL isiPhoneOS2;
 @property (retain) NSInputStream *readStream;
 @property (assign) ASIAuthenticationState authenticationNeeded;
 @property (assign, nonatomic) BOOL readStreamIsScheduled;
-
 @end
 
 
@@ -517,9 +516,7 @@ static BOOL isiPhoneOS2;
 	NSLog(@"Starting asynchronous request %@",self);
 #endif
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	
-	// If this request is autoreleased, it may be dealloced the next time this runloop gets run
-	[self retain];
+
 	[self setInProgress:YES];	
 	@try {	
 		if ([self isCancelled] || [self complete])
@@ -538,8 +535,6 @@ static BOOL isiPhoneOS2;
 		NSError *underlyingError = [NSError errorWithDomain:NetworkRequestErrorDomain code:ASIUnhandledExceptionError userInfo:[exception userInfo]];
 		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIUnhandledExceptionError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[exception name],NSLocalizedDescriptionKey,[exception reason],NSLocalizedFailureReasonErrorKey,underlyingError,NSUnderlyingErrorKey,nil]]];
 	}	
-	[self setInProgress:NO];
-	[self release];
 	[pool release];
 }
 
@@ -914,7 +909,7 @@ static BOOL isiPhoneOS2;
 						break;
 					} else {
 						#if DEBUG_PERSISTENT_CONNECTIONS
-						NSLog(@"Not re-using connection #%hi because it has expired",[[connection objectForKey:@"id"] intValue]);
+						NSLog(@"Not re-using connection #%hi because it has expired",[[connectionInfo objectForKey:@"id"] intValue]);
 						#endif
 						[persistentConnectionsPool removeObject:existingConnection];
 						i--;
@@ -1001,7 +996,7 @@ static BOOL isiPhoneOS2;
 	// Record when the request started, so we can timeout if nothing happens
 	[self setLastActivityTime:[NSDate date]];	
 	
-	[NSTimer scheduledTimerWithTimeInterval:0.25 target:self selector:@selector(updateStatus:) userInfo:nil repeats:YES];
+	[[NSTimer scheduledTimerWithTimeInterval:0.25 target:self selector:@selector(updateStatus:) userInfo:nil repeats:YES] retain];
 	
 	// If we're running asynchronously on the main thread, the runloop will already be running and we can return control
 	if (![NSThread isMainThread] || [self isSynchronous]) {
@@ -1036,7 +1031,8 @@ static BOOL isiPhoneOS2;
 	[self checkRequestStatus];
 	if ([self complete] || [self error]) {
 		[timer invalidate];
-		CFRunLoopStop(CFRunLoopGetCurrent());
+		[timer release];
+		//CFRunLoopStop(CFRunLoopGetCurrent());
 	}
 }
 
@@ -1681,7 +1677,6 @@ static BOOL isiPhoneOS2;
 						NSLog(@"Request will redirect (code: %hi): %@",self,[self responseStatusCode]);
 					#endif
 					
-					//CFRunLoopStop(CFRunLoopGetCurrent());
 				}
 			}
 			
@@ -2481,9 +2476,6 @@ static BOOL isiPhoneOS2;
 		[self requestFinished];
 	}
 
-	
-	
-	
 	if (![self authenticationNeeded]) {
 		[self destroyReadStream];
 		if ([self canUsePersistentConnection]) {
@@ -2498,6 +2490,7 @@ static BOOL isiPhoneOS2;
 {
 	[self willChangeValueForKey:@"isFinished"];
 	[self didChangeValueForKey:@"isFinished"];
+	[self setInProgress:NO];
 	CFRunLoopStop(CFRunLoopGetCurrent());
 }
 
@@ -2538,7 +2531,7 @@ static BOOL isiPhoneOS2;
 		if ([self readStreamIsScheduled]) {
 			CFReadStreamUnscheduleFromRunLoop((CFReadStreamRef)[self readStream], CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
 		}
-		if (!canUsePersistentConnection) {
+		if (![self canUsePersistentConnection]) {
 			CFStreamStatus status = CFReadStreamGetStatus((CFReadStreamRef)[self readStream]);
 			if (status != kCFStreamStatusClosed && status != kCFStreamStatusError) {
 				CFReadStreamClose((CFReadStreamRef)[self readStream]);
