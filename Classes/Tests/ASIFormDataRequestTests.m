@@ -193,6 +193,8 @@
 	GHAssertTrue(success,@"Failed to create a retained copy");
 	success = ([request2 isKindOfClass:[ASIFormDataRequest class]]);
 	GHAssertTrue(success,@"Copy is of wrong class");
+
+	[request2 release];
 }
 
 

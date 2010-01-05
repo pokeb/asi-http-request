@@ -19,7 +19,7 @@
 	[request setShouldPresentAuthenticationDialog:[useBuiltInDialog isOn]];
 	[request setDidFinishSelector:@selector(topSecretFetchComplete:)];
 	[request setDidFailSelector:@selector(topSecretFetchFailed:)];
-	[request start];
+	[request startAsynchronous];
 	
 }
 

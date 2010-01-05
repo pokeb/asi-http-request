@@ -357,6 +357,8 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	//   The stream will be closed + released either when another request comes to use the connection, or when the timer fires to tell the connection to expire
 	NSMutableDictionary *connectionInfo;
 	
+	// This timer checks up on the request every 0.25 seconds, and updates progress
+	NSTimer *statusTimer;
 }
 
 #pragma mark init / dealloc
@@ -657,7 +659,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 @property (assign,readonly) unsigned long long contentLength;
 @property (assign) unsigned long long postLength;
 @property (assign) BOOL shouldResetProgressIndicators;
-@property (retain) ASIHTTPRequest *mainRequest;
+@property (assign) ASIHTTPRequest *mainRequest;
 @property (assign) BOOL showAccurateProgress;
 @property (assign,readonly) unsigned long long totalBytesRead;
 @property (assign,readonly) unsigned long long totalBytesSent;

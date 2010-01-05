@@ -21,7 +21,7 @@
 #import "ASIInputStream.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.2-64 2010-01-05";
+NSString *ASIHTTPRequestVersion = @"v1.2-65 2010-01-05";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -176,6 +176,7 @@ static BOOL isiPhoneOS2;
 @property (retain) NSInputStream *readStream;
 @property (assign) ASIAuthenticationState authenticationNeeded;
 @property (assign, nonatomic) BOOL readStreamIsScheduled;
+@property (retain, nonatomic) NSTimer *statusTimer;
 @end
 
 
@@ -245,6 +246,8 @@ static BOOL isiPhoneOS2;
 
 - (void)dealloc
 {
+	[statusTimer invalidate];
+	[statusTimer release];
 	[self setAuthenticationNeeded:ASINoAuthenticationNeededYet];
 	if (requestAuthentication) {
 		CFRelease(requestAuthentication);
@@ -257,7 +260,6 @@ static BOOL isiPhoneOS2;
 	}
 	[self cancelLoad];
 	[userInfo release];
-	[mainRequest release];
 	[postBody release];
 	[compressedPostBody release];
 	[error release];
@@ -962,22 +964,16 @@ static BOOL isiPhoneOS2;
 	}
 	
 	[connectionsLock unlock];
+	
+	BOOL streamSuccessfullyOpened = NO;
+	
     // Set the client
 	CFStreamClientContext ctxt = {0, self, NULL, NULL, NULL};
-    if (!CFReadStreamSetClient((CFReadStreamRef)[self readStream], kNetworkEvents, ReadStreamClientCallBack, &ctxt)) {
-		[self setReadStream:nil];
-		[[self cancelledLock] unlock];
-		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIInternalErrorWhileBuildingRequestType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Unable to setup read stream",NSLocalizedDescriptionKey,nil]]];
-        return;
-    }	
-
-
-	// Start the HTTP connection
-	if (!CFReadStreamOpen((CFReadStreamRef)[self readStream])) {
-		[self destroyReadStream];
-		[[self cancelledLock] unlock];
-		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIInternalErrorWhileBuildingRequestType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Unable to start HTTP connection",NSLocalizedDescriptionKey,nil]]];
-		return;
+    if (CFReadStreamSetClient((CFReadStreamRef)[self readStream], kNetworkEvents, ReadStreamClientCallBack, &ctxt)) {
+		// Start the HTTP connection
+		if (CFReadStreamOpen((CFReadStreamRef)[self readStream])) {
+			streamSuccessfullyOpened = YES;
+		}
 	}
 	
 	// Here, we'll close the stream that was previously using this connection, if there was one
@@ -990,6 +986,13 @@ static BOOL isiPhoneOS2;
 		}
 		[oldStream release];
 		oldStream = nil;
+	}
+	
+	if (!streamSuccessfullyOpened) {
+		[self destroyReadStream];
+		[[self cancelledLock] unlock];
+		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIInternalErrorWhileBuildingRequestType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Unable to start HTTP connection",NSLocalizedDescriptionKey,nil]]];
+		return;	
 	}
 
 	
@@ -1018,7 +1021,8 @@ static BOOL isiPhoneOS2;
 	// Record when the request started, so we can timeout if nothing happens
 	[self setLastActivityTime:[NSDate date]];	
 	
-	[[NSTimer scheduledTimerWithTimeInterval:0.25 target:self selector:@selector(updateStatus:) userInfo:nil repeats:YES] retain];
+	[[self statusTimer] invalidate];
+	[self setStatusTimer:[NSTimer scheduledTimerWithTimeInterval:0.25 target:self selector:@selector(updateStatus:) userInfo:nil repeats:YES]];
 	
 	// If we're running asynchronously on the main thread, the runloop will already be running and we can return control
 	if (![NSThread isMainThread] || [self isSynchronous]) {
@@ -1047,13 +1051,13 @@ static BOOL isiPhoneOS2;
 	[[self cancelledLock] unlock];
 }
 
-// This gets fired every 1/4 of a second in asynchronous requests to update the progress and work out if we need to timeout
+// This gets fired every 1/4 of a second to update the progress and work out if we need to timeout
 - (void)updateStatus:(NSTimer*)timer
 {	
 	[self checkRequestStatus];
 	if ([self complete] || [self error]) {
 		[timer invalidate];
-		[timer release];
+		[self setStatusTimer:nil];
 		CFRunLoopStop(CFRunLoopGetCurrent());
 	}
 }
@@ -1529,7 +1533,7 @@ static BOOL isiPhoneOS2;
 	}
 	if ([self canUsePersistentConnection]) {
 		[[self connectionInfo] setObject:[NSDate dateWithTimeIntervalSinceNow:closeStreamTime] forKey:@"expires"];
-		[[NSTimer scheduledTimerWithTimeInterval:closeStreamTime target:[self class] selector:@selector(closePersistentConnection:) userInfo:[self connectionInfo] repeats:NO] retain];	
+		[NSTimer scheduledTimerWithTimeInterval:closeStreamTime target:[self class] selector:@selector(closePersistentConnection:) userInfo:[self connectionInfo] repeats:NO];	
 	}
 	
 	if ([self isCancelled] || [self error]) {
@@ -2510,7 +2514,7 @@ static BOOL isiPhoneOS2;
 	if (![self authenticationNeeded]) {
 		[self destroyReadStream];
 		if ([self canUsePersistentConnection]) {
-			[[NSTimer scheduledTimerWithTimeInterval:closeStreamTime target:[self class] selector:@selector(closePersistentConnection:) userInfo:[self connectionInfo]repeats:NO] retain];	
+			[NSTimer scheduledTimerWithTimeInterval:closeStreamTime target:[self class] selector:@selector(closePersistentConnection:) userInfo:[self connectionInfo]repeats:NO];	
 		}
 	}
 	
@@ -2611,8 +2615,6 @@ static BOOL isiPhoneOS2;
 		[persistentConnectionsPool removeObject:connection];
 	}
 	[connectionsLock unlock];
-	[timer invalidate];
-	[timer release];
 	
 }
 
@@ -3629,6 +3631,5 @@ static BOOL isiPhoneOS2;
 @synthesize connectionInfo;
 @synthesize readStream;
 @synthesize readStreamIsScheduled;
+@synthesize statusTimer;
 @end
-
-

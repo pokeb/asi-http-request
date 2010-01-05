@@ -160,7 +160,6 @@ IMPORTANT
 	ASINetworkQueue *networkQueue = [ASINetworkQueue queue];
 	[networkQueue setDownloadProgressDelegate:self];
 	[networkQueue setDelegate:self];
-	[networkQueue setShowAccurateProgress:NO];
 	[networkQueue setQueueDidFinishSelector:@selector(queueFinished:)];	
 	
 	// Test accurate progress falls back to simpler progress when responses have no content-length header
@@ -170,8 +169,7 @@ IMPORTANT
 	
 	int i;
 	for (i=0; i<5; i++) {
-		NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com"] autorelease];
-		ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
 		[request setAllowCompressedResponse:NO]; // A bit hacky - my server will send a chunked response (without content length) when we don't specify that we accept gzip
 		[networkQueue addOperation:request];
 	}	
@@ -192,8 +190,7 @@ IMPORTANT
 	[networkQueue setShowAccurateProgress:YES];
 	
 	for (i=0; i<5; i++) {
-		NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com"] autorelease];
-		ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
 		[networkQueue addOperation:request];
 	}	
 	[networkQueue go];
@@ -1109,6 +1106,8 @@ IMPORTANT
 	
 	BOOL success = ([queue2 retainCount] > 0);
 	GHAssertTrue(success,@"Failed to create a retained copy");
+	
+	[queue2 release];
 }
 
 @synthesize immediateCancelQueue;

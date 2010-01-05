@@ -309,7 +309,7 @@
 	BOOL success;
 	int i;
 	for (i=301; i<305; i++) {
-		NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://asi/ASIHTTPRequest/tests/redirect/%hi",i]];
+		NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://allseeing-i.com/ASIHTTPRequest/tests/redirect/%hi",i]];
 		request = [ASIHTTPRequest requestWithURL:url];
 		[request setShouldRedirect:NO];
 		[request startSynchronous];
@@ -343,11 +343,11 @@
 {
 	int i;
 	for (i=305; i<308; i++) {
-		ASIFormDataRequest *request = [ASIFormDataRequest requestWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://asi/ASIHTTPRequest/tests/redirect/%hi",i]]];
+		ASIFormDataRequest *request = [ASIFormDataRequest requestWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://allseeing-i.com/ASIHTTPRequest/tests/redirect/%hi",i]]];
 		[request setPostValue:@"foo" forKey:@"eep"];
 		[request setShouldRedirect:NO];
 		[request startSynchronous];
-		request = [ASIFormDataRequest requestWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://asi/ASIHTTPRequest/tests/redirect/%hi",i]]];
+		request = [ASIFormDataRequest requestWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://allseeing-i.com/ASIHTTPRequest/tests/redirect/%hi",i]]];
 		[request setPostValue:@"foo" forKey:@"eep"];
 		[request startSynchronous];
 	}
@@ -1265,6 +1265,8 @@
 	GHAssertNotNil(request2,@"Failed to create a copy");
 	BOOL success = ([request2 retainCount] == 1);
 	GHAssertTrue(success,@"Failed to create a retained copy");
+	
+	[request2 release];
 }
 
 @end

@@ -520,6 +520,8 @@ static NSString *bucket = @"";
 	success = ([request2 isKindOfClass:[ASIS3Request class]]);
 	GHAssertTrue(success,@"Copy is of wrong class");
 	
+	[request2 release];
+	
 	pool = [[NSAutoreleasePool alloc] init];
 
 	
@@ -534,6 +536,8 @@ static NSString *bucket = @"";
 	success = ([request4 isKindOfClass:[ASIS3ListRequest class]]);
 	GHAssertTrue(success,@"Copy is of wrong class");
 	
+	[request4 release];
+	
 	pool = [[NSAutoreleasePool alloc] init];
 
 	
@@ -545,6 +549,8 @@ static NSString *bucket = @"";
 	
 	success = ([bucketObject2 retainCount] > 0);
 	GHAssertTrue(success,@"Failed to create a retained copy");
+	
+	[bucketObject2 release];
 }
 
 @synthesize networkQueue;
