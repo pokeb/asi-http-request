@@ -21,7 +21,7 @@
 #import "ASIInputStream.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.2-65 2010-01-05";
+NSString *ASIHTTPRequestVersion = @"v1.2-66 2010-01-05";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -1021,7 +1021,7 @@ static BOOL isiPhoneOS2;
 	// Record when the request started, so we can timeout if nothing happens
 	[self setLastActivityTime:[NSDate date]];	
 	
-	[[self statusTimer] invalidate];
+
 	[self setStatusTimer:[NSTimer scheduledTimerWithTimeInterval:0.25 target:self selector:@selector(updateStatus:) userInfo:nil repeats:YES]];
 	
 	// If we're running asynchronously on the main thread, the runloop will already be running and we can return control
@@ -1030,6 +1030,17 @@ static BOOL isiPhoneOS2;
 			CFRunLoopRun();
 		}
 	}
+}
+
+- (void)setStatusTimer:(NSTimer *)timer
+{
+	// We must invalidate the old timer here, not before we've created and scheduled a new timer
+	// This is because the timer may be the only thing retaining an asynchronous request
+	if (timer != [self statusTimer]) {
+		[[self statusTimer] invalidate];
+		[[self statusTimer] release];
+	}
+	statusTimer = [timer retain];
 }
 
 - (void)performRedirect
@@ -1055,8 +1066,7 @@ static BOOL isiPhoneOS2;
 - (void)updateStatus:(NSTimer*)timer
 {	
 	[self checkRequestStatus];
-	if ([self complete] || [self error]) {
-		[timer invalidate];
+	if (![self inProgress]) {
 		[self setStatusTimer:nil];
 		CFRunLoopStop(CFRunLoopGetCurrent());
 	}
