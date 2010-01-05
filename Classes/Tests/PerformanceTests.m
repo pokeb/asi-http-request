@@ -9,6 +9,7 @@
 #import "PerformanceTests.h"
 #import "ASIHTTPRequest.h"
 
+// IMPORTANT - these tests need to be run one at a time!
 
 @interface NSURLConnectionSubclass : NSURLConnection {
 	int tag;

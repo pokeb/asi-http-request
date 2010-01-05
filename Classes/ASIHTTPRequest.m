@@ -21,7 +21,7 @@
 #import "ASIInputStream.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.2-63 2010-01-05";
+NSString *ASIHTTPRequestVersion = @"v1.2-64 2010-01-05";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -57,9 +57,19 @@ static NSMutableArray *bandwidthUsageTracker = nil;
 static unsigned long averageBandwidthUsedPerSecond = 0;
 
 // These are used for queuing persistent connections on the same connection
-static unsigned char nextStreamNumberToCreate = 0;
+
+// Incremented every time we specify we want a new connection
+static unsigned int nextConnectionNumberToCreate = 0;
+
+// An array of connectionInfo dictionaries.
+// When attempting a persistent connection, we look here to try to find an existing connection to the same server that is currently not in use
 static NSMutableArray *persistentConnectionsPool = nil;
+
+// Mediates access to the persistent connections pool
 static NSLock *connectionsLock = nil;
+
+// Each request gets a new id, we store this rather than a ref to the request itself in the connectionInfo dictionary.
+// We do this so we don't have to keep the request around while we wait for the connection to expire
 static unsigned int nextRequestID = 0;
 
 // Records how much bandwidth all requests combined have used in the last second
@@ -98,8 +108,10 @@ static NSRecursiveLock *sessionCookiesLock = nil;
 // This is so it can make use of any credentials supplied for the other request, if they are appropriate
 static NSRecursiveLock *delegateAuthenticationLock = nil;
 
+// When throttling bandwidth, Set to a date in future that we will allow all requests to wake up and reschedule their streams
 static NSDate *throttleWakeUpTime = nil;
 
+// Run once in initalize to record at runtime whether we're on iPhone OS 2. When YES, a workaround for a type conversion bug in iPhone OS 2.2.x is applied in some places
 static BOOL isiPhoneOS2;
 
 // Private stuff
@@ -116,8 +128,6 @@ static BOOL isiPhoneOS2;
 - (BOOL)askDelegateForProxyCredentials;
 + (void)measureBandwidthUsage;
 + (void)recordBandwidthUsage;
-
-// Start the read stream. Called by loadRequest, and again to restart the request when authentication is needed
 - (void)startRequest;
 
 - (void)markAsFinished;
@@ -878,6 +888,7 @@ static BOOL isiPhoneOS2;
 	// Use a persistent connection if possible
 	if (shouldAttemptPersistentConnection) {
 		
+
 		// If we are redirecting, we will re-use the current connection only if we are connecting to the same server
 		if ([self connectionInfo]) {
 			
@@ -894,9 +905,10 @@ static BOOL isiPhoneOS2;
 			}
 		}
 		
-		if (![self connectionInfo] && [[self url] host] && [[self url] scheme]) {
-			// Look for a connection to the same server in the pool
+		
+		if (![self connectionInfo] && [[self url] host] && [[self url] scheme]) { // We must have a proper url with a host and scheme, or this will explode
 			
+			// Look for a connection to the same server in the pool
 			NSUInteger i;
 			NSMutableDictionary *existingConnection;
 			for (i=0; i<[persistentConnectionsPool count]; i++) {
@@ -924,8 +936,8 @@ static BOOL isiPhoneOS2;
 		// No free connection was found in the pool matching the server/scheme/port we're connecting to, we'll need to create a new one
 		if (![self connectionInfo]) {
 			[self setConnectionInfo:[NSMutableDictionary dictionary]];
-			nextStreamNumberToCreate++;
-			[[self connectionInfo] setObject:[NSNumber numberWithInt:nextStreamNumberToCreate] forKey:@"id"];
+			nextConnectionNumberToCreate++;
+			[[self connectionInfo] setObject:[NSNumber numberWithInt:nextConnectionNumberToCreate] forKey:@"id"];
 			[[self connectionInfo] setObject:[[self url] host] forKey:@"host"];
 			[[self connectionInfo] setObject:[NSNumber numberWithInt:[[[self url] port] intValue]] forKey:@"port"];
 			[[self connectionInfo] setObject:[[self url] scheme] forKey:@"scheme"];
@@ -940,6 +952,11 @@ static BOOL isiPhoneOS2;
 		#if DEBUG_PERSISTENT_CONNECTIONS
 		NSLog(@"Request #%hi will use connection #%hi",nextRequestID,[[[self connectionInfo] objectForKey:@"id"] intValue]);
 		#endif
+		
+		
+		// Tag the stream with an id that tells it which connection to use behind the scenes
+		// See http://lists.apple.com/archives/macnetworkprog/2008/Dec/msg00001.html for details on this approach
+		
 		CFReadStreamSetProperty((CFReadStreamRef)[self readStream], CFSTR("ASIStreamID"), [[self connectionInfo] objectForKey:@"id"]);
 	
 	}
@@ -963,6 +980,9 @@ static BOOL isiPhoneOS2;
 		return;
 	}
 	
+	// Here, we'll close the stream that was previously using this connection, if there was one
+	// We've kept it open until now (when we've just opened a new stream) so that the new stream can make use of the old connection
+	// http://lists.apple.com/archives/Macnetworkprog/2006/Mar/msg00119.html
 	if (oldStream) {
 		CFStreamStatus status = CFReadStreamGetStatus((CFReadStreamRef)oldStream);
 		if (status != kCFStreamStatusClosed && status != kCFStreamStatusError) {
@@ -1549,6 +1569,9 @@ static BOOL isiPhoneOS2;
 	[self setAuthenticationNeeded:ASINoAuthenticationNeededYet];
 
 	CFHTTPMessageRef headers = (CFHTTPMessageRef)CFReadStreamCopyProperty((CFReadStreamRef)[self readStream], kCFStreamPropertyHTTPResponseHeader);
+	if (!headers) {
+		return;
+	}
 	if (CFHTTPMessageIsHeaderComplete(headers)) {
 		
 		CFDictionaryRef headerFields = CFHTTPMessageCopyAllHeaderFields(headers);
@@ -2322,6 +2345,12 @@ static BOOL isiPhoneOS2;
 
 - (void)handleBytesAvailable
 {
+	// In certain (presumably very rare) circumstances, handleBytesAvailable seems to be called when there isn't actually any data available
+	// We'll check that there is actually data available to prevent blocking on CFReadStreamRead()
+	// So far, I've only seen this in the stress tests, so it might never happen in real-world situations.
+	if (!CFReadStreamHasBytesAvailable((CFReadStreamRef)[self readStream])) {
+		return;
+	}
 	if (![self responseHeaders]) {
 		[self readResponseHeaders];
 	}

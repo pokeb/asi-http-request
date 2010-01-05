@@ -318,9 +318,14 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	// Default is YES
 	BOOL shouldPresentCredentialsBeforeChallenge;
 	
+	// YES when the request is run with runSynchronous, NO otherwise. READ-ONLY
 	BOOL isSynchronous;
 	
+	// YES when the request hasn't finished yet. Will still be YES even if the request isn't doing anything (eg it's waiting for delegate authentication). READ-ONLY
 	BOOL inProgress;
+	
+	// Used internally to track whether the stream is scheduled on the run loop or not
+	// Bandwidth throttling can unschedule the stream to slow things down while a request is in progress
 	BOOL readStreamIsScheduled;
 	
 	// Set to allow a request to automatically retry itself on timeout
@@ -338,8 +343,18 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	// Set to yes when an appropriate keep-alive header is found
 	BOOL canUsePersistentConnection;
 	
+	// Populated with the number of seconds the server told us we could keep a persistent connection around
+	// A future date is created from this and used for expiring the connection, this is stored in connectionInfo's expires value
 	NSTimeInterval closeStreamTime;
 	
+	// Stores information about the persistent connection that is currently in use.
+	// It may contain:
+	// * The id we set for a particular connection, incremented every time we want to specify that we need a new connection
+	// * The date that connection should expire
+	// * A host, port and scheme for the connection. These are used to determine whether that connection can be reused by a subsequent request (all must match the new request)
+	// * An id for the request that is currently using the connection. This is used for determining if a connection is available or not (we store a number rather than a reference to the request so we don't need to hang onto a request until the connection expires)
+	// * A reference to the stream that is currently using the connection. This is necessary because we need to keep the old stream open until we've opened a new one.
+	//   The stream will be closed + released either when another request comes to use the connection, or when the timer fires to tell the connection to expire
 	NSMutableDictionary *connectionInfo;
 	
 }
