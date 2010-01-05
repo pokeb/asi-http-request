@@ -796,7 +796,6 @@ IMPORTANT
 
 - (void)immediateCancelFinish:(ASIHTTPRequest *)request
 {
-	NSLog(@"Finish %@",request);
 	if ([[self finishedRequests] containsObject:request]) {
 		GHFail(@"A request called its finish delegate method twice");
 	}
@@ -962,8 +961,6 @@ IMPORTANT
 	BOOL success = (interval > -10);
 	GHAssertTrue(success,@"Uploaded the data too slowly - either this is a bug, or your internet connection is too slow to run this test (must be able to upload 160KB in less than 10 seconds, without throttling)");
 	
-	//NSLog(@"Throttle");
-	
 	// Reset the queue
 	[networkQueue cancelAllOperations];
 	networkQueue = [ASINetworkQueue queue];
@@ -1019,7 +1016,6 @@ IMPORTANT
 
 - (void)postDone:(ASIHTTPRequest *)request
 {
-	NSLog(@"%@",[request responseString]);
 	BOOL success = [[request responseString] isEqualToString:@"This is the first item\r\nThis is the second item"];
 	GHAssertTrue(success,@"Didn't post correct data");	
 }

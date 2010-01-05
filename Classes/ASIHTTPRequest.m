@@ -21,7 +21,7 @@
 #import "ASIInputStream.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.2-62 2010-01-05";
+NSString *ASIHTTPRequestVersion = @"v1.2-63 2010-01-05";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -768,11 +768,6 @@ static BOOL isiPhoneOS2;
     // Create the stream for the request
 	[self setReadStreamIsScheduled:NO];
 	
-	NSInputStream *oldStream = nil;
-	if ([self readStream]) {
-		oldStream = [[self readStream] retain];
-		[self setReadStream:nil];
-	}
 	
 	// Do we need to stream the request body from disk
 	if ([self shouldStreamPostDataFromDisk] && [self postBodyFilePath] && [[NSFileManager defaultManager] fileExistsAtPath:[self postBodyFilePath]]) {
@@ -871,6 +866,9 @@ static BOOL isiPhoneOS2;
 	
 	[connectionsLock lock];
 	
+	NSInputStream *oldStream = nil;
+
+	
 	
 	if (![[self url] host] || ![[self url] scheme]) {
 		[self setConnectionInfo:nil];
@@ -917,6 +915,10 @@ static BOOL isiPhoneOS2;
 					
 				}
 			}
+		}
+		
+		if ([[self connectionInfo] objectForKey:@"stream"]) {
+			oldStream = [[[self connectionInfo] objectForKey:@"stream"] retain];
 		}
 		
 		// No free connection was found in the pool matching the server/scheme/port we're connecting to, we'll need to create a new one
@@ -1032,7 +1034,7 @@ static BOOL isiPhoneOS2;
 	if ([self complete] || [self error]) {
 		[timer invalidate];
 		[timer release];
-		//CFRunLoopStop(CFRunLoopGetCurrent());
+		CFRunLoopStop(CFRunLoopGetCurrent());
 	}
 }
 
@@ -2536,8 +2538,8 @@ static BOOL isiPhoneOS2;
 			if (status != kCFStreamStatusClosed && status != kCFStreamStatusError) {
 				CFReadStreamClose((CFReadStreamRef)[self readStream]);
 			}
-			[self setReadStream:nil];
 		}
+		[self setReadStream:nil];
 		[connectionsLock unlock];
     }	
 }

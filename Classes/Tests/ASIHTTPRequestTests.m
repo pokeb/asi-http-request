@@ -67,6 +67,12 @@
 
 - (void)testDelegateMethods
 {
+	// We run this test on the main thread because otherwise we can't depend on the  delegate being notified before we need to test it's working
+	[self performSelectorOnMainThread:@selector(performDelegateMethodsTest) withObject:nil waitUntilDone:YES];
+}
+
+- (void)performDelegateMethodsTest
+{
 	started = NO;
 	finished = NO;
 	failed = NO;
@@ -87,8 +93,6 @@
 	[request setTimeOutSeconds:0.01];
 	[request startSynchronous];
 	
-	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:2]];
-	
 	GHAssertTrue(failed,@"Failed to call the delegate method when the request failed");
 	
 	started = NO;
@@ -102,8 +106,7 @@
 	[request setDidFinishSelector:@selector(delegateTestFinished:)];
 	[request startSynchronous];
 	
-	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:2]];
-	
+
 	GHAssertTrue(started,@"Failed to call the delegate method when the request started");	
 	GHAssertTrue(finished,@"Failed to call the delegate method when the request finished");
 	
@@ -112,8 +115,6 @@
 	[request setDelegate:self];
 	[request setTimeOutSeconds:0.01];
 	[request startSynchronous];
-	
-	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:2]];
 	
 	GHAssertTrue(failed,@"Failed to call the delegate method when the request failed");
 	
