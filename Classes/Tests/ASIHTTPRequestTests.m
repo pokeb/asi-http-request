@@ -65,6 +65,21 @@
 	GHAssertTrue(success,@"Failed to generate an error for a bad host");
 }
 
+- (void)testCancel
+{
+	// We run this test on the main thread because otherwise we can't depend on the  delegate being notified before we need to test it's working
+	[self performSelectorOnMainThread:@selector(runCancelTest) withObject:nil waitUntilDone:YES];
+
+}
+
+- (void)runCancelTest
+{
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_great_american_novel_%28abridged%29.txt"]];
+	[request startAsynchronous];
+	[request cancel];
+	GHAssertNotNil([request error],@"Failed to cancel the request");
+}
+
 - (void)testDelegateMethods
 {
 	// We run this test on the main thread because otherwise we can't depend on the  delegate being notified before we need to test it's working
