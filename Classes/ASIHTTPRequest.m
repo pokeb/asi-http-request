@@ -21,7 +21,7 @@
 #import "ASIInputStream.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.2-69 2010-01-06";
+NSString *ASIHTTPRequestVersion = @"v1.2-70 2010-01-06";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -921,7 +921,7 @@ static BOOL isiPhoneOS2;
 						break;
 					} else {
 						#if DEBUG_PERSISTENT_CONNECTIONS
-						NSLog(@"Not re-using connection #%hi because it has expired",[[connectionInfo objectForKey:@"id"] intValue]);
+						NSLog(@"Not re-using connection #%hi because it has expired",[[existingConnection objectForKey:@"id"] intValue]);
 						#endif
 						[persistentConnectionsPool removeObject:existingConnection];
 						i--;
@@ -1034,13 +1034,17 @@ static BOOL isiPhoneOS2;
 
 - (void)setStatusTimer:(NSTimer *)timer
 {
+	[self retain];
 	// We must invalidate the old timer here, not before we've created and scheduled a new timer
 	// This is because the timer may be the only thing retaining an asynchronous request
 	if ([self statusTimer] && timer != [self statusTimer]) {
+		
 		[[self statusTimer] invalidate];
 		[[self statusTimer] release];
+		
 	}
 	statusTimer = [timer retain];
+	[self release];
 }
 
 - (void)performRedirect
@@ -2351,7 +2355,12 @@ static BOOL isiPhoneOS2;
     }
 	
 	[self performThrottling];
+	
 	[[self cancelledLock] unlock];
+	
+	if (![self inProgress]) {
+		[self setStatusTimer:nil];
+	}
 	
 }
 
@@ -2532,7 +2541,6 @@ static BOOL isiPhoneOS2;
 	[self didChangeValueForKey:@"isFinished"];
 	[self setInProgress:NO];
 	CFRunLoopStop(CFRunLoopGetCurrent());
-	[self setStatusTimer:nil];
 
 }
 
