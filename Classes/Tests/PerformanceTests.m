@@ -9,6 +9,8 @@
 #import "PerformanceTests.h"
 #import "ASIHTTPRequest.h"
 
+// IMPORTANT - these tests need to be run one at a time!
+
 @interface NSURLConnectionSubclass : NSURLConnection {
 	int tag;
 }
@@ -21,16 +23,139 @@
 
 @implementation PerformanceTests
 
+- (void)setUp
+{
+	[self setTestURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_great_american_novel_%28abridged%29.txt"]];
+	//[self setTestURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
+}
+
+- (void)testASIHTTPRequestSynchronousPerformance
+{
+	[self performSelectorOnMainThread:@selector(runSynchronousASIHTTPRequests) withObject:nil waitUntilDone:YES];
+}
+
+
+- (void)runSynchronousASIHTTPRequests
+{
+	int runTimes = 10;
+	NSTimeInterval times[runTimes];
+	int i;
+	for (i=0; i<runTimes; i++) {
+		NSDate *startTime = [NSDate date];
+		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:testURL];
+		//Send the same headers as NSURLRequest
+		[request addRequestHeader:@"Pragma" value:@"no-cache"];
+		[request addRequestHeader:@"Accept" value:@"*/*"];
+		[request addRequestHeader:@"Accept-Language" value:@"en/us"];
+		[request start];
+		if ([request error]) {
+			NSLog(@"Request failed - cannot proceed with test");
+			return;
+		}
+		times[i] = [[NSDate date] timeIntervalSinceDate:startTime];
+	}
+	NSTimeInterval bestTime = 1000;
+	NSTimeInterval worstTime = 0;
+	NSTimeInterval totalTime = 0;
+	for (i=0; i<runTimes; i++) {
+		if (times[i] < bestTime) {
+			bestTime = times[i];
+		}
+		if (times[i] > worstTime) {
+			worstTime = times[i];
+		}
+		totalTime += times[i];
+	}
+	NSLog(@"Ran %hi requests in %f seconds (average time: %f secs / best time: %f secs / worst time: %f secs)",runTimes,totalTime,totalTime/runTimes,bestTime,worstTime);
+}
+
+
+- (void)testNSURLConnectionSynchronousPerformance
+{
+	[self performSelectorOnMainThread:@selector(runSynchronousNSURLConnections) withObject:nil waitUntilDone:YES];
+}
+
+
+- (void)runSynchronousNSURLConnections
+{
+	int runTimes = 10;
+	NSTimeInterval times[runTimes];
+	int i;
+	for (i=0; i<runTimes; i++) {
+		NSDate *startTime = [NSDate date];
+		
+		NSURLResponse *response = nil;
+		NSError *error = nil;
+		NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:testURL cachePolicy:NSURLRequestReloadIgnoringLocalCacheData timeoutInterval:10];
+		[NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
+		if (error) {
+			NSLog(@"Request failed - cannot proceed with test");
+			return;
+		}
+		times[i] = [[NSDate date] timeIntervalSinceDate:startTime];
+	}
+	NSTimeInterval bestTime = 1000;
+	NSTimeInterval worstTime = 0;
+	NSTimeInterval totalTime = 0;
+	for (i=0; i<runTimes; i++) {
+		if (times[i] < bestTime) {
+			bestTime = times[i];
+		}
+		if (times[i] > worstTime) {
+			worstTime = times[i];
+		}
+		totalTime += times[i];
+	}
+	NSLog(@"Ran %hi requests in %f seconds (average time: %f secs / best time: %f secs / worst time: %f secs)",runTimes,totalTime,totalTime/runTimes,bestTime,worstTime);
+}
+
+
 - (void)testASIHTTPRequestAsyncPerformance
+{
+	[self performSelectorOnMainThread:@selector(startASIHTTPRequests) withObject:nil waitUntilDone:NO];
+}
+
+- (void)testQueuedASIHTTPRequestAsyncPerformance
+{
+	[self performSelectorOnMainThread:@selector(startASIHTTPRequestsWithQueue) withObject:nil waitUntilDone:NO];
+}
+
+
+- (void)startASIHTTPRequests
 {
 	bytesDownloaded = 0;
 	[self setRequestsComplete:0];
 	[self setTestStartDate:[NSDate date]];
 	int i;
-	for (i=0; i<5; i++) {
-		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_great_american_novel_(abridged).txt"]];
+	for (i=0; i<10; i++) {
+		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:testURL];
+		//Send the same headers as NSURLRequest
+		[request addRequestHeader:@"Pragma" value:@"no-cache"];
+		[request addRequestHeader:@"Accept" value:@"*/*"];
+		[request addRequestHeader:@"Accept-Language" value:@"en/us"];
 		[request setDelegate:self];
 		[request startAsynchronous];
+	}
+}
+
+- (void)startASIHTTPRequestsWithQueue
+{
+	bytesDownloaded = 0;
+	[self setRequestsComplete:0];
+	[self setTestStartDate:[NSDate date]];
+	int i;
+	NSOperationQueue *queue = [[[NSOperationQueue alloc] init] autorelease];
+	[queue setMaxConcurrentOperationCount:4];
+	for (i=0; i<10; i++) {
+		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:testURL];
+		//Send the same headers as NSURLRequest
+		[request addRequestHeader:@"Pragma" value:@"no-cache"];
+		[request addRequestHeader:@"Accept" value:@"*/*"];
+		[request addRequestHeader:@"Accept-Language" value:@"en/us"];
+		[request setUseCookiePersistance:NO];
+		[request setUseSessionPersistance:NO];
+		[request setDelegate:self];
+		[queue addOperation:request];
 	}
 }
 
@@ -43,8 +168,8 @@
 {
 	bytesDownloaded += [[request responseData] length];
 	requestsComplete++;
-	if (requestsComplete == 5) {
-		NSLog(@"ASIHTTPRequest: Completed 5 (downloaded %lu bytes) requests in %f seconds",bytesDownloaded,[[NSDate date] timeIntervalSinceDate:[self testStartDate]]);
+	if (requestsComplete == 10) {
+		NSLog(@"ASIHTTPRequest: Completed 10 (downloaded %lu bytes) requests in %f seconds",bytesDownloaded,[[NSDate date] timeIntervalSinceDate:[self testStartDate]]);
 	}
 }
 
@@ -61,8 +186,8 @@
 	[self setResponseData:[NSMutableArray arrayWithCapacity:5]]; 
 	
 	int i;
-	for (i=0; i<5; i++) {
-		NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_great_american_novel_(abridged).txt"] cachePolicy:NSURLRequestReloadIgnoringLocalCacheData timeoutInterval:10];
+	for (i=0; i<10; i++) {
+		NSURLRequest *request = [NSURLRequest requestWithURL:testURL cachePolicy:NSURLRequestReloadIgnoringLocalCacheData timeoutInterval:10];
 		[[self responseData] addObject:[NSMutableData data]];
 		NSURLConnectionSubclass *connection = [[[NSURLConnectionSubclass alloc] initWithRequest:request delegate:self startImmediately:YES] autorelease];
 		[connection setTag:i];		
@@ -88,11 +213,12 @@
 {
 	bytesDownloaded += [[responseData objectAtIndex:[connection tag]] length];
 	requestsComplete++;
-	if (requestsComplete == 5) {
-		NSLog(@"NSURLConnection: Completed 5 (downloaded %lu bytes) requests in %f seconds",bytesDownloaded,[[NSDate date] timeIntervalSinceDate:[self testStartDate]]);
+	if (requestsComplete == 10) {
+		NSLog(@"NSURLConnection: Completed 10 (downloaded %lu bytes) requests in %f seconds",bytesDownloaded,[[NSDate date] timeIntervalSinceDate:[self testStartDate]]);
 	}		
 }
 
+@synthesize testURL;
 @synthesize requestsComplete;
 @synthesize testStartDate;
 @synthesize responseData;

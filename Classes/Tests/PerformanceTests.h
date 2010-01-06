@@ -10,6 +10,8 @@
 #import "ASITestCase.h"
 
 @interface PerformanceTests : ASITestCase {
+	NSURL *testURL;
+
 	NSDate *testStartDate;
 	int requestsComplete;
 	NSMutableArray *responseData;
@@ -19,6 +21,7 @@
 - (void)testASIHTTPRequestAsyncPerformance;
 - (void)testNSURLConnectionAsyncPerformance;
 
+@property (retain,nonatomic) NSURL *testURL;
 @property (retain,nonatomic) NSDate *testStartDate;
 @property (assign,nonatomic) int requestsComplete;
 @property (retain,nonatomic) NSMutableArray *responseData;
