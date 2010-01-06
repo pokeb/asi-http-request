@@ -47,7 +47,7 @@
 		[request addRequestHeader:@"Pragma" value:@"no-cache"];
 		[request addRequestHeader:@"Accept" value:@"*/*"];
 		[request addRequestHeader:@"Accept-Language" value:@"en/us"];
-		[request start];
+		[request startSynchronous];
 		if ([request error]) {
 			NSLog(@"Request failed - cannot proceed with test");
 			return;

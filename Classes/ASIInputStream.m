@@ -21,16 +21,18 @@ static NSLock *readLock = nil;
 	}
 }
 
-+ (id)inputStreamWithFileAtPath:(NSString *)path
++ (id)inputStreamWithFileAtPath:(NSString *)path request:(ASIHTTPRequest *)request
 {
 	ASIInputStream *stream = [[[self alloc] init] autorelease];
+	[stream setRequest:request];
 	[stream setStream:[NSInputStream inputStreamWithFileAtPath:path]];
 	return stream;
 }
 
-+ (id)inputStreamWithData:(NSData *)data
++ (id)inputStreamWithData:(NSData *)data request:(ASIHTTPRequest *)request
 {
 	ASIInputStream *stream = [[[self alloc] init] autorelease];
+	[stream setRequest:request];
 	[stream setStream:[NSInputStream inputStreamWithData:data]];
 	return stream;
 }
@@ -39,28 +41,6 @@ static NSLock *readLock = nil;
 {
 	[stream release];
 	[super dealloc];
-}
-
-
-// Ok, so this works, but I don't really understand why.
-// Ideally, we'd just return the stream's hasBytesAvailable, but CFNetwork seems to want to monopolise our run loop until (presumably) its buffer is full, which will cause timeouts if we're throttling the bandwidth
-// We return NO when we shouldn't be uploading any more data because our bandwidth limit has run out (for now)
-// The call to maxUploadReadLength will recognise that we've run out of our allotted bandwidth limit, and sleep this thread for the rest of the measurement period
-// This method will be called again, but we'll almost certainly return YES the next time around, because we'll have more limit to use up
-// The NO returns seem to snap CFNetwork out of its reverie, and return control to the main loop in loadRequest, so that we can manage timeouts and progress delegate updates
-- (BOOL)hasBytesAvailable
-{
-	
-	if ([ASIHTTPRequest isBandwidthThrottled]) {
-		[readLock lock];
-		if ([ASIHTTPRequest maxUploadReadLength] == 0) {
-			[readLock unlock];
-			return NO;
-		}
-		[readLock unlock];
-	}
-	return [[self stream] hasBytesAvailable];
-	
 }
 
 // Called when CFNetwork wants to read more of our request body
@@ -73,31 +53,28 @@ static NSLock *readLock = nil;
 		toRead = [ASIHTTPRequest maxUploadReadLength];
 		if (toRead > len) {
 			toRead = len;
-		
-		// Hopefully this won't happen because hasBytesAvailable will have returned NO, but just in case - we need to read at least 1 byte, or bad things might happen
 		} else if (toRead == 0) {
 			toRead = 1;
 		}
-		//NSLog(@"Throttled read %u",toRead);
-	} else {
-		//NSLog(@"Unthrottled read %u",toRead);
+		[request performThrottling];
 	}
 	[ASIHTTPRequest incrementBandwidthUsedInLastSecond:toRead];
 	[readLock unlock];
-	return [[self stream] read:buffer maxLength:toRead];
+	return [stream read:buffer maxLength:toRead];
 }
 
 // If we get asked to perform a method we don't have (which is almost all of them), we'll just forward the message to our stream
 
 - (NSMethodSignature *)methodSignatureForSelector:(SEL)aSelector
 {
-	return [[self stream] methodSignatureForSelector:aSelector];
+	return [stream methodSignatureForSelector:aSelector];
 }
 	 
 - (void)forwardInvocation:(NSInvocation *)anInvocation
 {
-	[anInvocation invokeWithTarget:[self stream]];
+	[anInvocation invokeWithTarget:stream];
 }
 
 @synthesize stream;
+@synthesize request;
 @end

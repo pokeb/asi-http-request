@@ -7,11 +7,9 @@
 //
 
 #import <UIKit/UIKit.h>
-@class ASINetworkQueue;
 @class ASIHTTPRequest;
 
 @interface AuthenticationViewController : UIViewController {
-	ASINetworkQueue *networkQueue;
 	IBOutlet UISwitch *useKeychain;
 	IBOutlet UISwitch *useBuiltInDialog;
 	IBOutlet UILabel *topSecretInfo;
@@ -20,7 +18,6 @@
 }
 - (IBAction)fetchTopSecretInformation:(id)sender;
 
-@property (retain) ASINetworkQueue *networkQueue;
 @property (retain) ASIHTTPRequest *requestRequiringAuthentication;
 @property (retain) ASIHTTPRequest *requestRequiringProxyAuthentication;
 @end

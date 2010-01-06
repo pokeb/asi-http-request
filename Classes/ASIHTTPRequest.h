@@ -25,6 +25,11 @@ extern NSString *ASIHTTPRequestVersion;
 	#define __IPHONE_3_0 30000
 #endif
 
+typedef enum _ASIAuthenticationState {
+	ASINoAuthenticationNeededYet = 0,
+	ASIHTTPAuthenticationNeeded = 1,
+	ASIProxyAuthenticationNeeded = 2
+} ASIAuthenticationState;
 
 typedef enum _ASINetworkErrorType {
     ASIConnectionFailureErrorType = 1,
@@ -48,7 +53,7 @@ extern NSString* const NetworkRequestErrorDomain;
 // This number is not official, as far as I know there is no officially documented bandwidth limit
 extern unsigned long const ASIWWANBandwidthThrottleAmount;
 
-@interface ASIHTTPRequest : NSOperation {
+@interface ASIHTTPRequest : NSOperation <NSCopying> {
 	
 	// The url for this operation, should include GET params in the query string where appropriate
 	NSURL *url; 
@@ -164,7 +169,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	
 	// Used for sending and receiving data
     CFHTTPMessageRef request;	
-	CFReadStreamRef readStream;
+	NSInputStream *readStream;
 	
 	// Used for authentication
     CFHTTPAuthenticationRef requestAuthentication; 
@@ -178,9 +183,6 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	
 	// Realm for authentication when credentials are required
 	NSString *authenticationRealm;
-	
-	// And now, the same thing, but for authenticating proxies
-	BOOL needsProxyAuthentication;
 	
 	// When YES, ASIHTTPRequest will present a dialog allowing users to enter credentials when no-matching credentials were found for a server that requires authentication
 	// The dialog will not be shown if your delegate responds to authenticationNeededForRequest:
@@ -230,9 +232,6 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	
 	// Last amount of data sent (used for incrementing progress)
 	unsigned long long lastBytesSent;
-	
-	// This lock will block the request until the delegate supplies authentication info
-	NSConditionLock *authenticationLock;
 	
 	// This lock prevents the operation from being cancelled at an inopportune moment
 	NSRecursiveLock *cancelledLock;
@@ -309,8 +308,8 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	// URL for a PAC (Proxy Auto Configuration) file. If you want to set this yourself, it's probably best if you use a local file
 	NSURL *PACurl;
 	
-	// True when request is attempting to handle an authentication challenge
-	BOOL authenticationChallengeInProgress;
+	// See ASIAuthenticationState values above. 0 == default == No authentication needed yet
+	ASIAuthenticationState authenticationNeeded;
 	
 	// When YES, ASIHTTPRequests will present credentials from the session store for requests to the same server before being asked for them
 	// This avoids an extra round trip for requests after authentication has succeeded, which is much for efficient for authenticated requests with large bodies, or on slower connections
@@ -318,6 +317,48 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	// This only affects credentials stored in the session cache when useSessionPersistance is YES. Credentials from the keychain are never presented unless the server asks for them
 	// Default is YES
 	BOOL shouldPresentCredentialsBeforeChallenge;
+	
+	// YES when the request is run with runSynchronous, NO otherwise. READ-ONLY
+	BOOL isSynchronous;
+	
+	// YES when the request hasn't finished yet. Will still be YES even if the request isn't doing anything (eg it's waiting for delegate authentication). READ-ONLY
+	BOOL inProgress;
+	
+	// Used internally to track whether the stream is scheduled on the run loop or not
+	// Bandwidth throttling can unschedule the stream to slow things down while a request is in progress
+	BOOL readStreamIsScheduled;
+	
+	// Set to allow a request to automatically retry itself on timeout
+	// Default is zero - timeout will stop the request
+	int numberOfTimesToRetryOnTimeout;
+
+	// The number of times this request has retried (when numberOfTimesToRetryOnTimeout > 0)
+	int retryCount;
+	
+	// When YES, requests will keep the connection to the server alive for a while to allow subsequent requests to re-use it for a substatial speed-boost
+	// Persistent connections only work when the server sends a 'Keep-Alive' header
+	// Default is YES
+	BOOL shouldAttemptPersistentConnection;
+	
+	// Set to yes when an appropriate keep-alive header is found
+	BOOL canUsePersistentConnection;
+	
+	// Populated with the number of seconds the server told us we could keep a persistent connection around
+	// A future date is created from this and used for expiring the connection, this is stored in connectionInfo's expires value
+	NSTimeInterval closeStreamTime;
+	
+	// Stores information about the persistent connection that is currently in use.
+	// It may contain:
+	// * The id we set for a particular connection, incremented every time we want to specify that we need a new connection
+	// * The date that connection should expire
+	// * A host, port and scheme for the connection. These are used to determine whether that connection can be reused by a subsequent request (all must match the new request)
+	// * An id for the request that is currently using the connection. This is used for determining if a connection is available or not (we store a number rather than a reference to the request so we don't need to hang onto a request until the connection expires)
+	// * A reference to the stream that is currently using the connection. This is necessary because we need to keep the old stream open until we've opened a new one.
+	//   The stream will be closed + released either when another request comes to use the connection, or when the timer fires to tell the connection to expire
+	NSMutableDictionary *connectionInfo;
+	
+	// This timer checks up on the request every 0.25 seconds, and updates progress
+	NSTimer *statusTimer;
 }
 
 #pragma mark init / dealloc
@@ -359,17 +400,14 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 
 #pragma mark running a request
 
-// Run a request asynchronously by adding it to the global queue
-// (Use [request start] for a synchronous request)
+
+// Run a request synchronously, and return control when the request completes or fails
+- (void)startSynchronous;
+
+// Run request in the background
 - (void)startAsynchronous;
 
 #pragma mark request logic
-
-// Main request loop is in here
-- (void)loadRequest;
-
-// Start the read stream. Called by loadRequest, and again to restart the request when authentication is needed
-- (void)startRequest;
 
 // Call to delete the temporary file used during a file download (if it exists)
 // No need to call this if the request succeeds - it is removed automatically
@@ -413,8 +451,8 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 
 // Reads the response headers to find the content length, encoding, cookies for the session 
 // Also initiates request redirection when shouldRedirect is true
-// Returns true if the request needs a username and password (or if those supplied were incorrect)
-- (BOOL)readResponseHeadersReturningAuthenticationFailure;
+// And works out if HTTP auth is required
+- (void)readResponseHeaders;
 
 #pragma mark http authentication stuff
 
@@ -453,10 +491,6 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 - (void)handleBytesAvailable;
 - (void)handleStreamComplete;
 - (void)handleStreamError;
-
-#pragma mark global queue
-
-+ (NSOperationQueue *)sharedRequestQueue;
 
 #pragma mark session credentials
 
@@ -544,6 +578,8 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 // Get a rough average (for the last 5 seconds) of how much bandwidth is being used, in bytes
 + (unsigned long)averageBandwidthUsedPerSecond;
 
+- (void)performThrottling;
+
 // Will return YES is bandwidth throttling is currently in use
 + (BOOL)isBandwidthThrottled;
 
@@ -623,7 +659,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 @property (assign,readonly) unsigned long long contentLength;
 @property (assign) unsigned long long postLength;
 @property (assign) BOOL shouldResetProgressIndicators;
-@property (retain) ASIHTTPRequest *mainRequest;
+@property (assign) ASIHTTPRequest *mainRequest;
 @property (assign) BOOL showAccurateProgress;
 @property (assign,readonly) unsigned long long totalBytesRead;
 @property (assign,readonly) unsigned long long totalBytesSent;
@@ -640,16 +676,21 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 @property (assign) BOOL shouldRedirect;
 @property (assign) BOOL validatesSecureCertificate;
 @property (assign) BOOL shouldCompressRequestBody;
-@property (assign) BOOL needsProxyAuthentication;
 @property (retain) NSURL *PACurl;
 @property (retain) NSString *authenticationScheme;
 @property (retain) NSString *proxyAuthenticationScheme;
 @property (assign) BOOL shouldPresentAuthenticationDialog;
 @property (assign) BOOL shouldPresentProxyAuthenticationDialog;
-@property (assign) BOOL authenticationChallengeInProgress;
+@property (assign, readonly) ASIAuthenticationState authenticationNeeded;
 @property (assign) BOOL shouldPresentCredentialsBeforeChallenge;
 @property (assign, readonly) int authenticationRetryCount;
 @property (assign, readonly) int proxyAuthenticationRetryCount;
 @property (assign) BOOL haveBuiltRequestHeaders;
 @property (assign, nonatomic) BOOL haveBuiltPostBody;
+
+@property (assign, readonly) BOOL isSynchronous;
+@property (assign, readonly) BOOL inProgress;
+@property (assign) int numberOfTimesToRetryOnTimeout;
+@property (assign, readonly) int retryCount;
+@property (assign) BOOL shouldAttemptPersistentConnection;
 @end

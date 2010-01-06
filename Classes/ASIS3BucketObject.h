@@ -9,7 +9,7 @@
 #import <Foundation/Foundation.h>
 @class ASIS3Request;
 
-@interface ASIS3BucketObject : NSObject {
+@interface ASIS3BucketObject : NSObject <NSCopying> {
 	
 	// The bucket this object belongs to
 	NSString *bucket;

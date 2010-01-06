@@ -25,6 +25,8 @@
 - (void)testRequestMethod;
 - (void)testHTTPVersion;
 - (void)testUserAgent;
+- (void)testAutomaticRedirection;
+- (void)test30xCrash;
 - (void)testUploadContentLength;
 - (void)testDownloadContentLength;
 - (void)testFileDownload;
@@ -48,7 +50,6 @@
 - (void)testTimeOutWithoutDownloadDelegate;
 - (void)testThrottlingDownloadBandwidth;
 - (void)testThrottlingUploadBandwidth;
-- (void)testMainThreadDelegateAuthenticationFailure;
 - (void)requestStarted:(ASIHTTPRequest *)request;
 - (void)requestFinished:(ASIHTTPRequest *)request;
 - (void)requestFailed:(ASIHTTPRequest *)request;
@@ -58,4 +59,5 @@
 #if TARGET_OS_IPHONE
 - (void)testReachability;
 #endif
+- (void)testAutomaticRetry;
 @end

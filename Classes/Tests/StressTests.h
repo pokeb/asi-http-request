@@ -26,6 +26,8 @@
 	NSLock *createRequestLock;
 }
 
+- (void)testCancelQueue;
+
 - (void)testCancelStressTest;
 - (void)performCancelRequest;
 
@@ -34,6 +36,8 @@
 
 - (void)testSetDelegate;
 - (void)performSetDelegateRequest;
+
+- (void)setProgress:(float)newProgress;
 
 @property (retain) ASIHTTPRequest *cancelRequest;
 @property (retain) NSDate *cancelStartDate;

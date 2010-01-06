@@ -19,7 +19,7 @@
 @implementation ASIHTTPRequestSubclass;
 
 // For testing exceptions are caught
-- (void)loadRequest
+- (void)startRequest
 {
 	[[NSException exceptionWithName:@"Test Exception" reason:@"Test Reason" userInfo:nil] raise];
 }
@@ -31,7 +31,7 @@
 {
 	NSURL *url = [NSURL URLWithString:@"http://allseeing-i.com"];
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:url];
-	[request start];
+	[request startSynchronous];
 	NSString *html = [request responseString];
 	GHAssertNotNil(html,@"Basic synchronous request failed");
 
@@ -43,7 +43,7 @@
 	// Check we're getting back the correct status code
 	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/a-page-that-does-not-exist"] autorelease];
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-	[request start];
+	[request startSynchronous];
 	success = ([request responseStatusCode] == 404);
 	GHAssertTrue(success,@"Didn't get correct status code");	
 	
@@ -55,17 +55,38 @@
 	// Attempt to grab from bad url
 	url = [[[NSURL alloc] initWithString:@""] autorelease];
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-	[request start];
+	[request startSynchronous];
 	success = [[request error] code] == ASIInternalErrorWhileBuildingRequestType;
 	GHAssertTrue(success,@"Failed to generate an error for a bad host");
 	
 	request = [[[ASIHTTPRequest alloc] initWithURL:nil] autorelease];
-	[request start];
+	[request startSynchronous];
 	success = [[request error] code] == ASIUnableToCreateRequestErrorType;
 	GHAssertTrue(success,@"Failed to generate an error for a bad host");
 }
 
+- (void)testCancel
+{
+	// We run this test on the main thread because otherwise we can't depend on the  delegate being notified before we need to test it's working
+	[self performSelectorOnMainThread:@selector(runCancelTest) withObject:nil waitUntilDone:YES];
+
+}
+
+- (void)runCancelTest
+{
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_great_american_novel_%28abridged%29.txt"]];
+	[request startAsynchronous];
+	[request cancel];
+	GHAssertNotNil([request error],@"Failed to cancel the request");
+}
+
 - (void)testDelegateMethods
+{
+	// We run this test on the main thread because otherwise we can't depend on the  delegate being notified before we need to test it's working
+	[self performSelectorOnMainThread:@selector(performDelegateMethodsTest) withObject:nil waitUntilDone:YES];
+}
+
+- (void)performDelegateMethodsTest
 {
 	started = NO;
 	finished = NO;
@@ -74,19 +95,18 @@
 	// Test default delegate methods
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
 	[request setDelegate:self];
-	[request start];
-	GHAssertTrue(started,@"Failed to call the delegate method when the request started");	
-	GHAssertTrue(finished,@"Failed to call the delegate method when the request finished");
+	[request startSynchronous];
 	
 	// Hacky, but this test won't run on the main thread, we have to hope the delegate methods will be called in this time
 	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:2]];
 	
-	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
+	GHAssertTrue(started,@"Failed to call the delegate method when the request started");	
+	GHAssertTrue(finished,@"Failed to call the delegate method when the request finished");
+	
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_great_american_novel_%28abridged%29.txt"]];
 	[request setDelegate:self];
 	[request setTimeOutSeconds:0.01];
-	[request start];
-	
-	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:2]];
+	[request startSynchronous];
 	
 	GHAssertTrue(failed,@"Failed to call the delegate method when the request failed");
 	
@@ -99,20 +119,17 @@
 	[request setDelegate:self];
 	[request setDidStartSelector:@selector(delegateTestStarted:)];
 	[request setDidFinishSelector:@selector(delegateTestFinished:)];
-	[request start];
+	[request startSynchronous];
 	
-	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:2]];
-	
+
 	GHAssertTrue(started,@"Failed to call the delegate method when the request started");	
 	GHAssertTrue(finished,@"Failed to call the delegate method when the request finished");
 	
-	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_great_american_novel_%28abridged%29.txt"]];
 	[request setDidFailSelector:@selector(delegateTestFailed:)];
 	[request setDelegate:self];
 	[request setTimeOutSeconds:0.01];
-	[request start];
-	
-	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:2]];
+	[request startSynchronous];
 	
 	GHAssertTrue(failed,@"Failed to call the delegate method when the request failed");
 	
@@ -151,7 +168,7 @@
 - (void)testConditionalGET
 {
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/i/logo.png"]];
-	[request start];
+	[request startSynchronous];
 	BOOL success = ([request responseStatusCode] == 200);
 	GHAssertTrue(success, @"Failed to download file, cannot proceed with this test");
 	success = ([[request responseData] length] > 0);
@@ -166,7 +183,7 @@
 	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/i/logo.png"]];
 	[request addRequestHeader:@"If-Modified-Since" value:lastModified];
 	[request addRequestHeader:@"If-None-Match" value:etag];
-	[request start];
+	[request startSynchronous];
 	success = ([request responseStatusCode] == 304);
 	GHAssertTrue(success, @"Got wrong status code");
 	success = ([[request responseData] length] == 0);
@@ -177,7 +194,7 @@
 - (void)testException
 {
 	ASIHTTPRequestSubclass *request = [ASIHTTPRequestSubclass requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
-	[request start];
+	[request startSynchronous];
 	NSError *error = [request error];
 	GHAssertNotNil(error,@"Failed to generate an error for an exception");
 	
@@ -196,7 +213,7 @@
 	for (i=0; i<[IANAEncodings count]; i++) {
 		NSURL *url = [[[NSURL alloc] initWithString:[NSString stringWithFormat:@"http://allseeing-i.com/ASIHTTPRequest/tests/Character-Encoding/%@",[IANAEncodings objectAtIndex:i]]] autorelease];
 		ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-		[request start];
+		[request startSynchronous];
 		BOOL success = [request responseEncoding] == NSStringEncodings[i];
 		GHAssertTrue(success,[NSString stringWithFormat:@"Failed to use the correct text encoding for %@i",[IANAEncodings objectAtIndex:i]]);
 	}
@@ -204,24 +221,24 @@
 	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/Character-Encoding/Something-else"] autorelease];
 	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setDefaultResponseEncoding:NSWindowsCP1251StringEncoding];
-	[request start];
+	[request startSynchronous];
 	BOOL success = [request responseEncoding] == [request defaultResponseEncoding];
 	GHAssertTrue(success,[NSString stringWithFormat:@"Failed to use the default string encoding"]);
 	
 	// Will return a Content-Type header with charset in the middle of the value (Fix contributed by Roman Busyghin)
 	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/Character-Encoding/utf-16-with-type-header"] autorelease];
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-	[request start];
+	[request startSynchronous];
 	success = [request responseEncoding] == NSUnicodeStringEncoding;
 	GHAssertTrue(success,[NSString stringWithFormat:@"Failed to parse the content type header correctly"]);
 }
 
 - (void)testTimeOut
 {
-	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com"] autorelease];
+	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_great_american_novel_%28abridged%29.txt"] autorelease];
 	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setTimeOutSeconds:0.0001]; //It's pretty unlikely we will be able to grab the data this quickly, so the request should timeout
-	[request start];
+	[request startSynchronous];
 	
 	BOOL success = [[request error] code] == ASIRequestTimedOutErrorType;
 	GHAssertTrue(success,@"Timeout didn't generate the correct error");
@@ -235,7 +252,7 @@
 	[request setTimeOutSeconds:5];
 	[request setShowAccurateProgress:NO];
 	[request setPostBody:[NSMutableData dataWithData:[@"Small Body" dataUsingEncoding:NSUTF8StringEncoding]]];
-	[request start];
+	[request startSynchronous];
 	
 	GHAssertNil([request error],@"Generated an error (most likely a timeout) - this test might fail on high latency connections");	
 }
@@ -248,7 +265,7 @@
 	for (NSString *method in methods) {
 		ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 		[request setRequestMethod:method];
-		[request start];
+		[request startSynchronous];
 		BOOL success = [[request responseString] isEqualToString:method];
 		GHAssertTrue(success,@"Failed to set the request method correctly");	
 	}
@@ -266,14 +283,14 @@
 {
 	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/http-version"] autorelease];
 	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-	[request start];
+	[request startSynchronous];
 	
 	BOOL success = [[request responseString] isEqualToString:@"HTTP/1.1"];
 	GHAssertTrue(success,@"Wrong HTTP version used (May fail when using a proxy that changes the HTTP version!)");
 	
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUseHTTPVersionOne:YES];
-	[request start];
+	[request startSynchronous];
 	
 	success = [[request responseString] isEqualToString:@"HTTP/1.0"];
 	GHAssertTrue(success,@"Wrong HTTP version used (May fail when using a proxy that changes the HTTP version!)");	
@@ -286,7 +303,7 @@
 		
 		// Returns the user agent it received in the response body
 		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/user-agent"]];
-		[request start];
+		[request startSynchronous];
 		BOOL success = [[request responseString] isEqualToString:[ASIHTTPRequest defaultUserAgentString]];
 		GHAssertTrue(success,@"Failed to set the correct user agent");
 	}
@@ -294,7 +311,7 @@
 	// Now test specifying a custom user agent
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/user-agent"]];
 	[request addRequestHeader:@"User-Agent" value:@"Ferdinand Fuzzworth's Magic Tent of Mystery"];
-	[request start];
+	[request startSynchronous];
 	BOOL success = [[request responseString] isEqualToString:@"Ferdinand Fuzzworth's Magic Tent of Mystery"];
 	GHAssertTrue(success,@"Failed to set the correct user agent");
 	
@@ -306,11 +323,11 @@
 	ASIFormDataRequest *request2;
 	BOOL success;
 	int i;
-	for (i=301; i<308; i++) {
+	for (i=301; i<305; i++) {
 		NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://allseeing-i.com/ASIHTTPRequest/tests/redirect/%hi",i]];
 		request = [ASIHTTPRequest requestWithURL:url];
 		[request setShouldRedirect:NO];
-		[request start];
+		[request startSynchronous];
 		if (i == 304) { // 304s will not contain a body, as per rfc2616. Will test 304 handling in a future test when we have etag support
 			continue;
 		}
@@ -319,7 +336,7 @@
 	
 		request2 = [ASIFormDataRequest requestWithURL:url];
 		[request2 setPostValue:@"foo" forKey:@"eep"];
-		[request2 start];
+		[request2 startSynchronous];
 		
 		NSString *method = @"GET";
 		if (i>304) {
@@ -335,13 +352,29 @@
 	}
 }
 
+// Using a persistent connection for HTTP 305-307 would cause crashes on the redirect, not really sure why
+// Since 305 (use proxy) wasn't properly supported anyway, 306 is unused, and clients are supposed to confirm redirects for 307, I've simply removed automatic redirect for these codes
+- (void)test30xCrash
+{
+	int i;
+	for (i=305; i<308; i++) {
+		ASIFormDataRequest *request = [ASIFormDataRequest requestWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://allseeing-i.com/ASIHTTPRequest/tests/redirect/%hi",i]]];
+		[request setPostValue:@"foo" forKey:@"eep"];
+		[request setShouldRedirect:NO];
+		[request startSynchronous];
+		request = [ASIFormDataRequest requestWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://allseeing-i.com/ASIHTTPRequest/tests/redirect/%hi",i]]];
+		[request setPostValue:@"foo" forKey:@"eep"];
+		[request startSynchronous];
+	}
+}
+
 - (void)testUploadContentLength
 {
 	//This url will return the contents of the Content-Length request header
 	NSURL *url = [NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/content-length"];
 	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setPostBody:[NSMutableData dataWithLength:1024*32]];
-	[request start];
+	[request startSynchronous];
 	
 	BOOL success = ([[request responseString] isEqualToString:[NSString stringWithFormat:@"%hu",(1024*32)]]);
 	GHAssertTrue(success,@"Sent wrong content length");
@@ -351,7 +384,7 @@
 {
 	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/i/logo.png"] autorelease];
 	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-	[request start];
+	[request startSynchronous];
 	
 	BOOL success = ([request contentLength] == 18443);
 	GHAssertTrue(success,@"Got wrong content length");
@@ -364,7 +397,7 @@
 	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/i/logo.png"] autorelease];
 	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setDownloadDestinationPath:path];
-	[request start];
+	[request startSynchronous];
 
 #if TARGET_OS_IPHONE
 	UIImage *image = [[[UIImage alloc] initWithContentsOfFile:path] autorelease];
@@ -383,7 +416,7 @@
 	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/first"] autorelease];
 	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setDownloadDestinationPath:path];
-	[request start];
+	[request startSynchronous];
 	
 	NSString *tempPath = [request temporaryFileDownloadPath];
 	GHAssertNil(tempPath,@"Failed to clean up temporary download file");		
@@ -399,42 +432,55 @@
 
 - (void)testDownloadProgress
 {
+	// We run tests that measure progress on the main thread because otherwise we can't depend on the progress delegate being notified before we need to test it's working
+	[self performSelectorOnMainThread:@selector(performDownloadProgressTest) withObject:nil waitUntilDone:YES];
+}
+
+- (void)performDownloadProgressTest
+{
 	progress = 0;
 	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/i/logo.png"] autorelease];
 	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setDownloadProgressDelegate:self];
-	[request start];
-	
-	// Wait for the progress to catch up
-	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:2]];
-	
-	BOOL success = (progress > 0.95);
+	[request startSynchronous];
+
+	BOOL success = (progress == 1.0);
 	GHAssertTrue(success,@"Failed to properly increment download progress %f != 1.0",progress);	
 }
 
-
 - (void)testUploadProgress
+{
+	// We run tests that measure progress on the main thread because otherwise we can't depend on the progress delegate being notified before we need to test it's working
+	[self performSelectorOnMainThread:@selector(performUploadProgressTest) withObject:nil waitUntilDone:YES];	
+}
+
+- (void)performUploadProgressTest
 {
 	progress = 0;
 	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ignore"]] autorelease];
 	[request setPostBody:(NSMutableData *)[@"This is the request body" dataUsingEncoding:NSUTF8StringEncoding]];
 	[request setUploadProgressDelegate:self];
-	[request start];
+	[request startSynchronous];
 	
-	// Wait for the progress to catch up
-	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
 	
-	BOOL success = (progress > 0.95);
+	BOOL success = (progress == 1.0);
 	GHAssertTrue(success,@"Failed to properly increment upload progress %f != 1.0",progress);	
 }
 
 - (void)testPostBodyStreamedFromDisk
 {
+	// We run tests that measure progress on the main thread because otherwise we can't depend on the progress delegate being notified before we need to test it's working
+	[self performSelectorOnMainThread:@selector(performPostBodyStreamedFromDiskTest) withObject:nil waitUntilDone:YES];
+	
+}
+
+- (void)performPostBodyStreamedFromDiskTest
+{
 	NSURL *url = [NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/print_request_body"];
 	NSString *requestBody = @"This is the request body";
 	NSString *requestContentPath = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:@"testfile.txt"];
 	[[requestBody dataUsingEncoding:NSUTF8StringEncoding] writeToFile:requestContentPath atomically:NO];
-
+	
 	
 	// Test using a user-specified file as the request body (useful for PUT)
 	progress = 0;
@@ -443,12 +489,9 @@
 	[request setShouldStreamPostDataFromDisk:YES];
 	[request setUploadProgressDelegate:self];
 	[request setPostBodyFilePath:requestContentPath];
-	[request start];
+	[request startSynchronous];
 	
-	// Wait for the progress to catch up
-	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
-	
-	BOOL success = (progress > 0.95);
+	BOOL success = (progress == 1.0);
 	GHAssertTrue(success,@"Failed to properly increment upload progress %f != 1.0",progress);
 	
 	success = [[request responseString] isEqualToString:requestBody];
@@ -462,18 +505,14 @@
 	[request setRequestMethod:@"PUT"];
 	[request setUploadProgressDelegate:self];
 	[request appendPostDataFromFile:requestContentPath];
-	[request start];
+	[request startSynchronous];
 	
-	// Wait for the progress to catch up
-	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
-	
-	success = (progress > 0.95);
+	success = (progress == 1.0);
 	GHAssertTrue(success,@"Failed to properly increment upload progress %f != 1.0",progress);
 	
 	success = [[request responseString] isEqualToString:requestBody];
-	GHAssertTrue(success,@"Failed upload the correct request body");
+	GHAssertTrue(success,@"Failed upload the correct request body");		
 }
-
 
 
 
@@ -485,7 +524,7 @@
 	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/set_cookie"] autorelease];
 	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUseCookiePersistance:YES];
-	[request start];
+	[request startSynchronous];
 	NSString *html = [request responseString];
 	success = [html isEqualToString:@"I have set a cookie"];
 	GHAssertTrue(success,@"Failed to set a cookie");
@@ -520,7 +559,7 @@
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUseCookiePersistance:NO];
 	[request setRequestCookies:[NSMutableArray arrayWithObject:cookie]];
-	[request start];
+	[request startSynchronous];
 	html = [request responseString];
 	success = [html isEqualToString:@"I have 'This is the value' as the value of 'ASIHTTPRequestTestCookie'"];
 	GHAssertTrue(success,@"Cookie not presented to the server with cookie persistance OFF");
@@ -529,7 +568,7 @@
 	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/read_cookie"] autorelease];
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUseCookiePersistance:YES];
-	[request start];
+	[request startSynchronous];
 	html = [request responseString];
 	success = [html isEqualToString:@"I have 'This is the value' as the value of 'ASIHTTPRequestTestCookie'"];
 	GHAssertTrue(success,@"Cookie not presented to the server with cookie persistance ON");
@@ -537,7 +576,7 @@
 	// Test removing a cookie
 	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/remove_cookie"] autorelease];
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-	[request start];
+	[request startSynchronous];
 	html = [request responseString];
 	success = [html isEqualToString:@"I have removed a cookie"];
 	GHAssertTrue(success,@"Failed to remove a cookie");
@@ -545,7 +584,7 @@
 	// Test making sure cookie was properly removed
 	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/read_cookie"] autorelease];
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-	[request start];
+	[request startSynchronous];
 	html = [request responseString];
 	success = [html isEqualToString:@"No cookie exists"];
 	GHAssertTrue(success,@"Cookie presented to the server when it should have been removed");
@@ -567,7 +606,7 @@
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUseCookiePersistance:NO];
 	[request setRequestCookies:[NSMutableArray arrayWithObject:cookie]];
-	[request start];
+	[request startSynchronous];
 	html = [request responseString];
 	success = [html isEqualToString:@"I have 'Test\r\nValue' as the value of 'ASIHTTPRequestTestCookie'"];
 	GHAssertTrue(success,@"Custom cookie not presented to the server with cookie persistance OFF");
@@ -582,7 +621,7 @@
 	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/read_cookie"] autorelease];
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUseCookiePersistance:YES];
-	[request start];
+	[request startSynchronous];
 	html = [request responseString];
 	success = [html isEqualToString:@"No cookie exists"];
 	GHAssertTrue(success,@"Cookie presented to the server when it should have been removed");
@@ -610,7 +649,7 @@
 	// Test authentication needed when no credentials supplied
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUseKeychainPersistance:NO];
-	[request start];
+	[request startSynchronous];
 	success = [[request error] code] == ASIAuthenticationErrorType;
 	GHAssertTrue(success,@"Failed to generate permission denied error with no credentials");
 	
@@ -619,7 +658,7 @@
 	[request setUseKeychainPersistance:NO];
 	[request setUsername:@"wrong"];
 	[request setPassword:@"wrong"];
-	[request start];
+	[request startSynchronous];
 	success = [[request error] code] == ASIAuthenticationErrorType;
 	GHAssertTrue(success,@"Failed to generate permission denied error with wrong credentials");
 	
@@ -630,7 +669,7 @@
 	[request setShouldPresentCredentialsBeforeChallenge:NO];
 	[request setUsername:@"secret_username"];
 	[request setPassword:@"secret_password"];
-	[request start];
+	[request startSynchronous];
 	err = [request error];
 	GHAssertNil(err,@"Failed to supply correct username and password");
 	
@@ -638,7 +677,7 @@
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUseSessionPersistance:NO];
 	[request setUseKeychainPersistance:NO];
-	[request start];
+	[request startSynchronous];
 	success = [[request error] code] == ASIAuthenticationErrorType;
 	GHAssertTrue(success,@"Reused credentials when we shouldn't have");
 
@@ -646,7 +685,7 @@
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUseSessionPersistance:YES];
 	[request setUseKeychainPersistance:NO];
-	[request start];
+	[request startSynchronous];
 	err = [request error];
 	GHAssertNil(err,@"Failed to reuse credentials");
 	
@@ -655,14 +694,14 @@
 	// Ensure credentials stored in the session were wiped
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUseKeychainPersistance:NO];
-	[request start];
+	[request startSynchronous];
 	success = [[request error] code] == ASIAuthenticationErrorType;
 	GHAssertTrue(success,@"Failed to clear credentials");
 	
 	// Ensure credentials stored in the keychain are reused
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUseKeychainPersistance:YES];
-	[request start];
+	[request startSynchronous];
 	err = [request error];
 	GHAssertNil(err,@"Failed to use stored credentials");
 	
@@ -672,14 +711,14 @@
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUseKeychainPersistance:YES];
 	[request setUseSessionPersistance:NO];
-	[request start];
+	[request startSynchronous];
 	success = [[request error] code] == ASIAuthenticationErrorType;
 	GHAssertTrue(success,@"Failed to clear credentials");
 	
 	// Tests shouldPresentCredentialsBeforeChallenge with credentials stored in the session
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUseSessionPersistance:YES];
-	[request start];
+	[request startSynchronous];
 	success = [request authenticationRetryCount] == 0;
 	GHAssertTrue(success,@"Didn't supply credentials before being asked for them when talking to the same server with shouldPresentCredentialsBeforeChallenge == YES");	
 	
@@ -687,7 +726,7 @@
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUseSessionPersistance:YES];
 	[request setShouldPresentCredentialsBeforeChallenge:NO];
-	[request start];
+	[request startSynchronous];
 	success = [request authenticationRetryCount] == 1;
 	GHAssertTrue(success,@"Supplied session credentials before being asked for them");	
 	
@@ -699,7 +738,7 @@
 	[request setUsername:@"secret_username"];
 	[request setPassword:@"secret_password"];
 	[request setShouldPresentCredentialsBeforeChallenge:YES];
-	[request start];
+	[request startSynchronous];
 	success = [request authenticationRetryCount] == 0;
 	GHAssertTrue(success,@"Didn't supply credentials before being asked for them, even though they were set on the request and shouldPresentCredentialsBeforeChallenge == YES");	
 	
@@ -709,7 +748,7 @@
 	[request setUsername:@"secret_username"];
 	[request setPassword:@"secret_password"];
 	[request setShouldPresentCredentialsBeforeChallenge:NO];
-	[request start];
+	[request startSynchronous];
 	success = [request authenticationRetryCount] == 1;
 	GHAssertTrue(success,@"Supplied request credentials before being asked for them");	
 	
@@ -719,9 +758,9 @@
 	[request setUsername:@"secret_username"];
 	[request setPassword:@"secret_password"];
 	[request setShouldPresentCredentialsBeforeChallenge:YES];
-	[request start];
+	[request startSynchronous];
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-	[request start];
+	[request startSynchronous];
 	err = [request error];
 	GHAssertNil(err,@"Failed to use stored credentials");	
 	
@@ -732,7 +771,7 @@
 	[request setUseSessionPersistance:YES];
 	[request setUseKeychainPersistance:NO];
 	[request setValidatesSecureCertificate:NO];
-	[request start];
+	[request startSynchronous];
 	success = [[request error] code] == ASIAuthenticationErrorType;
 	GHAssertTrue(success,@"Reused credentials when we shouldn't have");	
 	
@@ -753,7 +792,7 @@
 	// Test authentication needed when no credentials supplied
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUseKeychainPersistance:NO];
-	[request start];
+	[request startSynchronous];
 	success = [[request error] code] == ASIAuthenticationErrorType;
 	GHAssertTrue(success,@"Failed to generate permission denied error with no credentials");
 	
@@ -762,7 +801,7 @@
 	[request setUseKeychainPersistance:NO];
 	[request setUsername:@"wrong"];
 	[request setPassword:@"wrong"];
-	[request start];
+	[request startSynchronous];
 	success = [[request error] code] == ASIAuthenticationErrorType;
 	GHAssertTrue(success,@"Failed to generate permission denied error with wrong credentials");
 	
@@ -772,7 +811,7 @@
 	[request setUseKeychainPersistance:YES];
 	[request setUsername:@"secret_username"];
 	[request setPassword:@"secret_password"];
-	[request start];
+	[request startSynchronous];
 	err = [request error];
 	GHAssertNil(err,@"Failed to supply correct username and password");
 	
@@ -780,7 +819,7 @@
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUseSessionPersistance:NO];
 	[request setUseKeychainPersistance:NO];
-	[request start];
+	[request startSynchronous];
 	success = [[request error] code] == ASIAuthenticationErrorType;
 	GHAssertTrue(success,@"Reused credentials when we shouldn't have");
 	
@@ -788,7 +827,7 @@
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUseSessionPersistance:YES];
 	[request setUseKeychainPersistance:NO];
-	[request start];
+	[request startSynchronous];
 	err = [request error];
 	GHAssertNil(err,@"Failed to reuse credentials");
 	
@@ -797,14 +836,14 @@
 	// Ensure credentials stored in the session were wiped
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUseKeychainPersistance:NO];
-	[request start];
+	[request startSynchronous];
 	success = [[request error] code] == ASIAuthenticationErrorType;
 	GHAssertTrue(success,@"Failed to clear credentials");
 	
 	// Ensure credentials stored in the keychain are reused
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUseKeychainPersistance:YES];
-	[request start];
+	[request startSynchronous];
 	err = [request error];
 	GHAssertNil(err,@"Failed to reuse credentials");
 	
@@ -814,7 +853,7 @@
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUseKeychainPersistance:YES];
 	[request setUseSessionPersistance:NO];
-	[request start];
+	[request startSynchronous];
 	success = [[request error] code] == ASIAuthenticationErrorType;
 	GHAssertTrue(success,@"Failed to clear credentials");	
 	
@@ -823,7 +862,7 @@
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUseSessionPersistance:YES];
 	[request setShouldPresentCredentialsBeforeChallenge:YES];
-	[request start];
+	[request startSynchronous];
 	success = [request authenticationRetryCount] == 0;
 	GHAssertTrue(success,@"Didn't supply credentials before being asked for them, even though they were set in the session and shouldPresentCredentialsBeforeChallenge == YES");	
 	
@@ -841,7 +880,7 @@
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:url];
 	[request setUseKeychainPersistance:NO];
 	[request setUseSessionPersistance:NO];
-	[request start];
+	[request startSynchronous];
 	BOOL success = [[request error] code] == ASIAuthenticationErrorType;
 	GHAssertTrue(success,@"Failed to generate permission denied error with no credentials");
 
@@ -852,7 +891,7 @@
 	[request setUsername:@"king"];
 	[request setPassword:@"fink"];
 	[request setDomain:@"Castle.Kingdom"];
-	[request start];
+	[request startSynchronous];
 
 	GHAssertNil([request error],@"Got an error when credentials were supplied");
 	
@@ -868,7 +907,7 @@
 	// allseeing-i.com does not gzip png images
 	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/i/logo.png"] autorelease];
 	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-	[request start];
+	[request startSynchronous];
 	NSString *encoding = [[request responseHeaders] objectForKey:@"Content-Encoding"];
 	BOOL success = (!encoding || [encoding rangeOfString:@"gzip"].location != NSNotFound);
 	GHAssertTrue(success,@"Got incorrect request headers from server");
@@ -878,7 +917,7 @@
 	
 	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/first"] autorelease];
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-	[request start];
+	[request startSynchronous];
 	success = ([request rawResponseData] != [request responseData]);
 	GHAssertTrue(success,@"Uncompressed data is the same as compressed data");	
 	
@@ -888,6 +927,13 @@
 
 
 - (void)testPartialFetch
+{
+	// We run tests that measure progress on the main thread because otherwise we can't depend on the progress delegate being notified before we need to test it's working
+	[self performSelectorOnMainThread:@selector(performPartialFetchTest) withObject:nil waitUntilDone:YES];	
+
+}
+					
+- (void)performPartialFetchTest
 {
 	NSString *downloadPath = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:@"testfile.txt"];
 	NSString *tempPath = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:@"tempfile.txt"];
@@ -901,9 +947,7 @@
 	[request setTemporaryFileDownloadPath:tempPath];
 	[request setAllowResumeForFileDownloads:YES];
 	[request setDownloadProgressDelegate:self];
-	[request start];
-	
-
+	[request startSynchronous];
 	
 	BOOL success = ([request contentLength] == 68);
 	GHAssertTrue(success,@"Failed to download a segment of the data");
@@ -913,11 +957,8 @@
 	NSString *newPartialContent = [content substringFromIndex:95];
 	success = ([newPartialContent isEqualToString:@"This is the content we ought to be getting if we start from byte 95."]);
 	GHAssertTrue(success,@"Failed to append the correct data to the end of the file?");
-
-	// Wait for the progress to catch up
-	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
 	
-	success = (progress > 0.95);
+	success = (progress == 1.0);
 	GHAssertTrue(success,@"Failed to correctly display increment progress for a partial download");
 }
 
@@ -926,7 +967,7 @@
 {
 	NSURL *url = [NSURL URLWithString:@"https://selfsigned.allseeing-i.com"];
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:url];
-	[request start];
+	[request startSynchronous];
 	
 	GHAssertNotNil([request error],@"Failed to generate an error for a self-signed certificate (Will fail on the second run in the same session!)");		
 	
@@ -937,7 +978,7 @@
 	// Turn off certificate validation, and try again
 	request = [ASIHTTPRequest requestWithURL:url];
 	[request setValidatesSecureCertificate:NO];
-	[request start];
+	[request startSynchronous];
 	
 	GHAssertNil([request error],@"Failed to accept a self-signed certificate");	
 }
@@ -947,7 +988,7 @@
 	// Remove any old session cookies
 	[ASIHTTPRequest clearSession];
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/session_redirect"]];
-	[request start];
+	[request startSynchronous];
 	BOOL success = [[request responseString] isEqualToString:@"Take me to your leader"];
 	GHAssertTrue(success,@"Failed to redirect preserving session cookies");	
 }
@@ -956,7 +997,7 @@
 {
 	// This url will simply send a 302 redirect back to itself
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/one_infinite_loop"]];
-	[request start];
+	[request startSynchronous];
 	GHAssertNotNil([request error],@"Failed to generate an error when redirection occurs too many times");
 	BOOL success = ([[request error] code] == ASITooMuchRedirectionErrorType);
 	GHAssertTrue(success,@"Generated the wrong error for a redirection loop");		
@@ -965,7 +1006,7 @@
 - (void)testRedirectToNewDomain
 {
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/redirect_to_new_domain"]];
-	[request start];
+	[request startSynchronous];
 	BOOL success = [[[request url] absoluteString] isEqualToString:@"http://www.apple.com/"];
 	GHAssertTrue(success,@"Failed to redirect to a different domain");		
 }
@@ -976,7 +1017,7 @@
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/redirect_303"]];
 	[request setRequestMethod:@"PUT"];
 	[request appendPostData:[@"Fuzzy" dataUsingEncoding:NSUTF8StringEncoding]];
-	[request start];
+	[request startSynchronous];
 	BOOL success = [[[request url] absoluteString] isEqualToString:@"http://allseeing-i.com/ASIHTTPRequest/tests/request-method"];
 	GHAssertTrue(success,@"Failed to redirect to correct location");
 	success = [[request responseString] isEqualToString:@"GET"];
@@ -1015,7 +1056,7 @@
 	[request setRequestMethod:@"PUT"];
 	[request setShouldCompressRequestBody:YES];
 	[request appendPostData:data];
-	[request start];
+	[request startSynchronous];
 	
 	success = [[request responseString] isEqualToString:content];
 	GHAssertTrue(success,@"Failed to compress the body, or server failed to decompress it");	
@@ -1026,7 +1067,7 @@
 	[request setShouldStreamPostDataFromDisk:YES];
 	[request setUploadProgressDelegate:self];
 	[request setPostBodyFilePath:sourcePath];
-	[request start];
+	[request startSynchronous];
 
 	success = [[request responseString] isEqualToString:content];
 	GHAssertTrue(success,@"Failed to compress the body, or server failed to decompress it");		
@@ -1051,7 +1092,7 @@
 	// We'll test first without throttling
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_great_american_novel_%28abridged%29.txt"]];
 	NSDate *date = [NSDate date];
-	[request start];	
+	[request startSynchronous];	
 	
 	NSTimeInterval interval =[date timeIntervalSinceNow];
 	BOOL success = (interval > -7);
@@ -1061,7 +1102,7 @@
 	[ASIHTTPRequest setMaxBandwidthPerSecond:ASIWWANBandwidthThrottleAmount];
 	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_great_american_novel_%28abridged%29.txt"]];
 	date = [NSDate date];
-	[request start];	
+	[request startSynchronous];	
 	
 	[ASIHTTPRequest setMaxBandwidthPerSecond:0];
 	
@@ -1083,7 +1124,7 @@
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ignore"]];
 	[request appendPostData:data];
 	NSDate *date = [NSDate date];
-	[request start];	
+	[request startSynchronous];	
 	
 	NSTimeInterval interval =[date timeIntervalSinceNow];
 	BOOL success = (interval > -3);
@@ -1094,7 +1135,7 @@
 	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ignore"]];
 	[request appendPostData:data];
 	date = [NSDate date];
-	[request start];	
+	[request startSynchronous];	
 	
 	[ASIHTTPRequest setMaxBandwidthPerSecond:0];
 	
@@ -1102,55 +1143,33 @@
 	success = (interval < -3);
 	GHAssertTrue(success,@"Failed to throttle upload");		
 	GHAssertNil([request error],@"Request generated an error - timeout?");	
-	
 }
 
-- (void)authenticationNeededForRequest:(ASIHTTPRequest *)request
-{
-	GHAssertTrue(NO,@"Delegate asked for authentication when running on the main thread");
-}
-
-- (void)testMainThreadDelegateAuthenticationFailure
-{
-	[ASIHTTPRequest clearSession];
-	//GHUnit will not run this function on the main thread, so we'll need to move it there
-	[self performSelectorOnMainThread:@selector(fetchOnMainThread) withObject:nil waitUntilDone:YES];
-		
-}
-
-- (void)fetchOnMainThread
-{
-	// Ensure the delegate is not called when we are running on the main thread
-	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/basic-authentication"]];
-	[request setDelegate:self];
-	[request start];
-	GHAssertNotNil([request error],@"Failed to generate an authentication error");		
-}
 
 - (void)testFetchToInvalidPath
 {
 	// Test gzipped content
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL	URLWithString:@"http://allseeing-i.com"]];
 	[request setDownloadDestinationPath:@"/an/invalid/location.html"];
-	[request start];
+	[request startSynchronous];
 	GHAssertNotNil([request error],@"Failed to generate an authentication when attempting to write to an invalid location");	
 	
 	//Test non-gzipped content
 	request = [ASIHTTPRequest requestWithURL:[NSURL	URLWithString:@"http://allseeing-i.com/i/logo.png"]];
 	[request setDownloadDestinationPath:@"/an/invalid/location.png"];
-	[request start];
+	[request startSynchronous];
 	GHAssertNotNil([request error],@"Failed to generate an authentication when attempting to write to an invalid location");		
 }
 
 - (void)testResponseStatusMessage
 {
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL	URLWithString:@"http://allseeing-i.com/the-meaning-of-life"]];
-	[request start];	
+	[request startSynchronous];	
 	BOOL success = [[request responseStatusMessage] isEqualToString:@"HTTP/1.0 404 Not Found"];
 	GHAssertTrue(success,@"Got wrong response status message");
 }
 
-- (void)testAsynchronousWithGlobalQueue
+- (void)testAsynchronous
 {
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/first"]];
 	[request setUserInfo:[NSDictionary dictionaryWithObject:[NSNumber numberWithInt:1] forKey:@"RequestNumber"]];
@@ -1237,4 +1256,32 @@
 	}
 }
 #endif
+
+- (void)testAutomaticRetry
+{
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
+	[request setTimeOutSeconds:0.001];
+	[request setNumberOfTimesToRetryOnTimeout:5];
+	[request startSynchronous];
+	GHAssertNotNil([request error],@"Request failed to timeout, cannot proceed with test");
+	BOOL success = ([request retryCount] == 5);
+	GHAssertTrue(success,@"Request failed to retry on timeout");
+}
+
+- (void)testCopy
+{
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
+	ASIHTTPRequest *request2 = [request copy];
+	
+	[pool release];
+	
+	GHAssertNotNil(request2,@"Failed to create a copy");
+	BOOL success = ([request2 retainCount] == 1);
+	GHAssertTrue(success,@"Failed to create a retained copy");
+	
+	[request2 release];
+}
+
 @end

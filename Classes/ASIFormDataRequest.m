@@ -18,7 +18,7 @@
 @property (retain) NSMutableDictionary *postData;
 @property (retain) NSMutableDictionary *fileData;
 
-#if ASIHTTPREQUEST_DEBUG
+#if DEBUG_FORM_DATA_REQUEST
 - (void)addToDebugBody:(NSString *)string;
 @property (retain, nonatomic) NSString *debugBodyString;
 #endif
@@ -54,7 +54,7 @@
 
 - (void)dealloc
 {
-#if ASIHTTPREQUEST_DEBUG
+#if DEBUG_FORM_DATA_REQUEST
 	[debugBodyString release]; 
 #endif
 	
@@ -135,7 +135,7 @@
 		return;
 	}
 	
-#if ASIHTTPREQUEST_DEBUG
+#if DEBUG_FORM_DATA_REQUEST
 	[self setDebugBodyString:@""];	
 #endif
 	
@@ -155,7 +155,7 @@
 
 	[super buildPostBody];
 	
-#if ASIHTTPREQUEST_DEBUG
+#if DEBUG_FORM_DATA_REQUEST
 	NSLog(@"%@",[self debugBodyString]);
 	[self setDebugBodyString:nil];
 #endif
@@ -164,7 +164,7 @@
 
 - (void)buildMultipartFormDataPostBody
 {
-#if ASIHTTPREQUEST_DEBUG
+#if DEBUG_FORM_DATA_REQUEST
 	[self addToDebugBody:@"\r\n==== Building a multipart/form-data body ====\r\n"];
 #endif
 	
@@ -217,7 +217,7 @@
 	
 	[self appendPostString:[NSString stringWithFormat:@"\r\n--%@--\r\n",stringBoundary]];
 	
-#if ASIHTTPREQUEST_DEBUG
+#if DEBUG_FORM_DATA_REQUEST
 	[self addToDebugBody:@"==== End of multipart/form-data body ====\r\n"];
 #endif
 }
@@ -232,7 +232,7 @@
 		return;
 	}
 	
-#if ASIHTTPREQUEST_DEBUG
+#if DEBUG_FORM_DATA_REQUEST
 	[self addToDebugBody:@"\r\n==== Building an application/x-www-form-urlencoded body ====\r\n"]; 
 #endif
 	
@@ -251,20 +251,20 @@
 		[self appendPostString:data];
 		i++;
 	}
-#if ASIHTTPREQUEST_DEBUG
+#if DEBUG_FORM_DATA_REQUEST
 	[self addToDebugBody:@"\r\n==== End of application/x-www-form-urlencoded body ====\r\n"]; 
 #endif
 }
 
 - (void)appendPostString:(NSString *)string
 {
-#if ASIHTTPREQUEST_DEBUG
+#if DEBUG_FORM_DATA_REQUEST
 	[self addToDebugBody:string];
 #endif
 	[super appendPostData:[string dataUsingEncoding:[self stringEncoding]]];
 }
 
-#if ASIHTTPREQUEST_DEBUG
+#if DEBUG_FORM_DATA_REQUEST
 - (void)appendPostData:(NSData *)data
 {
 	[self addToDebugBody:[NSString stringWithFormat:@"[%lu bytes of data]",(unsigned long)[data length]]];
@@ -276,7 +276,7 @@
 	NSError *err = nil;
 	unsigned long long fileSize = [[[[NSFileManager defaultManager] attributesOfItemAtPath:file error:&err] objectForKey:NSFileSize] unsignedLongLongValue];
 	if (err) {
-		[self addToDebugBody:[NSString stringWithFormat:@"[Error: Failed to obtain the file of the file at '%@']",file]];
+		[self addToDebugBody:[NSString stringWithFormat:@"[Error: Failed to obtain the size of the file at '%@']",file]];
 	} else {
 		[self addToDebugBody:[NSString stringWithFormat:@"[%llu bytes of data from file '%@']",fileSize,file]];
 	}
@@ -290,11 +290,23 @@
 }
 #endif
 
+#pragma mark NSCopying
+
+- (id)copyWithZone:(NSZone *)zone
+{
+	ASIFormDataRequest *newRequest = [super copyWithZone:zone];
+	[newRequest setPostData:[[[self postData] copyWithZone:zone] autorelease]];
+	[newRequest setFileData:[[[self fileData] copyWithZone:zone] autorelease]];
+	[newRequest setPostFormat:[self postFormat]];
+	[newRequest setStringEncoding:[self stringEncoding]];
+	return newRequest;
+}
+
 @synthesize postData;
 @synthesize fileData;
 @synthesize postFormat;
 @synthesize stringEncoding;
-#if ASIHTTPREQUEST_DEBUG
+#if DEBUG_FORM_DATA_REQUEST
 @synthesize debugBodyString;
 #endif
 @end

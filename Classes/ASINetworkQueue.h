@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-@interface ASINetworkQueue : NSOperationQueue {
+@interface ASINetworkQueue : NSOperationQueue <NSCopying> {
 	
 	// Delegate will get didFail + didFinish messages (if set)
 	id delegate;
@@ -59,6 +59,7 @@
 
 	// Storage container for additional queue information.
 	NSDictionary *userInfo;
+	
 }
 
 // Convenience constructor

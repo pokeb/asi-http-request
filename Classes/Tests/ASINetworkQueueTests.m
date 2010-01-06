@@ -77,7 +77,7 @@ IMPORTANT
 	[networkQueue setDelegate:self];
 	[networkQueue setRequestDidFailSelector:@selector(delegateTestFailed:)];
 	
-	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_great_american_novel_%28abridged%29.txt"]];
 	[request setTimeOutSeconds:0.01];
 	[networkQueue addOperation:request];
 	[networkQueue go];
@@ -160,7 +160,6 @@ IMPORTANT
 	ASINetworkQueue *networkQueue = [ASINetworkQueue queue];
 	[networkQueue setDownloadProgressDelegate:self];
 	[networkQueue setDelegate:self];
-	[networkQueue setShowAccurateProgress:NO];
 	[networkQueue setQueueDidFinishSelector:@selector(queueFinished:)];	
 	
 	// Test accurate progress falls back to simpler progress when responses have no content-length header
@@ -170,8 +169,7 @@ IMPORTANT
 	
 	int i;
 	for (i=0; i<5; i++) {
-		NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com"] autorelease];
-		ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
 		[request setAllowCompressedResponse:NO]; // A bit hacky - my server will send a chunked response (without content length) when we don't specify that we accept gzip
 		[networkQueue addOperation:request];
 	}	
@@ -184,16 +182,16 @@ IMPORTANT
 	BOOL success = (progress == 1.0);
 	GHAssertTrue(success,@"Failed to increment progress properly");
 	
+	[networkQueue cancelAllOperations];
+	
 	// This test will request gzipped content, but the content-length header we get on the HEAD request will be wrong, ASIHTTPRequest should fall back to simple progress
 	// This is to workaround an issue Apache has with HEAD requests for dynamically generated content when accepting gzip - it returns the content-length of a gzipped empty body
 	complete = NO;
 	progress = 0;
-	[networkQueue cancelAllOperations];
 	[networkQueue setShowAccurateProgress:YES];
 	
 	for (i=0; i<5; i++) {
-		NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com"] autorelease];
-		ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
 		[networkQueue addOperation:request];
 	}	
 	[networkQueue go];
@@ -213,7 +211,7 @@ IMPORTANT
 	[[self addMoreRequestsQueue] setDownloadProgressDelegate:self];
 	[[self addMoreRequestsQueue] setDelegate:self];
 	[[self addMoreRequestsQueue] setShowAccurateProgress:NO];
-	[[self addMoreRequestsQueue]  setQueueDidFinishSelector:@selector(addMoreRequestsQueueFinished:)];	
+	[[self addMoreRequestsQueue]setQueueDidFinishSelector:@selector(addMoreRequestsQueueFinished:)];	
 	
 	requestsFinishedCount = 0;
 	
@@ -232,15 +230,22 @@ IMPORTANT
 	[[self addMoreRequestsQueue] go];
 	
 	// Add another request to the queue each second for 5 seconds
+	addedRequests = 0;
 	for (i=0; i<5; i++) {
 		[self performSelector:@selector(addAnotherRequest) withObject:nil afterDelay:i];
 	}
 	
-	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:10]];
+	while (addedRequests < 5) {
+		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1]];
+	}
+	
+	// Must wait or subsequent tests will reset our progress
+	[[self addMoreRequestsQueue] waitUntilAllOperationsAreFinished];
 }
 
 - (void)addAnotherRequest
 {
+	addedRequests++;
 	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_great_american_novel_(abridged).txt"] autorelease];
 	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setDelegate:self];
@@ -751,28 +756,7 @@ IMPORTANT
 	complete = YES;
 }
 
-// A test for a potential crasher that used to exist when requests were cancelled
-// We aren't testing a specific condition here, but rather attempting to trigger a crash
-// This test is commented out because it may generate enough load to kill a low-memory server
-// PLEASE DO NOT RUN THIS TEST ON A NON-LOCAL SERVER
-/*
-- (void)testCancelStressTest
-{
-	[self setCancelQueue:[ASINetworkQueue queue]];
-	
-	// Increase the risk of this crash
-	[[self cancelQueue] setMaxConcurrentOperationCount:25];
-	int i;
-	for (i=0; i<100; i++) {
-		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://127.0.0.1"]];
-		[[self cancelQueue] addOperation:request];
-	}
-	[[self cancelQueue] go];
-	[NSThread sleepUntilDate:[NSDate dateWithTimeIntervalSinceNow:2]];
-	[[self cancelQueue] cancelAllOperations];
-	[self setCancelQueue:nil];
-}
-*/
+
 
 // Not strictly an ASINetworkQueue test, but queue related
 // As soon as one request finishes or fails, we'll cancel the others and ensure that no requests are both finished and failed
@@ -794,7 +778,6 @@ IMPORTANT
 
 - (void)immediateCancelFail:(ASIHTTPRequest *)request
 {
-	NSLog(@"Cancel %@",request);
 	if ([[self failedRequests] containsObject:request]) {
 		GHFail(@"A request called its fail delegate method twice");
 	}
@@ -811,7 +794,6 @@ IMPORTANT
 
 - (void)immediateCancelFinish:(ASIHTTPRequest *)request
 {
-	NSLog(@"Finish %@",request);
 	if ([[self finishedRequests] containsObject:request]) {
 		GHFail(@"A request called its finish delegate method twice");
 	}
@@ -911,7 +893,6 @@ IMPORTANT
 	BOOL success = (interval > -6);
 	GHAssertTrue(success,@"Downloaded the data too slowly - either this is a bug, or your internet connection is too slow to run this test (must be able to download 90KB in less than 6 seconds, without throttling)");
 
-	//NSLog(@"Throttle");
 	
 	// Reset the queue
 	[networkQueue cancelAllOperations];
@@ -975,10 +956,8 @@ IMPORTANT
 	
 		
 	NSTimeInterval interval =[date timeIntervalSinceNow];
-	BOOL success = (interval > -11);
-	GHAssertTrue(success,@"Uploaded the data too slowly - either this is a bug, or your internet connection is too slow to run this test (must be able to upload 320KB in less than 11 seconds, without throttling)");
-	
-	//NSLog(@"Throttle");
+	BOOL success = (interval > -10);
+	GHAssertTrue(success,@"Uploaded the data too slowly - either this is a bug, or your internet connection is too slow to run this test (must be able to upload 160KB in less than 10 seconds, without throttling)");
 	
 	// Reset the queue
 	[networkQueue cancelAllOperations];
@@ -1007,7 +986,7 @@ IMPORTANT
 	[ASIHTTPRequest setMaxBandwidthPerSecond:0];
 	
 	interval =[date timeIntervalSinceNow];
-	success = (interval < -11);
+	success = (interval < -10);
 	GHAssertTrue(success,@"Failed to throttle upload");		
 	
 }
@@ -1114,6 +1093,22 @@ IMPORTANT
 - (void)HEADFail:(ASIHTTPRequest *)request
 {
 	headFailed = YES;	
+}
+
+- (void)testCopy
+{
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+
+	ASINetworkQueue *queue = [ASINetworkQueue queue];
+	ASINetworkQueue *queue2 = [queue copy];
+	GHAssertNotNil(queue2,@"Failed to create a copy");
+	
+	[pool release];
+	
+	BOOL success = ([queue2 retainCount] > 0);
+	GHAssertTrue(success,@"Failed to create a retained copy");
+	
+	[queue2 release];
 }
 
 @synthesize immediateCancelQueue;

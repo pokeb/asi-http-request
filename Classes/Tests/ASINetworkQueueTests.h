@@ -25,6 +25,7 @@ IMPORTANT
 	BOOL request_didfail;
 	BOOL request_succeeded;
 	float progress;
+	int addedRequests;
 	
 	NSOperationQueue *immediateCancelQueue;
 	NSMutableArray *failedRequests;
@@ -47,7 +48,6 @@ IMPORTANT
 	BOOL failed;
 	BOOL headFailed;
 }
-
 - (void)testFailure;
 - (void)testFailureCancelsOtherRequests;
 - (void)testDownloadProgress;
@@ -64,10 +64,6 @@ IMPORTANT
 
 - (void)testMultipleDownloadsThrottlingBandwidth;
 - (void)testMultipleUploadsThrottlingBandwidth;
-
-/*
-- (void)testCancelStressTest;
-*/
 
 - (void)testDelegateAuthenticationCredentialsReuse;
 - (void)testPOSTWithAuthentication;
