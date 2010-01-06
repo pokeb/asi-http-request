@@ -47,8 +47,6 @@
 		[request addRequestHeader:@"Pragma" value:@"no-cache"];
 		[request addRequestHeader:@"Accept" value:@"*/*"];
 		[request addRequestHeader:@"Accept-Language" value:@"en/us"];
-		[request setUseCookiePersistance:NO];
-		[request setUseSessionPersistance:NO];
 		[request startSynchronous];
 		if ([request error]) {
 			NSLog(@"Request failed - cannot proceed with test");
@@ -135,8 +133,6 @@
 		[request addRequestHeader:@"Pragma" value:@"no-cache"];
 		[request addRequestHeader:@"Accept" value:@"*/*"];
 		[request addRequestHeader:@"Accept-Language" value:@"en/us"];
-		[request setUseCookiePersistance:NO];
-		[request setUseSessionPersistance:NO];
 		[request setDelegate:self];
 		[request startAsynchronous];
 	}
