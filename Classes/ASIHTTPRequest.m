@@ -21,7 +21,7 @@
 #import "ASIInputStream.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.2-67 2010-01-05";
+NSString *ASIHTTPRequestVersion = @"v1.2-68 2010-01-06";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -173,7 +173,7 @@ static BOOL isiPhoneOS2;
 @property (assign) int retryCount;
 @property (assign) BOOL canUsePersistentConnection;
 @property (retain, nonatomic) NSMutableDictionary *connectionInfo;
-@property (retain) NSInputStream *readStream;
+@property (retain, nonatomic) NSInputStream *readStream;
 @property (assign) ASIAuthenticationState authenticationNeeded;
 @property (assign, nonatomic) BOOL readStreamIsScheduled;
 @property (retain, nonatomic) NSTimer *statusTimer;
@@ -2531,7 +2531,9 @@ static BOOL isiPhoneOS2;
 	[self willChangeValueForKey:@"isFinished"];
 	[self didChangeValueForKey:@"isFinished"];
 	[self setInProgress:NO];
-	// We leave stopping the runloop to the timer, since it needs to clean itself up first or we'll leak
+	CFRunLoopStop(CFRunLoopGetCurrent());
+	[self setStatusTimer:nil];
+
 }
 
 
