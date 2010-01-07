@@ -9,6 +9,10 @@
 #import "iPhoneSampleAppDelegate.h"
 #import "ASIHTTPRequest.h"
 #import "Reachability.h"
+#import "ASICloudFilesRequest.h"
+#import "ASICloudFilesContainerRequest.h"
+#import "ASICloudFilesObjectRequest.h"
+#import "ASICloudFilesCDNRequest.h"
 
 @implementation iPhoneSampleAppDelegate
 
@@ -26,6 +30,33 @@
 
 - (void)applicationDidFinishLaunching:(UIApplication *)application {
     
+	NSLog(@"time to test Cloud Files!");
+	
+	[ASICloudFilesRequest setUsername:@"greenisus"];
+	[ASICloudFilesRequest setApiKey:@"1c331a7a4a6eb58ca6072afe81e812d0"];
+	[ASICloudFilesRequest authenticate];
+	
+	NSLog(@"Storage URL: %@", [ASICloudFilesRequest storageURL]);
+
+	NSLog(@"account info:");
+	
+	ASICloudFilesContainerRequest *accountInfoRequest = [ASICloudFilesContainerRequest accountInfoRequest];
+	[accountInfoRequest start];
+
+	NSLog(@"Response status code: %i", [accountInfoRequest responseStatusCode]);
+	NSLog(@"Response status message: %@", [accountInfoRequest responseStatusMessage]);
+	NSLog(@"Container count: %i", [accountInfoRequest containerCount]);
+	NSLog(@"Bytes used: %i", [accountInfoRequest bytesUsed]);
+	
+	NSLog(@"All headers:");
+	NSDictionary *headers = [accountInfoRequest responseHeaders];
+	NSArray *keys = [headers allKeys];
+	for (int i = 0; i < [keys count]; i++) {
+		NSString *key = [keys objectAtIndex:i];
+		NSLog(@"%@: %@", key, [headers objectForKey:key]);
+	}
+	
+	
     // Add the tab bar controller's current view as a subview of the window
     [window addSubview:[tabBarController view]];
 	[[tabBarController view] setFrame:CGRectMake(0,47,320,433)];

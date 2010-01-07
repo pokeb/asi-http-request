@@ -1,5 +1,5 @@
 #!/bin/sh
-versionString=`/opt/local/bin/git describe --tags`
+versionString=`/usr/local/bin/git describe --tags`
 version="`echo $versionString | sed -E 's/(v([0-9]+)\.([0-9]+))(.*)/\1/g'`"
 commitNum="`echo $versionString | sed -E 's/(v([0-9]+)\.([0-9]+))\-([0-9]*)(.*)/\4/g'`"
 date=`date "+%Y-%m-%d"`

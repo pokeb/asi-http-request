@@ -1,0 +1,99 @@
+//
+//  ASICloudFilesRequest.h
+//  Part of ASIHTTPRequest -> http://allseeing-i.com/ASIHTTPRequest
+//
+//  Created by Michael Mayo on 22/12/09.
+//  Copyright 2009 All-Seeing Interactive. All rights reserved.
+//
+// A (basic) class for accessing data stored on Rackspace's Cloud Files Service
+// http://www.rackspacecloud.com/cloud_hosting_products/files
+// 
+// Cloud Files Developer Guide:
+// http://docs.rackspacecloud.com/servers/api/cs-devguide-latest.pdf
+
+#import <Foundation/Foundation.h>
+#import "ASIHTTPRequest.h"
+
+
+@interface ASICloudFilesRequest : ASIHTTPRequest {
+
+	// ASICloudFilesObjectListRequest
+	// GET on container (for objects)
+	// limit
+	// marker
+	// prefix - For a string value X, causes the results to be limited to Object names beginning with the substring X.
+	// path - Now issuing a GET request against the Container name coupled with the “path” query parameter of the directory to list can traverse these “directories”. GET /v1/AccountString/backups?path=photos/animals
+
+	// PUT /<api version>/<account>/<container>/<object>
+	// PUT operations are used to write, or overwrite, an Object's metadata and content.
+	
+	// POST /<api version>/<account>/<container>/<object>
+	// POST operations against an Object name are used to set and overwrite arbitrary key/value metadata. You cannot use the POST operation to change any of the Object's other headers such as Content-Type, ETag, etc. It is not used to upload storage Objects (see PUT).
+	// A POST request will delete all existing metadata added with a previous PUT/POST.
+	
+	// DELETE /<api version>/<account>/<container>/<object>
+	
+	// GET operations against the X-CDN-Management-Url for an account are performed to retrieve a list of existing CDN-enabled Containers
+	// GET /<api version>/<account>
+	
+	// list containers
+	// list objects in a container
+	// cdn operations
+	
+}
+
++ (NSString *)storageURL;
++ (NSString *)authToken;
+
+#pragma mark Rackspace Cloud Authentication
+
++ (void)authenticate;
+
++ (NSString *)username;
++ (void)setUsername:(NSString *)username;
++ (NSString *)apiKey;
++ (void)setApiKey:(NSString *)apiKey;
+
+#pragma mark Constructors
+
++ (id)authenticationRequest;
++ (id)storageRequest;
++ (id)cdnRequest;
+
+//+ (id)PUTRequestForFile:(NSString *)filePath withContainer:(NSString *)container path:(NSString *)path;
+
+
+// Create a request to list all objects in a container
+//+ (id)objectListRequestWithContainer:(NSString *)container;
+
+// HEAD /<api version>/<account>/<container>
+// HEAD operations against a storage Container are used to determine the number of Objects, and the total bytes of all Objects stored in the Container.
+// The Object count and utilization are returned in the X- Container-Object-Count and X-Container-Bytes-Used headers respectively.
+
+// HEAD /<api version>/<account>/<container>/<object>
+// No response body is returned. Metadata is returned as HTTP headers. A status code of 204 (No Content) indicates success, status 404 (Not Found) is returned when the Object does not exist.
+
+// CDN URL
+// HEAD /<api version>/<account>/<container>
+// HEAD operations against a CDN-enabled Container are used to determine the CDN attributes of the Container.
+
+// PUT operations against a Container are used to CDN-enable that Container.
+// POST operations against a CDN-enabled Container are used to adjust CDN attributes.
+
+
+
+// Create a request, building an appropriate url
+//+ (id)requestWithContainer:(NSString *)container path:(NSString *)path;
+//
+//// Create a PUT request using the file at filePath as the body
+//+ (id)PUTRequestForFile:(NSString *)filePath withContainer:(NSString *)container path:(NSString *)path;
+//
+//// Create a PUT request using the supplied NSData as the body (set the mime-type manually with setMimeType: if necessary)
+//+ (id)PUTRequestForData:(NSData *)data withContainer:(NSString *)container path:(NSString *)path;
+//
+//// Create a DELETE request for the object at path
+//+ (id)DELETERequestWithContainer:(NSString *)container path:(NSString *)path;
+
+// TODO: CDN toggle containers
+
+@end
