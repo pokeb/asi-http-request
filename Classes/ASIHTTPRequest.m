@@ -21,7 +21,7 @@
 #import "ASIInputStream.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.2-72 2010-01-06";
+NSString *ASIHTTPRequestVersion = @"v1.5-1 2010-01-08";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -2367,6 +2367,10 @@ static BOOL isiPhoneOS2;
 
 - (void)handleBytesAvailable
 {
+	if (![self responseHeaders]) {
+		[self readResponseHeaders];
+	}
+	
 	// In certain (presumably very rare) circumstances, handleBytesAvailable seems to be called when there isn't actually any data available
 	// We'll check that there is actually data available to prevent blocking on CFReadStreamRead()
 	// So far, I've only seen this in the stress tests, so it might never happen in real-world situations.

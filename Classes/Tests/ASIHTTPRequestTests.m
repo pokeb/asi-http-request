@@ -446,6 +446,21 @@
 
 	BOOL success = (progress == 1.0);
 	GHAssertTrue(success,@"Failed to properly increment download progress %f != 1.0",progress);	
+	
+	progress = 0;
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_great_american_novel.txt"]];
+	[request setDownloadProgressDelegate:self];
+	[request startAsynchronous];
+	
+	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:2]];
+	
+	success = (progress != 1.0);
+	GHAssertTrue(success,@"Downloaded too quickly, cannot proceed with test");	
+	 
+	success = (progress > 0);
+	GHAssertTrue(success,@"Either downloaded too slowly, or progress is not being correctly updated");		 
+	
+	
 }
 
 - (void)testUploadProgress
