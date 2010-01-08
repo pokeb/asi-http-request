@@ -17,22 +17,6 @@
 
 @interface ASICloudFilesRequest : ASIHTTPRequest {
 
-	// ASICloudFilesObjectListRequest
-	// GET on container (for objects)
-	// limit
-	// marker
-	// prefix - For a string value X, causes the results to be limited to Object names beginning with the substring X.
-	// path - Now issuing a GET request against the Container name coupled with the “path” query parameter of the directory to list can traverse these “directories”. GET /v1/AccountString/backups?path=photos/animals
-
-	// PUT /<api version>/<account>/<container>/<object>
-	// PUT operations are used to write, or overwrite, an Object's metadata and content.
-	
-	// POST /<api version>/<account>/<container>/<object>
-	// POST operations against an Object name are used to set and overwrite arbitrary key/value metadata. You cannot use the POST operation to change any of the Object's other headers such as Content-Type, ETag, etc. It is not used to upload storage Objects (see PUT).
-	// A POST request will delete all existing metadata added with a previous PUT/POST.
-	
-	// DELETE /<api version>/<account>/<container>/<object>
-	
 	// GET operations against the X-CDN-Management-Url for an account are performed to retrieve a list of existing CDN-enabled Containers
 	// GET /<api version>/<account>
 	
@@ -54,6 +38,8 @@
 + (NSString *)apiKey;
 + (void)setApiKey:(NSString *)apiKey;
 
+-(NSDate *)dateFromString:(NSString *)dateString;
+
 #pragma mark Constructors
 
 + (id)authenticationRequest;
@@ -68,7 +54,7 @@
 
 // HEAD /<api version>/<account>/<container>
 // HEAD operations against a storage Container are used to determine the number of Objects, and the total bytes of all Objects stored in the Container.
-// The Object count and utilization are returned in the X- Container-Object-Count and X-Container-Bytes-Used headers respectively.
+// The Object count and utilization are returned in the X-Container-Object-Count and X-Container-Bytes-Used headers respectively.
 
 // HEAD /<api version>/<account>/<container>/<object>
 // No response body is returned. Metadata is returned as HTTP headers. A status code of 204 (No Content) indicates success, status 404 (Not Found) is returned when the Object does not exist.

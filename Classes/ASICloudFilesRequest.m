@@ -33,6 +33,9 @@ static NSString *rackspaceCloudAuthURL = @"https://auth.api.rackspacecloud.com/v
 
 + (id)authenticationRequest {
 	ASIHTTPRequest *request = [[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:rackspaceCloudAuthURL]];
+
+	//[request addRequestHeader:[ASICloudFilesRequest authToken] value:@"X-Auth-Token"];
+	//[request addRequestHeader:[ASICloudFilesRequest authToken] value:@"X-Auth-Token"];
 	NSMutableDictionary *headers = [[NSMutableDictionary alloc] initWithCapacity:2];
 	[headers setObject:username forKey:@"X-Auth-User"];
 	[headers setObject:apiKey   forKey:@"X-Auth-Key"];	
@@ -82,6 +85,19 @@ static NSString *rackspaceCloudAuthURL = @"https://auth.api.rackspacecloud.com/v
 + (void)setApiKey:(NSString *)newApiKey {
 	[apiKey release];
 	apiKey = [newApiKey retain];
+}
+
+#pragma mark -
+#pragma mark Date Parser
+
+-(NSDate *)dateFromString:(NSString *)dateString {
+	NSDateFormatter *format = [[NSDateFormatter alloc] init];
+	// example: 2009-11-04T19:46:20.192723
+	[format setDateFormat:@"yyyy-MM-dd'T'H:mm:ss"];
+	NSDate *date = [format dateFromString:dateString];
+	[format release];
+	
+	return date;
 }
 
 

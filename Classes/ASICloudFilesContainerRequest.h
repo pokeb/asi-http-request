@@ -8,23 +8,28 @@
 
 #import "ASICloudFilesRequest.h"
 
+@class ASICloudFilesContainer;
 
 @interface ASICloudFilesContainerRequest : ASICloudFilesRequest {
-	NSMutableArray *containerNames;
+	NSMutableArray *containerObjects;
 	//NSUInteger containerCount;
 	//NSUInteger bytesUsed;
 	
-	NSUInteger limit;
-	NSString *marker; // last item found as the offset
-	NSString *format; // json or xml
+//	NSUInteger limit;
+//	NSString *marker; // last item found as the offset
+//	NSString *format; // json or xml
 	
 	// Internally used while parsing the response
 	NSString *currentContent;
 	NSString *currentElement;
-	//ASIS3BucketObject *currentObject;
-	//NSMutableArray *objects;	
+	ASICloudFilesContainer *currentObject;
 	
 }
+
+@property (nonatomic, retain) NSString *currentElement;
+@property (nonatomic, retain) NSString *currentContent;
+@property (nonatomic, retain) ASICloudFilesContainer *currentObject;
+
 
 #pragma mark Constructors
 
@@ -35,6 +40,9 @@
 // GET /<api version>/<account>/<container>
 // Create a request to list all containers
 + (id)listRequest;
++ (id)listRequestWithLimit:(NSUInteger)limit;
++ (id)listRequestWithMarker:(NSString *)marker;
++ (id)listRequestWithLimit:(NSUInteger)limit marker:(NSString *)marker;
 
 // PUT /<api version>/<account>/<container>
 + (id)createContainerRequest:(NSString *)containerName;
@@ -45,6 +53,7 @@
 
 - (NSUInteger)containerCount;
 - (NSUInteger)bytesUsed;
+- (NSArray *)containers;
 
 // ASICloudFilesContainerListRequest
 // GET on account (for containers)
