@@ -12,6 +12,9 @@
 
 @interface ASICloudFilesObjectRequest : ASICloudFilesRequest {
 
+	NSString *accountName;
+	NSString *containerName;
+	
 	// Internally used while parsing the response
 	NSString *currentContent;
 	NSString *currentElement;
@@ -19,6 +22,9 @@
 	NSMutableArray *objects;
 	
 }
+
+@property (nonatomic, retain) NSString *accountName;
+@property (nonatomic, retain) NSString *containerName;
 
 @property (nonatomic, retain) NSString *currentElement;
 @property (nonatomic, retain) NSString *currentContent;
@@ -30,6 +36,10 @@
 + (id)containerInfoRequest:(NSString *)containerName;
 - (NSUInteger)containerObjectCount;
 - (NSUInteger)containerBytesUsed;
+
+// HEAD /<api version>/<account>/<container>/<object>
+// to get metadata
++ (id)objectInfoRequest:(NSString *)containerName objectPath:(NSString *)objectPath;
 
 
 // GET

@@ -6,13 +6,40 @@
 //  Copyright 2010 __MyCompanyName__. All rights reserved.
 //
 
-#import <Foundation/Foundation.h>
 #import "ASITestCase.h"
 
 @class ASINetworkQueue;
 
-@interface ASICloudFilesRequestTests : NSObject {
+@interface ASICloudFilesRequestTests : ASITestCase {
 	ASINetworkQueue *networkQueue;
+	float progress;
 }
+
+@property (retain,nonatomic) ASINetworkQueue *networkQueue;
+
+// Convenience Constructors
+- (void)testSubclasses;
+
+// ASICloudFilesRequest
+- (void)testAuthentication;
+- (void)testDateParser;
+
+// ASICloudFilesContainerRequest
+- (void)testAccountInfo;
+- (void)testContainerList; // TODO: with marker and limit permutations as well
+- (void)testContainerCreate;
+- (void)testContainerDelete;
+
+// ASICloudFilesObjectRequest
+- (void)testContainerInfo;
+- (void)testObjectInfo;
+- (void)testObjectList; // TODO: all permutations
+- (void)testGetObject;
+- (void)testPutObject; // TODO: all permutations?
+- (void)testPostObject; // TODO: all permutations?
+- (void)testDeleteObject;
+
+// ASICloudFilesCDNRequest
+// ???
 
 @end

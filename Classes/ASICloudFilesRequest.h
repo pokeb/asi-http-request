@@ -27,6 +27,7 @@
 }
 
 + (NSString *)storageURL;
++ (NSString *)cdnManagementURL;
 + (NSString *)authToken;
 
 #pragma mark Rackspace Cloud Authentication

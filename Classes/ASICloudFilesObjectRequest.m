@@ -13,6 +13,7 @@
 @implementation ASICloudFilesObjectRequest
 
 @synthesize currentElement, currentContent, currentObject;
+@synthesize accountName, containerName;
 
 + (id)storageRequestWithMethod:(NSString *)method containerName:(NSString *)containerName {
 	NSString *urlString = [NSString stringWithFormat:@"%@/%@", [ASICloudFilesRequest storageURL], containerName];
@@ -20,6 +21,7 @@
 	ASICloudFilesObjectRequest *request = [[ASICloudFilesObjectRequest alloc] initWithURL:[NSURL URLWithString:urlString]];
 	[request setRequestMethod:method];
 	[request addRequestHeader:@"X-Auth-Token" value:[ASICloudFilesRequest authToken]];
+	request.containerName = containerName;
 	return request;
 }
 
@@ -29,6 +31,7 @@
 	ASICloudFilesObjectRequest *request = [[ASICloudFilesObjectRequest alloc] initWithURL:[NSURL URLWithString:urlString]];
 	[request setRequestMethod:method];
 	[request addRequestHeader:@"X-Auth-Token" value:[ASICloudFilesRequest authToken]];
+	request.containerName = containerName;
 	return request;
 }
 
@@ -38,6 +41,7 @@
 	ASICloudFilesObjectRequest *request = [[ASICloudFilesObjectRequest alloc] initWithURL:[NSURL URLWithString:urlString]];
 	[request setRequestMethod:method];
 	[request addRequestHeader:@"X-Auth-Token" value:[ASICloudFilesRequest authToken]];
+	request.containerName = containerName;
 	return request;
 }
 
@@ -55,6 +59,14 @@
 
 - (NSUInteger)containerBytesUsed {
 	return [[[self responseHeaders] objectForKey:@"X-Container-Bytes-Used"] intValue];
+}
+
+#pragma mark -
+#pragma mark Object Info
+
++ (id)objectInfoRequest:(NSString *)containerName objectPath:(NSString *)objectPath {
+	ASICloudFilesObjectRequest *request = [ASICloudFilesObjectRequest storageRequestWithMethod:@"HEAD" containerName:containerName objectPath:objectPath];
+	return request;
 }
 
 #pragma mark -
@@ -166,23 +178,38 @@
 #pragma mark GET Object
 
 + (id)getObjectRequestWithContainer:(NSString *)containerName objectPath:(NSString *)objectPath {
-	return nil;
+	return [ASICloudFilesObjectRequest storageRequestWithMethod:@"GET" containerName:containerName objectPath:objectPath];
 }
 
 - (ASICloudFilesObject *)object {
 	ASICloudFilesObject *object = [ASICloudFilesObject object];
 	
-	object.name = nil; // TODO: store this cleanly somehow	
+	NSString *path = [self url].path;
+	NSRange range = [path rangeOfString:self.containerName];
+	path = [path substringFromIndex:range.location + range.length + 1];
+	
+	object.name = path;
 	object.hash = [[self responseHeaders] objectForKey:@"ETag"];
 	object.bytes = [[[self responseHeaders] objectForKey:@"Content-Length"] intValue];
 	object.contentType = [[self responseHeaders] objectForKey:@"Content-Type"];
 	object.lastModified = [[self responseHeaders] objectForKey:@"Last-Modified"];
-	// TODO: hash == ETag?
-	//object.etag = [[self responseHeaders] objectForKey:@"ETag"];
-	object.metadata = nil;
+	object.metadata = [[NSMutableDictionary alloc] init];
+	
+	NSDictionary *headers = [self responseHeaders];
+	NSArray *keys = [headers allKeys];
+	for (int i = 0; i < [keys count]; i++) {
+		NSString *key = [keys objectAtIndex:i];
+		NSString *value = [headers objectForKey:key];
+		NSRange range = [key rangeOfString:@"X-Object-Meta-"];
+		
+		if (range.location == 0) {
+			[object.metadata setObject:value forKey:[key substringFromIndex:range.length]];
+		}
+	}
+	
 	object.data = [self responseData];
 	
-	return nil;
+	return object;
 }
 
 #pragma mark -
@@ -196,7 +223,7 @@
 	
 	// TODO: etag?
 	
-	ASICloudFilesObjectRequest *request = [ASICloudFilesObjectRequest storageRequestWithMethod:@"PUT" containerName:containerName objectPath:objectPath];	
+	ASICloudFilesObjectRequest *request = [ASICloudFilesObjectRequest storageRequestWithMethod:@"PUT" containerName:containerName objectPath:objectPath];
 	[request addRequestHeader:@"Content-Type" value:contentType];
 	[request addRequestHeader:@"Content-Length" value:[NSString stringWithFormat:@"%i", objectData.length]];
 
@@ -222,7 +249,7 @@
 }
 
 + (id)postObjectRequestWithContainer:(NSString *)containerName objectPath:(NSString *)objectPath metadata:(NSDictionary *)metadata {
-	ASICloudFilesObjectRequest *request = [ASICloudFilesObjectRequest storageRequestWithMethod:@"PUT" containerName:containerName objectPath:objectPath];
+	ASICloudFilesObjectRequest *request = [ASICloudFilesObjectRequest storageRequestWithMethod:@"POST" containerName:containerName objectPath:objectPath];
 	
 	// add metadata to headers
 	if (metadata) {
@@ -293,5 +320,13 @@
 	[self setCurrentContent:[[self currentContent] stringByAppendingString:string]];
 }
 
+- (void)dealloc {
+	[currentElement release];
+	[currentContent release];
+	[currentObject release];
+	[accountName release];
+	[containerName release];
+	[super dealloc];
+}
 
 @end

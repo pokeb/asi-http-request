@@ -22,14 +22,17 @@ static NSString *rackspaceCloudAuthURL = @"https://auth.api.rackspacecloud.com/v
 
 @implementation ASICloudFilesRequest
 
-+ (NSString *)storageURL {
-	return storageURL;
-}
-
 + (NSString *)authToken {
 	return authToken;
 }
 
++ (NSString *)storageURL {
+	return storageURL;
+}
+
++ (NSString *)cdnManagementURL {
+	return cdnManagementURL;
+}
 
 + (id)authenticationRequest {
 	ASIHTTPRequest *request = [[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:rackspaceCloudAuthURL]];

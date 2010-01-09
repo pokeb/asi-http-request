@@ -16,7 +16,7 @@
 	NSString *contentType;
 	NSDate *lastModified;
 	NSData *data;
-	NSDictionary *metadata;
+	NSMutableDictionary *metadata;
 }
 
 @property (nonatomic, retain) NSString *name;
@@ -25,7 +25,7 @@
 @property (nonatomic, retain) NSString *contentType;
 @property (nonatomic, retain) NSDate *lastModified;
 @property (nonatomic, retain) NSData *data;	
-@property (nonatomic, retain) NSDictionary *metadata;
+@property (nonatomic, retain) NSMutableDictionary *metadata;
 
 + (id)object;
 
