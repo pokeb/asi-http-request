@@ -17,9 +17,6 @@
 
 @property (retain,nonatomic) ASINetworkQueue *networkQueue;
 
-// Convenience Constructors
-- (void)testSubclasses;
-
 // ASICloudFilesRequest
 - (void)testAuthentication;
 - (void)testDateParser;

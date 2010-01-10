@@ -27,6 +27,8 @@
 		27D150F910F676E000E08C61 /* ASICloudFilesObject.m in Sources */ = {isa = PBXBuildFile; fileRef = 27D150F710F676E000E08C61 /* ASICloudFilesObject.m */; };
 		27D1528510F68FDE00E08C61 /* ASICloudFilesUIImage.m in Sources */ = {isa = PBXBuildFile; fileRef = 27D1528410F68FDE00E08C61 /* ASICloudFilesUIImage.m */; };
 		27D1528610F68FDE00E08C61 /* ASICloudFilesUIImage.m in Sources */ = {isa = PBXBuildFile; fileRef = 27D1528410F68FDE00E08C61 /* ASICloudFilesUIImage.m */; };
+		27D15B8F10FA95A800E08C61 /* ASICloudFilesContainerXMLParserDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 27D15B8E10FA95A800E08C61 /* ASICloudFilesContainerXMLParserDelegate.m */; };
+		27D15B9010FA95A800E08C61 /* ASICloudFilesContainerXMLParserDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 27D15B8E10FA95A800E08C61 /* ASICloudFilesContainerXMLParserDelegate.m */; };
 		288765080DF74369002DB57D /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 288765070DF74369002DB57D /* CoreGraphics.framework */; };
 		B517900B1024AD1B00583567 /* libz.1.2.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B55B60940F765AF80064029C /* libz.1.2.3.dylib */; };
 		B51791951024C3DA00583567 /* Authentication.xib in Resources */ = {isa = PBXBuildFile; fileRef = B51791941024C3DA00583567 /* Authentication.xib */; };
@@ -104,6 +106,8 @@
 		27D150F710F676E000E08C61 /* ASICloudFilesObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASICloudFilesObject.m; sourceTree = "<group>"; };
 		27D1528310F68FDE00E08C61 /* ASICloudFilesUIImage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASICloudFilesUIImage.h; sourceTree = "<group>"; };
 		27D1528410F68FDE00E08C61 /* ASICloudFilesUIImage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASICloudFilesUIImage.m; sourceTree = "<group>"; };
+		27D15B8D10FA95A800E08C61 /* ASICloudFilesContainerXMLParserDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASICloudFilesContainerXMLParserDelegate.h; sourceTree = "<group>"; };
+		27D15B8E10FA95A800E08C61 /* ASICloudFilesContainerXMLParserDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASICloudFilesContainerXMLParserDelegate.m; sourceTree = "<group>"; };
 		288765070DF74369002DB57D /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		B517914A1024BFFF00583567 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
 		B51791941024C3DA00583567 /* Authentication.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Authentication.xib; path = "iPhone Sample/XIBs/Authentication.xib"; sourceTree = "<group>"; };
@@ -259,6 +263,8 @@
 				27D150F710F676E000E08C61 /* ASICloudFilesObject.m */,
 				27D1528310F68FDE00E08C61 /* ASICloudFilesUIImage.h */,
 				27D1528410F68FDE00E08C61 /* ASICloudFilesUIImage.m */,
+				27D15B8D10FA95A800E08C61 /* ASICloudFilesContainerXMLParserDelegate.h */,
+				27D15B8E10FA95A800E08C61 /* ASICloudFilesContainerXMLParserDelegate.m */,
 			);
 			name = Objects;
 			sourceTree = "<group>";
@@ -559,6 +565,7 @@
 				27D150F410F676D700E08C61 /* ASICloudFilesContainer.m in Sources */,
 				27D150F810F676E000E08C61 /* ASICloudFilesObject.m in Sources */,
 				27D1528510F68FDE00E08C61 /* ASICloudFilesUIImage.m in Sources */,
+				27D15B8F10FA95A800E08C61 /* ASICloudFilesContainerXMLParserDelegate.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -594,6 +601,7 @@
 				27D150F510F676D700E08C61 /* ASICloudFilesContainer.m in Sources */,
 				27D150F910F676E000E08C61 /* ASICloudFilesObject.m in Sources */,
 				27D1528610F68FDE00E08C61 /* ASICloudFilesUIImage.m in Sources */,
+				27D15B9010FA95A800E08C61 /* ASICloudFilesContainerXMLParserDelegate.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

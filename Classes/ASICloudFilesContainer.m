@@ -11,7 +11,11 @@
 
 @implementation ASICloudFilesContainer
 
+// regular container attributes
 @synthesize name, count, bytes;
+
+// CDN container attributes
+@synthesize cdnEnabled, ttl, cdnURL, logRetention, referrerACL, useragentACL;
 
 + (id)container {
 	ASICloudFilesContainer *container = [[[self alloc] init] autorelease];

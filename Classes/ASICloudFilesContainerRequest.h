@@ -8,27 +8,24 @@
 
 #import "ASICloudFilesRequest.h"
 
-@class ASICloudFilesContainer;
+@class ASICloudFilesContainer, ASICloudFilesContainerXMLParserDelegate;
 
 @interface ASICloudFilesContainerRequest : ASICloudFilesRequest {
 	NSMutableArray *containerObjects;
 	//NSUInteger containerCount;
 	//NSUInteger bytesUsed;
 	
-//	NSUInteger limit;
-//	NSString *marker; // last item found as the offset
-//	NSString *format; // json or xml
-	
 	// Internally used while parsing the response
 	NSString *currentContent;
 	NSString *currentElement;
 	ASICloudFilesContainer *currentObject;
-	
+	ASICloudFilesContainerXMLParserDelegate *xmlParserDelegate;
 }
 
 @property (nonatomic, retain) NSString *currentElement;
 @property (nonatomic, retain) NSString *currentContent;
 @property (nonatomic, retain) ASICloudFilesContainer *currentObject;
+@property (nonatomic, retain) ASICloudFilesContainerXMLParserDelegate *xmlParserDelegate;
 
 
 #pragma mark Constructors
@@ -54,15 +51,5 @@
 - (NSUInteger)containerCount;
 - (NSUInteger)bytesUsed;
 - (NSArray *)containers;
-
-// ASICloudFilesContainerListRequest
-// GET on account (for containers)
-// limit
-// marker (last item found as the offset)
-// format - 'json' or 'xml'
-
-// create container
-// DELETE to delete
-
 
 @end

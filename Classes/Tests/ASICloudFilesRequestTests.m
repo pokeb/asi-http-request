@@ -37,11 +37,6 @@ static NSString *apiKey = @"1c331a7a4a6eb58ca6072afe81e812d0";
 	}
 }
 
-// Convenience Constructors
-- (void)testSubclasses {
-	GHAssertTrue(NO, @"Test not implemented.");
-}
-
 // ASICloudFilesRequest
 - (void)testAuthentication {
 	[self authenticate];
@@ -262,6 +257,39 @@ static NSString *apiKey = @"1c331a7a4a6eb58ca6072afe81e812d0";
 	[deleteRequest start];
 	// TODO: remove checking error and instead check status
 	GHAssertNil([deleteRequest error], @"Failed to delete object");
+}
+
+// CDN
+
+- (void)testCDNContainerInfo {
+	[self authenticate];
+	
+	ASICloudFilesCDNRequest *request = [ASICloudFilesCDNRequest containerInfoRequest:@"overhrd.com"];
+	[request start];
+	
+	GHAssertTrue([request responseStatusCode] == 204, @"Failed to retrieve CDN container info");
+	GHAssertTrue([request cdnEnabled], @"Failed to retrieve CDN container info");
+	GHAssertNotNil([request cdnURI], @"Failed to retrieve CDN container info");
+	GHAssertTrue([request cdnTTL] > 0, @"Failed to retrieve CDN container info");	
+}
+
+- (void)testCDNContainerList {
+	[self authenticate];
+	
+	ASICloudFilesCDNRequest *request = [ASICloudFilesCDNRequest listRequest];
+	[request start];
+	
+	GHAssertNotNil([request containers], @"Failed to retrieve CDN container list");
+}
+
+- (void)testCDNContainerListWithParams {
+	[self authenticate];
+	
+	ASICloudFilesCDNRequest *request = [ASICloudFilesCDNRequest listRequestWithLimit:2 marker:@"elcamino" enabledOnly:YES];
+	[request start];
+	
+	GHAssertNotNil([request containers], @"Failed to retrieve CDN container list");
+	GHAssertTrue([[request containers] count] == 2, @"Failed to retrieve limited CDN container list");
 }
 
 ////////

@@ -8,11 +8,13 @@
 
 #import "ASICloudFilesContainerRequest.h"
 #import "ASICloudFilesContainer.h"
+#import "ASICloudFilesContainerXMLParserDelegate.h"
 
 
 @implementation ASICloudFilesContainerRequest
 
 @synthesize currentElement, currentContent, currentObject;
+@synthesize xmlParserDelegate;
 
 //ASIHTTPRequest *request = [[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:rackspaceCloudAuthURL]];
 //NSMutableDictionary *headers = [[NSMutableDictionary alloc] initWithCapacity:2];
@@ -117,18 +119,35 @@
 	//NSLog(@"list response data: %@", [self responseString]);
 	
 	NSXMLParser *parser = [[[NSXMLParser alloc] initWithData:[self responseData]] autorelease];
-	[parser setDelegate:self];
+	if (xmlParserDelegate == nil) {
+		xmlParserDelegate = [[ASICloudFilesContainerXMLParserDelegate alloc] init];
+	}
+	
+	[parser setDelegate:xmlParserDelegate];
 	[parser setShouldProcessNamespaces:NO];
 	[parser setShouldReportNamespacePrefixes:NO];
 	[parser setShouldResolveExternalEntities:NO];
 	[parser parse];
-	return containerObjects;
+	
+	return xmlParserDelegate.containerObjects;
 }
 
 #pragma mark -
 #pragma mark XML Parser Delegate
 
 /*
+ 
+ <container>
+	 <name>playground</name>
+	 <cdn_enabled>True</cdn_enabled>
+	 <ttl>259200</ttl>
+	 <cdn_url>http://c0023891.cdn.cloudfiles.rackspacecloud.com</cdn_url>
+	 <log_retention>True</log_retention>
+	 <referrer_acl></referrer_acl>
+	 <useragent_acl></useragent_acl>
+ </container>
+ 
+ 
 <account name="MossoCloudFS_56ad0327-43d6-4ac4-9883-797f5690238e">
 	<container><name>bigdir</name><count>1536</count><bytes>10752</bytes></container>
 	<container><name>cf_service</name><count>35</count><bytes>66151933</bytes></container>
@@ -145,6 +164,8 @@
 	<container><name>wadecrash</name><count>5</count><bytes>19839804</bytes></container>
 </account>
 */
+
+/*
 - (void)parser:(NSXMLParser *)parser didStartElement:(NSString *)elementName namespaceURI:(NSString *)namespaceURI qualifiedName:(NSString *)qName attributes:(NSDictionary *)attributeDict {
 	[self setCurrentElement:elementName];
 	
@@ -172,11 +193,14 @@
 - (void)parser:(NSXMLParser *)parser foundCharacters:(NSString *)string {
 	[self setCurrentContent:[[self currentContent] stringByAppendingString:string]];
 }
+*/
+
 
 - (void)dealloc {
 	[currentElement release];
 	[currentContent release];
 	[currentObject release];
+	[xmlParserDelegate release];
 	[super dealloc];
 }
 
