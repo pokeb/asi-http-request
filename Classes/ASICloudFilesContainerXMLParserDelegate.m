@@ -1,9 +1,7 @@
 //
 //  ASICloudFilesContainerXMLParserDelegate.m
-//  iPhone
 //
 //  Created by Michael Mayo on 1/10/10.
-//  Copyright 2010 __MyCompanyName__. All rights reserved.
 //
 
 #import "ASICloudFilesContainerXMLParserDelegate.h"
