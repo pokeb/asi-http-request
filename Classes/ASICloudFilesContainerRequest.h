@@ -11,9 +11,6 @@
 @class ASICloudFilesContainer, ASICloudFilesContainerXMLParserDelegate;
 
 @interface ASICloudFilesContainerRequest : ASICloudFilesRequest {
-	NSMutableArray *containerObjects;
-	//NSUInteger containerCount;
-	//NSUInteger bytesUsed;
 	
 	// Internally used while parsing the response
 	NSString *currentContent;

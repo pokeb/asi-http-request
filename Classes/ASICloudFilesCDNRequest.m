@@ -7,11 +7,12 @@
 //
 
 #import "ASICloudFilesCDNRequest.h"
+#import "ASICloudFilesContainerXMLParserDelegate.h"
 
 
 @implementation ASICloudFilesCDNRequest
 
-@synthesize accountName, containerName;
+@synthesize accountName, containerName, xmlParserDelegate;
 
 + (id)cdnRequestWithMethod:(NSString *)method query:(NSString *)query {
 	NSString *urlString = [NSString stringWithFormat:@"%@%@", [ASICloudFilesRequest cdnManagementURL], query];
@@ -55,7 +56,7 @@
 #pragma mark GET - CDN Container Lists
 
 + (id)listRequest {
-	ASICloudFilesCDNRequest *request = [ASICloudFilesCDNRequest cdnRequestWithMethod:@"GET" query:nil];
+	ASICloudFilesCDNRequest *request = [ASICloudFilesCDNRequest cdnRequestWithMethod:@"GET" query:@"?format=xml"];
 	return request;
 }
 
@@ -79,24 +80,64 @@
 }
 
 - (NSArray *)containers {
-	return nil;
+	if (xmlParserDelegate.containerObjects) {
+		return xmlParserDelegate.containerObjects;
+	}
+	
+	NSLog(@"list response data: %@", [self responseString]);
+	
+	NSXMLParser *parser = [[[NSXMLParser alloc] initWithData:[self responseData]] autorelease];
+	if (xmlParserDelegate == nil) {
+		xmlParserDelegate = [[ASICloudFilesContainerXMLParserDelegate alloc] init];
+	}
+	
+	[parser setDelegate:xmlParserDelegate];
+	[parser setShouldProcessNamespaces:NO];
+	[parser setShouldReportNamespacePrefixes:NO];
+	[parser setShouldResolveExternalEntities:NO];
+	[parser parse];
+	
+	return xmlParserDelegate.containerObjects;
 }
 
-// GET /<api version>/<account>
-// limit, marker, format, enabled_only=true
-// + (id)getObjectRequestWithContainer:(NSString *)containerName objectPath:(NSString *)objectPath;
-
+#pragma mark -
+#pragma mark PUT - CDN Enable Container
 
 // PUT /<api version>/<account>/<container>
 // PUT operations against a Container are used to CDN-enable that Container.
 // Include an HTTP header of X-TTL to specify a custom TTL.
++ (id)putRequestWithContainer:(NSString *)containerName {
+	ASICloudFilesCDNRequest *request = [ASICloudFilesCDNRequest cdnRequestWithMethod:@"PUT" containerName:containerName];
+	return request;
+}
+
++ (id)putRequestWithContainer:(NSString *)containerName ttl:(NSUInteger)ttl {
+	ASICloudFilesCDNRequest *request = [ASICloudFilesCDNRequest cdnRequestWithMethod:@"PUT" containerName:containerName];	
+	[request addRequestHeader:@"X-Ttl" value:[NSString stringWithFormat:@"%i", ttl]];
+	return request;
+}
+
+#pragma mark -
+#pragma mark POST - Adjust CDN Attributes
 
 // POST /<api version>/<account>/<container>
 // POST operations against a CDN-enabled Container are used to adjust CDN attributes.
 // The POST operation can be used to set a new TTL cache expiration or to enable/disable public sharing over the CDN.
 // X-TTL: 86400
 // X-CDN-Enabled: True
++ (id)postRequestWithContainer:(NSString *)containerName {
+	ASICloudFilesCDNRequest *request = [ASICloudFilesCDNRequest cdnRequestWithMethod:@"POST" containerName:containerName];
+	return request;
+}
 
++ (id)postRequestWithContainer:(NSString *)containerName cdnEnabled:(BOOL)cdnEnabled ttl:(NSUInteger)ttl {
+	ASICloudFilesCDNRequest *request = [ASICloudFilesCDNRequest cdnRequestWithMethod:@"POST" containerName:containerName];
+	if (ttl > 0) {
+		[request addRequestHeader:@"X-Ttl" value:[NSString stringWithFormat:@"%i", ttl]];
+	}
+	[request addRequestHeader:@"X-Ttl" value:cdnEnabled ? @"True" : @"False"];
+	return request;
+}
 
 #pragma mark -
 #pragma mark Memory Management
@@ -104,6 +145,7 @@
 -(void)dealloc {
 	[accountName release];
 	[containerName release];
+	[xmlParserDelegate release];
 	[super dealloc];
 }
 

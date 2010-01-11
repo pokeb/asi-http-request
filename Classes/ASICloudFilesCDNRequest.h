@@ -8,14 +8,18 @@
 
 #import "ASICloudFilesRequest.h"
 
+@class ASICloudFilesContainerXMLParserDelegate;
 
 @interface ASICloudFilesCDNRequest : ASICloudFilesRequest {
 	NSString *accountName;
 	NSString *containerName;
+	ASICloudFilesContainerXMLParserDelegate *xmlParserDelegate;
+	
 }
 
 @property (nonatomic, retain) NSString *accountName;
 @property (nonatomic, retain) NSString *containerName;
+@property (nonatomic, retain) ASICloudFilesContainerXMLParserDelegate *xmlParserDelegate;
 
 
 // HEAD /<api version>/<account>/<container>
@@ -39,12 +43,18 @@
 // PUT /<api version>/<account>/<container>
 // PUT operations against a Container are used to CDN-enable that Container.
 // Include an HTTP header of X-TTL to specify a custom TTL.
++ (id)putRequestWithContainer:(NSString *)containerName;
++ (id)putRequestWithContainer:(NSString *)containerName ttl:(NSUInteger)ttl;
+// returns: - (NSString *)cdnURI;
 
 // POST /<api version>/<account>/<container>
 // POST operations against a CDN-enabled Container are used to adjust CDN attributes.
 // The POST operation can be used to set a new TTL cache expiration or to enable/disable public sharing over the CDN.
 // X-TTL: 86400
 // X-CDN-Enabled: True
++ (id)postRequestWithContainer:(NSString *)containerName;
++ (id)postRequestWithContainer:(NSString *)containerName cdnEnabled:(BOOL)cdnEnabled ttl:(NSUInteger)ttl;
+// returns: - (NSString *)cdnURI;
 
 
 @end
