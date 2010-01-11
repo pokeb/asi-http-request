@@ -292,15 +292,23 @@ static NSString *apiKey = @"1c331a7a4a6eb58ca6072afe81e812d0";
 	GHAssertTrue([[request containers] count] == 2, @"Failed to retrieve limited CDN container list");
 }
 
-////////
-/*
-- (void)testSkeleton {
+- (void)testCDNPut {
 	[self authenticate];
-	GHAssertTrue(NO, @"Test not implemented.");
+	
+	ASICloudFilesCDNRequest *request = [ASICloudFilesCDNRequest putRequestWithContainer:@"overhrd.com"];
+	[request start];
+	
+	GHAssertNotNil([request cdnURI], @"Failed to PUT to CDN container");
 }
-*/
 
-
+- (void)testCDNPost {
+	[self authenticate];
+	
+	ASICloudFilesCDNRequest *request = [ASICloudFilesCDNRequest postRequestWithContainer:@"overhrd.com" cdnEnabled:YES ttl:86600];
+	[request start];
+	
+	GHAssertNotNil([request cdnURI], @"Failed to POST to CDN container");
+}
 
 -(void)dealloc {
 	[networkQueue release];

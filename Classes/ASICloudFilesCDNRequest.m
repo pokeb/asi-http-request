@@ -135,7 +135,7 @@
 	if (ttl > 0) {
 		[request addRequestHeader:@"X-Ttl" value:[NSString stringWithFormat:@"%i", ttl]];
 	}
-	[request addRequestHeader:@"X-Ttl" value:cdnEnabled ? @"True" : @"False"];
+	[request addRequestHeader:@"X-Cdn-Enabled" value:cdnEnabled ? @"True" : @"False"];
 	return request;
 }
 
