@@ -25,8 +25,6 @@
 		27D150F510F676D700E08C61 /* ASICloudFilesContainer.m in Sources */ = {isa = PBXBuildFile; fileRef = 27D150F310F676D700E08C61 /* ASICloudFilesContainer.m */; };
 		27D150F810F676E000E08C61 /* ASICloudFilesObject.m in Sources */ = {isa = PBXBuildFile; fileRef = 27D150F710F676E000E08C61 /* ASICloudFilesObject.m */; };
 		27D150F910F676E000E08C61 /* ASICloudFilesObject.m in Sources */ = {isa = PBXBuildFile; fileRef = 27D150F710F676E000E08C61 /* ASICloudFilesObject.m */; };
-		27D1528510F68FDE00E08C61 /* ASICloudFilesUIImage.m in Sources */ = {isa = PBXBuildFile; fileRef = 27D1528410F68FDE00E08C61 /* ASICloudFilesUIImage.m */; };
-		27D1528610F68FDE00E08C61 /* ASICloudFilesUIImage.m in Sources */ = {isa = PBXBuildFile; fileRef = 27D1528410F68FDE00E08C61 /* ASICloudFilesUIImage.m */; };
 		27D15B8F10FA95A800E08C61 /* ASICloudFilesContainerXMLParserDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 27D15B8E10FA95A800E08C61 /* ASICloudFilesContainerXMLParserDelegate.m */; };
 		27D15B9010FA95A800E08C61 /* ASICloudFilesContainerXMLParserDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 27D15B8E10FA95A800E08C61 /* ASICloudFilesContainerXMLParserDelegate.m */; };
 		288765080DF74369002DB57D /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 288765070DF74369002DB57D /* CoreGraphics.framework */; };
@@ -104,8 +102,6 @@
 		27D150F310F676D700E08C61 /* ASICloudFilesContainer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASICloudFilesContainer.m; sourceTree = "<group>"; };
 		27D150F610F676E000E08C61 /* ASICloudFilesObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASICloudFilesObject.h; sourceTree = "<group>"; };
 		27D150F710F676E000E08C61 /* ASICloudFilesObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASICloudFilesObject.m; sourceTree = "<group>"; };
-		27D1528310F68FDE00E08C61 /* ASICloudFilesUIImage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASICloudFilesUIImage.h; sourceTree = "<group>"; };
-		27D1528410F68FDE00E08C61 /* ASICloudFilesUIImage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASICloudFilesUIImage.m; sourceTree = "<group>"; };
 		27D15B8D10FA95A800E08C61 /* ASICloudFilesContainerXMLParserDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASICloudFilesContainerXMLParserDelegate.h; sourceTree = "<group>"; };
 		27D15B8E10FA95A800E08C61 /* ASICloudFilesContainerXMLParserDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASICloudFilesContainerXMLParserDelegate.m; sourceTree = "<group>"; };
 		288765070DF74369002DB57D /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -261,8 +257,6 @@
 				27D150F310F676D700E08C61 /* ASICloudFilesContainer.m */,
 				27D150F610F676E000E08C61 /* ASICloudFilesObject.h */,
 				27D150F710F676E000E08C61 /* ASICloudFilesObject.m */,
-				27D1528310F68FDE00E08C61 /* ASICloudFilesUIImage.h */,
-				27D1528410F68FDE00E08C61 /* ASICloudFilesUIImage.m */,
 				27D15B8D10FA95A800E08C61 /* ASICloudFilesContainerXMLParserDelegate.h */,
 				27D15B8E10FA95A800E08C61 /* ASICloudFilesContainerXMLParserDelegate.m */,
 			);
@@ -564,7 +558,6 @@
 				27D150F010F676CB00E08C61 /* ASICloudFilesAccount.m in Sources */,
 				27D150F410F676D700E08C61 /* ASICloudFilesContainer.m in Sources */,
 				27D150F810F676E000E08C61 /* ASICloudFilesObject.m in Sources */,
-				27D1528510F68FDE00E08C61 /* ASICloudFilesUIImage.m in Sources */,
 				27D15B8F10FA95A800E08C61 /* ASICloudFilesContainerXMLParserDelegate.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -600,7 +593,6 @@
 				27D150F110F676CB00E08C61 /* ASICloudFilesAccount.m in Sources */,
 				27D150F510F676D700E08C61 /* ASICloudFilesContainer.m in Sources */,
 				27D150F910F676E000E08C61 /* ASICloudFilesObject.m in Sources */,
-				27D1528610F68FDE00E08C61 /* ASICloudFilesUIImage.m in Sources */,
 				27D15B9010FA95A800E08C61 /* ASICloudFilesContainerXMLParserDelegate.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
