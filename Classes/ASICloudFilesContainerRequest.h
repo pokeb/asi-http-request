@@ -24,28 +24,22 @@
 @property (nonatomic, retain) ASICloudFilesContainer *currentObject;
 @property (nonatomic, retain) ASICloudFilesContainerXMLParserDelegate *xmlParserDelegate;
 
-
-#pragma mark Constructors
-
 // HEAD /<api version>/<account>
 // HEAD operations against an account are performed to retrieve the number of Containers and the total bytes stored in Cloud Files for the account. This information is returned in two custom headers, X-Account-Container-Count and X-Account-Bytes-Used.
 + (id)accountInfoRequest;
+- (NSUInteger)containerCount;
+- (NSUInteger)bytesUsed;
 
 // GET /<api version>/<account>/<container>
 // Create a request to list all containers
 + (id)listRequest;
-+ (id)listRequestWithLimit:(NSUInteger)limit;
-+ (id)listRequestWithMarker:(NSString *)marker;
 + (id)listRequestWithLimit:(NSUInteger)limit marker:(NSString *)marker;
+- (NSArray *)containers;
 
 // PUT /<api version>/<account>/<container>
 + (id)createContainerRequest:(NSString *)containerName;
 
 // DELETE /<api version>/<account>/<container>
 + (id)deleteContainerRequest:(NSString *)containerName;
-
-- (NSUInteger)containerCount;
-- (NSUInteger)bytesUsed;
-- (NSArray *)containers;
 
 @end

@@ -81,35 +81,10 @@ static NSString *apiKey = @"1c331a7a4a6eb58ca6072afe81e812d0";
 		GHAssertNotNil(container.name, @"Failed to parse container");
 	}
 	
-	ASICloudFilesContainerRequest *limitContainerListRequest = [ASICloudFilesContainerRequest listRequestWithLimit:2];
+	ASICloudFilesContainerRequest *limitContainerListRequest = [ASICloudFilesContainerRequest listRequestWithLimit:2 marker:nil];
 	[limitContainerListRequest start];	
 	containers = [limitContainerListRequest containers];
 	GHAssertTrue([containers count] == 2, @"Failed to limit container list");
-
-	/*
-	ASICloudFilesContainerRequest *markerContainerListRequest = [ASICloudFilesContainerRequest listRequestWithMarker:@"personal"];
-	[markerContainerListRequest start];
-	
-	containers = [markerContainerListRequest containers];
-	NSLog(@"Marker personal Containers list count: %i", [containers count]);
-	
-	for (int i = 0; i < [containers count]; i++) {
-		ASICloudFilesContainer *container = [containers objectAtIndex:i];
-		NSLog(@"%@ - %i objects, %i bytes", container.name, container.count, container.bytes);
-	}
-	
-	ASICloudFilesContainerRequest *limitMarkerContainerListRequest = [ASICloudFilesContainerRequest listRequestWithLimit:3 marker:@"cf_service"];
-	[limitMarkerContainerListRequest start];
-	
-	containers = [limitMarkerContainerListRequest containers];
-	NSLog(@"Limit 3 Marker cf_service Containers list count: %i", [containers count]);
-	
-	for (int i = 0; i < [containers count]; i++) {
-		ASICloudFilesContainer *container = [containers objectAtIndex:i];
-		NSLog(@"%@ - %i objects, %i bytes", container.name, container.count, container.bytes);
-	}
-	*/
-	
 }
 
 - (void)testContainerCreate {
@@ -183,7 +158,6 @@ static NSString *apiKey = @"1c331a7a4a6eb58ca6072afe81e812d0";
 	GHAssertNotNil(object, @"Failed to retrieve object");
 	
 	GHAssertNotNil(object.name, @"Failed to parse object name");
-	//GHAssertNotNil(object.hash, @"Failed to parse object hash"); // FAILS
 	GHAssertTrue(object.bytes > 0, @"Failed to parse object bytes");
 	GHAssertNotNil(object.contentType, @"Failed to parse object content type");
 	GHAssertNotNil(object.lastModified, @"Failed to parse object last modified");
@@ -241,13 +215,11 @@ static NSString *apiKey = @"1c331a7a4a6eb58ca6072afe81e812d0";
 	ASICloudFilesObjectRequest *request = [ASICloudFilesObjectRequest postObjectRequestWithContainer:@"cf_service" object:object];
 	[request start];
 	
-	NSLog(@"\n\n\npost response: %i\n\n\n", [request responseStatusCode]);
-	
 	GHAssertTrue([request responseStatusCode] == 202, @"Failed to post object metadata");
 	
 	[metadata release];
 	
-} // TODO: all permutations?
+}
 
 - (void)testDeleteObject {
 	[self authenticate];
@@ -258,7 +230,8 @@ static NSString *apiKey = @"1c331a7a4a6eb58ca6072afe81e812d0";
 	GHAssertNil([deleteRequest error], @"Failed to delete object");
 }
 
-// CDN
+#pragma mark -
+#pragma mark CDN Tests
 
 - (void)testCDNContainerInfo {
 	[self authenticate];
@@ -308,6 +281,9 @@ static NSString *apiKey = @"1c331a7a4a6eb58ca6072afe81e812d0";
 	
 	GHAssertNotNil([request cdnURI], @"Failed to POST to CDN container");
 }
+
+#pragma mark -
+#pragma mark Memory Management
 
 -(void)dealloc {
 	[networkQueue release];

@@ -25,7 +25,6 @@
 
 @property (nonatomic, retain) NSString *accountName;
 @property (nonatomic, retain) NSString *containerName;
-
 @property (nonatomic, retain) NSString *currentElement;
 @property (nonatomic, retain) NSString *currentContent;
 @property (nonatomic, retain) ASICloudFilesObject *currentObject;
@@ -40,42 +39,13 @@
 // HEAD /<api version>/<account>/<container>/<object>
 // to get metadata
 + (id)objectInfoRequest:(NSString *)containerName objectPath:(NSString *)objectPath;
-
-
-// GET
 - (NSArray *)objects;
 
-// ASICloudFilesObjectListRequest
-// GET on container (for objects)
-// limit
-// marker
-// prefix - For a string value X, causes the results to be limited to Object names beginning with the substring X.
-// path - Now issuing a GET request against the Container name coupled with the “path” query parameter of the directory to list can traverse these “directories”. GET /v1/AccountString/backups?path=photos/animals
-
-// every possible combination of object list request
-// TODO: consider an options dictionary argument instead of so many method signatures
 + (id)listRequestWithContainer:(NSString *)containerName;
-+ (id)listRequestWithContainer:(NSString *)containerName limit:(NSUInteger)limit;
-+ (id)listRequestWithContainer:(NSString *)containerName limit:(NSUInteger)limit marker:(NSString *)marker;
-+ (id)listRequestWithContainer:(NSString *)containerName limit:(NSUInteger)limit marker:(NSString *)marker prefix:(NSString *)prefix;
-+ (id)listRequestWithContainer:(NSString *)containerName limit:(NSUInteger)limit marker:(NSString *)marker path:(NSString *)path;
-+ (id)listRequestWithContainer:(NSString *)containerName limit:(NSUInteger)limit prefix:(NSString *)prefix;
-+ (id)listRequestWithContainer:(NSString *)containerName limit:(NSUInteger)limit prefix:(NSString *)prefix path:(NSString *)path;
-+ (id)listRequestWithContainer:(NSString *)containerName limit:(NSUInteger)limit path:(NSString *)path;
-+ (id)listRequestWithContainer:(NSString *)containerName marker:(NSString *)marker;
-+ (id)listRequestWithContainer:(NSString *)containerName marker:(NSString *)marker prefix:(NSString *)prefix;
-+ (id)listRequestWithContainer:(NSString *)containerName marker:(NSString *)marker path:(NSString *)path;
-+ (id)listRequestWithContainer:(NSString *)containerName marker:(NSString *)marker prefix:(NSString *)prefix path:(NSString *)path;
-+ (id)listRequestWithContainer:(NSString *)containerName prefix:(NSString *)prefix;
-+ (id)listRequestWithContainer:(NSString *)containerName prefix:(NSString *)prefix path:(NSString *)path;
-+ (id)listRequestWithContainer:(NSString *)containerName path:(NSString *)path;
 + (id)listRequestWithContainer:(NSString *)containerName limit:(NSUInteger)limit marker:(NSString *)marker prefix:(NSString *)prefix path:(NSString *)path;
 
-// TODO: GET object with data and metadata
 // Conditional GET headers: If-Match • If-None-Match • If-Modified-Since • If-Unmodified-Since
 // HTTP Range header: “Range: bytes=0-5” •	“Range: bytes=-5” •	“Range: bytes=32-“
-// TODO: return 'ETag' header from GET
-// TODO: maybe do chunked PUT
 + (id)getObjectRequestWithContainer:(NSString *)containerName objectPath:(NSString *)objectPath;
 - (ASICloudFilesObject *)object;
 

@@ -15,6 +15,9 @@
 @synthesize currentElement, currentContent, currentObject;
 @synthesize accountName, containerName;
 
+#pragma mark -
+#pragma mark Constructors
+
 + (id)storageRequestWithMethod:(NSString *)method containerName:(NSString *)containerName {
 	NSString *urlString = [NSString stringWithFormat:@"%@/%@", [ASICloudFilesRequest storageURL], containerName];
 	//NSLog(@"object request url: %@", urlString);
@@ -46,7 +49,7 @@
 }
 
 #pragma mark -
-#pragma mark Container Info
+#pragma mark HEAD - Container Info
 
 + (id)containerInfoRequest:(NSString *)containerName {
 	ASICloudFilesObjectRequest *request = [ASICloudFilesObjectRequest storageRequestWithMethod:@"HEAD" containerName:containerName];
@@ -62,7 +65,7 @@
 }
 
 #pragma mark -
-#pragma mark Object Info
+#pragma mark HEAD - Object Info
 
 + (id)objectInfoRequest:(NSString *)containerName objectPath:(NSString *)objectPath {
 	ASICloudFilesObjectRequest *request = [ASICloudFilesObjectRequest storageRequestWithMethod:@"HEAD" containerName:containerName objectPath:objectPath];
@@ -70,7 +73,7 @@
 }
 
 #pragma mark -
-#pragma mark List Requests
+#pragma mark GET - List Objects
 
 + (NSString *)queryStringWithContainer:(NSString *)container limit:(NSUInteger)limit marker:(NSString *)marker prefix:(NSString *)prefix path:(NSString *)path {
 	NSString *queryString = @"?format=xml";
@@ -98,72 +101,11 @@
 	return [ASICloudFilesObjectRequest listRequestWithContainer:containerName limit:0 marker:nil prefix:nil path:nil];
 }
 
-+ (id)listRequestWithContainer:(NSString *)containerName limit:(NSUInteger)limit {
-	return [ASICloudFilesObjectRequest listRequestWithContainer:containerName limit:limit marker:nil prefix:nil path:nil];
-}
-
-+ (id)listRequestWithContainer:(NSString *)containerName limit:(NSUInteger)limit marker:(NSString *)marker {
-	return [ASICloudFilesObjectRequest listRequestWithContainer:containerName limit:limit marker:marker prefix:nil path:nil];
-}
-
-+ (id)listRequestWithContainer:(NSString *)containerName limit:(NSUInteger)limit marker:(NSString *)marker prefix:(NSString *)prefix {
-	return [ASICloudFilesObjectRequest listRequestWithContainer:containerName limit:limit marker:marker prefix:prefix path:nil];
-}
-
-+ (id)listRequestWithContainer:(NSString *)containerName limit:(NSUInteger)limit marker:(NSString *)marker path:(NSString *)path {
-	return [ASICloudFilesObjectRequest listRequestWithContainer:containerName limit:limit marker:marker prefix:nil path:path];
-}
-
-+ (id)listRequestWithContainer:(NSString *)containerName limit:(NSUInteger)limit prefix:(NSString *)prefix {
-	return [ASICloudFilesObjectRequest listRequestWithContainer:containerName limit:limit marker:nil prefix:prefix path:nil];
-}
-
-+ (id)listRequestWithContainer:(NSString *)containerName limit:(NSUInteger)limit prefix:(NSString *)prefix path:(NSString *)path {
-	return [ASICloudFilesObjectRequest listRequestWithContainer:containerName limit:limit marker:nil prefix:prefix path:path];
-}
-
-+ (id)listRequestWithContainer:(NSString *)containerName limit:(NSUInteger)limit path:(NSString *)path {
-	return [ASICloudFilesObjectRequest listRequestWithContainer:containerName limit:limit marker:nil prefix:nil path:path];
-}
-
-+ (id)listRequestWithContainer:(NSString *)containerName marker:(NSString *)marker {
-	return [ASICloudFilesObjectRequest listRequestWithContainer:containerName limit:0 marker:marker prefix:nil path:nil];
-}
-
-+ (id)listRequestWithContainer:(NSString *)containerName marker:(NSString *)marker prefix:(NSString *)prefix {
-	return [ASICloudFilesObjectRequest listRequestWithContainer:containerName limit:0 marker:marker prefix:prefix path:nil];
-}
-
-+ (id)listRequestWithContainer:(NSString *)containerName marker:(NSString *)marker path:(NSString *)path {
-	return [ASICloudFilesObjectRequest listRequestWithContainer:containerName limit:0 marker:marker prefix:nil path:path];
-}
-
-+ (id)listRequestWithContainer:(NSString *)containerName marker:(NSString *)marker prefix:(NSString *)prefix path:(NSString *)path {
-	return [ASICloudFilesObjectRequest listRequestWithContainer:containerName limit:0 marker:marker prefix:prefix path:path];
-}
-
-+ (id)listRequestWithContainer:(NSString *)containerName prefix:(NSString *)prefix {
-	return [ASICloudFilesObjectRequest listRequestWithContainer:containerName limit:0 marker:nil prefix:prefix path:nil];
-}
-
-+ (id)listRequestWithContainer:(NSString *)containerName prefix:(NSString *)prefix path:(NSString *)path {
-	return [ASICloudFilesObjectRequest listRequestWithContainer:containerName limit:0 marker:nil prefix:prefix path:path];
-}
-
-+ (id)listRequestWithContainer:(NSString *)containerName path:(NSString *)path {
-	return [ASICloudFilesObjectRequest listRequestWithContainer:containerName limit:0 marker:nil prefix:nil path:path];
-}
-
-#pragma mark -
-#pragma mark Object List
-
 - (NSArray *)objects {
 	if (objects) {
 		return objects;
 	}
 	objects = [[[NSMutableArray alloc] init] autorelease];
-	
-	//NSLog(@"object list response data: %@", [self responseString]);
 	
 	NSXMLParser *parser = [[[NSXMLParser alloc] initWithData:[self responseData]] autorelease];
 	[parser setDelegate:self];
@@ -175,7 +117,7 @@
 }
 
 #pragma mark -
-#pragma mark GET Object
+#pragma mark GET - Retrieve Object
 
 + (id)getObjectRequestWithContainer:(NSString *)containerName objectPath:(NSString *)objectPath {
 	return [ASICloudFilesObjectRequest storageRequestWithMethod:@"GET" containerName:containerName objectPath:objectPath];
@@ -213,15 +155,13 @@
 }
 
 #pragma mark -
-#pragma mark PUT Object
+#pragma mark PUT - Upload Object
 
 + (id)putObjectRequestWithContainer:(NSString *)containerName object:(ASICloudFilesObject *)object {
 	return [self putObjectRequestWithContainer:containerName objectPath:object.name contentType:object.contentType objectData:object.data metadata:object.metadata etag:nil];
 }
 
 + (id)putObjectRequestWithContainer:(NSString *)containerName objectPath:(NSString *)objectPath contentType:(NSString *)contentType objectData:(NSData *)objectData metadata:(NSDictionary *)metadata etag:(NSString *)etag {
-	
-	// TODO: etag?
 	
 	ASICloudFilesObjectRequest *request = [ASICloudFilesObjectRequest storageRequestWithMethod:@"PUT" containerName:containerName objectPath:objectPath];
 	[request addRequestHeader:@"Content-Type" value:contentType];
@@ -242,7 +182,7 @@
 }
 
 #pragma mark -
-#pragma mark POST Object Metadata
+#pragma mark POST - Set Object Metadata
 
 + (id)postObjectRequestWithContainer:(NSString *)containerName object:(ASICloudFilesObject *)object {
 	return [self postObjectRequestWithContainer:containerName objectPath:object.name metadata:object.metadata];
@@ -264,9 +204,8 @@
 	return request;
 }
 
-
 #pragma mark -
-#pragma mark Delete Object
+#pragma mark DELETE - Delete Object
 
 + (id)deleteObjectRequestWithContainer:(NSString *)containerName objectPath:(NSString *)objectPath {
 	ASICloudFilesObjectRequest *request = [ASICloudFilesObjectRequest storageRequestWithMethod:@"DELETE" containerName:containerName objectPath:objectPath];
@@ -276,19 +215,6 @@
 #pragma mark -
 #pragma mark XML Parser Delegate
 
-/*
-<container name="cf_service">
-	<object>
-		<name>10-17-2009&#32;9-23-54&#32;PM.png</name>
-		<hash>fdc7b0fedf8f304dd02c468567acb6f8</hash>
-		<bytes>1621</bytes>
-		<content_type>image/png</content_type>
-		<last_modified>2009-11-04T19:46:20.192723</last_modified>
-	</object>
-	<object><name>5253_513598038815_56400223_30531988_4542339_n-59.jpg</name><hash>ec133b3f8cf33cd036b351a85a093009</hash><bytes>36825</bytes><content_type>image/jpeg</content_type><last_modified>2009-09-01T22:46:40.851463</last_modified></object>
-	<object><name>7-eguas-59.jpg</name><hash>3d6a1e77aecbe8a7416bab41e88cdfc9</hash><bytes>1234678</bytes><content_type>image/jpeg</content_type><last_modified>2009-09-01T23:21:37.589124</last_modified></object>
-</container>
-*/
 - (void)parser:(NSXMLParser *)parser didStartElement:(NSString *)elementName namespaceURI:(NSString *)namespaceURI qualifiedName:(NSString *)qName attributes:(NSDictionary *)attributeDict {
 	[self setCurrentElement:elementName];
 	
@@ -319,6 +245,9 @@
 - (void)parser:(NSXMLParser *)parser foundCharacters:(NSString *)string {
 	[self setCurrentContent:[[self currentContent] stringByAppendingString:string]];
 }
+
+#pragma mark -
+#pragma mark Memory Management
 
 - (void)dealloc {
 	[currentElement release];
