@@ -12,7 +12,6 @@
 #import "ASICloudFilesAccount.h"
 #import "ASICloudFilesContainer.h"
 #import "ASICloudFilesObject.h"
-#import "ASICloudFilesUIImage.h"
 
 // requests
 #import "ASICloudFilesRequest.h"

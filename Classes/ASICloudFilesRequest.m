@@ -5,7 +5,7 @@
 //  Created by Michael Mayo on 22/12/09.
 //  Copyright 2009 All-Seeing Interactive. All rights reserved.
 //
-// A (basic) class for accessing data stored on Rackspace's Cloud Files Service
+// A class for accessing data stored on Rackspace's Cloud Files Service
 // http://www.rackspacecloud.com/cloud_hosting_products/files
 // 
 // Cloud Files Developer Guide:
@@ -36,30 +36,13 @@ static NSString *rackspaceCloudAuthURL = @"https://auth.api.rackspacecloud.com/v
 
 + (id)authenticationRequest {
 	ASIHTTPRequest *request = [[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:rackspaceCloudAuthURL]];
-
-	//[request addRequestHeader:[ASICloudFilesRequest authToken] value:@"X-Auth-Token"];
-	//[request addRequestHeader:[ASICloudFilesRequest authToken] value:@"X-Auth-Token"];
-	NSMutableDictionary *headers = [[NSMutableDictionary alloc] initWithCapacity:2];
-	[headers setObject:username forKey:@"X-Auth-User"];
-	[headers setObject:apiKey   forKey:@"X-Auth-Key"];	
-	[request setRequestHeaders:headers];
-	[headers release];
-	return request;
-}
-
-+ (id)storageRequest {
-	ASIHTTPRequest *request = [[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:storageURL]];
-	return request;
-}
-
-+ (id)cdnRequest {
-	ASIHTTPRequest *request = [[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:cdnManagementURL]];
+	[request addRequestHeader:@"X-Auth-User" value:username];
+	[request addRequestHeader:@"X-Auth-Key" value:apiKey];
 	return request;
 }
 
 + (void)authenticate {
 	ASIHTTPRequest *request = [ASICloudFilesRequest authenticationRequest];
-	
 	[request start];
 	
 	if (![request error]) {
@@ -67,8 +50,6 @@ static NSString *rackspaceCloudAuthURL = @"https://auth.api.rackspacecloud.com/v
 		authToken = [responseHeaders objectForKey:@"X-Auth-Token"];
 		storageURL = [responseHeaders objectForKey:@"X-Storage-Url"];
 		cdnManagementURL = [responseHeaders objectForKey:@"X-Cdn-Management-Url"];
-	} else {
-		NSLog(@"%@",[[request error] localizedDescription]);
 	}
 }
 
@@ -102,7 +83,5 @@ static NSString *rackspaceCloudAuthURL = @"https://auth.api.rackspacecloud.com/v
 	
 	return date;
 }
-
-
 
 @end

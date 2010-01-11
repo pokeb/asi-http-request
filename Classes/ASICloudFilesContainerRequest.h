@@ -44,7 +44,6 @@
 // DELETE /<api version>/<account>/<container>
 + (id)deleteContainerRequest:(NSString *)containerName;
 
-
 - (NSUInteger)containerCount;
 - (NSUInteger)bytesUsed;
 - (NSArray *)containers;
