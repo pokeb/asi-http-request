@@ -9,7 +9,6 @@
 #import "ASICloudFilesRequestTests.h"
 
 // models
-#import "ASICloudFilesAccount.h"
 #import "ASICloudFilesContainer.h"
 #import "ASICloudFilesObject.h"
 
