@@ -24,7 +24,6 @@
 
 + (id)cdnRequestWithMethod:(NSString *)method containerName:(NSString *)containerName {
 	NSString *urlString = [NSString stringWithFormat:@"%@/%@", [ASICloudFilesRequest cdnManagementURL], containerName];
-	//NSLog(@"object request url: %@", urlString);
 	ASICloudFilesCDNRequest *request = [[ASICloudFilesCDNRequest alloc] initWithURL:[NSURL URLWithString:urlString]];
 	[request setRequestMethod:method];
 	[request addRequestHeader:@"X-Auth-Token" value:[ASICloudFilesRequest authToken]];
@@ -83,8 +82,6 @@
 	if (xmlParserDelegate.containerObjects) {
 		return xmlParserDelegate.containerObjects;
 	}
-	
-	NSLog(@"list response data: %@", [self responseString]);
 	
 	NSXMLParser *parser = [[[NSXMLParser alloc] initWithData:[self responseData]] autorelease];
 	if (xmlParserDelegate == nil) {
