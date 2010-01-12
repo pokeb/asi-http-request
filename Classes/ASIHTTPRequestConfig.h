@@ -41,6 +41,6 @@ There are two versions of Apple's Reachability class, both of which are included
 This config option is not used for apps targeting Mac OS X 
 */
 
-#define REACHABILITY_20_API 0
+#define REACHABILITY_20_API 1
 
 
