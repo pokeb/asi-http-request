@@ -14,7 +14,7 @@
 
 + (id)cdnRequestWithMethod:(NSString *)method query:(NSString *)query {
 	NSString *urlString = [NSString stringWithFormat:@"%@%@", [ASICloudFilesRequest cdnManagementURL], query];
-	ASICloudFilesCDNRequest *request = [[ASICloudFilesCDNRequest alloc] initWithURL:[NSURL URLWithString:urlString]];
+	ASICloudFilesCDNRequest *request = [[[ASICloudFilesCDNRequest alloc] initWithURL:[NSURL URLWithString:urlString]] autorelease];
 	[request setRequestMethod:method];
 	[request addRequestHeader:@"X-Auth-Token" value:[ASICloudFilesRequest authToken]];
 	return request;
@@ -22,7 +22,7 @@
 
 + (id)cdnRequestWithMethod:(NSString *)method containerName:(NSString *)containerName {
 	NSString *urlString = [NSString stringWithFormat:@"%@/%@", [ASICloudFilesRequest cdnManagementURL], containerName];
-	ASICloudFilesCDNRequest *request = [[ASICloudFilesCDNRequest alloc] initWithURL:[NSURL URLWithString:urlString]];
+	ASICloudFilesCDNRequest *request = [[[ASICloudFilesCDNRequest alloc] initWithURL:[NSURL URLWithString:urlString]] autorelease];
 	[request setRequestMethod:method];
 	[request addRequestHeader:@"X-Auth-Token" value:[ASICloudFilesRequest authToken]];
 	request.containerName = containerName;

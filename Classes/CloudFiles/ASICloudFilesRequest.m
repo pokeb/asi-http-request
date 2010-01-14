@@ -41,7 +41,7 @@ static NSString *rackspaceCloudAuthURL = @"https://auth.api.rackspacecloud.com/v
 #pragma mark Authentication
 
 + (id)authenticationRequest {
-	ASIHTTPRequest *request = [[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:rackspaceCloudAuthURL]];
+	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:rackspaceCloudAuthURL]] autorelease];
 	[request addRequestHeader:@"X-Auth-User" value:username];
 	[request addRequestHeader:@"X-Auth-Key" value:apiKey];
 	return request;

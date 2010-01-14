@@ -25,7 +25,7 @@
 		urlString = [NSString stringWithFormat:@"%@/%@%@", [ASICloudFilesRequest storageURL], containerName, queryString];
 	}
 
-	ASICloudFilesContainerRequest *request = [[ASICloudFilesContainerRequest alloc] initWithURL:[NSURL URLWithString:urlString]];
+	ASICloudFilesContainerRequest *request = [[[ASICloudFilesContainerRequest alloc] initWithURL:[NSURL URLWithString:urlString]] autorelease];
 	[request setRequestMethod:method];
 	[request addRequestHeader:@"X-Auth-Token" value:[ASICloudFilesRequest authToken]];
 	return request;

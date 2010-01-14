@@ -18,7 +18,7 @@
 
 + (id)storageRequestWithMethod:(NSString *)method containerName:(NSString *)containerName {
 	NSString *urlString = [NSString stringWithFormat:@"%@/%@", [ASICloudFilesRequest storageURL], containerName];
-	ASICloudFilesObjectRequest *request = [[ASICloudFilesObjectRequest alloc] initWithURL:[NSURL URLWithString:urlString]];
+	ASICloudFilesObjectRequest *request = [[[ASICloudFilesObjectRequest alloc] initWithURL:[NSURL URLWithString:urlString]] autorelease];
 	[request setRequestMethod:method];
 	[request addRequestHeader:@"X-Auth-Token" value:[ASICloudFilesRequest authToken]];
 	request.containerName = containerName;
@@ -27,7 +27,7 @@
 
 + (id)storageRequestWithMethod:(NSString *)method containerName:(NSString *)containerName queryString:(NSString *)queryString {
 	NSString *urlString = [NSString stringWithFormat:@"%@/%@%@", [ASICloudFilesRequest storageURL], containerName, queryString];
-	ASICloudFilesObjectRequest *request = [[ASICloudFilesObjectRequest alloc] initWithURL:[NSURL URLWithString:urlString]];
+	ASICloudFilesObjectRequest *request = [[[ASICloudFilesObjectRequest alloc] initWithURL:[NSURL URLWithString:urlString]] autorelease];
 	[request setRequestMethod:method];
 	[request addRequestHeader:@"X-Auth-Token" value:[ASICloudFilesRequest authToken]];
 	request.containerName = containerName;
@@ -36,7 +36,7 @@
 
 + (id)storageRequestWithMethod:(NSString *)method containerName:(NSString *)containerName objectPath:(NSString *)objectPath {
 	NSString *urlString = [NSString stringWithFormat:@"%@/%@/%@", [ASICloudFilesRequest storageURL], containerName, objectPath];
-	ASICloudFilesObjectRequest *request = [[ASICloudFilesObjectRequest alloc] initWithURL:[NSURL URLWithString:urlString]];
+	ASICloudFilesObjectRequest *request = [[[ASICloudFilesObjectRequest alloc] initWithURL:[NSURL URLWithString:urlString]] autorelease];
 	[request setRequestMethod:method];
 	[request addRequestHeader:@"X-Auth-Token" value:[ASICloudFilesRequest authToken]];
 	request.containerName = containerName;
