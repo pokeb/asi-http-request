@@ -132,17 +132,10 @@
 	object.lastModified = [[self responseHeaders] objectForKey:@"Last-Modified"];
 	object.metadata = [[NSMutableDictionary alloc] init];
 	
-	NSDictionary *headers = [self responseHeaders];
-	NSArray *keys = [headers allKeys];
-	
-	NSUInteger i;
-	for (i = 0; i < [keys count]; i++) {
-		NSString *key = [keys objectAtIndex:i];
-		NSString *value = [headers objectForKey:key];
+	for (NSString *key in [[self responseHeaders] keyEnumerator]) {
 		NSRange metaRange = [key rangeOfString:@"X-Object-Meta-"];
-		
 		if (metaRange.location == 0) {
-			[object.metadata setObject:value forKey:[key substringFromIndex:metaRange.length]];
+			[object.metadata setObject:[[self responseHeaders] objectForKey:key] forKey:[key substringFromIndex:metaRange.length]];
 		}
 	}
 	
@@ -166,12 +159,8 @@
 
 	// add metadata to headers
 	if (metadata) {
-		NSArray *keys = [metadata allKeys];
-		NSUInteger i;
-		for (i = 0; i < [keys count]; i++) {
-			NSString *key = [keys objectAtIndex:i];			
-			NSString *value = [metadata objectForKey:key];
-			[request addRequestHeader:[NSString stringWithFormat:@"X-Object-Meta-%@", key] value:value];
+		for (NSString *key in [metadata keyEnumerator]) {
+			[request addRequestHeader:[NSString stringWithFormat:@"X-Object-Meta-%@", key] value:[metadata objectForKey:key]];
 		}
 	}	
 	
@@ -191,12 +180,8 @@
 	
 	// add metadata to headers
 	if (metadata) {
-		NSArray *keys = [metadata allKeys];
-		NSUInteger i;
-		for (i = 0; i < [keys count]; i++) {
-			NSString *key = [keys objectAtIndex:i];			
-			NSString *value = [metadata objectForKey:key];
-			[request addRequestHeader:[NSString stringWithFormat:@"X-Object-Meta-%@", key] value:value];
+		for (NSString *key in [metadata keyEnumerator]) {
+			[request addRequestHeader:[NSString stringWithFormat:@"X-Object-Meta-%@", key] value:[metadata objectForKey:key]];
 		}
 	}	
 	
