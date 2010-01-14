@@ -81,11 +81,12 @@ static NSString *rackspaceCloudAuthURL = @"https://auth.api.rackspacecloud.com/v
 #pragma mark Date Parser
 
 -(NSDate *)dateFromString:(NSString *)dateString {
-	NSDateFormatter *format = [[NSDateFormatter alloc] init];
+	NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+	[dateFormatter setLocale:[[[NSLocale alloc] initWithLocaleIdentifier:@"en_US_POSIX"] autorelease]];
 	// example: 2009-11-04T19:46:20.192723
-	[format setDateFormat:@"yyyy-MM-dd'T'H:mm:ss"];
-	NSDate *date = [format dateFromString:dateString];
-	[format release];
+	[dateFormatter setDateFormat:@"yyyy-MM-dd'T'H:mm:ss.SSSSSS"];
+	NSDate *date = [dateFormatter dateFromString:dateString];
+	[dateFormatter release];
 	
 	return date;
 }

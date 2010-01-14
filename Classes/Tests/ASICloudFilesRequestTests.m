@@ -42,12 +42,28 @@ static NSString *apiKey = @"";
 }
 
 - (void)testDateParser {
-	ASICloudFilesRequest *request = [[ASICloudFilesRequest alloc] init];
-	NSDate *date = [request dateFromString:@"2009-11-04T19:46:20.192723"];
-	GHAssertNotNil(date, @"Failed to parse date string");	
-	date = [request dateFromString:@"invalid date string"];
-	GHAssertNil(date, @"Failed to not parse with invalid date string");	
-	[request release];
+	ASICloudFilesRequest *request = [[[ASICloudFilesRequest alloc] init] autorelease];
+	
+	NSDate *date = [request dateFromString:@"invalid date string"];
+	GHAssertNil(date, @"Should have failed to parse an invalid date string");
+	
+	date = [request dateFromString:@"2009-11-04T19:46:20.192723"];
+	GHAssertNotNil(date, @"Failed to parse date string");		
+	
+	NSDateComponents *components = [[[NSDateComponents alloc] init] autorelease];
+	[components setYear:2009];
+	[components setMonth:11];
+	[components setDay:4];
+	[components setHour:19];
+	[components setMinute:46];
+	[components setSecond:20];
+	NSCalendar *calendar = [[[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar] autorelease];
+	NSDate *referenceDate = [calendar dateFromComponents:components];
+	
+	// NSDateComponents has seconds as the smallest value, so we'll just check the created date is less than 1 second different from what we expect
+	NSTimeInterval timeDifference = [date timeIntervalSinceDate:referenceDate];
+	BOOL success = (timeDifference < 1.0);
+	GHAssertTrue(success, @"Parsed date incorrectly");	
 }
 
 // ASICloudFilesContainerRequest
