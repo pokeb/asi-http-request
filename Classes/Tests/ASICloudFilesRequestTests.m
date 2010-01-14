@@ -55,7 +55,7 @@ static NSString *apiKey = @"";
 	[self authenticate];
 	
 	ASICloudFilesContainerRequest *request = [ASICloudFilesContainerRequest accountInfoRequest];
-	[request start];
+	[request startSynchronous];
 	
 	GHAssertTrue([request containerCount] > 0, @"Failed to retrieve account info");
 	GHAssertTrue([request bytesUsed] > 0, @"Failed to retrieve account info");
@@ -67,7 +67,7 @@ static NSString *apiKey = @"";
 	NSArray *containers = nil;
 	
 	ASICloudFilesContainerRequest *containerListRequest = [ASICloudFilesContainerRequest listRequest];
-	[containerListRequest start];
+	[containerListRequest startSynchronous];
 	
 	containers = [containerListRequest containers];
 	GHAssertTrue([containers count] > 0, @"Failed to list containers");
@@ -78,7 +78,7 @@ static NSString *apiKey = @"";
 	}
 	
 	ASICloudFilesContainerRequest *limitContainerListRequest = [ASICloudFilesContainerRequest listRequestWithLimit:2 marker:nil];
-	[limitContainerListRequest start];	
+	[limitContainerListRequest startSynchronous];	
 	containers = [limitContainerListRequest containers];
 	GHAssertTrue([containers count] == 2, @"Failed to limit container list");
 }
@@ -87,7 +87,7 @@ static NSString *apiKey = @"";
 	[self authenticate];
 	
 	ASICloudFilesContainerRequest *createContainerRequest = [ASICloudFilesContainerRequest createContainerRequest:@"ASICloudFilesContainerTest"];
-	[createContainerRequest start];
+	[createContainerRequest startSynchronous];
 	GHAssertTrue([createContainerRequest error] == nil, @"Failed to create container");
 }
 
@@ -95,7 +95,7 @@ static NSString *apiKey = @"";
 	[self authenticate];
 
 	ASICloudFilesContainerRequest *deleteContainerRequest = [ASICloudFilesContainerRequest deleteContainerRequest:@"ASICloudFilesContainerTest"];
-	[deleteContainerRequest start];
+	[deleteContainerRequest startSynchronous];
 	GHAssertTrue([deleteContainerRequest error] == nil, @"Failed to delete container");	
 }
 
@@ -105,17 +105,17 @@ static NSString *apiKey = @"";
 
 	// create a file first
 	ASICloudFilesContainerRequest *createContainerRequest = [ASICloudFilesContainerRequest createContainerRequest:@"ASICloudFilesTest"];
-	[createContainerRequest start];
+	[createContainerRequest startSynchronous];
 	NSData *data = [@"this is a test" dataUsingEncoding:NSUTF8StringEncoding];
 	ASICloudFilesObjectRequest *putRequest 
 		= [ASICloudFilesObjectRequest putObjectRequestWithContainer:@"ASICloudFilesTest" 
 													 objectPath:@"infotestfile.txt" contentType:@"text/plain" 
 													 objectData:data metadata:nil etag:nil];
 	
-	[putRequest start];
+	[putRequest startSynchronous];
 	
 	ASICloudFilesObjectRequest *request = [ASICloudFilesObjectRequest containerInfoRequest:@"ASICloudFilesTest"];
-	[request start];	
+	[request startSynchronous];	
 	GHAssertTrue([request containerObjectCount] > 0, @"Failed to retrieve container info");
 	GHAssertTrue([request containerBytesUsed] > 0, @"Failed to retrieve container info");
 }
@@ -124,7 +124,7 @@ static NSString *apiKey = @"";
 	[self authenticate];
 	
 	ASICloudFilesObjectRequest *request = [ASICloudFilesObjectRequest objectInfoRequest:@"ASICloudFilesTest" objectPath:@"infotestfile.txt"];
-	[request start];
+	[request startSynchronous];
 	
 	ASICloudFilesObject *object = [request object];
 	GHAssertNotNil(object, @"Failed to retrieve object");
@@ -138,7 +138,7 @@ static NSString *apiKey = @"";
 	[self authenticate];
 	
 	ASICloudFilesObjectRequest *objectListRequest = [ASICloudFilesObjectRequest listRequestWithContainer:@"ASICloudFilesTest"];
-	[objectListRequest start];
+	[objectListRequest startSynchronous];
 	
 	NSArray *containers = [objectListRequest objects];
 	GHAssertTrue([containers count] > 0, @"Failed to list objects");
@@ -154,7 +154,7 @@ static NSString *apiKey = @"";
 	[self authenticate];
 	
 	ASICloudFilesObjectRequest *request = [ASICloudFilesObjectRequest getObjectRequestWithContainer:@"ASICloudFilesTest" objectPath:@"infotestfile.txt"];
-	[request start];
+	[request startSynchronous];
 	
 	ASICloudFilesObject *object = [request object];
 	GHAssertNotNil(object, @"Failed to retrieve object");
@@ -171,7 +171,7 @@ static NSString *apiKey = @"";
 	
 	ASICloudFilesContainerRequest *createContainerRequest 
 			= [ASICloudFilesContainerRequest createContainerRequest:@"ASICloudFilesTest"];
-	[createContainerRequest start];
+	[createContainerRequest startSynchronous];
 
 	NSData *data = [@"this is a test" dataUsingEncoding:NSUTF8StringEncoding];
 	
@@ -180,12 +180,12 @@ static NSString *apiKey = @"";
 											objectPath:@"puttestfile.txt" contentType:@"text/plain" 
 											objectData:data metadata:nil etag:nil];
 	
-	[putRequest start];
+	[putRequest startSynchronous];
 	
 	GHAssertNil([putRequest error], @"Failed to PUT object");
 
 	ASICloudFilesObjectRequest *getRequest = [ASICloudFilesObjectRequest getObjectRequestWithContainer:@"ASICloudFilesTest" objectPath:@"puttestfile.txt"];
-	[getRequest start];
+	[getRequest startSynchronous];
 	
 	ASICloudFilesObject *object = [getRequest object];
 	NSString *string = [[NSString alloc] initWithData:object.data encoding:NSASCIIStringEncoding];
@@ -199,7 +199,7 @@ static NSString *apiKey = @"";
 	[string release];
 	
 	ASICloudFilesContainerRequest *deleteContainerRequest = [ASICloudFilesContainerRequest deleteContainerRequest:@"ASICloudFilesTest"];
-	[deleteContainerRequest start];
+	[deleteContainerRequest startSynchronous];
 	
 }
 
@@ -215,7 +215,7 @@ static NSString *apiKey = @"";
 	object.metadata = metadata;
 	
 	ASICloudFilesObjectRequest *request = [ASICloudFilesObjectRequest postObjectRequestWithContainer:@"ASICloudFilesTest" object:object];
-	[request start];
+	[request startSynchronous];
 	
 	GHAssertTrue([request responseStatusCode] == 202, @"Failed to post object metadata");
 	
@@ -227,7 +227,7 @@ static NSString *apiKey = @"";
 	[self authenticate];
 	
 	ASICloudFilesObjectRequest *deleteRequest = [ASICloudFilesObjectRequest deleteObjectRequestWithContainer:@"ASICloudFilesTest" objectPath:@"puttestfile.txt"];
-	[deleteRequest start];
+	[deleteRequest startSynchronous];
 	GHAssertTrue([deleteRequest responseStatusCode] == 204, @"Failed to delete object");
 }
 
@@ -238,7 +238,7 @@ static NSString *apiKey = @"";
 	[self authenticate];
 	
 	ASICloudFilesCDNRequest *request = [ASICloudFilesCDNRequest containerInfoRequest:@"ASICloudFilesTest"];
-	[request start];
+	[request startSynchronous];
 	
 	GHAssertTrue([request responseStatusCode] == 204, @"Failed to retrieve CDN container info");
 	GHAssertTrue([request cdnEnabled], @"Failed to retrieve CDN container info");
@@ -250,7 +250,7 @@ static NSString *apiKey = @"";
 	[self authenticate];
 	
 	ASICloudFilesCDNRequest *request = [ASICloudFilesCDNRequest listRequest];
-	[request start];
+	[request startSynchronous];
 	
 	GHAssertNotNil([request containers], @"Failed to retrieve CDN container list");
 }
@@ -259,7 +259,7 @@ static NSString *apiKey = @"";
 	[self authenticate];
 	
 	ASICloudFilesCDNRequest *request = [ASICloudFilesCDNRequest listRequestWithLimit:2 marker:nil enabledOnly:YES];
-	[request start];
+	[request startSynchronous];
 	
 	GHAssertNotNil([request containers], @"Failed to retrieve CDN container list");
 	GHAssertTrue([[request containers] count] == 2, @"Failed to retrieve limited CDN container list");
@@ -269,7 +269,7 @@ static NSString *apiKey = @"";
 	[self authenticate];
 	
 	ASICloudFilesCDNRequest *request = [ASICloudFilesCDNRequest putRequestWithContainer:@"ASICloudFilesTest"];
-	[request start];
+	[request startSynchronous];
 	
 	GHAssertNotNil([request cdnURI], @"Failed to PUT to CDN container");
 }
@@ -278,7 +278,7 @@ static NSString *apiKey = @"";
 	[self authenticate];
 	
 	ASICloudFilesCDNRequest *request = [ASICloudFilesCDNRequest postRequestWithContainer:@"ASICloudFilesTest" cdnEnabled:YES ttl:86600];
-	[request start];
+	[request startSynchronous];
 	
 	GHAssertNotNil([request cdnURI], @"Failed to POST to CDN container");
 }

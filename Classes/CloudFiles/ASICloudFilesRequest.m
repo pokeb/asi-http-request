@@ -49,7 +49,7 @@ static NSString *rackspaceCloudAuthURL = @"https://auth.api.rackspacecloud.com/v
 
 + (void)authenticate {
 	ASIHTTPRequest *request = [ASICloudFilesRequest authenticationRequest];
-	[request start];
+	[request startSynchronous];
 	
 	if (![request error]) {
 		NSDictionary *responseHeaders = [request responseHeaders];
