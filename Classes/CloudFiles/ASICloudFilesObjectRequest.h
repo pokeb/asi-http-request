@@ -8,8 +8,14 @@
 
 @class ASICloudFilesObject;
 
-@interface ASICloudFilesObjectRequest : ASICloudFilesRequest {
 
+// Prevent warning about missing NSXMLParserDelegate on Leopard and iPhone
+#if !TARGET_OS_IPHONE && MAC_OS_X_VERSION_10_5 < MAC_OS_X_VERSION_MAX_ALLOWED
+@interface ASICloudFilesObjectRequest : ASICloudFilesRequest <NSXMLParserDelegate> {
+#else
+@interface ASICloudFilesObjectRequest : ASICloudFilesRequest {
+#endif
+	
 	NSString *accountName;
 	NSString *containerName;
 	

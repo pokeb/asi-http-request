@@ -134,13 +134,15 @@
 	
 	NSDictionary *headers = [self responseHeaders];
 	NSArray *keys = [headers allKeys];
-	for (int i = 0; i < [keys count]; i++) {
+	
+	NSUInteger i;
+	for (i = 0; i < [keys count]; i++) {
 		NSString *key = [keys objectAtIndex:i];
 		NSString *value = [headers objectForKey:key];
-		NSRange range = [key rangeOfString:@"X-Object-Meta-"];
+		NSRange metaRange = [key rangeOfString:@"X-Object-Meta-"];
 		
-		if (range.location == 0) {
-			[object.metadata setObject:value forKey:[key substringFromIndex:range.length]];
+		if (metaRange.location == 0) {
+			[object.metadata setObject:value forKey:[key substringFromIndex:metaRange.length]];
 		}
 	}
 	
@@ -165,7 +167,8 @@
 	// add metadata to headers
 	if (metadata) {
 		NSArray *keys = [metadata allKeys];
-		for (int i = 0; i < [keys count]; i++) {
+		NSUInteger i;
+		for (i = 0; i < [keys count]; i++) {
 			NSString *key = [keys objectAtIndex:i];			
 			NSString *value = [metadata objectForKey:key];
 			[request addRequestHeader:[NSString stringWithFormat:@"X-Object-Meta-%@", key] value:value];
@@ -189,7 +192,8 @@
 	// add metadata to headers
 	if (metadata) {
 		NSArray *keys = [metadata allKeys];
-		for (int i = 0; i < [keys count]; i++) {
+		NSUInteger i;
+		for (i = 0; i < [keys count]; i++) {
 			NSString *key = [keys objectAtIndex:i];			
 			NSString *value = [metadata objectForKey:key];
 			[request addRequestHeader:[NSString stringWithFormat:@"X-Object-Meta-%@", key] value:value];

@@ -71,7 +71,8 @@ static NSString *apiKey = @"";
 	
 	containers = [containerListRequest containers];
 	GHAssertTrue([containers count] > 0, @"Failed to list containers");
-	for (int i = 0; i < [containers count]; i++) {
+	NSUInteger i;
+	for (i = 0; i < [containers count]; i++) {
 		ASICloudFilesContainer *container = [containers objectAtIndex:i];
 		GHAssertNotNil(container.name, @"Failed to parse container");
 	}
@@ -141,7 +142,8 @@ static NSString *apiKey = @"";
 	
 	NSArray *containers = [objectListRequest objects];
 	GHAssertTrue([containers count] > 0, @"Failed to list objects");
-	for (int i = 0; i < [containers count]; i++) {
+	NSUInteger i;
+	for (i = 0; i < [containers count]; i++) {
 		ASICloudFilesObject *object = [containers objectAtIndex:i];
 		GHAssertNotNil(object.name, @"Failed to parse object");
 	}

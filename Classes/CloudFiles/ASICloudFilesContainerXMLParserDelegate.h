@@ -8,8 +8,13 @@
 
 @class ASICloudFilesContainer;
 
+// Prevent warning about missing NSXMLParserDelegate on Leopard and iPhone
+#if !TARGET_OS_IPHONE && MAC_OS_X_VERSION_10_5 < MAC_OS_X_VERSION_MAX_ALLOWED
+@interface ASICloudFilesContainerXMLParserDelegate : NSObject <NSXMLParserDelegate> {
+#else
 @interface ASICloudFilesContainerXMLParserDelegate : NSObject {
-
+#endif
+		
 	NSMutableArray *containerObjects;
 
 	// Internally used while parsing the response
