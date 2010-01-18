@@ -21,7 +21,7 @@
 #import "ASIInputStream.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.5-24 2010-01-14";
+NSString *ASIHTTPRequestVersion = @"v1.5-25 2010-01-18";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -780,7 +780,6 @@ static BOOL isiPhoneOS2;
     // Create the stream for the request
 	[self setReadStreamIsScheduled:NO];
 	
-	
 	// Do we need to stream the request body from disk
 	if ([self shouldStreamPostDataFromDisk] && [self postBodyFilePath] && [[NSFileManager defaultManager] fileExistsAtPath:[self postBodyFilePath]]) {
 		
@@ -965,17 +964,13 @@ static BOOL isiPhoneOS2;
 	
 	[connectionsLock unlock];
 	
-	BOOL streamSuccessfullyOpened = NO;
-	
-    // Set the client
-	CFStreamClientContext ctxt = {0, self, NULL, NULL, NULL};
-    if (CFReadStreamSetClient((CFReadStreamRef)[self readStream], kNetworkEvents, ReadStreamClientCallBack, &ctxt)) {
-		// Start the HTTP connection
-		if (CFReadStreamOpen((CFReadStreamRef)[self readStream])) {
-			streamSuccessfullyOpened = YES;
-		}
+	// Schedule the stream
+	if (![self readStreamIsScheduled] && (!throttleWakeUpTime || [throttleWakeUpTime timeIntervalSinceDate:[NSDate date]] < 0)) {
+		[self scheduleReadStream];
 	}
 	
+	BOOL streamSuccessfullyOpened = NO;
+
 	// Here, we'll close the stream that was previously using this connection, if there was one
 	// We've kept it open until now (when we've just opened a new stream) so that the new stream can make use of the old connection
 	// http://lists.apple.com/archives/Macnetworkprog/2006/Mar/msg00119.html
@@ -988,18 +983,24 @@ static BOOL isiPhoneOS2;
 		oldStream = nil;
 	}
 	
+    // Set the client
+	CFStreamClientContext ctxt = {0, self, NULL, NULL, NULL};
+    if (CFReadStreamSetClient((CFReadStreamRef)[self readStream], kNetworkEvents, ReadStreamClientCallBack, &ctxt)) {
+		// Start the HTTP connection
+		if (CFReadStreamOpen((CFReadStreamRef)[self readStream])) {
+			streamSuccessfullyOpened = YES;
+		}
+	}
+
 	if (!streamSuccessfullyOpened) {
+		[self setCanUsePersistentConnection:NO];
 		[self destroyReadStream];
 		[[self cancelledLock] unlock];
 		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIInternalErrorWhileBuildingRequestType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Unable to start HTTP connection",NSLocalizedDescriptionKey,nil]]];
 		return;	
 	}
 
-	
-	// Schedule the stream
-	if (![self readStreamIsScheduled] && (!throttleWakeUpTime || [throttleWakeUpTime timeIntervalSinceDate:[NSDate date]] < 0)) {
-		[self scheduleReadStream];
-	}
+
 
 	[[self cancelledLock] unlock];
 	
@@ -2505,7 +2506,9 @@ static BOOL isiPhoneOS2;
 
 	
 	[connectionsLock lock];
-	[self unscheduleReadStream];
+	if (![self canUsePersistentConnection]) {
+		[self unscheduleReadStream];
+	}
 	#if DEBUG_PERSISTENT_CONNECTIONS
 	NSLog(@"Request #%@ finished using connection #%@",[[self connectionInfo] objectForKey:@"request"], [[self connectionInfo] objectForKey:@"id"]);
 	#endif
@@ -2582,10 +2585,11 @@ static BOOL isiPhoneOS2;
 		CFReadStreamSetClient((CFReadStreamRef)[self readStream], kCFStreamEventNone, NULL, NULL);
 		
 		[connectionsLock lock];		
-		if ([self readStreamIsScheduled]) {
-			CFReadStreamUnscheduleFromRunLoop((CFReadStreamRef)[self readStream], CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
-		}
+
 		if (![self canUsePersistentConnection]) {
+			if ([self readStreamIsScheduled]) {
+				CFReadStreamUnscheduleFromRunLoop((CFReadStreamRef)[self readStream], CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
+			}
 			CFStreamStatus status = CFReadStreamGetStatus((CFReadStreamRef)[self readStream]);
 			if (status != kCFStreamStatusClosed && status != kCFStreamStatusError) {
 				CFReadStreamClose((CFReadStreamRef)[self readStream]);
