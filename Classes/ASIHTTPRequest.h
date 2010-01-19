@@ -359,6 +359,10 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	
 	// This timer checks up on the request every 0.25 seconds, and updates progress
 	NSTimer *statusTimer;
+	
+	// When set to YES, 301 and 302 automatic redirects will use the original method and and body, according to the HTTP 1.1 standard
+	// Default is NO (to follow the behaviour of most browsers)
+	BOOL shouldUseRFC2616RedirectBehaviour;
 }
 
 #pragma mark init / dealloc
@@ -374,11 +378,15 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 // Add a custom header to the request
 - (void)addRequestHeader:(NSString *)header value:(NSString *)value;
 
+// Called during buildRequestHeaders and after a redirect to create a cookie header from request cookies and the global store
+- (void)applyCookieHeader;
+
 // Populate the request headers dictionary. Called before a request is started, or by a HEAD request that needs to borrow them
 - (void)buildRequestHeaders;
 
 // Used to apply authorization header to a request before it is sent (when shouldPresentCredentialsBeforeChallenge is YES)
 - (void)applyAuthorizationHeader;
+
 
 // Create the post body
 - (void)buildPostBody;
@@ -693,4 +701,5 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 @property (assign) int numberOfTimesToRetryOnTimeout;
 @property (assign, readonly) int retryCount;
 @property (assign) BOOL shouldAttemptPersistentConnection;
+@property (assign) BOOL shouldUseRFC2616RedirectBehaviour;
 @end

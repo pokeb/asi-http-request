@@ -21,7 +21,7 @@
 #import "ASIInputStream.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.5-4 2010-01-19";
+NSString *ASIHTTPRequestVersion = @"v1.5-5 2010-01-19";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -672,22 +672,10 @@ static BOOL isiPhoneOS2;
 	}
 }
 
-- (void)buildRequestHeaders
+- (void)applyCookieHeader
 {
-	if ([self haveBuiltRequestHeaders]) {
-		return;
-	}
-	[self setHaveBuiltRequestHeaders:YES];
-	
-	if ([self mainRequest]) {
-		for (NSString *header in [[self mainRequest] requestHeaders]) {
-			[self addRequestHeader:header value:[[[self mainRequest] requestHeaders] valueForKey:header]];
-		}
-		return;
-	}
-	
 	// Add cookies from the persistant (mac os global) store
-	if ([self useCookiePersistance] ) {
+	if ([self useCookiePersistance]) {
 		NSArray *cookies = [[NSHTTPCookieStorage sharedHTTPCookieStorage] cookiesForURL:[self url]];
 		if (cookies) {
 			[[self requestCookies] addObjectsFromArray:cookies];
@@ -714,7 +702,24 @@ static BOOL isiPhoneOS2;
 		if (cookieHeader) {
 			[self addRequestHeader:@"Cookie" value:cookieHeader];
 		}
+	}	
+}
+
+- (void)buildRequestHeaders
+{
+	if ([self haveBuiltRequestHeaders]) {
+		return;
 	}
+	[self setHaveBuiltRequestHeaders:YES];
+	
+	if ([self mainRequest]) {
+		for (NSString *header in [[self mainRequest] requestHeaders]) {
+			[self addRequestHeader:header value:[[[self mainRequest] requestHeaders] valueForKey:header]];
+		}
+		return;
+	}
+	
+	[self applyCookieHeader];
 	
 	// Build and set the user agent string if the request does not already have a custom user agent specified
 	if (![[self requestHeaders] objectForKey:@"User-Agent"]) {
@@ -1697,18 +1702,26 @@ static BOOL isiPhoneOS2;
 			if ([self shouldRedirect] && [responseHeaders valueForKey:@"Location"]) {
 				if ([self responseStatusCode] > 300 && [self responseStatusCode] < 304) {
 					
-					// We redirect 301, 302 and 303 response codes as GET requests
+					// By default, we redirect 301 and 302 response codes as GET requests
 					// According to RFC 2616 this is wrong, but this is what most browsers do, so it's probably what you're expecting to happen
 					// See also:
 					// http://allseeing-i.lighthouseapp.com/projects/27881/tickets/27-302-redirection-issue
+									
+					if (![self shouldUseRFC2616RedirectBehaviour] || [self responseStatusCode] == 303) {
+						[self setRequestMethod:@"GET"];
+						[self setPostBody:nil];
+						[self setPostLength:0];
+						[self setRequestHeaders:nil];
+						[self setHaveBuiltRequestHeaders:NO];
+					} else {
 					
-					[self setRequestMethod:@"GET"];
-					[self setPostBody:nil];
-					[self setPostLength:0];
-					[self setRequestHeaders:nil];
+						// Force rebuild the cookie header incase we got some new cookies from this request
+						// All other request headers will remain as they are for 301 / 302 redirects
+						[self applyCookieHeader];
+					}
 
 					// Force the redirected request to rebuild the request headers (if not a 303, it will re-use old ones, and add any new ones)
-					[self setHaveBuiltRequestHeaders:NO];
+					
 					[self setURL:[[NSURL URLWithString:[responseHeaders valueForKey:@"Location"] relativeToURL:[self url]] absoluteURL]];
 					[self setNeedsRedirect:YES];
 					
@@ -3658,4 +3671,5 @@ static BOOL isiPhoneOS2;
 @synthesize readStream;
 @synthesize readStreamIsScheduled;
 @synthesize statusTimer;
+@synthesize shouldUseRFC2616RedirectBehaviour;
 @end

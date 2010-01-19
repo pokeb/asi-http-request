@@ -322,9 +322,9 @@
 	ASIHTTPRequest *request;
 	ASIFormDataRequest *request2;
 	BOOL success;
-	int i;
+	unsigned int i;
 	for (i=301; i<305; i++) {
-		NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://allseeing-i.com/ASIHTTPRequest/tests/redirect/%hi",i]];
+		NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://asi/ASIHTTPRequest/tests/redirect/%hi",i]];
 		request = [ASIHTTPRequest requestWithURL:url];
 		[request setShouldRedirect:NO];
 		[request startSynchronous];
@@ -335,7 +335,7 @@
 		GHAssertTrue(success,[NSString stringWithFormat:@"Got the wrong content when not redirecting after a %hi",i]);
 	
 		request2 = [ASIFormDataRequest requestWithURL:url];
-		[request2 setPostValue:@"foo" forKey:@"eep"];
+		[request2 setPostValue:@"Giant Monkey" forKey:@"lookbehindyou"];
 		[request2 startSynchronous];
 		
 		NSString *method = @"GET";
@@ -347,9 +347,37 @@
 		GHAssertTrue(success,[NSString stringWithFormat:@"Got the wrong content when redirecting after a %hi",i]);
 	
 		success = ([request2 responseStatusCode] == 200);
-		GHAssertTrue(success,[NSString stringWithFormat:@"Got the wrong status code (expected %hi)",i]);
+		GHAssertTrue(success,@"Got the wrong status code (expected 200)");
 
 	}
+	
+	// Test RFC 2616 behaviour
+	for (i=301; i<303; i++) {
+		NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://asi/ASIHTTPRequest/tests/redirect/%hi",i]];
+		request2 = [ASIFormDataRequest requestWithURL:url];
+		[request2 setPostValue:@"Giant Monkey" forKey:@"lookbehindyou"];
+		[request2 setShouldUseRFC2616RedirectBehaviour:YES];
+		[request2 startSynchronous];
+		
+		success = ([request2 responseStatusCode] == 200);
+		GHAssertTrue(success,@"Got the wrong status code (expected 200)");	
+
+		if (i == 303) {
+			success = ([request2 postLength] == 0 && ![request2 postBody] && [[request2 requestMethod] isEqualToString:@"GET"]);
+			GHAssertTrue(success,@"Failed to reset request to GET on 303 redirect");
+			
+			success = [[request2 responseString] isEqualToString:[NSString stringWithFormat:@"Redirected as GET after a %hi status code",i]];
+			GHAssertTrue(success,@"Failed to dump the post body on 303 redirect");
+			
+		} else {
+			success = ([request2 postLength] > 0 || ![request2 postBody] || ![[request2 requestMethod] isEqualToString:@"POST"]);
+			GHAssertTrue(success,@"Failed to use the same request method and body for a redirect when using rfc2616 behaviour");
+		
+			success = ([[request2 responseString] isEqualToString:[NSString stringWithFormat:@"Redirected as POST after a %hi status code\r\nWatch out for the Giant Monkey!",i]]);
+			GHAssertTrue(success,@"Failed to send the correct post body on redirect");
+		}
+	}
+	
 }
 
 // Using a persistent connection for HTTP 305-307 would cause crashes on the redirect, not really sure why
