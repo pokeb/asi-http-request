@@ -324,7 +324,7 @@
 	BOOL success;
 	unsigned int i;
 	for (i=301; i<305; i++) {
-		NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://asi/ASIHTTPRequest/tests/redirect/%hi",i]];
+		NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://allseeing-i.com/ASIHTTPRequest/tests/redirect/%hi",i]];
 		request = [ASIHTTPRequest requestWithURL:url];
 		[request setShouldRedirect:NO];
 		[request startSynchronous];
@@ -353,7 +353,7 @@
 	
 	// Test RFC 2616 behaviour
 	for (i=301; i<303; i++) {
-		NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://asi/ASIHTTPRequest/tests/redirect/%hi",i]];
+		NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://allseeing-i.com/ASIHTTPRequest/tests/redirect/%hi",i]];
 		request2 = [ASIFormDataRequest requestWithURL:url];
 		[request2 setPostValue:@"Giant Monkey" forKey:@"lookbehindyou"];
 		[request2 setShouldUseRFC2616RedirectBehaviour:YES];
