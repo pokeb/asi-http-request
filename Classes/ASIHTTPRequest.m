@@ -21,7 +21,7 @@
 #import "ASIInputStream.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.5-2 2010-01-18";
+NSString *ASIHTTPRequestVersion = @"v1.5-3 2010-01-19";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -1038,10 +1038,10 @@ static BOOL isiPhoneOS2;
 	[self retain];
 	// We must invalidate the old timer here, not before we've created and scheduled a new timer
 	// This is because the timer may be the only thing retaining an asynchronous request
-	if ([self statusTimer] && timer != [self statusTimer]) {
+	if (statusTimer && timer != statusTimer) {
 		
-		[[self statusTimer] invalidate];
-		[[self statusTimer] release];
+		[statusTimer invalidate];
+		[statusTimer release];
 		
 	}
 	statusTimer = [timer retain];
@@ -3216,9 +3216,12 @@ static BOOL isiPhoneOS2;
 	// We won't bother to check for systems prior to 10.4, since ASIHTTPRequest only works on 10.5+
     OSErr err;
     SInt32 versionMajor, versionMinor, versionBugFix;
-	if ((err = Gestalt(gestaltSystemVersionMajor, &versionMajor)) != noErr) return nil;
-	if ((err = Gestalt(gestaltSystemVersionMinor, &versionMinor)) != noErr) return nil;
-	if ((err = Gestalt(gestaltSystemVersionBugFix, &versionBugFix)) != noErr) return nil;
+	err = Gestalt(gestaltSystemVersionMajor, &versionMajor);
+	if (err != noErr) return nil;
+	err = Gestalt(gestaltSystemVersionMinor, &versionMinor);
+	if (err != noErr) return nil;
+	err = Gestalt(gestaltSystemVersionBugFix, &versionBugFix);
+	if (err != noErr) return nil;
 	OSVersion = [NSString stringWithFormat:@"%u.%u.%u", versionMajor, versionMinor, versionBugFix];
 	
 #endif
