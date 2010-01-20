@@ -12,16 +12,24 @@
 // ======
 
 // When set to 1 ASIHTTPRequests will print information about what a request is doing
-#define DEBUG_REQUEST_STATUS 0
+#ifndef DEBUG_REQUEST_STATUS
+	#define DEBUG_REQUEST_STATUS 0
+#endif
 
 // When set to 1, ASIFormDataRequests will print information about the request body to the console
-#define DEBUG_FORM_DATA_REQUEST 0
+#ifndef DEBUG_FORM_DATA_REQUEST
+	#define DEBUG_FORM_DATA_REQUEST 0
+#endif
 
 // When set to 1, ASIHTTPRequests will print information about bandwidth throttling to the console
-#define DEBUG_THROTTLING 0
+#ifndef DEBUG_THROTTLING
+	#define DEBUG_THROTTLING 0
+#endif
 
 // When set to 1, ASIHTTPRequests will print information about persistent connections to the console
-#define DEBUG_PERSISTENT_CONNECTIONS 0
+#ifndef DEBUG_PERSISTENT_CONNECTIONS
+	#define DEBUG_PERSISTENT_CONNECTIONS 0
+#endif
 
 // ======
 // Reachability API (iPhone only)
@@ -41,6 +49,7 @@ There are two versions of Apple's Reachability class, both of which are included
 This config option is not used for apps targeting Mac OS X 
 */
 
-#define REACHABILITY_20_API 0
-
+#ifndef REACHABILITY_20_API
+	#define REACHABILITY_20_API 0
+#endif
 

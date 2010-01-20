@@ -26,16 +26,16 @@
 + (id)container;
 
 // regular container attributes
-@property (nonatomic, retain) NSString *name;
-@property (nonatomic) NSUInteger count;
-@property (nonatomic) NSUInteger bytes;
+@property (retain) NSString *name;
+@property (assign) NSUInteger count;
+@property (assign) NSUInteger bytes;
 
 // CDN container attributes
-@property (nonatomic) BOOL cdnEnabled;
-@property (nonatomic) NSUInteger ttl;
-@property (nonatomic, retain) NSString *cdnURL;
-@property (nonatomic) BOOL logRetention;
-@property (nonatomic, retain) NSString *referrerACL;
-@property (nonatomic, retain) NSString *useragentACL;
+@property (assign) BOOL cdnEnabled;
+@property (assign) NSUInteger ttl;
+@property (retain) NSString *cdnURL;
+@property (assign) BOOL logRetention;
+@property (retain) NSString *referrerACL;
+@property (retain) NSString *useragentACL;
 
 @end

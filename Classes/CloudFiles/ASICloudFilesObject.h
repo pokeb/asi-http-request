@@ -17,13 +17,13 @@
 	NSMutableDictionary *metadata;
 }
 
-@property (nonatomic, retain) NSString *name;
-@property (nonatomic, retain) NSString *hash;
-@property (nonatomic) NSUInteger bytes;
-@property (nonatomic, retain) NSString *contentType;
-@property (nonatomic, retain) NSDate *lastModified;
-@property (nonatomic, retain) NSData *data;	
-@property (nonatomic, retain) NSMutableDictionary *metadata;
+@property (retain) NSString *name;
+@property (retain) NSString *hash;
+@property (assign) NSUInteger bytes;
+@property (retain) NSString *contentType;
+@property (retain) NSDate *lastModified;
+@property (retain) NSData *data;	
+@property (retain) NSMutableDictionary *metadata;
 
 + (id)object;
 

@@ -17,10 +17,10 @@
 	ASICloudFilesContainerXMLParserDelegate *xmlParserDelegate;
 }
 
-@property (nonatomic, retain) NSString *currentElement;
-@property (nonatomic, retain) NSString *currentContent;
-@property (nonatomic, retain) ASICloudFilesContainer *currentObject;
-@property (nonatomic, retain) ASICloudFilesContainerXMLParserDelegate *xmlParserDelegate;
+@property (retain) NSString *currentElement;
+@property (retain) NSString *currentContent;
+@property (retain) ASICloudFilesContainer *currentObject;
+@property (retain) ASICloudFilesContainerXMLParserDelegate *xmlParserDelegate;
 
 // HEAD /<api version>/<account>
 // HEAD operations against an account are performed to retrieve the number of Containers and the total bytes stored in Cloud Files for the account. This information is returned in two custom headers, X-Account-Container-Count and X-Account-Bytes-Used.

@@ -20,7 +20,16 @@ static NSString *storageURL = nil;
 static NSString *cdnManagementURL = nil;
 static NSString *rackspaceCloudAuthURL = @"https://auth.api.rackspacecloud.com/v1.0";
 
+static NSLock *accessDetailsLock = nil;
+
 @implementation ASICloudFilesRequest
+
++ (void)initialize
+{
+	if (self == [ASICloudFilesRequest class]) {
+		accessDetailsLock = [[NSLock alloc] init];
+	}
+}
 
 #pragma mark -
 #pragma mark Attributes and Service URLs
@@ -40,14 +49,19 @@ static NSString *rackspaceCloudAuthURL = @"https://auth.api.rackspacecloud.com/v
 #pragma mark -
 #pragma mark Authentication
 
-+ (id)authenticationRequest {
++ (id)authenticationRequest
+{
+	[accessDetailsLock lock];
 	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:rackspaceCloudAuthURL]] autorelease];
 	[request addRequestHeader:@"X-Auth-User" value:username];
 	[request addRequestHeader:@"X-Auth-Key" value:apiKey];
+	[accessDetailsLock unlock];
 	return request;
 }
 
-+ (void)authenticate {
++ (void)authenticate
+{
+	[accessDetailsLock lock];
 	ASIHTTPRequest *request = [ASICloudFilesRequest authenticationRequest];
 	[request startSynchronous];
 	
@@ -57,24 +71,32 @@ static NSString *rackspaceCloudAuthURL = @"https://auth.api.rackspacecloud.com/v
 		storageURL = [responseHeaders objectForKey:@"X-Storage-Url"];
 		cdnManagementURL = [responseHeaders objectForKey:@"X-Cdn-Management-Url"];
 	}
+	[accessDetailsLock unlock];
 }
 
-+ (NSString *)username {
++ (NSString *)username
+{
 	return username;
 }
 
-+ (void)setUsername:(NSString *)newUsername {
++ (void)setUsername:(NSString *)newUsername
+{
+	[accessDetailsLock lock];
 	[username release];
 	username = [newUsername retain];
+	[accessDetailsLock unlock];
 }
 
 + (NSString *)apiKey {
 	return apiKey;
 }
 
-+ (void)setApiKey:(NSString *)newApiKey {
++ (void)setApiKey:(NSString *)newApiKey
+{
+	[accessDetailsLock lock];
 	[apiKey release];
 	apiKey = [newApiKey retain];
+	[accessDetailsLock unlock];
 }
 
 #pragma mark -

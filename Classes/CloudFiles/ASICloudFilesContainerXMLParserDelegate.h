@@ -23,10 +23,10 @@
 	ASICloudFilesContainer *currentObject;
 }
 
-@property (nonatomic, retain) NSMutableArray *containerObjects;
+@property (retain) NSMutableArray *containerObjects;
 
-@property (nonatomic, retain) NSString *currentElement;
-@property (nonatomic, retain) NSString *currentContent;
-@property (nonatomic, retain) ASICloudFilesContainer *currentObject;
+@property (retain) NSString *currentElement;
+@property (retain) NSString *currentContent;
+@property (retain) ASICloudFilesContainer *currentObject;
 
 @end

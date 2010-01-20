@@ -15,9 +15,9 @@
 	
 }
 
-@property (nonatomic, retain) NSString *accountName;
-@property (nonatomic, retain) NSString *containerName;
-@property (nonatomic, retain) ASICloudFilesContainerXMLParserDelegate *xmlParserDelegate;
+@property (retain) NSString *accountName;
+@property (retain) NSString *containerName;
+@property (retain) ASICloudFilesContainerXMLParserDelegate *xmlParserDelegate;
 
 
 // HEAD /<api version>/<account>/<container>

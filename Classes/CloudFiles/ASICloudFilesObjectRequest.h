@@ -27,11 +27,11 @@
 	
 }
 
-@property (nonatomic, retain) NSString *accountName;
-@property (nonatomic, retain) NSString *containerName;
-@property (nonatomic, retain) NSString *currentElement;
-@property (nonatomic, retain) NSString *currentContent;
-@property (nonatomic, retain) ASICloudFilesObject *currentObject;
+@property (retain) NSString *accountName;
+@property (retain) NSString *containerName;
+@property (retain) NSString *currentElement;
+@property (retain) NSString *currentContent;
+@property (retain) ASICloudFilesObject *currentObject;
 
 
 // HEAD /<api version>/<account>/<container>
