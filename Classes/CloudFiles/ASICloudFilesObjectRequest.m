@@ -155,7 +155,6 @@
 	
 	ASICloudFilesObjectRequest *request = [ASICloudFilesObjectRequest storageRequestWithMethod:@"PUT" containerName:containerName objectPath:objectPath];
 	[request addRequestHeader:@"Content-Type" value:contentType];
-	[request addRequestHeader:@"Content-Length" value:[NSString stringWithFormat:@"%i", objectData.length]];
 
 	// add metadata to headers
 	if (metadata) {
@@ -166,6 +165,23 @@
 	
 	[request appendPostData:objectData];	
 	return request;
+}
+
++ (id)putObjectRequestWithContainer:(NSString *)containerName objectPath:(NSString *)objectPath contentType:(NSString *)contentType file:(NSString *)filePath metadata:(NSDictionary *)metadata etag:(NSString *)etag
+{
+	ASICloudFilesObjectRequest *request = [ASICloudFilesObjectRequest storageRequestWithMethod:@"PUT" containerName:containerName objectPath:objectPath];
+	[request addRequestHeader:@"Content-Type" value:contentType];
+	
+	// add metadata to headers
+	if (metadata) {
+		for (NSString *key in [metadata keyEnumerator]) {
+			[request addRequestHeader:[NSString stringWithFormat:@"X-Object-Meta-%@", key] value:[metadata objectForKey:key]];
+		}
+	}	
+	
+	[request setShouldStreamPostDataFromDisk:YES];
+	[request setPostBodyFilePath:filePath];
+	return request;	
 }
 
 #pragma mark -

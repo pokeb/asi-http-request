@@ -58,6 +58,7 @@
 // The Object can be created with custom metadata via HTTP headers identified with the “X-Object-Meta-” prefix.
 + (id)putObjectRequestWithContainer:(NSString *)containerName object:(ASICloudFilesObject *)object;
 + (id)putObjectRequestWithContainer:(NSString *)containerName objectPath:(NSString *)objectPath contentType:(NSString *)contentType objectData:(NSData *)objectData metadata:(NSDictionary *)metadata etag:(NSString *)etag;
++ (id)putObjectRequestWithContainer:(NSString *)containerName objectPath:(NSString *)objectPath contentType:(NSString *)contentType file:(NSString *)filePath metadata:(NSDictionary *)metadata etag:(NSString *)etag;
 
 // POST /<api version>/<account>/<container>/<object>
 // POST operations against an Object name are used to set and overwrite arbitrary key/value metadata. You cannot use the POST operation to change any of the Object's other headers such as Content-Type, ETag, etc. It is not used to upload storage Objects (see PUT).

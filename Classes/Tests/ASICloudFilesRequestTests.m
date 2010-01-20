@@ -211,12 +211,40 @@ static NSString *apiKey = @"";
 	GHAssertEqualStrings(object.name, @"puttestfile.txt", @"Failed to parse object name", @"Failed to parse object name");
 	GHAssertNotNil(object.data, @"Failed to parse object data");
 	GHAssertEqualStrings(string, @"this is a test", @"Failed to parse object data", @"Failed to parse object data");
-	
-	[string release];
+
 	
 	ASICloudFilesContainerRequest *deleteContainerRequest = [ASICloudFilesContainerRequest deleteContainerRequest:@"ASICloudFilesTest"];
 	[deleteContainerRequest startSynchronous];
 	
+	// Now put the object from a file
+
+	createContainerRequest = [ASICloudFilesContainerRequest createContainerRequest:@"ASICloudFilesTest"];
+	[createContainerRequest startSynchronous];
+	
+	NSString *filePath = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:@"cloudfile"];
+	[data writeToFile:filePath atomically:NO];
+	
+	putRequest = [ASICloudFilesObjectRequest putObjectRequestWithContainer:@"ASICloudFilesTest" objectPath:@"puttestfile.txt" contentType:@"text/plain" file:filePath metadata:nil etag:nil];
+	
+	[putRequest startSynchronous];
+	
+	GHAssertNil([putRequest error], @"Failed to PUT object");
+	
+	getRequest = [ASICloudFilesObjectRequest getObjectRequestWithContainer:@"ASICloudFilesTest" objectPath:@"puttestfile.txt"];
+	[getRequest startSynchronous];
+	
+	object = [getRequest object];
+	
+	GHAssertNotNil(object, @"Failed to retrieve new object");
+	GHAssertNotNil(object.name, @"Failed to parse object name");
+	GHAssertEqualStrings(object.name, @"puttestfile.txt", @"Failed to parse object name", @"Failed to parse object name");
+	GHAssertNotNil(object.data, @"Failed to parse object data");
+	GHAssertEqualStrings(string, @"this is a test", @"Failed to parse object data", @"Failed to parse object data");
+	
+	[string release];
+	
+	deleteContainerRequest = [ASICloudFilesContainerRequest deleteContainerRequest:@"ASICloudFilesTest"];
+	[deleteContainerRequest startSynchronous];
 }
 
 - (void)testPostObject {

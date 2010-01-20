@@ -20,14 +20,14 @@ static NSString *storageURL = nil;
 static NSString *cdnManagementURL = nil;
 static NSString *rackspaceCloudAuthURL = @"https://auth.api.rackspacecloud.com/v1.0";
 
-static NSLock *accessDetailsLock = nil;
+static NSRecursiveLock *accessDetailsLock = nil;
 
 @implementation ASICloudFilesRequest
 
 + (void)initialize
 {
 	if (self == [ASICloudFilesRequest class]) {
-		accessDetailsLock = [[NSLock alloc] init];
+		accessDetailsLock = [[NSRecursiveLock alloc] init];
 	}
 }
 
@@ -59,7 +59,7 @@ static NSLock *accessDetailsLock = nil;
 	return request;
 }
 
-+ (void)authenticate
++ (NSError *)authenticate
 {
 	[accessDetailsLock lock];
 	ASIHTTPRequest *request = [ASICloudFilesRequest authenticationRequest];
@@ -72,6 +72,7 @@ static NSLock *accessDetailsLock = nil;
 		cdnManagementURL = [responseHeaders objectForKey:@"X-Cdn-Management-Url"];
 	}
 	[accessDetailsLock unlock];
+	return [request error];
 }
 
 + (NSString *)username

@@ -27,7 +27,7 @@
 #pragma mark Rackspace Cloud Authentication
 
 + (id)authenticationRequest;
-+ (void)authenticate;
++ (NSError *)authenticate;
 + (NSString *)username;
 + (void)setUsername:(NSString *)username;
 + (NSString *)apiKey;
