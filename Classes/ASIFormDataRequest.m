@@ -11,8 +11,6 @@
 
 // Private stuff
 @interface ASIFormDataRequest ()
-@property (retain) NSMutableDictionary *postData;
-@property (retain) NSMutableDictionary *fileData;
 @end
 
 @implementation ASIFormDataRequest

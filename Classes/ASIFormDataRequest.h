@@ -19,6 +19,9 @@
 	
 }
 
+@property (retain) NSMutableDictionary *postData;
+@property (retain) NSMutableDictionary *fileData;
+
 #pragma mark setup request
 
 // Add a POST variable to the request
