@@ -1731,7 +1731,7 @@ static BOOL isiPhoneOS2;
 					[self setRequestCookies:[NSMutableArray array]];
 					
 					#if DEBUG_REQUEST_STATUS
-						NSLog(@"Request will redirect (code: %hi): %@",self,[self responseStatusCode]);
+						NSLog(@"Request will redirect (code: %hi): %@",[self responseStatusCode],self);
 					#endif
 					
 				}
