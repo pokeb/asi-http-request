@@ -21,7 +21,7 @@
 #import "ASIInputStream.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.5-5 2010-01-19";
+NSString *ASIHTTPRequestVersion = @"v1.5-7 2010-01-27";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -132,6 +132,7 @@ static BOOL isiPhoneOS2;
 
 - (void)markAsFinished;
 - (void)performRedirect;
+- (BOOL)shouldTimeOut;
 
 #if TARGET_OS_IPHONE
 + (void)registerForNetworkReachabilityNotifications;
@@ -1082,6 +1083,26 @@ static BOOL isiPhoneOS2;
 	}
 }
 
+- (BOOL)shouldTimeOut
+{
+	NSTimeInterval secondsSinceLastActivity = [[NSDate date] timeIntervalSinceDate:lastActivityTime];
+	// See if we need to timeout
+	if ([self readStream] && [self readStreamIsScheduled] && lastActivityTime && timeOutSeconds > 0 && secondsSinceLastActivity > timeOutSeconds) {
+		
+		// We have no body, or we've sent more than the upload buffer size,so we can safely time out here
+		if (postLength == 0 || (uploadBufferSize > 0 && totalBytesSent > uploadBufferSize)) {
+			return YES;
+			
+		// ***Black magic warning***
+		// We have a body, but we've taken longer than timeout seconds to upload the first small chunk of data
+		// Since there's no reliable way to track upload progress for the first 32KB (iPhone) or 128KB (Mac) with CFNetwork, we'll be slightly more forgiving on the timeout, as there's a strong chance our connection is just very slow.
+		} else if (secondsSinceLastActivity > timeOutSeconds*1.5) {
+			return YES;
+		}
+	}
+	return NO;
+}
+
 - (void)checkRequestStatus
 {
 	// We won't let the request cancel while we're updating progress / checking for a timeout
@@ -1093,34 +1114,24 @@ static BOOL isiPhoneOS2;
 		return;
 	}
 	
-	NSDate *now = [NSDate date];
-	
 	[self performThrottling];
 	
-	// See if we need to timeout
-	if ([self readStream] && [self readStreamIsScheduled] && lastActivityTime && timeOutSeconds > 0 && [now timeIntervalSinceDate:lastActivityTime] > timeOutSeconds) {
-		
-		// Prevent timeouts before 128KB* has been sent when the size of data to upload is greater than 128KB* (*32KB on iPhone 3.0 SDK)
-		// This is to workaround the fact that kCFStreamPropertyHTTPRequestBytesWrittenCount is the amount written to the buffer, not the amount actually sent
-		// This workaround prevents erroneous timeouts in low bandwidth situations (eg iPhone)
-		if (totalBytesSent || postLength <= uploadBufferSize || (uploadBufferSize > 0 && totalBytesSent > uploadBufferSize)) {
-			
-			// Do we need to auto-retry this request?
-			if ([self numberOfTimesToRetryOnTimeout] > [self retryCount]) {
-				[self setRetryCount:[self retryCount]+1];
-				[self unscheduleReadStream];
-				[[self cancelledLock] unlock];
-				[self startRequest];
-				return;
-			}
-			[self failWithError:ASIRequestTimedOutError];
-			[self cancelLoad];
-			[self setComplete:YES];
+	if ([self shouldTimeOut]) {			
+		// Do we need to auto-retry this request?
+		if ([self numberOfTimesToRetryOnTimeout] > [self retryCount]) {
+			[self setRetryCount:[self retryCount]+1];
+			[self unscheduleReadStream];
 			[[self cancelledLock] unlock];
+			[self startRequest];
 			return;
 		}
+		[self failWithError:ASIRequestTimedOutError];
+		[self cancelLoad];
+		[self setComplete:YES];
+		[[self cancelledLock] unlock];
+		return;
 	}
-	
+
 	// readStream will be null if we aren't currently running (perhaps we're waiting for a delegate to supply credentials)
 	if ([self readStream]) {
 		
