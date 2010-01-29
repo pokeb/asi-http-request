@@ -500,6 +500,9 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 - (void)handleStreamComplete;
 - (void)handleStreamError;
 
+// Called automatically when a request is started to clean up any persistent connections that have expired
++ (void)expirePersistentConnections;
+
 #pragma mark session credentials
 
 + (NSMutableArray *)sessionProxyCredentialsStore;
