@@ -21,7 +21,7 @@
 #import "ASIInputStream.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.5-36 2010-01-29";
+NSString *ASIHTTPRequestVersion = @"v1.5-37 2010-01-29";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -1005,8 +1005,6 @@ static BOOL isiPhoneOS2;
 		return;	
 	}
 
-
-
 	[[self cancelledLock] unlock];
 	
 	if (shouldResetProgressIndicators) {
@@ -1147,8 +1145,15 @@ static BOOL isiPhoneOS2;
 			
 			// Find out how much data we've uploaded so far
 			[self setTotalBytesSent:[[(NSNumber *)CFReadStreamCopyProperty((CFReadStreamRef)[self readStream], kCFStreamPropertyHTTPRequestBytesWrittenCount) autorelease] unsignedLongLongValue]];
-			[ASIHTTPRequest incrementBandwidthUsedInLastSecond:(unsigned long)(totalBytesSent-lastBytesSent)];		
-		
+			if (totalBytesSent > lastBytesSent) {
+				[ASIHTTPRequest incrementBandwidthUsedInLastSecond:(unsigned long)(totalBytesSent-lastBytesSent)];		
+					
+				#if DEBUG_REQUEST_STATUS
+				if ([self totalBytesSent] == [self postLength]) {
+					NSLog(@"Request %@ finished uploading data",self);
+				}
+				#endif
+			}
 		}
 			
 		[self updateProgressIndicators];
@@ -1608,7 +1613,13 @@ static BOOL isiPhoneOS2;
 		return;
 	}
 	if (CFHTTPMessageIsHeaderComplete(headers)) {
-		
+
+#if DEBUG_REQUEST_STATUS
+		if ([self totalBytesSent] == [self postLength]) {
+			NSLog(@"Request %@ received response headers",self);
+		}
+#endif		
+
 		CFDictionaryRef headerFields = CFHTTPMessageCopyAllHeaderFields(headers);
 		[self setResponseHeaders:(NSDictionary *)headerFields];
 
@@ -2473,6 +2484,10 @@ static BOOL isiPhoneOS2;
 
 - (void)handleStreamComplete
 {	
+#if DEBUG_REQUEST_STATUS
+	NSLog(@"Request %@ finished downloading data",self);
+#endif
+	
 	if (![self responseHeaders]) {
 		[self readResponseHeaders];
 	}
