@@ -21,7 +21,7 @@
 #import "ASIInputStream.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.5-38 2010-01-29";
+NSString *ASIHTTPRequestVersion = @"v1.5-39 2010-02-02";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -247,7 +247,6 @@ static BOOL isiPhoneOS2;
 
 - (void)dealloc
 {
-	[readStream release];
 	[statusTimer invalidate];
 	[statusTimer release];
 	[self setAuthenticationNeeded:ASINoAuthenticationNeededYet];
@@ -939,6 +938,7 @@ static BOOL isiPhoneOS2;
 		
 		if ([[self connectionInfo] objectForKey:@"stream"]) {
 			oldStream = [[[self connectionInfo] objectForKey:@"stream"] retain];
+
 		}
 		
 		// No free connection was found in the pool matching the server/scheme/port we're connecting to, we'll need to create a new one
@@ -949,12 +949,12 @@ static BOOL isiPhoneOS2;
 			[[self connectionInfo] setObject:[[self url] host] forKey:@"host"];
 			[[self connectionInfo] setObject:[NSNumber numberWithInt:[[[self url] port] intValue]] forKey:@"port"];
 			[[self connectionInfo] setObject:[[self url] scheme] forKey:@"scheme"];
-			[[self connectionInfo] setObject:[self readStream] forKey:@"stream"];
 			[persistentConnectionsPool addObject:[self connectionInfo]];
 		}
 		
 		nextRequestID++;
-		[[self connectionInfo] setObject:[NSNumber numberWithInt:nextRequestID] forKey:@"request"];				 
+		[[self connectionInfo] setObject:[NSNumber numberWithInt:nextRequestID] forKey:@"request"];		
+		[[self connectionInfo] setObject:[self readStream] forKey:@"stream"];
 		CFReadStreamSetProperty((CFReadStreamRef)[self readStream],  kCFStreamPropertyHTTPAttemptPersistentConnection, kCFBooleanTrue);
 		
 		#if DEBUG_PERSISTENT_CONNECTIONS
@@ -978,17 +978,7 @@ static BOOL isiPhoneOS2;
 	
 	BOOL streamSuccessfullyOpened = NO;
 
-	// Here, we'll close the stream that was previously using this connection, if there was one
-	// We've kept it open until now (when we've just opened a new stream) so that the new stream can make use of the old connection
-	// http://lists.apple.com/archives/Macnetworkprog/2006/Mar/msg00119.html
-	if (oldStream) {
-		CFReadStreamSetClient((CFReadStreamRef)oldStream, kCFStreamEventNone, NULL, NULL);
-		CFReadStreamUnscheduleFromRunLoop((CFReadStreamRef)oldStream, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
-		CFReadStreamClose((CFReadStreamRef)oldStream);
-		[oldStream release];
-		oldStream = nil;
-	}
-	
+
    // Start the HTTP connection
 	CFStreamClientContext ctxt = {0, self, NULL, NULL, NULL};
     if (CFReadStreamSetClient((CFReadStreamRef)[self readStream], kNetworkEvents, ReadStreamClientCallBack, &ctxt)) {
@@ -996,6 +986,16 @@ static BOOL isiPhoneOS2;
 			streamSuccessfullyOpened = YES;
 		}
 	}
+	
+	// Here, we'll close the stream that was previously using this connection, if there was one
+	// We've kept it open until now (when we've just opened a new stream) so that the new stream can make use of the old connection
+	// http://lists.apple.com/archives/Macnetworkprog/2006/Mar/msg00119.html
+	if (oldStream) {
+		CFReadStreamClose((CFReadStreamRef)oldStream);
+		[oldStream release];
+		oldStream = nil;
+	}
+	
 
 	if (!streamSuccessfullyOpened) {
 		[self setCanUsePersistentConnection:NO];
@@ -2587,6 +2587,7 @@ static BOOL isiPhoneOS2;
 }
 
 
+
 - (void)handleStreamError
 {
 	NSError *underlyingError = [(NSError *)CFReadStreamCopyError((CFReadStreamRef)[self readStream]) autorelease];
@@ -2614,18 +2615,21 @@ static BOOL isiPhoneOS2;
 
 #pragma mark managing the read stream
 
+
+
 - (void)destroyReadStream
 {
     if ([self readStream]) {
 		CFReadStreamSetClient((CFReadStreamRef)[self readStream], kCFStreamEventNone, NULL, NULL);
-		
 		[connectionsLock lock];		
 
 		if (![self canUsePersistentConnection]) {
 			CFReadStreamUnscheduleFromRunLoop((CFReadStreamRef)[self readStream], CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
 			CFReadStreamClose((CFReadStreamRef)[self readStream]);
 			[self setReadStreamIsScheduled:NO];
+			
 		}
+		
 		[self setReadStream:nil];
 		[connectionsLock unlock];
     }	
@@ -2661,8 +2665,6 @@ static BOOL isiPhoneOS2;
 #endif
 			NSInputStream *stream = [existingConnection objectForKey:@"stream"];
 			if (stream) {
-				CFReadStreamSetClient((CFReadStreamRef)stream, kCFStreamEventNone, NULL, NULL);
-				CFReadStreamUnscheduleFromRunLoop((CFReadStreamRef)stream, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
 				CFReadStreamClose((CFReadStreamRef)stream);
 			}
 			[persistentConnectionsPool removeObject:existingConnection];
