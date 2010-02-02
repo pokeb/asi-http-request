@@ -378,6 +378,14 @@
 		}
 	}
 	
+	// Ensure the file contains only the body of the last request (after redirects) when downloading to a file
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/redirect/301"]];
+	NSString *path = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:@"test.txt"];
+	[request setDownloadDestinationPath:path];
+	[request startSynchronous];
+	NSString *result = [NSString stringWithContentsOfFile:path encoding:NSUTF8StringEncoding error:nil];
+	success = [result isEqualToString:@"Redirected as GET after a 301 status code"];
+	GHAssertTrue(success,@"Failed to store just the body of the file request on redirect");
 }
 
 // Using a persistent connection for HTTP 305-307 would cause crashes on the redirect, not really sure why

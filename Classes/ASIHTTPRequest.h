@@ -2,7 +2,7 @@
 //  ASIHTTPRequest.h
 //
 //  Created by Ben Copsey on 04/10/2007.
-//  Copyright 2007-2009 All-Seeing Interactive. All rights reserved.
+//  Copyright 2007-2010 All-Seeing Interactive. All rights reserved.
 //
 //  A guide to the main features is available at:
 //  http://allseeing-i.com/ASIHTTPRequest
@@ -298,7 +298,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	// Incremented every time this request redirects. When it reaches 5, we give up
 	int redirectCount;
 	
-	// When NO, requests will not check the secure certificate is valid (use for self-signed cerficates during development, DO NOT USE IN PRODUCTION) Default is YES
+	// When NO, requests will not check the secure certificate is valid (use for self-signed certificates during development, DO NOT USE IN PRODUCTION) Default is YES
 	BOOL validatesSecureCertificate;
 	
 	// Details on the proxy to use - you could set these yourself, but it's probably best to let ASIHTTPRequest detect the system proxy settings
@@ -313,7 +313,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	
 	// When YES, ASIHTTPRequests will present credentials from the session store for requests to the same server before being asked for them
 	// This avoids an extra round trip for requests after authentication has succeeded, which is much for efficient for authenticated requests with large bodies, or on slower connections
-	// Set to NO to only present credentials when explictly asked for them
+	// Set to NO to only present credentials when explicitly asked for them
 	// This only affects credentials stored in the session cache when useSessionPersistance is YES. Credentials from the keychain are never presented unless the server asks for them
 	// Default is YES
 	BOOL shouldPresentCredentialsBeforeChallenge;
@@ -335,7 +335,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	// The number of times this request has retried (when numberOfTimesToRetryOnTimeout > 0)
 	int retryCount;
 	
-	// When YES, requests will keep the connection to the server alive for a while to allow subsequent requests to re-use it for a substatial speed-boost
+	// When YES, requests will keep the connection to the server alive for a while to allow subsequent requests to re-use it for a substantial speed-boost
 	// Persistent connections only work when the server sends a 'Keep-Alive' header
 	// Default is YES
 	BOOL shouldAttemptPersistentConnection;
