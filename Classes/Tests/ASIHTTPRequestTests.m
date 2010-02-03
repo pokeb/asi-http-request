@@ -323,7 +323,11 @@
 	ASIFormDataRequest *request2;
 	BOOL success;
 	unsigned int i;
-	for (i=301; i<305; i++) {
+	for (i=301; i<308; i++) {
+		
+		if (i > 304 && i < 307) {
+			continue;
+		}
 		NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://allseeing-i.com/ASIHTTPRequest/tests/redirect/%hi",i]];
 		request = [ASIHTTPRequest requestWithURL:url];
 		[request setShouldRedirect:NO];
@@ -340,10 +344,14 @@
 		
 		NSString *method = @"GET";
 		if (i>304) {
-			method = @"POST";
+			method = @"POST";	
 		}
-		
-		success = [[request2 responseString] isEqualToString:[NSString stringWithFormat:@"Redirected as %@ after a %hi status code",method,i]];
+		NSString *expectedString = [NSString stringWithFormat:@"Redirected as %@ after a %hi status code",method,i];
+		if (i>304) {
+			expectedString = [NSString stringWithFormat:@"%@\r\nWatch out for the Giant Monkey!",expectedString];
+		}
+
+		success = [[request2 responseString] isEqualToString:expectedString];
 		GHAssertTrue(success,[NSString stringWithFormat:@"Got the wrong content when redirecting after a %hi",i]);
 	
 		success = ([request2 responseStatusCode] == 200);
@@ -353,6 +361,7 @@
 	
 	// Test RFC 2616 behaviour
 	for (i=301; i<303; i++) {
+		
 		NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://allseeing-i.com/ASIHTTPRequest/tests/redirect/%hi",i]];
 		request2 = [ASIFormDataRequest requestWithURL:url];
 		[request2 setPostValue:@"Giant Monkey" forKey:@"lookbehindyou"];

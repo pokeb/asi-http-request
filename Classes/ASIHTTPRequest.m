@@ -21,7 +21,7 @@
 #import "ASIInputStream.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.5-41 2010-02-03";
+NSString *ASIHTTPRequestVersion = @"v1.5-42 2010-02-03";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -1069,11 +1069,13 @@ static BOOL isiPhoneOS2;
 		// Some naughty / badly coded website is trying to force us into a redirection loop. This is not cool.
 		[self failWithError:ASITooMuchRedirectionError];
 		[self setComplete:YES];
+		[[self cancelledLock] unlock];
 	} else {
+		[[self cancelledLock] unlock];
+		
 		// Go all the way back to the beginning and build the request again, so that we can apply any new cookies
 		[self main];
 	}
-	[[self cancelledLock] unlock];
 }
 
 // This gets fired every 1/4 of a second to update the progress and work out if we need to timeout
@@ -1724,16 +1726,16 @@ static BOOL isiPhoneOS2;
 				}
 			}
 			// Do we need to redirect?
-			// Note that ASIHTTPRequest does not currently support 305 Use Proxy or 307 Temporary Redirect
+			// Note that ASIHTTPRequest does not currently support 305 Use Proxy
 			if ([self shouldRedirect] && [responseHeaders valueForKey:@"Location"]) {
-				if ([self responseStatusCode] > 300 && [self responseStatusCode] < 304) {
+				if (([self responseStatusCode] > 300 && [self responseStatusCode] < 304) || [self responseStatusCode] == 307) {
 					
 					// By default, we redirect 301 and 302 response codes as GET requests
 					// According to RFC 2616 this is wrong, but this is what most browsers do, so it's probably what you're expecting to happen
 					// See also:
 					// http://allseeing-i.lighthouseapp.com/projects/27881/tickets/27-302-redirection-issue
 									
-					if (![self shouldUseRFC2616RedirectBehaviour] || [self responseStatusCode] == 303) {
+					if ([self responseStatusCode] != 307 && (![self shouldUseRFC2616RedirectBehaviour] || [self responseStatusCode] == 303)) {
 						[self setRequestMethod:@"GET"];
 						[self setPostBody:nil];
 						[self setPostLength:0];
