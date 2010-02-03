@@ -386,6 +386,12 @@
 	NSString *result = [NSString stringWithContentsOfFile:path encoding:NSUTF8StringEncoding error:nil];
 	success = [result isEqualToString:@"Redirected as GET after a 301 status code"];
 	GHAssertTrue(success,@"Failed to store just the body of the file request on redirect");
+	
+	success = ([request originalURL] != [request url]);
+	GHAssertTrue(success,@"Failed to update request url on redirection");
+	
+	success = ([[[request originalURL] absoluteString] isEqualToString:@"http://allseeing-i.com/ASIHTTPRequest/tests/redirect/301"]);
+	GHAssertTrue(success,@"Failed to preserve original url");	
 }
 
 // Using a persistent connection for HTTP 305-307 would cause crashes on the redirect, not really sure why

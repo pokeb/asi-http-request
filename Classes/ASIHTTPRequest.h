@@ -58,6 +58,9 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	// The url for this operation, should include GET params in the query string where appropriate
 	NSURL *url; 
 	
+	// Will always contain the original url used for making the request (the value of url can change when a request is redirected)
+	NSURL *originalURL;
+	
 	// The delegate, you need to manage setting and talking to your delegate in your subclasses
 	id delegate;
 	
@@ -639,6 +642,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 @property (assign) int proxyPort;
 
 @property (retain,setter=setURL:) NSURL *url;
+@property (retain) NSURL *originalURL;
 @property (assign) id delegate;
 @property (assign) id queue;
 @property (assign) id uploadProgressDelegate;

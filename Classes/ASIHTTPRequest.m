@@ -21,7 +21,7 @@
 #import "ASIInputStream.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.5-40 2010-02-02";
+NSString *ASIHTTPRequestVersion = @"v1.5-41 2010-02-03";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -768,6 +768,10 @@ static BOOL isiPhoneOS2;
 	[self setComplete:NO];
 	[self setTotalBytesRead:0];
 	[self setLastBytesRead:0];
+	
+	if ([self redirectCount] == 0) {
+		[self setOriginalURL:[self url]];
+	}
 	
 	// If we're retrying a request, let's remove any progress we made
 	if ([self lastBytesSent] > 0) {
@@ -3609,6 +3613,7 @@ static BOOL isiPhoneOS2;
 @synthesize proxyPassword;
 @synthesize proxyDomain;
 @synthesize url;
+@synthesize originalURL;
 @synthesize delegate;
 @synthesize queue;
 @synthesize uploadProgressDelegate;
