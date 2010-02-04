@@ -242,6 +242,14 @@
 	
 	BOOL success = [[request error] code] == ASIRequestTimedOutErrorType;
 	GHAssertTrue(success,@"Timeout didn't generate the correct error");
+	
+	[ASIHTTPRequest setDefaultTimeOutSeconds:0.0001];
+	[request startSynchronous];
+	
+	success = [[request error] code] == ASIRequestTimedOutErrorType;
+	GHAssertTrue(success,@"Failed to change the default timeout");	
+	
+	[ASIHTTPRequest setDefaultTimeOutSeconds:10];
 }
 
 

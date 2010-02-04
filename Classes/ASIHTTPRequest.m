@@ -21,7 +21,7 @@
 #import "ASIInputStream.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.5-42 2010-02-03";
+NSString *ASIHTTPRequestVersion = @"v1.5-43 2010-02-04";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -39,6 +39,9 @@ static NSMutableArray *sessionCookies = nil;
 
 // The number of times we will allow requests to redirect before we fail with a redirection error
 const int RedirectionLimit = 5;
+
+// The default number of seconds to use for a timeout
+static NSTimeInterval defaultTimeOutSeconds = 10;
 
 static void ReadStreamClientCallBack(CFReadStreamRef readStream, CFStreamEventType type, void *clientCallBackInfo) {
     [((ASIHTTPRequest*)clientCallBackInfo) handleNetworkEvent: type];
@@ -227,7 +230,7 @@ static BOOL isiPhoneOS2;
 	[self setDefaultResponseEncoding:NSISOLatin1StringEncoding];
 	[self setShouldPresentProxyAuthenticationDialog:YES];
 	
-	[self setTimeOutSeconds:10];
+	[self setTimeOutSeconds:[ASIHTTPRequest defaultTimeOutSeconds]];
 	[self setUseSessionPersistance:YES];
 	[self setUseCookiePersistance:YES];
 	[self setValidatesSecureCertificate:YES];
@@ -2733,21 +2736,37 @@ static BOOL isiPhoneOS2;
 	return newRequest;
 }
 
+#pragma mark default time out
+
++ (NSTimeInterval)defaultTimeOutSeconds
+{
+	return defaultTimeOutSeconds;
+}
+
++ (void)setDefaultTimeOutSeconds:(NSTimeInterval)newTimeOutSeconds
+{
+	defaultTimeOutSeconds = newTimeOutSeconds;
+}
+
 #pragma mark session credentials
 
 + (NSMutableArray *)sessionProxyCredentialsStore
 {
+	[sessionCredentialsLock lock];
 	if (!sessionProxyCredentialsStore) {
 		sessionProxyCredentialsStore = [[NSMutableArray alloc] init];
 	}
+	[sessionCredentialsLock unlock];
 	return sessionProxyCredentialsStore;
 }
 
 + (NSMutableArray *)sessionCredentialsStore
 {
+	[sessionCredentialsLock lock];
 	if (!sessionCredentialsStore) {
 		sessionCredentialsStore = [[NSMutableArray alloc] init];
 	}
+	[sessionCredentialsLock unlock];
 	return sessionCredentialsStore;
 }
 
