@@ -71,7 +71,6 @@
 		[self setPostData:[NSMutableDictionary dictionary]];
 	}
 	[[self postData] setValue:[value description] forKey:key];
-	[self setRequestMethod:@"POST"];
 }
 
 - (void)setFile:(NSString *)filePath forKey:(NSString *)key
@@ -107,7 +106,6 @@
 	
 	NSDictionary *fileInfo = [NSDictionary dictionaryWithObjectsAndKeys:data, @"data", contentType, @"contentType", fileName, @"fileName", nil];
 	[[self fileData] setObject:fileInfo forKey:key];
-	[self setRequestMethod: @"POST"];
 }
 
 - (void)setData:(NSData *)data forKey:(NSString *)key
@@ -126,13 +124,15 @@
 	
 	NSDictionary *fileInfo = [NSDictionary dictionaryWithObjectsAndKeys:data, @"data", contentType, @"contentType", fileName, @"fileName", nil];
 	[[self fileData] setObject:fileInfo forKey:key];
-	[self setRequestMethod: @"POST"];
 }
 
 - (void)buildPostBody
 {
 	if ([self haveBuiltPostBody]) {
 		return;
+	}
+	if (![[self requestMethod] isEqualToString:@"PUT"]) {
+		[self setRequestMethod:@"POST"];
 	}
 	
 #if DEBUG_FORM_DATA_REQUEST
@@ -299,6 +299,7 @@
 	[newRequest setFileData:[[[self fileData] copyWithZone:zone] autorelease]];
 	[newRequest setPostFormat:[self postFormat]];
 	[newRequest setStringEncoding:[self stringEncoding]];
+	[newRequest setRequestMethod:[self requestMethod]];
 	return newRequest;
 }
 

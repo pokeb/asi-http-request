@@ -180,6 +180,27 @@
 
 }
 
+- (void)testPUT
+{
+	ASIFormDataRequest *request = [ASIFormDataRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/Tests/put_form_data"]];
+	[request setRequestMethod:@"PUT"];
+	[request setPostValue:@"cheep cheep" forKey:@"hello"];
+	[request startSynchronous];
+	
+	NSString *expectedResponse = [[[NSString alloc] initWithBytes:[[request postBody] bytes] length:[[request postBody] length] encoding:[request stringEncoding]] autorelease];
+	BOOL success = ([[request responseString] isEqualToString:expectedResponse]);
+	GHAssertTrue(success,@"Failed to send form data using PUT");
+	
+	// Ensure that other methods still default to POST
+	request = [ASIFormDataRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/Tests/put_form_data"]];
+	[request setRequestMethod:@"DELETE"];
+	[request setPostValue:@"cheep cheep" forKey:@"hello"];
+	[request startSynchronous];
+	
+	success = ([[request responseString] isEqualToString:@"Got POST instead"]);
+	GHAssertTrue(success,@"Failed to send form data using PUT");		
+}
+
 - (void)testCopy
 {
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];

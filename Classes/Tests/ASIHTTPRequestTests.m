@@ -244,6 +244,7 @@
 	GHAssertTrue(success,@"Timeout didn't generate the correct error");
 	
 	[ASIHTTPRequest setDefaultTimeOutSeconds:0.0001];
+	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request startSynchronous];
 	
 	success = [[request error] code] == ASIRequestTimedOutErrorType;
