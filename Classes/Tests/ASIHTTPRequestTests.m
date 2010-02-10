@@ -78,7 +78,28 @@
 	[request startAsynchronous];
 	[request cancel];
 	GHAssertNotNil([request error],@"Failed to cancel the request");
+	
+	// Test cancelling a redirected request works
+	// This test is probably unreliable on very slow or very fast connections, as it depends on being able to complete the first request (but not the second) in under 2 seconds
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/cancel_redirect"]];
+	[request startAsynchronous];
+	
+	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:2.0]];
+	[request cancel];
+	
+	BOOL success = ([[[request url] absoluteString] isEqualToString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_great_american_novel.txt"]);
+
+	GHAssertTrue(success, @"Request did not redirect quickly enough, cannot proceed with test");
+	
+	GHAssertNotNil([request error],@"Failed to cancel the request");	 
+	
+	success = [request totalBytesRead] < 7900198;
+	GHAssertTrue(success, @"Downloaded the whole of the response even though we should have cancelled by now");
+	
+
 }
+
+
 
 - (void)testDelegateMethods
 {

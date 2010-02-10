@@ -21,7 +21,7 @@
 #import "ASIInputStream.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.5-44 2010-02-04";
+NSString *ASIHTTPRequestVersion = @"v1.5-45 2010-02-10";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -181,6 +181,7 @@ static BOOL isiPhoneOS2;
 @property (assign) ASIAuthenticationState authenticationNeeded;
 @property (assign, nonatomic) BOOL readStreamIsScheduled;
 @property (retain, nonatomic) NSTimer *statusTimer;
+@property (assign, nonatomic) BOOL downloadComplete;
 @end
 
 
@@ -768,6 +769,7 @@ static BOOL isiPhoneOS2;
 	
 	[self requestStarted];
 	
+	[self setDownloadComplete:NO];
 	[self setComplete:NO];
 	[self setTotalBytesRead:0];
 	[self setLastBytesRead:0];
@@ -2403,7 +2405,15 @@ static BOOL isiPhoneOS2;
 	
 	[[self cancelledLock] unlock];
 	
-	if (![self inProgress]) {
+	if ([self downloadComplete] && [self needsRedirect]) {
+		CFRunLoopStop(CFRunLoopGetCurrent());
+		[self performRedirect];
+		return;
+	} else if ([self downloadComplete] && [self authenticationNeeded]) {
+		CFRunLoopStop(CFRunLoopGetCurrent());
+		[self attemptToApplyCredentialsAndResume];
+		return;
+	} else if (![self inProgress]) {
 		[self setStatusTimer:nil];
 	}
 	
@@ -2497,6 +2507,8 @@ static BOOL isiPhoneOS2;
 	NSLog(@"Request %@ finished downloading data",self);
 #endif
 	
+	[self setDownloadComplete:YES];
+	
 	if (![self responseHeaders]) {
 		[self readResponseHeaders];
 	}
@@ -2528,7 +2540,6 @@ static BOOL isiPhoneOS2;
 			if (decompressionStatus != Z_OK) {
 				fileError = [NSError errorWithDomain:NetworkRequestErrorDomain code:ASIFileManagementError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Decompression of %@ failed with code %hi",[self temporaryFileDownloadPath],decompressionStatus],NSLocalizedDescriptionKey,nil]];
 			}
-				
 			[self removeTemporaryDownloadFile];
 		} else {
 					
@@ -2549,6 +2560,7 @@ static BOOL isiPhoneOS2;
 				}
 				[self setTemporaryFileDownloadPath:nil];
 			}
+			
 		}
 	}
 	[progressLock unlock];
@@ -2565,27 +2577,20 @@ static BOOL isiPhoneOS2;
 	[[self connectionInfo] setObject:[NSDate dateWithTimeIntervalSinceNow:closeStreamTime] forKey:@"expires"];
 	[connectionsLock unlock];
 	
-	if ([self needsRedirect]) {
-		CFRunLoopStop(CFRunLoopGetCurrent());
-		[self performRedirect];
-		return;
-	} else if ([self authenticationNeeded]) {
-		CFRunLoopStop(CFRunLoopGetCurrent());
-		[self attemptToApplyCredentialsAndResume];
-		return;
-	}
-	
-	if (fileError) {
-		[self failWithError:fileError];
-	} else {
-		[self requestFinished];
-	}
-
 	if (![self authenticationNeeded]) {
 		[self destroyReadStream];
 	}
 	
-	[self markAsFinished];
+	if (![self needsRedirect] && ![self authenticationNeeded]) {
+		
+		if (fileError) {
+			[self failWithError:fileError];
+		} else {
+			[self requestFinished];
+		}
+
+		[self markAsFinished];
+	}
 }
 
 - (void)markAsFinished
@@ -3720,4 +3725,5 @@ static BOOL isiPhoneOS2;
 @synthesize readStreamIsScheduled;
 @synthesize statusTimer;
 @synthesize shouldUseRFC2616RedirectBehaviour;
+@synthesize downloadComplete;
 @end

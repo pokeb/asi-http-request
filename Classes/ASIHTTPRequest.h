@@ -366,6 +366,9 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	// When set to YES, 301 and 302 automatic redirects will use the original method and and body, according to the HTTP 1.1 standard
 	// Default is NO (to follow the behaviour of most browsers)
 	BOOL shouldUseRFC2616RedirectBehaviour;
+	
+	// Used internally to record when a request has finished downloading data
+	BOOL downloadComplete;
 }
 
 #pragma mark init / dealloc
