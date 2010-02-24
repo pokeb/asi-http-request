@@ -21,7 +21,7 @@
 #import "ASIInputStream.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.5-49 2010-02-24";
+NSString *ASIHTTPRequestVersion = @"v1.5-50 2010-02-24";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -287,6 +287,7 @@ static BOOL isiPhoneOS2;
 	[proxyAuthenticationScheme release];
 	[proxyCredentials release];
 	[url release];
+	[originalURL release];
 	[lastActivityTime release];
 	[responseCookies release];
 	[rawResponseData release];
