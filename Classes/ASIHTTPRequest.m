@@ -21,7 +21,7 @@
 #import "ASIInputStream.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.5-46 2010-02-24";
+NSString *ASIHTTPRequestVersion = @"v1.5-47 2010-02-24";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -1619,11 +1619,11 @@ static BOOL isiPhoneOS2;
 {
 	[self setAuthenticationNeeded:ASINoAuthenticationNeededYet];
 
-	CFHTTPMessageRef headers = (CFHTTPMessageRef)CFReadStreamCopyProperty((CFReadStreamRef)[self readStream], kCFStreamPropertyHTTPResponseHeader);
-	if (!headers) {
+	CFHTTPMessageRef message = (CFHTTPMessageRef)CFReadStreamCopyProperty((CFReadStreamRef)[self readStream], kCFStreamPropertyHTTPResponseHeader);
+	if (!message) {
 		return;
 	}
-	if (CFHTTPMessageIsHeaderComplete(headers)) {
+	if (CFHTTPMessageIsHeaderComplete(message)) {
 
 #if DEBUG_REQUEST_STATUS
 		if ([self totalBytesSent] == [self postLength]) {
@@ -1631,12 +1631,12 @@ static BOOL isiPhoneOS2;
 		}
 #endif		
 
-		CFDictionaryRef headerFields = CFHTTPMessageCopyAllHeaderFields(headers);
+		CFDictionaryRef headerFields = CFHTTPMessageCopyAllHeaderFields(message);
 		[self setResponseHeaders:(NSDictionary *)headerFields];
 
 		CFRelease(headerFields);
-		[self setResponseStatusCode:CFHTTPMessageGetResponseStatusCode(headers)];
-		[self setResponseStatusMessage:[(NSString *)CFHTTPMessageCopyResponseStatusLine(headers) autorelease]];
+		[self setResponseStatusCode:CFHTTPMessageGetResponseStatusCode(message)];
+		[self setResponseStatusMessage:[(NSString *)CFHTTPMessageCopyResponseStatusLine(message) autorelease]];
 
 		// Is the server response a challenge for credentials?
 		if ([self responseStatusCode] == 401) {
@@ -1773,20 +1773,35 @@ static BOOL isiPhoneOS2;
 		}
 		
 		// Handle connection persistence
-		if ([self shouldAttemptPersistentConnection] && [[[self responseHeaders] objectForKey:@"Connection"] isEqualToString:@"Keep-Alive"]) {
-			NSString *keepAliveHeader = [[self responseHeaders] objectForKey:@"Keep-Alive"];
-			if (keepAliveHeader) {
-				int timeout = 0;
-				int max = 0;
-				NSScanner *scanner = [NSScanner scannerWithString:keepAliveHeader];
-				[scanner scanString:@"timeout=" intoString:NULL];
-				[scanner scanInt:&timeout];
-				[scanner scanUpToString:@"max=" intoString:NULL];
-				[scanner scanString:@"max=" intoString:NULL];
-				[scanner scanInt:&max];
-				if (max > 5) {
+		NSString *httpVersion = [(NSString *)CFHTTPMessageCopyVersion(message) autorelease];
+		
+		// We won't re-use this connection if this request is set to use HTTP 1.0, or the server is talking in HTTP 1.0, or persistent connections are turned off for this request
+		if (![self useHTTPVersionOne] && [self shouldAttemptPersistentConnection] && ![httpVersion isEqualToString:(NSString *)kCFHTTPVersion1_0]) {
+
+			// See if server explicitly told us to close the connection
+			if (![[[[self responseHeaders] objectForKey:@"Connection"] lowercaseString] isEqualToString:@"close"]) {
+				
+				NSString *keepAliveHeader = [[self responseHeaders] objectForKey:@"Keep-Alive"];
+				
+				// If we got a keep alive header, we'll reuse the connection for as long as the server tells us
+				if (keepAliveHeader) { 
+					int timeout = 0;
+					int max = 0;
+					NSScanner *scanner = [NSScanner scannerWithString:keepAliveHeader];
+					[scanner scanString:@"timeout=" intoString:NULL];
+					[scanner scanInt:&timeout];
+					[scanner scanUpToString:@"max=" intoString:NULL];
+					[scanner scanString:@"max=" intoString:NULL];
+					[scanner scanInt:&max];
+					if (max > 5) {
+						[self setCanUsePersistentConnection:YES];
+						closeStreamTime = timeout;
+					}
+				
+				// Otherwise, we'll assume we can keep this connection open
+				} else {
 					[self setCanUsePersistentConnection:YES];
-					closeStreamTime = timeout;
+					closeStreamTime = 60; 
 				}
 			}
 		}
@@ -1794,7 +1809,7 @@ static BOOL isiPhoneOS2;
 
 	
 	
-	CFRelease(headers);
+	CFRelease(message);
 }
 
 #pragma mark http authentication
