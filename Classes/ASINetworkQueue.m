@@ -75,7 +75,6 @@
 
 - (void)cancelAllOperations
 {
-	[self setRequestsCount:0];
 	[self setBytesUploadedSoFar:0];
 	[self setTotalBytesToUpload:0];
 	[self setBytesDownloadedSoFar:0];

@@ -1111,6 +1111,40 @@ IMPORTANT
 	[queue2 release];
 }
 
+// Test for: http://allseeing-i.lighthouseapp.com/projects/27881/tickets/43-asinetworkqueue-and-setshouldcancelallrequestsonfailure-yes-will-not-trigger-queuefinished-selector-with-multiple-requests
+
+- (void)testQueueFinishedCalledOnFailure
+{
+	complete = NO;
+	ASINetworkQueue *networkQueue = [[ASINetworkQueue queue] retain];
+	[networkQueue setDelegate:self];
+	[networkQueue setQueueDidFinishSelector:@selector(queueFailureFinish:)];
+	
+	NSUInteger i;
+	for (i=0; i<10; i++) {
+		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://there-is-no-spoon.allseeing-i.com"]];
+		[networkQueue addOperation:request];
+	}
+	
+	[networkQueue go];
+	
+	NSDate *dateStarted = [NSDate date];
+	while (!complete) {
+		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.5]];
+		if ([dateStarted timeIntervalSinceNow] < -10) {
+			break;
+		}
+	}
+	GHAssertTrue(complete,@"Failed to call queue finished delegate method");
+	
+	
+}
+
+- (void)queueFailureFinish:(ASINetworkQueue *)queue
+{
+	complete = YES;
+}
+
 @synthesize immediateCancelQueue;
 @synthesize failedRequests;
 @synthesize finishedRequests;
