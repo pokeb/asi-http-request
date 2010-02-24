@@ -721,6 +721,27 @@
 	html = [request responseString];
 	success = [html isEqualToString:@"No cookie exists"];
 	GHAssertTrue(success,@"Cookie presented to the server when it should have been removed");
+	
+	// Test fetching cookies for a relative url - fixes a problem where urls created with URLWithString:relativeToURL: wouldn't always read cookies from the persistent store
+	[ASIHTTPRequest clearSession];
+	
+	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/set_cookie"] autorelease];
+	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request setUseCookiePersistance:YES];
+	[request setUseSessionPersistance:NO];
+	[request startSynchronous];
+	
+	NSURL *originalURL = [NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/"];
+	url = [NSURL URLWithString:@"read_cookie" relativeToURL:originalURL];
+	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request setUseCookiePersistance:YES];
+	[request setUseSessionPersistance:NO];
+	[request startSynchronous];
+	html = [request responseString];
+	NSLog(@"%@",html);
+	success = [html isEqualToString:@"I have 'This is the value' as the value of 'ASIHTTPRequestTestCookie'"];
+	GHAssertTrue(success,@"Custom cookie not presented to the server with cookie persistance OFF");
+	
 }
 
 // Test fix for a crash if you tried to remove credentials that didn't exist
