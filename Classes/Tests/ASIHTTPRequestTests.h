@@ -60,4 +60,5 @@
 - (void)testReachability;
 #endif
 - (void)testAutomaticRetry;
+- (void)testCloseConnection;
 @end

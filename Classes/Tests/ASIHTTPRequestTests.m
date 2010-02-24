@@ -1345,6 +1345,16 @@
 	
 }
 
+- (void)testCloseConnection
+{
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/close-connection"]];
+	[request startSynchronous];
+	
+	BOOL success = ![request connectionCanBeReused];
+	GHAssertTrue(success,@"Should not be able to re-use a request sent with Connection:close");
+	
+}
+
 
 // Will be called on Mac OS
 - (void)setDoubleValue:(double)newProgress;

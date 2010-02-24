@@ -21,7 +21,7 @@
 #import "ASIInputStream.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.5-47 2010-02-24";
+NSString *ASIHTTPRequestVersion = @"v1.5-48 2010-02-24";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -175,7 +175,7 @@ static BOOL isiPhoneOS2;
 @property (assign) BOOL isSynchronous;
 @property (assign) BOOL inProgress;
 @property (assign) int retryCount;
-@property (assign) BOOL canUsePersistentConnection;
+@property (assign) BOOL connectionCanBeReused;
 @property (retain, nonatomic) NSMutableDictionary *connectionInfo;
 @property (retain, nonatomic) NSInputStream *readStream;
 @property (assign) ASIAuthenticationState authenticationNeeded;
@@ -1007,7 +1007,7 @@ static BOOL isiPhoneOS2;
 	
 
 	if (!streamSuccessfullyOpened) {
-		[self setCanUsePersistentConnection:NO];
+		[self setConnectionCanBeReused:NO];
 		[self destroyReadStream];
 		[[self cancelledLock] unlock];
 		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIInternalErrorWhileBuildingRequestType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Unable to start HTTP connection",NSLocalizedDescriptionKey,nil]]];
@@ -1579,7 +1579,7 @@ static BOOL isiPhoneOS2;
 		[connectionsLock unlock];
 		[self destroyReadStream];
 	}
-	if ([self canUsePersistentConnection]) {
+	if ([self connectionCanBeReused]) {
 		[[self connectionInfo] setObject:[NSDate dateWithTimeIntervalSinceNow:closeStreamTime] forKey:@"expires"];
 	}
 	
@@ -1773,35 +1773,39 @@ static BOOL isiPhoneOS2;
 		}
 		
 		// Handle connection persistence
-		NSString *httpVersion = [(NSString *)CFHTTPMessageCopyVersion(message) autorelease];
-		
-		// We won't re-use this connection if this request is set to use HTTP 1.0, or the server is talking in HTTP 1.0, or persistent connections are turned off for this request
-		if (![self useHTTPVersionOne] && [self shouldAttemptPersistentConnection] && ![httpVersion isEqualToString:(NSString *)kCFHTTPVersion1_0]) {
+		if ([self shouldAttemptPersistentConnection]) {
+			
+			NSString *connectionHeader = [[[self responseHeaders] objectForKey:@"Connection"] lowercaseString];
+			NSString *httpVersion = [(NSString *)CFHTTPMessageCopyVersion(message) autorelease];
+			
+			// Don't re-use the connection if the server is HTTP 1.0 and didn't send Connection: Keep-Alive
+			if (![httpVersion isEqualToString:(NSString *)kCFHTTPVersion1_0] || [connectionHeader isEqualToString:@"keep-alive"]) {
 
-			// See if server explicitly told us to close the connection
-			if (![[[[self responseHeaders] objectForKey:@"Connection"] lowercaseString] isEqualToString:@"close"]) {
-				
-				NSString *keepAliveHeader = [[self responseHeaders] objectForKey:@"Keep-Alive"];
-				
-				// If we got a keep alive header, we'll reuse the connection for as long as the server tells us
-				if (keepAliveHeader) { 
-					int timeout = 0;
-					int max = 0;
-					NSScanner *scanner = [NSScanner scannerWithString:keepAliveHeader];
-					[scanner scanString:@"timeout=" intoString:NULL];
-					[scanner scanInt:&timeout];
-					[scanner scanUpToString:@"max=" intoString:NULL];
-					[scanner scanString:@"max=" intoString:NULL];
-					[scanner scanInt:&max];
-					if (max > 5) {
-						[self setCanUsePersistentConnection:YES];
-						closeStreamTime = timeout;
+				// See if server explicitly told us to close the connection
+				if (![connectionHeader isEqualToString:@"close"]) {
+					
+					NSString *keepAliveHeader = [[self responseHeaders] objectForKey:@"Keep-Alive"];
+					
+					// If we got a keep alive header, we'll reuse the connection for as long as the server tells us
+					if (keepAliveHeader) { 
+						int timeout = 0;
+						int max = 0;
+						NSScanner *scanner = [NSScanner scannerWithString:keepAliveHeader];
+						[scanner scanString:@"timeout=" intoString:NULL];
+						[scanner scanInt:&timeout];
+						[scanner scanUpToString:@"max=" intoString:NULL];
+						[scanner scanString:@"max=" intoString:NULL];
+						[scanner scanInt:&max];
+						if (max > 5) {
+							[self setConnectionCanBeReused:YES];
+							closeStreamTime = timeout;
+						}
+					
+					// Otherwise, we'll assume we can keep this connection open
+					} else {
+						[self setConnectionCanBeReused:YES];
+						closeStreamTime = 60; 
 					}
-				
-				// Otherwise, we'll assume we can keep this connection open
-				} else {
-					[self setCanUsePersistentConnection:YES];
-					closeStreamTime = 60; 
 				}
 			}
 		}
@@ -2582,7 +2586,7 @@ static BOOL isiPhoneOS2;
 
 	
 	[connectionsLock lock];
-	if (![self canUsePersistentConnection]) {
+	if (![self connectionCanBeReused]) {
 		[self unscheduleReadStream];
 	}
 	#if DEBUG_PERSISTENT_CONNECTIONS
@@ -2653,7 +2657,7 @@ static BOOL isiPhoneOS2;
 		CFReadStreamSetClient((CFReadStreamRef)[self readStream], kCFStreamEventNone, NULL, NULL);
 		[connectionsLock lock];		
 
-		if (![self canUsePersistentConnection]) {
+		if (![self connectionCanBeReused]) {
 			CFReadStreamUnscheduleFromRunLoop((CFReadStreamRef)[self readStream], CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
 			CFReadStreamClose((CFReadStreamRef)[self readStream]);
 			[self setReadStreamIsScheduled:NO];
@@ -3734,7 +3738,7 @@ static BOOL isiPhoneOS2;
 @synthesize numberOfTimesToRetryOnTimeout;
 @synthesize retryCount;
 @synthesize shouldAttemptPersistentConnection;
-@synthesize canUsePersistentConnection;
+@synthesize connectionCanBeReused;
 @synthesize connectionInfo;
 @synthesize readStream;
 @synthesize readStreamIsScheduled;

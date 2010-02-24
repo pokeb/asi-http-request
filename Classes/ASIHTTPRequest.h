@@ -344,7 +344,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	BOOL shouldAttemptPersistentConnection;
 	
 	// Set to yes when an appropriate keep-alive header is found
-	BOOL canUsePersistentConnection;
+	BOOL connectionCanBeReused;
 	
 	// Populated with the number of seconds the server told us we could keep a persistent connection around
 	// A future date is created from this and used for expiring the connection, this is stored in connectionInfo's expires value
@@ -717,4 +717,5 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 @property (assign, readonly) int retryCount;
 @property (assign) BOOL shouldAttemptPersistentConnection;
 @property (assign) BOOL shouldUseRFC2616RedirectBehaviour;
+@property (assign, readonly) BOOL connectionCanBeReused;
 @end
