@@ -449,6 +449,60 @@
 	}
 }
 
+- (void)testRedirectedResume
+{
+	[self performSelectorOnMainThread:@selector(runRedirectedResume) withObject:nil waitUntilDone:YES];
+}
+
+- (void)runRedirectedResume
+{
+	NSURL *url = [NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/redirect_resume"];
+	NSString *temporaryPath = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:@"foo.temp"];
+	
+	[@"" writeToFile:temporaryPath atomically:NO encoding:NSUTF8StringEncoding error:NULL];
+	
+	NSString *downloadPath = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:@"foo.txt"];
+	
+	// Download part of a large file that is returned after a redirect
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:url];
+	[request setTemporaryFileDownloadPath:temporaryPath];
+	[request setDownloadDestinationPath:downloadPath];
+	[request setAllowResumeForFileDownloads:YES];
+	[request setAllowCompressedResponse:NO];
+	[request startAsynchronous];
+	
+	// Cancel the request as soon as it has downloaded 64KB
+	while (1) {
+		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.5]];
+		if ([request totalBytesRead] > 32*1024) {
+			[request cancel];
+			break;
+		}
+	}
+	NSNumber *fileSize =  [[[NSFileManager defaultManager] attributesOfItemAtPath:temporaryPath error:NULL] objectForKey:NSFileSize];
+	unsigned long long partialFileSize = [fileSize unsignedLongLongValue];
+	BOOL success = (partialFileSize < 1036935);
+	GHAssertTrue(success,@"Downloaded whole file too quickly, cannot proceed with this test");
+	
+	
+	
+	// Resume the download synchronously
+	request = [ASIHTTPRequest requestWithURL:url];
+	[request setTemporaryFileDownloadPath:temporaryPath];
+	[request setDownloadDestinationPath:downloadPath];
+	[request setAllowResumeForFileDownloads:YES];
+	[request setAllowCompressedResponse:NO];
+	[request startSynchronous];
+	
+	fileSize =  [[[NSFileManager defaultManager] attributesOfItemAtPath:downloadPath error:NULL] objectForKey:NSFileSize];
+	success = ([fileSize intValue] == 1036935);
+	GHAssertTrue(success,@"Downloaded file has wrong length");
+	
+	success = [[[request requestHeaders] objectForKey:@"Range"] isEqualToString:[NSString stringWithFormat:@"bytes=%llu-",partialFileSize]];
+	GHAssertTrue(success,@"Restarted download when we should have resumed, or asked for the wrong segment of the file");
+	
+}
+
 - (void)testUploadContentLength
 {
 	//This url will return the contents of the Content-Length request header

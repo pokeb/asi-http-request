@@ -21,7 +21,7 @@
 #import "ASIInputStream.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.5-51 2010-03-02";
+NSString *ASIHTTPRequestVersion = @"v1.5-52 2010-03-02";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -2498,6 +2498,11 @@ static BOOL isiPhoneOS2;
 		// For bandwidth measurement / throttling
 		[ASIHTTPRequest incrementBandwidthUsedInLastSecond:bytesRead];
 		
+		// If we need to redirect, and have automatic redirect on, and might be resuming a download, let's do nothing with the content
+		if ([self needsRedirect] && [self shouldRedirect] && [self allowResumeForFileDownloads]) {
+			return;
+		}
+		
 		// Are we downloading to a file?
 		if ([self downloadDestinationPath]) {
 			if (![self fileDownloadOutputStream]) {
@@ -2554,15 +2559,19 @@ static BOOL isiPhoneOS2;
 		[[self fileDownloadOutputStream] close];
 		[self setFileDownloadOutputStream:nil];
 		
+		// If we are going to redirect and we are resuming, let's ignore this download
+		if ([self shouldRedirect] && [self needsRedirect] && [self allowResumeForFileDownloads]) {
+		
 		// Decompress the file (if necessary) directly to the destination path
-		if ([self isResponseCompressed]) {
+		} else if ([self isResponseCompressed]) {
 			int decompressionStatus = [ASIHTTPRequest uncompressZippedDataFromFile:[self temporaryFileDownloadPath] toFile:[self downloadDestinationPath]];
 			if (decompressionStatus != Z_OK) {
 				fileError = [NSError errorWithDomain:NetworkRequestErrorDomain code:ASIFileManagementError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Decompression of %@ failed with code %hi",[self temporaryFileDownloadPath],decompressionStatus],NSLocalizedDescriptionKey,nil]];
 			}
 			[self removeTemporaryDownloadFile];
 		} else {
-					
+			
+	
 			//Remove any file at the destination path
 			NSError *moveError = nil;
 			if ([[NSFileManager defaultManager] fileExistsAtPath:[self downloadDestinationPath]]) {
