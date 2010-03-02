@@ -148,6 +148,9 @@
 	
 	if ([self showAccurateProgress]) {
 		
+		// Force the request to build its body (this may change requestMethod)
+		[request buildPostBody];
+		
 		// If this is a GET request and we want accurate progress, perform a HEAD request first to get the content-length
 		// We'll only do this before the queue is started
 		// If requests are added after the queue is started they will probably move the overall progress backwards anyway, so there's no value performing the HEAD requests first
