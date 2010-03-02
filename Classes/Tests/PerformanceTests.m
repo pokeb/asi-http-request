@@ -152,8 +152,8 @@
 		[request addRequestHeader:@"Pragma" value:@"no-cache"];
 		[request addRequestHeader:@"Accept" value:@"*/*"];
 		[request addRequestHeader:@"Accept-Language" value:@"en/us"];
-		[request setUseCookiePersistance:NO];
-		[request setUseSessionPersistance:NO];
+		[request setUseCookiePersistence:NO];
+		[request setUseSessionPersistence:NO];
 		[request setDelegate:self];
 		[queue addOperation:request];
 	}

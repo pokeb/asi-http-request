@@ -111,14 +111,14 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	// Will be populated with cookies
 	NSArray *responseCookies;
 	
-	// If use useCookiePersistance is true, network requests will present valid cookies from previous requests
-	BOOL useCookiePersistance;
+	// If use useCookiePersistence is true, network requests will present valid cookies from previous requests
+	BOOL useCookiePersistence;
 	
-	// If useKeychainPersistance is true, network requests will attempt to read credentials from the keychain, and will save them in the keychain when they are successfully presented
-	BOOL useKeychainPersistance;
+	// If useKeychainPersistence is true, network requests will attempt to read credentials from the keychain, and will save them in the keychain when they are successfully presented
+	BOOL useKeychainPersistence;
 	
-	// If useSessionPersistance is true, network requests will save credentials and reuse for the duration of the session (until clearSession is called)
-	BOOL useSessionPersistance;
+	// If useSessionPersistence is true, network requests will save credentials and reuse for the duration of the session (until clearSession is called)
+	BOOL useSessionPersistence;
 	
 	// If allowCompressedResponse is true, requests will inform the server they can accept compressed data, and will automatically decompress gzipped responses. Default is true.
 	BOOL allowCompressedResponse;
@@ -317,7 +317,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	// When YES, ASIHTTPRequests will present credentials from the session store for requests to the same server before being asked for them
 	// This avoids an extra round trip for requests after authentication has succeeded, which is much for efficient for authenticated requests with large bodies, or on slower connections
 	// Set to NO to only present credentials when explicitly asked for them
-	// This only affects credentials stored in the session cache when useSessionPersistance is YES. Credentials from the keychain are never presented unless the server asks for them
+	// This only affects credentials stored in the session cache when useSessionPersistence is YES. Credentials from the keychain are never presented unless the server asks for them
 	// Default is YES
 	BOOL shouldPresentCredentialsBeforeChallenge;
 	
@@ -655,8 +655,8 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 @property (assign) id queue;
 @property (assign) id uploadProgressDelegate;
 @property (assign) id downloadProgressDelegate;
-@property (assign) BOOL useKeychainPersistance;
-@property (assign) BOOL useSessionPersistance;
+@property (assign) BOOL useKeychainPersistence;
+@property (assign) BOOL useSessionPersistence;
 @property (retain) NSString *downloadDestinationPath;
 @property (retain) NSString *temporaryFileDownloadPath;
 @property (assign) SEL didStartSelector;
@@ -670,7 +670,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 @property (retain) NSMutableDictionary *requestHeaders;
 @property (retain) NSMutableArray *requestCookies;
 @property (retain,readonly) NSArray *responseCookies;
-@property (assign) BOOL useCookiePersistance;
+@property (assign) BOOL useCookiePersistence;
 @property (retain) NSDictionary *requestCredentials;
 @property (retain) NSDictionary *proxyCredentials;
 @property (assign,readonly) int responseStatusCode;

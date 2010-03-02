@@ -21,13 +21,13 @@
 #import "ASIInputStream.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.5-52 2010-03-02";
+NSString *ASIHTTPRequestVersion = @"v1.5-53 2010-03-02";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
 static const CFOptionFlags kNetworkEvents = kCFStreamEventOpenCompleted | kCFStreamEventHasBytesAvailable | kCFStreamEventEndEncountered | kCFStreamEventErrorOccurred;
 
-// In memory caches of credentials, used on when useSessionPersistance is YES
+// In memory caches of credentials, used on when useSessionPersistence is YES
 static NSMutableArray *sessionCredentialsStore = nil;
 static NSMutableArray *sessionProxyCredentialsStore = nil;
 
@@ -232,8 +232,8 @@ static BOOL isiPhoneOS2;
 	[self setShouldPresentProxyAuthenticationDialog:YES];
 	
 	[self setTimeOutSeconds:[ASIHTTPRequest defaultTimeOutSeconds]];
-	[self setUseSessionPersistance:YES];
-	[self setUseCookiePersistance:YES];
+	[self setUseSessionPersistence:YES];
+	[self setUseCookiePersistence:YES];
 	[self setValidatesSecureCertificate:YES];
 	[self setRequestCookies:[[[NSMutableArray alloc] init] autorelease]];
 	[self setDidStartSelector:@selector(requestStarted:)];
@@ -636,7 +636,7 @@ static BOOL isiPhoneOS2;
 		
 	// First, see if we have any credentials we can use in the session store
 	NSDictionary *credentials = nil;
-	if ([self useSessionPersistance]) {
+	if ([self useSessionPersistence]) {
 		credentials = [self findSessionAuthenticationCredentials];
 	}
 	
@@ -668,7 +668,7 @@ static BOOL isiPhoneOS2;
 			[self addBasicAuthenticationHeaderWithUsername:[usernameAndPassword objectForKey:(NSString *)kCFHTTPAuthenticationUsername] andPassword:[usernameAndPassword objectForKey:(NSString *)kCFHTTPAuthenticationPassword]];
 		}
 	}
-	if ([self useSessionPersistance]) {
+	if ([self useSessionPersistence]) {
 		credentials = [self findSessionProxyAuthenticationCredentials];
 		if (credentials) {
 			if (!CFHTTPMessageApplyCredentialDictionary(request, (CFHTTPAuthenticationRef)[credentials objectForKey:@"Authentication"], (CFDictionaryRef)[credentials objectForKey:@"Credentials"], NULL)) {
@@ -680,8 +680,8 @@ static BOOL isiPhoneOS2;
 
 - (void)applyCookieHeader
 {
-	// Add cookies from the persistant (mac os global) store
-	if ([self useCookiePersistance]) {
+	// Add cookies from the persistent (mac os global) store
+	if ([self useCookiePersistence]) {
 		NSArray *cookies = [[NSHTTPCookieStorage sharedHTTPCookieStorage] cookiesForURL:[[self url] absoluteURL]];
 		if (cookies) {
 			[[self requestCookies] addObjectsFromArray:cookies];
@@ -1650,7 +1650,7 @@ static BOOL isiPhoneOS2;
 		if (![self authenticationNeeded]) {
 
 			// Did we get here without an authentication challenge? (which can happen when shouldPresentCredentialsBeforeChallenge is YES and basic auth was successful)
-			if (!requestAuthentication && [self username] && [self password] && [self useSessionPersistance]) {
+			if (!requestAuthentication && [self username] && [self password] && [self useSessionPersistence]) {
 				
 				NSMutableDictionary *newCredentials = [NSMutableDictionary dictionaryWithCapacity:2];
 				[newCredentials setObject:[self username] forKey:(NSString *)kCFHTTPAuthenticationUsername];
@@ -1720,7 +1720,7 @@ static BOOL isiPhoneOS2;
 			NSArray *newCookies = [NSHTTPCookie cookiesWithResponseHeaderFields:responseHeaders forURL:url];
 			[self setResponseCookies:newCookies];
 			
-			if ([self useCookiePersistance]) {
+			if ([self useCookiePersistence]) {
 				
 				// Store cookies in global persistent store
 				[[NSHTTPCookieStorage sharedHTTPCookieStorage] setCookies:newCookies forURL:url mainDocumentURL:nil];
@@ -1847,10 +1847,10 @@ static BOOL isiPhoneOS2;
 		if (CFHTTPMessageApplyCredentialDictionary(request, proxyAuthentication, (CFMutableDictionaryRef)newCredentials, NULL)) {
 			
 			//If we have credentials and they're ok, let's save them to the keychain
-			if (useKeychainPersistance) {
+			if (useKeychainPersistence) {
 				[self saveProxyCredentialsToKeychain:newCredentials];
 			}
-			if (useSessionPersistance) {
+			if (useSessionPersistence) {
 				NSMutableDictionary *sessionProxyCredentials = [NSMutableDictionary dictionary];
 				[sessionProxyCredentials setObject:(id)proxyAuthentication forKey:@"Authentication"];
 				[sessionProxyCredentials setObject:newCredentials forKey:@"Credentials"];
@@ -1877,10 +1877,10 @@ static BOOL isiPhoneOS2;
 		if (CFHTTPMessageApplyCredentialDictionary(request, requestAuthentication, (CFMutableDictionaryRef)newCredentials, NULL)) {
 			
 			//If we have credentials and they're ok, let's save them to the keychain
-			if (useKeychainPersistance) {
+			if (useKeychainPersistence) {
 				[self saveCredentialsToKeychain:newCredentials];
 			}
-			if (useSessionPersistance) {
+			if (useSessionPersistence) {
 				
 				NSMutableDictionary *sessionCredentials = [NSMutableDictionary dictionary];
 				[sessionCredentials setObject:(id)requestAuthentication forKey:@"Authentication"];
@@ -1931,7 +1931,7 @@ static BOOL isiPhoneOS2;
 
 	
 	// Ok, that didn't work, let's try the keychain
-	// For authenticating proxies, we'll look in the keychain regardless of the value of useKeychainPersistance
+	// For authenticating proxies, we'll look in the keychain regardless of the value of useKeychainPersistence
 	if ((!user || !pass)) {
 		NSURLCredential *authenticationCredentials = [ASIHTTPRequest savedCredentialsForProxy:[self proxyHost] port:[self proxyPort] protocol:[[self url] scheme] realm:[self proxyAuthenticationRealm]];
 		if (authenticationCredentials) {
@@ -1985,7 +1985,7 @@ static BOOL isiPhoneOS2;
 	}
 	
 	// Ok, that didn't work, let's try the keychain
-	if ((!user || !pass) && useKeychainPersistance) {
+	if ((!user || !pass) && useKeychainPersistence) {
 		NSURLCredential *authenticationCredentials = [ASIHTTPRequest savedCredentialsForHost:[[self url] host] port:[[[self url] port] intValue] protocol:[[self url] scheme] realm:[self authenticationRealm]];
 		if (authenticationCredentials) {
 			user = [authenticationCredentials user];
@@ -2102,7 +2102,7 @@ static BOOL isiPhoneOS2;
 			
 			
 			// Now we've acquired the lock, it may be that the session contains credentials we can re-use for this request
-			if ([self useSessionPersistance]) {
+			if ([self useSessionPersistence]) {
 				NSDictionary *credentials = [self findSessionProxyAuthenticationCredentials];
 				if (credentials && [self applyProxyCredentials:[credentials objectForKey:@"Credentials"]]) {
 					[delegateAuthenticationLock unlock];
@@ -2160,7 +2160,7 @@ static BOOL isiPhoneOS2;
 		}
 		
 		// Now we've acquired the lock, it may be that the session contains credentials we can re-use for this request
-		if ([self useSessionPersistance]) {
+		if ([self useSessionPersistence]) {
 			NSDictionary *credentials = [self findSessionProxyAuthenticationCredentials];
 			if (credentials && [self applyProxyCredentials:[credentials objectForKey:@"Credentials"]]) {
 				[delegateAuthenticationLock unlock];
@@ -2288,7 +2288,7 @@ static BOOL isiPhoneOS2;
 			}
 			
 			// Now we've acquired the lock, it may be that the session contains credentials we can re-use for this request
-			if ([self useSessionPersistance]) {
+			if ([self useSessionPersistence]) {
 				NSDictionary *credentials = [self findSessionAuthenticationCredentials];
 				if (credentials && [self applyCredentials:[credentials objectForKey:@"Credentials"]]) {
 					[delegateAuthenticationLock unlock];
@@ -2344,7 +2344,7 @@ static BOOL isiPhoneOS2;
 		}
 		
 		// Now we've acquired the lock, it may be that the session contains credentials we can re-use for this request
-		if ([self useSessionPersistance]) {
+		if ([self useSessionPersistence]) {
 			NSDictionary *credentials = [self findSessionAuthenticationCredentials];
 			if (credentials && [self applyCredentials:[credentials objectForKey:@"Credentials"]]) {
 				[delegateAuthenticationLock unlock];
@@ -2731,9 +2731,9 @@ static BOOL isiPhoneOS2;
 	[newRequest setPostBodyFilePath:[self postBodyFilePath]];
 	[newRequest setRequestHeaders:[[[self requestHeaders] copyWithZone:zone] autorelease]];
 	[newRequest setRequestCookies:[[[self requestCookies] copyWithZone:zone] autorelease]];
-	[newRequest setUseCookiePersistance:[self useCookiePersistance]];
-	[newRequest setUseKeychainPersistance:[self useKeychainPersistance]];
-	[newRequest setUseSessionPersistance:[self useSessionPersistance]];
+	[newRequest setUseCookiePersistence:[self useCookiePersistence]];
+	[newRequest setUseKeychainPersistence:[self useKeychainPersistence]];
+	[newRequest setUseSessionPersistence:[self useSessionPersistence]];
 	[newRequest setAllowCompressedResponse:[self allowCompressedResponse]];
 	[newRequest setDownloadDestinationPath:[self downloadDestinationPath]];
 	[newRequest setTemporaryFileDownloadPath:[self temporaryFileDownloadPath]];
@@ -3673,9 +3673,9 @@ static BOOL isiPhoneOS2;
 @synthesize queue;
 @synthesize uploadProgressDelegate;
 @synthesize downloadProgressDelegate;
-@synthesize useKeychainPersistance;
-@synthesize useSessionPersistance;
-@synthesize useCookiePersistance;
+@synthesize useKeychainPersistence;
+@synthesize useSessionPersistence;
+@synthesize useCookiePersistence;
 @synthesize downloadDestinationPath;
 @synthesize temporaryFileDownloadPath;
 @synthesize didStartSelector;

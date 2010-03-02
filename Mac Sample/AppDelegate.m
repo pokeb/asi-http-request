@@ -191,7 +191,7 @@
 	request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com/top_secret/"]] autorelease];
 	[request setDidFinishSelector:@selector(topSecretFetchComplete:)];
 	[request setDelegate:self];
-	[request setUseKeychainPersistance:[keychainCheckbox state]];
+	[request setUseKeychainPersistence:[keychainCheckbox state]];
 	[request startAsynchronous];
 
 }

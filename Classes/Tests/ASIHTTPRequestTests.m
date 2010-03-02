@@ -673,7 +673,7 @@
 	// Set setting a cookie
 	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/set_cookie"] autorelease];
 	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-	[request setUseCookiePersistance:YES];
+	[request setUseCookiePersistence:YES];
 	[request startSynchronous];
 	NSString *html = [request responseString];
 	success = [html isEqualToString:@"I have set a cookie"];
@@ -707,21 +707,21 @@
 	// Test a cookie is presented when manually added to the request
 	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/read_cookie"] autorelease];
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-	[request setUseCookiePersistance:NO];
+	[request setUseCookiePersistence:NO];
 	[request setRequestCookies:[NSMutableArray arrayWithObject:cookie]];
 	[request startSynchronous];
 	html = [request responseString];
 	success = [html isEqualToString:@"I have 'This is the value' as the value of 'ASIHTTPRequestTestCookie'"];
-	GHAssertTrue(success,@"Cookie not presented to the server with cookie persistance OFF");
+	GHAssertTrue(success,@"Cookie not presented to the server with cookie persistence OFF");
 
 	// Test a cookie is presented from the persistent store
 	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/read_cookie"] autorelease];
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-	[request setUseCookiePersistance:YES];
+	[request setUseCookiePersistence:YES];
 	[request startSynchronous];
 	html = [request responseString];
 	success = [html isEqualToString:@"I have 'This is the value' as the value of 'ASIHTTPRequestTestCookie'"];
-	GHAssertTrue(success,@"Cookie not presented to the server with cookie persistance ON");
+	GHAssertTrue(success,@"Cookie not presented to the server with cookie persistence ON");
 	
 	// Test removing a cookie
 	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/remove_cookie"] autorelease];
@@ -754,12 +754,12 @@
 
 	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/read_cookie"] autorelease];
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-	[request setUseCookiePersistance:NO];
+	[request setUseCookiePersistence:NO];
 	[request setRequestCookies:[NSMutableArray arrayWithObject:cookie]];
 	[request startSynchronous];
 	html = [request responseString];
 	success = [html isEqualToString:@"I have 'Test\r\nValue' as the value of 'ASIHTTPRequestTestCookie'"];
-	GHAssertTrue(success,@"Custom cookie not presented to the server with cookie persistance OFF");
+	GHAssertTrue(success,@"Custom cookie not presented to the server with cookie persistence OFF");
 	
 
 	// Test removing all cookies works
@@ -770,7 +770,7 @@
 
 	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/read_cookie"] autorelease];
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-	[request setUseCookiePersistance:YES];
+	[request setUseCookiePersistence:YES];
 	[request startSynchronous];
 	html = [request responseString];
 	success = [html isEqualToString:@"No cookie exists"];
@@ -781,20 +781,20 @@
 	
 	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/set_cookie"] autorelease];
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-	[request setUseCookiePersistance:YES];
-	[request setUseSessionPersistance:NO];
+	[request setUseCookiePersistence:YES];
+	[request setUseSessionPersistence:NO];
 	[request startSynchronous];
 	
 	NSURL *originalURL = [NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/"];
 	url = [NSURL URLWithString:@"read_cookie" relativeToURL:originalURL];
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-	[request setUseCookiePersistance:YES];
-	[request setUseSessionPersistance:NO];
+	[request setUseCookiePersistence:YES];
+	[request setUseSessionPersistence:NO];
 	[request startSynchronous];
 	html = [request responseString];
 	NSLog(@"%@",html);
 	success = [html isEqualToString:@"I have 'This is the value' as the value of 'ASIHTTPRequestTestCookie'"];
-	GHAssertTrue(success,@"Custom cookie not presented to the server with cookie persistance OFF");
+	GHAssertTrue(success,@"Custom cookie not presented to the server with cookie persistence OFF");
 	
 }
 
@@ -819,14 +819,14 @@
 	
 	// Test authentication needed when no credentials supplied
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-	[request setUseKeychainPersistance:NO];
+	[request setUseKeychainPersistence:NO];
 	[request startSynchronous];
 	success = [[request error] code] == ASIAuthenticationErrorType;
 	GHAssertTrue(success,@"Failed to generate permission denied error with no credentials");
 	
 	// Test wrong credentials supplied
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-	[request setUseKeychainPersistance:NO];
+	[request setUseKeychainPersistence:NO];
 	[request setUsername:@"wrong"];
 	[request setPassword:@"wrong"];
 	[request startSynchronous];
@@ -835,8 +835,8 @@
 	
 	// Test correct credentials supplied
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-	[request setUseSessionPersistance:YES];
-	[request setUseKeychainPersistance:YES];
+	[request setUseSessionPersistence:YES];
+	[request setUseKeychainPersistence:YES];
 	[request setShouldPresentCredentialsBeforeChallenge:NO];
 	[request setUsername:@"secret_username"];
 	[request setPassword:@"secret_password"];
@@ -846,16 +846,16 @@
 	
 	// Ensure credentials are not reused
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-	[request setUseSessionPersistance:NO];
-	[request setUseKeychainPersistance:NO];
+	[request setUseSessionPersistence:NO];
+	[request setUseKeychainPersistence:NO];
 	[request startSynchronous];
 	success = [[request error] code] == ASIAuthenticationErrorType;
 	GHAssertTrue(success,@"Reused credentials when we shouldn't have");
 
 	// Ensure credentials stored in the session are reused
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-	[request setUseSessionPersistance:YES];
-	[request setUseKeychainPersistance:NO];
+	[request setUseSessionPersistence:YES];
+	[request setUseKeychainPersistence:NO];
 	[request startSynchronous];
 	err = [request error];
 	GHAssertNil(err,@"Failed to reuse credentials");
@@ -864,14 +864,14 @@
 	
 	// Ensure credentials stored in the session were wiped
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-	[request setUseKeychainPersistance:NO];
+	[request setUseKeychainPersistence:NO];
 	[request startSynchronous];
 	success = [[request error] code] == ASIAuthenticationErrorType;
 	GHAssertTrue(success,@"Failed to clear credentials");
 	
 	// Ensure credentials stored in the keychain are reused
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-	[request setUseKeychainPersistance:YES];
+	[request setUseKeychainPersistence:YES];
 	[request startSynchronous];
 	err = [request error];
 	GHAssertNil(err,@"Failed to use stored credentials");
@@ -880,22 +880,22 @@
 	
 	// Ensure credentials stored in the keychain were wiped
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-	[request setUseKeychainPersistance:YES];
-	[request setUseSessionPersistance:NO];
+	[request setUseKeychainPersistence:YES];
+	[request setUseSessionPersistence:NO];
 	[request startSynchronous];
 	success = [[request error] code] == ASIAuthenticationErrorType;
 	GHAssertTrue(success,@"Failed to clear credentials");
 	
 	// Tests shouldPresentCredentialsBeforeChallenge with credentials stored in the session
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-	[request setUseSessionPersistance:YES];
+	[request setUseSessionPersistence:YES];
 	[request startSynchronous];
 	success = [request authenticationRetryCount] == 0;
 	GHAssertTrue(success,@"Didn't supply credentials before being asked for them when talking to the same server with shouldPresentCredentialsBeforeChallenge == YES");	
 	
 	// Ensure credentials stored in the session were not presented to the server before it asked for them
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-	[request setUseSessionPersistance:YES];
+	[request setUseSessionPersistence:YES];
 	[request setShouldPresentCredentialsBeforeChallenge:NO];
 	[request startSynchronous];
 	success = [request authenticationRetryCount] == 1;
@@ -905,7 +905,7 @@
 	
 	// Test credentials set on the request are sent before the server asks for them
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-	[request setUseSessionPersistance:NO];
+	[request setUseSessionPersistence:NO];
 	[request setUsername:@"secret_username"];
 	[request setPassword:@"secret_password"];
 	[request setShouldPresentCredentialsBeforeChallenge:YES];
@@ -915,7 +915,7 @@
 	
 	// Test credentials set on the request aren't sent before the server asks for them
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-	[request setUseSessionPersistance:NO];
+	[request setUseSessionPersistence:NO];
 	[request setUsername:@"secret_username"];
 	[request setPassword:@"secret_password"];
 	[request setShouldPresentCredentialsBeforeChallenge:NO];
@@ -939,8 +939,8 @@
 	// Ok, now let's test on a different server to sanity check that the credentials from out previous requests are not being used
 	url = [NSURL URLWithString:@"https://selfsigned.allseeing-i.com/ASIHTTPRequest/tests/basic-authentication"];
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-	[request setUseSessionPersistance:YES];
-	[request setUseKeychainPersistance:NO];
+	[request setUseSessionPersistence:YES];
+	[request setUseKeychainPersistence:NO];
 	[request setValidatesSecureCertificate:NO];
 	[request startSynchronous];
 	success = [[request error] code] == ASIAuthenticationErrorType;
@@ -962,14 +962,14 @@
 	
 	// Test authentication needed when no credentials supplied
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-	[request setUseKeychainPersistance:NO];
+	[request setUseKeychainPersistence:NO];
 	[request startSynchronous];
 	success = [[request error] code] == ASIAuthenticationErrorType;
 	GHAssertTrue(success,@"Failed to generate permission denied error with no credentials");
 	
 	// Test wrong credentials supplied
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-	[request setUseKeychainPersistance:NO];
+	[request setUseKeychainPersistence:NO];
 	[request setUsername:@"wrong"];
 	[request setPassword:@"wrong"];
 	[request startSynchronous];
@@ -978,8 +978,8 @@
 	
 	// Test correct credentials supplied
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-	[request setUseSessionPersistance:YES];
-	[request setUseKeychainPersistance:YES];
+	[request setUseSessionPersistence:YES];
+	[request setUseKeychainPersistence:YES];
 	[request setUsername:@"secret_username"];
 	[request setPassword:@"secret_password"];
 	[request startSynchronous];
@@ -988,16 +988,16 @@
 	
 	// Ensure credentials are not reused
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-	[request setUseSessionPersistance:NO];
-	[request setUseKeychainPersistance:NO];
+	[request setUseSessionPersistence:NO];
+	[request setUseKeychainPersistence:NO];
 	[request startSynchronous];
 	success = [[request error] code] == ASIAuthenticationErrorType;
 	GHAssertTrue(success,@"Reused credentials when we shouldn't have");
 	
 	// Ensure credentials stored in the session are reused
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-	[request setUseSessionPersistance:YES];
-	[request setUseKeychainPersistance:NO];
+	[request setUseSessionPersistence:YES];
+	[request setUseKeychainPersistence:NO];
 	[request startSynchronous];
 	err = [request error];
 	GHAssertNil(err,@"Failed to reuse credentials");
@@ -1006,14 +1006,14 @@
 	
 	// Ensure credentials stored in the session were wiped
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-	[request setUseKeychainPersistance:NO];
+	[request setUseKeychainPersistence:NO];
 	[request startSynchronous];
 	success = [[request error] code] == ASIAuthenticationErrorType;
 	GHAssertTrue(success,@"Failed to clear credentials");
 	
 	// Ensure credentials stored in the keychain are reused
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-	[request setUseKeychainPersistance:YES];
+	[request setUseKeychainPersistence:YES];
 	[request startSynchronous];
 	err = [request error];
 	GHAssertNil(err,@"Failed to reuse credentials");
@@ -1022,8 +1022,8 @@
 	
 	// Ensure credentials stored in the keychain were wiped
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-	[request setUseKeychainPersistance:YES];
-	[request setUseSessionPersistance:NO];
+	[request setUseKeychainPersistence:YES];
+	[request setUseSessionPersistence:NO];
 	[request startSynchronous];
 	success = [[request error] code] == ASIAuthenticationErrorType;
 	GHAssertTrue(success,@"Failed to clear credentials");	
@@ -1031,7 +1031,7 @@
 	
 	// Test credentials set on the request are sent before the server asks for them
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
-	[request setUseSessionPersistance:YES];
+	[request setUseSessionPersistence:YES];
 	[request setShouldPresentCredentialsBeforeChallenge:YES];
 	[request startSynchronous];
 	success = [request authenticationRetryCount] == 0;
@@ -1049,16 +1049,16 @@
 	NSURL *url = [NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/pretend-ntlm-handshake"];
 	
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:url];
-	[request setUseKeychainPersistance:NO];
-	[request setUseSessionPersistance:NO];
+	[request setUseKeychainPersistence:NO];
+	[request setUseSessionPersistence:NO];
 	[request startSynchronous];
 	BOOL success = [[request error] code] == ASIAuthenticationErrorType;
 	GHAssertTrue(success,@"Failed to generate permission denied error with no credentials");
 
 
 	request = [ASIHTTPRequest requestWithURL:url];
-	[request setUseSessionPersistance:YES];
-	[request setUseKeychainPersistance:NO];
+	[request setUseSessionPersistence:YES];
+	[request setUseKeychainPersistence:NO];
 	[request setUsername:@"king"];
 	[request setPassword:@"fink"];
 	[request setDomain:@"Castle.Kingdom"];

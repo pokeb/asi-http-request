@@ -1041,8 +1041,8 @@ IMPORTANT
 	[self setTestNTLMQueue:[ASINetworkQueue queue]];
 	
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/pretend-ntlm-handshake"]];
-	[request setUseKeychainPersistance:NO];
-	[request setUseSessionPersistance:NO];
+	[request setUseKeychainPersistence:NO];
+	[request setUseSessionPersistence:NO];
 	[request setUserInfo:[NSDictionary dictionaryWithObject:@"ntlm" forKey:@"test"]];
 	
 	[[self testNTLMQueue] setRequestDidFinishSelector:@selector(ntlmDone:)];
