@@ -223,6 +223,7 @@ static BOOL isiPhoneOS2;
 	[self setRequestMethod:@"GET"];
 
 	[self setShouldAttemptPersistentConnection:YES];
+	[self setPersistentConnectionTimeout:60.0];
 	[self setShouldPresentCredentialsBeforeChallenge:YES];
 	[self setShouldRedirect:YES];
 	[self setShowAccurateProgress:YES];
@@ -1805,7 +1806,10 @@ static BOOL isiPhoneOS2;
 					// Otherwise, we'll assume we can keep this connection open
 					} else {
 						[self setConnectionCanBeReused:YES];
-						closeStreamTime = 60; 
+						closeStreamTime = [self persistentConnectionTimeout];
+#if DEBUG_PERSISTENT_CONNECTIONS
+						NSLog(@"Set connection to close after %f seconds", closeStreamTime);
+#endif
 					}
 				}
 			}
@@ -3748,6 +3752,7 @@ static BOOL isiPhoneOS2;
 @synthesize numberOfTimesToRetryOnTimeout;
 @synthesize retryCount;
 @synthesize shouldAttemptPersistentConnection;
+@synthesize persistentConnectionTimeout;
 @synthesize connectionCanBeReused;
 @synthesize connectionInfo;
 @synthesize readStream;

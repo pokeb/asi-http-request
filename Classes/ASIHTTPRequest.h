@@ -342,6 +342,10 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	// Persistent connections only work when the server sends a 'Keep-Alive' header
 	// Default is YES
 	BOOL shouldAttemptPersistentConnection;
+
+	// Number of seconds to keep an inactive persistent connection open on the client side
+	// Default is 60
+	NSTimeInterval persistentConnectionTimeout;
 	
 	// Set to yes when an appropriate keep-alive header is found
 	BOOL connectionCanBeReused;
@@ -716,6 +720,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 @property (assign) int numberOfTimesToRetryOnTimeout;
 @property (assign, readonly) int retryCount;
 @property (assign) BOOL shouldAttemptPersistentConnection;
+@property (assign) NSTimeInterval persistentConnectionTimeout;
 @property (assign) BOOL shouldUseRFC2616RedirectBehaviour;
 @property (assign, readonly) BOOL connectionCanBeReused;
 @end
