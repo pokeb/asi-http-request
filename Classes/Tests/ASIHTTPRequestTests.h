@@ -61,4 +61,5 @@
 #endif
 - (void)testAutomaticRetry;
 - (void)testCloseConnection;
+- (void)testPersistentConnectionTimeout;
 @end

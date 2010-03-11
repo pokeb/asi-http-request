@@ -339,20 +339,18 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	int retryCount;
 	
 	// When YES, requests will keep the connection to the server alive for a while to allow subsequent requests to re-use it for a substantial speed-boost
-	// Persistent connections only work when the server sends a 'Keep-Alive' header
+	// Persistent connections will not be used if the server explicitly closes the connection
 	// Default is YES
 	BOOL shouldAttemptPersistentConnection;
 
 	// Number of seconds to keep an inactive persistent connection open on the client side
 	// Default is 60
-	NSTimeInterval persistentConnectionTimeout;
+	// If we get a keep-alive header, this is this value is replaced with how long the server told us to keep the connection around
+	// A future date is created from this and used for expiring the connection, this is stored in connectionInfo's expires value
+	NSTimeInterval persistentConnectionTimeoutSeconds;
 	
 	// Set to yes when an appropriate keep-alive header is found
 	BOOL connectionCanBeReused;
-	
-	// Populated with the number of seconds the server told us we could keep a persistent connection around
-	// A future date is created from this and used for expiring the connection, this is stored in connectionInfo's expires value
-	NSTimeInterval closeStreamTime;
 	
 	// Stores information about the persistent connection that is currently in use.
 	// It may contain:
@@ -509,6 +507,9 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 - (void)handleBytesAvailable;
 - (void)handleStreamComplete;
 - (void)handleStreamError;
+
+// Get the ID of the connection this request used (only really useful in tests and debugging)
+- (NSNumber *)connectionID;
 
 // Called automatically when a request is started to clean up any persistent connections that have expired
 + (void)expirePersistentConnections;
@@ -720,7 +721,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 @property (assign) int numberOfTimesToRetryOnTimeout;
 @property (assign, readonly) int retryCount;
 @property (assign) BOOL shouldAttemptPersistentConnection;
-@property (assign) NSTimeInterval persistentConnectionTimeout;
+@property (assign) NSTimeInterval persistentConnectionTimeoutSeconds;
 @property (assign) BOOL shouldUseRFC2616RedirectBehaviour;
 @property (assign, readonly) BOOL connectionCanBeReused;
 @end

@@ -1399,15 +1399,6 @@
 	
 }
 
-- (void)testCloseConnection
-{
-	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/close-connection"]];
-	[request startSynchronous];
-	
-	BOOL success = ![request connectionCanBeReused];
-	GHAssertTrue(success,@"Should not be able to re-use a request sent with Connection:close");
-	
-}
 
 
 // Will be called on Mac OS
@@ -1463,6 +1454,43 @@
 	GHAssertTrue(success,@"Failed to create a retained copy");
 	
 	[request2 release];
+}
+
+- (void)testCloseConnection
+{
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/close-connection"]];
+	[request startSynchronous];
+	
+	BOOL success = ![request connectionCanBeReused];
+	GHAssertTrue(success,@"Should not be able to re-use a request sent with Connection:close");
+	
+}
+
+- (void)testPersistentConnectionTimeout
+{
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
+	
+	BOOL success = ([request persistentConnectionTimeoutSeconds] == 60);
+	GHAssertTrue(success,@"Request failed to default to 60 seconds for connection timeout");
+	
+	[request startSynchronous];
+	
+	NSNumber *connectionId = [request connectionID];
+	
+	success = ([request persistentConnectionTimeoutSeconds] == 2);
+	GHAssertTrue(success,@"Request failed to use time out set by server");
+	
+	// Wait 3 seconds - connection should have timed out
+	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:3]];
+	
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
+	[request startSynchronous];
+	
+	success = ([[request connectionID] intValue] != [connectionId intValue]);
+	GHAssertTrue(success,@"Reused a connection that should have timed out");
+	
+
+	
 }
 
 @end

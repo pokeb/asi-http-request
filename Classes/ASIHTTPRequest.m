@@ -21,7 +21,7 @@
 #import "ASIInputStream.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @" 2010-03-08";
+NSString *ASIHTTPRequestVersion = @"v1.6-3 2010-03-11";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -219,11 +219,10 @@ static BOOL isiPhoneOS2;
 - (id)initWithURL:(NSURL *)newURL
 {
 	self = [super init];
-	closeStreamTime = 2;
 	[self setRequestMethod:@"GET"];
 
 	[self setShouldAttemptPersistentConnection:YES];
-	[self setPersistentConnectionTimeout:60.0];
+	[self setPersistentConnectionTimeoutSeconds:60.0];
 	[self setShouldPresentCredentialsBeforeChallenge:YES];
 	[self setShouldRedirect:YES];
 	[self setShowAccurateProgress:YES];
@@ -1582,7 +1581,7 @@ static BOOL isiPhoneOS2;
 		[self destroyReadStream];
 	}
 	if ([self connectionCanBeReused]) {
-		[[self connectionInfo] setObject:[NSDate dateWithTimeIntervalSinceNow:closeStreamTime] forKey:@"expires"];
+		[[self connectionInfo] setObject:[NSDate dateWithTimeIntervalSinceNow:[self persistentConnectionTimeoutSeconds]] forKey:@"expires"];
 	}
 	
 	if ([self isCancelled] || [self error]) {
@@ -1800,16 +1799,18 @@ static BOOL isiPhoneOS2;
 						[scanner scanInt:&max];
 						if (max > 5) {
 							[self setConnectionCanBeReused:YES];
-							closeStreamTime = timeout;
+							[self setPersistentConnectionTimeoutSeconds:timeout];
+							#if DEBUG_PERSISTENT_CONNECTIONS
+								NSLog(@"Got a keep-alive header, will keep this connection open for %f seconds", [self persistentConnectionTimeoutSeconds]);
+							#endif					
 						}
 					
 					// Otherwise, we'll assume we can keep this connection open
 					} else {
 						[self setConnectionCanBeReused:YES];
-						closeStreamTime = [self persistentConnectionTimeout];
-#if DEBUG_PERSISTENT_CONNECTIONS
-						NSLog(@"Set connection to close after %f seconds", closeStreamTime);
-#endif
+						#if DEBUG_PERSISTENT_CONNECTIONS
+							NSLog(@"Got no keep-alive header, will keep this connection open for %f seconds", [self persistentConnectionTimeoutSeconds]);
+						#endif
 					}
 				}
 			}
@@ -2607,7 +2608,7 @@ static BOOL isiPhoneOS2;
 	NSLog(@"Request #%@ finished using connection #%@",[[self connectionInfo] objectForKey:@"request"], [[self connectionInfo] objectForKey:@"id"]);
 	#endif
 	[[self connectionInfo] removeObjectForKey:@"request"];
-	[[self connectionInfo] setObject:[NSDate dateWithTimeIntervalSinceNow:closeStreamTime] forKey:@"expires"];
+	[[self connectionInfo] setObject:[NSDate dateWithTimeIntervalSinceNow:[self persistentConnectionTimeoutSeconds]] forKey:@"expires"];
 	[connectionsLock unlock];
 	
 	if (![self authenticationNeeded]) {
@@ -2637,13 +2638,29 @@ static BOOL isiPhoneOS2;
 
 
 - (void)handleStreamError
+
 {
 	NSError *underlyingError = [(NSError *)CFReadStreamCopyError((CFReadStreamRef)[self readStream]) autorelease];
 	
 	[self cancelLoad];
-	[self setComplete:YES];
 	
 	if (![self error]) { // We may already have handled this error
+		
+		// First, check for a socket not connected error
+		// This may occur when we've attempted to reuse a connection that should have been closed
+		// If we get this, we need to retry the request
+		// We'll only do this once - if it happens again on retry, we'll give up
+		if ([[underlyingError domain] isEqualToString:NSPOSIXErrorDomain]) {
+			if ([underlyingError code] == ENOTCONN && [self retryCount] == 0) {
+				
+				#if DEBUG_PERSISTENT_CONNECTIONS
+					NSLog(@"Request #%@ attempted to use connection #%@, but is has been closed - will retry with a new connection",[[self connectionInfo] objectForKey:@"request"], [[self connectionInfo] objectForKey:@"id"]);
+				#endif		
+				[self setRetryCount:[self retryCount]+1];
+				[self startRequest];
+				return;
+			}
+		}
 		
 		NSString *reason = @"A connection failure occurred";
 		
@@ -2699,6 +2716,11 @@ static BOOL isiPhoneOS2;
 		CFReadStreamUnscheduleFromRunLoop((CFReadStreamRef)[self readStream], CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
 		[self setReadStreamIsScheduled:NO];
 	}
+}
+
+- (NSNumber *)connectionID
+{
+	return [[self connectionInfo] objectForKey:@"id"];
 }
 
 + (void)expirePersistentConnections
@@ -2771,6 +2793,8 @@ static BOOL isiPhoneOS2;
 	[newRequest setShouldPresentCredentialsBeforeChallenge:[self shouldPresentCredentialsBeforeChallenge]];
 	[newRequest setNumberOfTimesToRetryOnTimeout:[self numberOfTimesToRetryOnTimeout]];
 	[newRequest setShouldUseRFC2616RedirectBehaviour:[self shouldUseRFC2616RedirectBehaviour]];
+	[newRequest setShouldAttemptPersistentConnection:[self shouldAttemptPersistentConnection]];
+	[newRequest setPersistentConnectionTimeoutSeconds:[self persistentConnectionTimeoutSeconds]];
 	return newRequest;
 }
 
@@ -3752,7 +3776,7 @@ static BOOL isiPhoneOS2;
 @synthesize numberOfTimesToRetryOnTimeout;
 @synthesize retryCount;
 @synthesize shouldAttemptPersistentConnection;
-@synthesize persistentConnectionTimeout;
+@synthesize persistentConnectionTimeoutSeconds;
 @synthesize connectionCanBeReused;
 @synthesize connectionInfo;
 @synthesize readStream;
