@@ -56,7 +56,6 @@
 //Builds a query string out of the list parameters we supplied
 - (void)createQueryString;
 
-
 // Returns a date formatter than can be used to parse a date from S3
 + (NSDateFormatter *)dateFormatter;
 

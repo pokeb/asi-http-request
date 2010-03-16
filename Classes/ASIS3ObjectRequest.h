@@ -42,7 +42,6 @@
 // See the S3 REST API docs for more information about the parameters you can pass
 + (id)requestWithBucket:(NSString *)bucket key:(NSString *)key subResource:(NSString *)subResource;
 
-
 // Create a PUT request using the file at filePath as the body
 + (id)PUTRequestForFile:(NSString *)filePath withBucket:(NSString *)bucket key:(NSString *)key;
 

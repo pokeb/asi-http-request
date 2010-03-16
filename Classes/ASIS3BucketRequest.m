@@ -149,7 +149,7 @@ static NSDateFormatter *dateFormatter = nil;
 	} else if ([elementName isEqualToString:@"Key"]) {
 		[[self currentObject] setKey:[self currentContent]];
 	} else if ([elementName isEqualToString:@"LastModified"]) {
-		[[self currentObject] setLastModified:[dateFormatter dateFromString:[self currentContent]]];
+		[[self currentObject] setLastModified:[[ASIS3BucketRequest dateFormatter] dateFromString:[self currentContent]]];
 	} else if ([elementName isEqualToString:@"ETag"]) {
 		[[self currentObject] setETag:[self currentContent]];
 	} else if ([elementName isEqualToString:@"Size"]) {

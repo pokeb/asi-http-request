@@ -36,14 +36,14 @@ static NSString *bucket = @"";
 
 @implementation ASIS3RequestTests
 
+
 - (void)testASIS3ServiceRequest
 {
-//	ASIS3ServiceRequest *request = [ASIS3ServiceRequest serviceRequest];
-//	[request setSecretAccessKey:secretAccessKey];
-//	[request setAccessKey:accessKey];
-//	[request startSynchronous];
-//	NSLog(@"%@",[request responseString]);
-//	GHAssertNil([request error],@"Failed to fetch the list of buckets from S3");	
+	ASIS3ServiceRequest *request = [ASIS3ServiceRequest serviceRequest];
+	[request setSecretAccessKey:secretAccessKey];
+	[request setAccessKey:accessKey];
+	[request startSynchronous];
+	GHAssertNil([request error],@"Failed to fetch the list of buckets from S3");	
 }
 
 // All these tests are based on Amazon's examples at: http://docs.amazonwebservices.com/AmazonS3/2006-03-01/
@@ -150,6 +150,7 @@ static NSString *bucket = @"";
 	
 }
 
+
 // To run this test, uncomment and fill in your S3 access details
 - (void)testREST
 {
@@ -204,9 +205,8 @@ static NSString *bucket = @"";
 	success = [[request responseString] isEqualToString:@""];
 	GHAssertTrue(success,@"Got a response body for a HEAD request");
 	
-	// Get a list of files
+	// Test listing the objects in this bucket
 	ASIS3BucketRequest *listRequest = [ASIS3BucketRequest requestWithBucket:bucket];
-	[listRequest setPrefix:@"test"];
 	[listRequest setSecretAccessKey:secretAccessKey];
 	[listRequest setAccessKey:accessKey];
 	[listRequest startSynchronous];
@@ -214,6 +214,16 @@ static NSString *bucket = @"";
 	success = [[listRequest bucketObjects] count];
 	GHAssertTrue(success,@"The file didn't show up in the list");	
 
+	// Test again with a prefix query
+	listRequest = [ASIS3BucketRequest requestWithBucket:bucket];
+	[listRequest setPrefix:@"test"];
+	[listRequest setSecretAccessKey:secretAccessKey];
+	[listRequest setAccessKey:accessKey];
+	[listRequest startSynchronous];
+	GHAssertNil([listRequest error],@"Failed to download a list from S3");
+	success = [[listRequest bucketObjects] count];
+	GHAssertTrue(success,@"The file didn't show up in the list");
+	
 	// DELETE the file
 	request = [ASIS3ObjectRequest requestWithBucket:bucket key:key];
 	[request setSecretAccessKey:secretAccessKey];
