@@ -5,7 +5,8 @@
 //  Created by Ben Copsey on 30/06/2009.
 //  Copyright 2009 All-Seeing Interactive. All rights reserved.
 //
-// A (basic) class for accessing data stored on Amazon's Simple Storage Service (http://aws.amazon.com/s3/) using the REST API
+// A class for accessing data stored on Amazon's Simple Storage Service (http://aws.amazon.com/s3/) using the REST API
+// While you can use this class directly, the included subclasses make typical operations easier
 
 #import <Foundation/Foundation.h>
 #import "ASIHTTPRequest.h"
@@ -34,27 +35,12 @@ typedef enum _ASIS3ErrorType {
 	// Your S3 secret access key. Set it on the request, or set it globally using [ASIS3Request setSharedSecretAccessKey:]
 	NSString *secretAccessKey;
 	
-	// Name of the bucket to talk to
-	NSString *bucket;
-	
-	// Key of the resource you want to access on S3. Leave empty for the bucket root
-	NSString *key;
-	
 	// The string that will be used in the HTTP date header. Generally you'll want to ignore this and let the class add the current date for you, but the accessor is used by the tests
 	NSString *dateString;
-	
-	// The mime type of the content for PUT requests
-	// Set this if having the correct mime type returned to you when you GET the data is important (eg it will be served by a web-server)
-	// Will be set to 'application/octet-stream' otherwise in iPhone apps, or autodetected on Mac OS X
-	NSString *mimeType;
-	
-	// The access policy to use when PUTting a file (see the string constants at the top of this header)
+
+	// The access policy to use when PUTting a file (see the string constants at the top ASIS3Request.h for details on what the possible options are)
 	NSString *accessPolicy;
-	
-	// The bucket + path of the object to be copied (used with COPYRequestFromBucket:path:toBucket:path:)
-	NSString *sourceBucket;
-	NSString *sourceKey;
-	
+
 	// Internally used while parsing errors
 	NSString *currentErrorString;
 	
@@ -62,29 +48,16 @@ typedef enum _ASIS3ErrorType {
 
 #pragma mark Constructors
 
-// Create a request, building an appropriate url
-+ (id)requestWithBucket:(NSString *)bucket key:(NSString *)key;
-
-// Create a PUT request using the file at filePath as the body
-+ (id)PUTRequestForFile:(NSString *)filePath withBucket:(NSString *)bucket key:(NSString *)key;
-
-// Create a PUT request using the supplied NSData as the body (set the mime-type manually with setMimeType: if necessary)
-+ (id)PUTRequestForData:(NSData *)data withBucket:(NSString *)bucket key:(NSString *)key;
-	
-// Create a DELETE request for the object at path
-+ (id)DELETERequestWithBucket:(NSString *)bucket key:(NSString *)key;
-
-// Create a PUT request to copy an object from one location to another
-// Clang will complain because it thinks this method should return an object with +1 retain :(
-+ (id)COPYRequestFromBucket:(NSString *)sourceBucket key:(NSString *)sourceKey toBucket:(NSString *)bucket key:(NSString *)key;
-
-// Creates a HEAD request for the object at path
-+ (id)HEADRequestWithBucket:(NSString *)bucket key:(NSString *)key;
-
 
 // Uses the supplied date to create a Date header string
 - (void)setDate:(NSDate *)date;
 
+- (NSMutableDictionary *)S3Headers;
+- (NSString *)stringToSignForHeaders:(NSString *)canonicalizedAmzHeaders resource:(NSString *)canonicalizedResource;
+
+	
+# pragma mark encoding S3 key
+	
 + (NSString *)stringByURLEncodingForS3Path:(NSString *)key;
 	
 #pragma mark Shared access keys
@@ -94,15 +67,10 @@ typedef enum _ASIS3ErrorType {
 + (void)setSharedAccessKey:(NSString *)newAccessKey;
 + (NSString *)sharedSecretAccessKey;
 + (void)setSharedSecretAccessKey:(NSString *)newAccessKey;
-
-
-@property (retain) NSString *bucket;
-@property (retain) NSString *key;
+- (void)parseResponseXML;
+	
 @property (retain) NSString *dateString;
-@property (retain) NSString *mimeType;
 @property (retain) NSString *accessKey;
 @property (retain) NSString *secretAccessKey;
 @property (retain) NSString *accessPolicy;
-@property (retain) NSString *sourceBucket;
-@property (retain) NSString *sourceKey;
 @end

@@ -19,9 +19,7 @@ static NSString *sharedSecretAccessKey = nil;
 
 // Private stuff
 @interface ASIS3Request ()
-	- (void)parseError;
 	+ (NSData *)HMACSHA1withKey:(NSString *)key forString:(NSString *)string;
-	
 	@property (retain, nonatomic) NSString *currentErrorString;
 @end
 
@@ -41,66 +39,11 @@ static NSString *sharedSecretAccessKey = nil;
 	return path;
 }
 
-+ (id)requestWithBucket:(NSString *)bucket key:(NSString *)key
-{
-	NSString *path = [ASIS3Request stringByURLEncodingForS3Path:key];
-	ASIS3Request *request = [[[self alloc] initWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://%@.s3.amazonaws.com%@",bucket,path]]] autorelease];
-	[request setBucket:bucket];
-	[request setKey:key];
-	return request;
-}
-
-+ (id)PUTRequestForData:(NSData *)data withBucket:(NSString *)bucket key:(NSString *)key
-{
-	ASIS3Request *request = [self requestWithBucket:bucket key:key];
-	[request appendPostData:data];
-	[request setRequestMethod:@"PUT"];
-	return request;
-}
-
-+ (id)PUTRequestForFile:(NSString *)filePath withBucket:(NSString *)bucket key:(NSString *)key
-{
-	ASIS3Request *request = [self requestWithBucket:bucket key:key];
-	[request setPostBodyFilePath:filePath];
-	[request setShouldStreamPostDataFromDisk:YES];
-	[request setRequestMethod:@"PUT"];
-	[request setMimeType:[ASIHTTPRequest mimeTypeForFileAtPath:filePath]];
-	return request;
-}
-
-+ (id)DELETERequestWithBucket:(NSString *)bucket key:(NSString *)key
-{
-	ASIS3Request *request = [self requestWithBucket:bucket key:key];
-	[request setRequestMethod:@"DELETE"];
-	return request;
-}
-
-+ (id)COPYRequestFromBucket:(NSString *)sourceBucket key:(NSString *)sourceKey toBucket:(NSString *)bucket key:(NSString *)key
-{
-	ASIS3Request *request = [self requestWithBucket:bucket key:key];
-	[request setRequestMethod:@"PUT"];
-	[request setSourceBucket:sourceBucket];
-	[request setSourceKey:sourceKey];
-	return request;
-}
-
-+ (id)HEADRequestWithBucket:(NSString *)bucket key:(NSString *)key
-{
-	ASIS3Request *request = [self requestWithBucket:bucket key:key];
-	[request setRequestMethod:@"HEAD"];
-	return request;
-}
-
 - (void)dealloc
 {
-	[bucket release];
-	[key release];
 	[dateString release];
-	[mimeType release];
 	[accessKey release];
 	[secretAccessKey release];
-	[sourceKey release];
-	[sourceBucket release];
 	[super dealloc];
 }
 
@@ -119,11 +62,23 @@ static NSString *sharedSecretAccessKey = nil;
 	ASIS3Request *headRequest = (ASIS3Request *)[super HEADRequest];
 	[headRequest setAccessKey:[self accessKey]];
 	[headRequest setSecretAccessKey:[self secretAccessKey]];
-	[headRequest setKey:[self key]];
-	[headRequest setBucket:[self bucket]];
 	return headRequest;
 }
 
+- (NSMutableDictionary *)S3Headers
+{
+	return [NSMutableDictionary dictionary];
+}
+
+- (NSString *)canonicalizedResource
+{
+	return @"/";
+}
+
+- (NSString *)stringToSignForHeaders:(NSString *)canonicalizedAmzHeaders resource:(NSString *)canonicalizedResource
+{
+	return [NSString stringWithFormat:@"%@\n\n\n%@\n%@%@",[self requestMethod],[self dateString],canonicalizedAmzHeaders,canonicalizedResource];
+}
 
 - (void)buildRequestHeaders
 {
@@ -143,32 +98,19 @@ static NSString *sharedSecretAccessKey = nil;
 	[self addRequestHeader:@"Date" value:[self dateString]];
 	
 	// Ensure our formatted string doesn't use '(null)' for the empty path
-	NSString *canonicalizedResource = [NSString stringWithFormat:@"/%@%@",[self bucket],[ASIS3Request stringByURLEncodingForS3Path:[self key]]];
+	NSString *canonicalizedResource = [self canonicalizedResource];
 	
 	// Add a header for the access policy if one was set, otherwise we won't add one (and S3 will default to private)
-	NSMutableDictionary *amzHeaders = [[[NSMutableDictionary alloc] init] autorelease];
+	NSMutableDictionary *amzHeaders = [self S3Headers];
 	NSString *canonicalizedAmzHeaders = @"";
-	if ([self accessPolicy]) {
-		[amzHeaders setObject:[self accessPolicy] forKey:@"x-amz-acl"];
-	}
-	if ([self sourceKey]) {
-		NSString *path = [ASIS3Request stringByURLEncodingForS3Path:[self sourceKey]];
-		[amzHeaders setObject:[[self sourceBucket] stringByAppendingString:path] forKey:@"x-amz-copy-source"];
-	}
 	for (NSString *header in [amzHeaders keyEnumerator]) {
 		canonicalizedAmzHeaders = [NSString stringWithFormat:@"%@%@:%@\n",canonicalizedAmzHeaders,[header lowercaseString],[amzHeaders objectForKey:header]];
-		[self addRequestHeader:key value:[amzHeaders objectForKey:key]];
+		[self addRequestHeader:header value:[amzHeaders objectForKey:header]];
 	}
 	
 	
 	// Jump through hoops while eating hot food
-	NSString *stringToSign;
-	if ([[self requestMethod] isEqualToString:@"PUT"] && ![self sourceKey]) {
-		[self addRequestHeader:@"Content-Type" value:[self mimeType]];
-		stringToSign = [NSString stringWithFormat:@"PUT\n\n%@\n%@\n%@%@",[self mimeType],dateString,canonicalizedAmzHeaders,canonicalizedResource];
-	} else {
-		stringToSign = [NSString stringWithFormat:@"%@\n\n\n%@\n%@%@",[self requestMethod],dateString,canonicalizedAmzHeaders,canonicalizedResource];
-	}
+	NSString *stringToSign = [self stringToSignForHeaders:canonicalizedAmzHeaders resource:canonicalizedResource];
 	NSString *signature = [ASIHTTPRequest base64forData:[ASIS3Request HMACSHA1withKey:[self secretAccessKey] forString:stringToSign]];
 	NSString *authorizationString = [NSString stringWithFormat:@"AWS %@:%@",[self accessKey],signature];
 	[self addRequestHeader:@"Authorization" value:authorizationString];
@@ -179,21 +121,16 @@ static NSString *sharedSecretAccessKey = nil;
 
 - (void)requestFinished
 {
-	// COPY requests return a 200 whether they succeed or fail, so we need to look at the XML to see if we were successful.
-	if ([self responseStatusCode] == 200 && [self sourceKey] && [self sourceBucket]) {
-		[self parseError];
-		return;
-	}
 	if ([self responseStatusCode] < 207) {
 		[super requestFinished];
 		return;
 	}
-	[self parseError];
+	[self parseResponseXML];
 }
 
 #pragma mark Error XML parsing
 
-- (void)parseError
+- (void)parseResponseXML
 {
 	NSXMLParser *parser = [[[NSXMLParser alloc] initWithData:[self responseData]] autorelease];
 	[parser setDelegate:self];
@@ -231,12 +168,6 @@ static NSString *sharedSecretAccessKey = nil;
 	ASIS3Request *newRequest = [super copyWithZone:zone];
 	[newRequest setAccessKey:[self accessKey]];
 	[newRequest setSecretAccessKey:[self secretAccessKey]];
-	[newRequest setBucket:[self bucket]];
-	[newRequest setKey:[self key]];
-	[newRequest setMimeType:[self mimeType]];
-	[newRequest setAccessPolicy:[self accessPolicy]];
-	[newRequest setSourceBucket:[self sourceBucket]];
-	[newRequest setSourceKey:[self sourceKey]];
 	return newRequest;
 }
 
@@ -266,7 +197,6 @@ static NSString *sharedSecretAccessKey = nil;
 }
 
 
-
 #pragma mark S3 Authentication helpers
 
 // From: http://stackoverflow.com/questions/476455/is-there-a-library-for-iphone-to-work-with-hmac-sha-1-encoding
@@ -286,14 +216,10 @@ static NSString *sharedSecretAccessKey = nil;
 	return [NSData dataWithBytes:digest length:CC_SHA1_DIGEST_LENGTH];
 }
 
-@synthesize bucket;
-@synthesize key;
+
 @synthesize dateString;
-@synthesize mimeType;
 @synthesize accessKey;
 @synthesize secretAccessKey;
-@synthesize accessPolicy;
 @synthesize currentErrorString;
-@synthesize sourceBucket;
-@synthesize sourceKey;
+@synthesize accessPolicy;
 @end

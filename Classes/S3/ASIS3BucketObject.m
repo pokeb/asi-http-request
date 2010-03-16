@@ -7,7 +7,7 @@
 //
 
 #import "ASIS3BucketObject.h"
-#import "ASIS3Request.h"
+#import "ASIS3ObjectRequest.h"
 
 @implementation ASIS3BucketObject
 
@@ -28,19 +28,19 @@
 	[super dealloc];
 }
 
-- (ASIS3Request *)GETRequest
+- (ASIS3ObjectRequest *)GETRequest
 {
-	return [ASIS3Request requestWithBucket:[self bucket] key:[self key]];
+	return [ASIS3ObjectRequest requestWithBucket:[self bucket] key:[self key]];
 }
 
-- (ASIS3Request *)PUTRequestWithFile:(NSString *)filePath
+- (ASIS3ObjectRequest *)PUTRequestWithFile:(NSString *)filePath
 {
-	return [ASIS3Request PUTRequestForFile:filePath withBucket:[self bucket] key:[self key]];
+	return [ASIS3ObjectRequest PUTRequestForFile:filePath withBucket:[self bucket] key:[self key]];
 }
 
-- (ASIS3Request *)DELETERequest
+- (ASIS3ObjectRequest *)DELETERequest
 {
-	ASIS3Request *request = [ASIS3Request requestWithBucket:[self bucket] key:[self key]];
+	ASIS3ObjectRequest *request = [ASIS3ObjectRequest requestWithBucket:[self bucket] key:[self key]];
 	[request setRequestMethod:@"DELETE"];
 	return request;
 }

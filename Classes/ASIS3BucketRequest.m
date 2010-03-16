@@ -1,38 +1,67 @@
 //
-//  ASIS3ListRequest.m
+//  ASIS3BucketRequest.m
 //  Part of ASIHTTPRequest -> http://allseeing-i.com/ASIHTTPRequest
 //
-//  Created by Ben Copsey on 13/07/2009.
-//  Copyright 2009 All-Seeing Interactive. All rights reserved.
+//  Created by Ben Copsey on 16/03/2010.
+//  Copyright 2010 All-Seeing Interactive. All rights reserved.
 //
-#import "ASIS3ListRequest.h"
-#import "ASIS3BucketObject.h"
 
+#import "ASIS3BucketRequest.h"
+#import "ASIS3BucketObject.h"
 
 static NSDateFormatter *dateFormatter = nil;
 
+
 // Private stuff
-@interface ASIS3ListRequest ()
-	@property (retain, nonatomic) NSString *currentContent;
-	@property (retain, nonatomic) NSString *currentElement;
-	@property (retain, nonatomic) ASIS3BucketObject *currentObject;
-	@property (retain, nonatomic) NSMutableArray *objects;
+@interface ASIS3BucketRequest ()
+@property (retain, nonatomic) NSString *currentContent;
+@property (retain, nonatomic) NSString *currentElement;
+@property (retain, nonatomic) ASIS3BucketObject *currentObject;
+@property (retain, nonatomic) NSMutableArray *objects;
 @end
 
-@implementation ASIS3ListRequest
+@implementation ASIS3BucketRequest
 
-+ (void)initialize
++ (NSDateFormatter *)dateFormatter
 {
-	dateFormatter = [[NSDateFormatter alloc] init];
-	[dateFormatter setLocale:[[[NSLocale alloc] initWithLocaleIdentifier:@"en_US_POSIX"] autorelease]];
-	[dateFormatter setTimeZone:[NSTimeZone timeZoneWithAbbreviation:@"UTC"]];
-	[dateFormatter setDateFormat:@"yyyy-MM-dd'T'HH:mm:ss'.000Z'"];
+	if (!dateFormatter) {
+		dateFormatter = [[NSDateFormatter alloc] init];
+		[dateFormatter setLocale:[[[NSLocale alloc] initWithLocaleIdentifier:@"en_US_POSIX"] autorelease]];
+		[dateFormatter setTimeZone:[NSTimeZone timeZoneWithAbbreviation:@"UTC"]];
+		[dateFormatter setDateFormat:@"yyyy-MM-dd'T'HH:mm:ss'.000Z'"];
+	}
+	return dateFormatter;
 }
 
-+ (id)listRequestWithBucket:(NSString *)bucket
+
++ (id)requestWithBucket:(NSString *)bucket
 {
-	ASIS3ListRequest *request = [[[self alloc] initWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://%@.s3.amazonaws.com",bucket]]] autorelease];
+	ASIS3ObjectRequest *request = [[[self alloc] initWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://%@.s3.amazonaws.com",bucket]]] autorelease];
 	[request setBucket:bucket];
+	return request;
+}
+
++ (id)requestWithBucket:(NSString *)bucket subResource:(NSString *)subResource
+{
+	ASIS3ObjectRequest *request = [[[self alloc] initWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://%@.s3.amazonaws.com/?%@",bucket,subResource]]] autorelease];
+	[request setBucket:bucket];
+	[request setSubResource:subResource];
+	return request;
+}
+
+
++ (id)PUTRequestWithBucket:(NSString *)bucket
+{
+	ASIS3BucketRequest *request = [self requestWithBucket:bucket];
+	[request setRequestMethod:@"PUT"];
+	return request;
+}
+
+
++ (id)DELETERequestWithBucket:(NSString *)bucket
+{
+	ASIS3BucketRequest *request = [self requestWithBucket:bucket];
+	[request setRequestMethod:@"DELETE"];
 	return request;
 }
 
@@ -45,8 +74,21 @@ static NSDateFormatter *dateFormatter = nil;
 	[prefix release];
 	[marker release];
 	[delimiter release];
+	[subResource release];
+	[bucket release];
 	[super dealloc];
 }
+
+- (NSString *)canonicalizedResource
+{
+	if ([self subResource]) {
+		return [NSString stringWithFormat:@"/%@/?%@",[self bucket],[self subResource]];
+	} 
+	return [NSString stringWithFormat:@"/%@/",[self bucket]];
+}
+
+
+
 
 - (void)createQueryString
 {
@@ -128,7 +170,9 @@ static NSDateFormatter *dateFormatter = nil;
 
 - (id)copyWithZone:(NSZone *)zone
 {
-	ASIS3ListRequest *newRequest = [super copyWithZone:zone];
+	ASIS3BucketRequest *newRequest = [super copyWithZone:zone];
+	[newRequest setBucket:[self bucket]];
+	[newRequest setSubResource:[self subResource]];
 	[newRequest setPrefix:[self prefix]];
 	[newRequest setMarker:[self marker]];
 	[newRequest setMaxResultCount:[self maxResultCount]];
@@ -136,7 +180,8 @@ static NSDateFormatter *dateFormatter = nil;
 	return newRequest;
 }
 
-
+@synthesize bucket;
+@synthesize subResource;
 @synthesize currentContent;
 @synthesize currentElement;
 @synthesize currentObject;

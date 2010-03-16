@@ -5,9 +5,11 @@
 //  Created by Ben Copsey on 13/07/2009.
 //  Copyright 2009 All-Seeing Interactive. All rights reserved.
 //
+//  Instances of this class represent objects stored in a bucket on S3
+//  ASIS3BucketRequests return an array of ASIS3BucketObject when you perform a list query
 
 #import <Foundation/Foundation.h>
-@class ASIS3Request;
+@class ASIS3ObjectRequest;
 
 @interface ASIS3BucketObject : NSObject <NSCopying> {
 	
@@ -34,13 +36,13 @@
 + (id)objectWithBucket:(NSString *)bucket;
 
 // Returns a request that will fetch this object when run
-- (ASIS3Request *)GETRequest;
+- (ASIS3ObjectRequest *)GETRequest;
 
 // Returns a request that will replace this object with the contents of the file at filePath when run
-- (ASIS3Request *)PUTRequestWithFile:(NSString *)filePath;
+- (ASIS3ObjectRequest *)PUTRequestWithFile:(NSString *)filePath;
 
 // Returns a request that will delete this object when run
-- (ASIS3Request *)DELETERequest;
+- (ASIS3ObjectRequest *)DELETERequest;
 
 @property (retain) NSString *bucket;
 @property (retain) NSString *key;
