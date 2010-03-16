@@ -37,8 +37,8 @@ typedef enum _ASIS3ErrorType {
 	// Name of the bucket to talk to
 	NSString *bucket;
 	
-	// Path to the resource you want to access on S3. Leave empty for the bucket root
-	NSString *path;
+	// Key of the resource you want to access on S3. Leave empty for the bucket root
+	NSString *key;
 	
 	// The string that will be used in the HTTP date header. Generally you'll want to ignore this and let the class add the current date for you, but the accessor is used by the tests
 	NSString *dateString;
@@ -53,7 +53,7 @@ typedef enum _ASIS3ErrorType {
 	
 	// The bucket + path of the object to be copied (used with COPYRequestFromBucket:path:toBucket:path:)
 	NSString *sourceBucket;
-	NSString *sourcePath;
+	NSString *sourceKey;
 	
 	// Internally used while parsing errors
 	NSString *currentErrorString;
@@ -63,28 +63,30 @@ typedef enum _ASIS3ErrorType {
 #pragma mark Constructors
 
 // Create a request, building an appropriate url
-+ (id)requestWithBucket:(NSString *)bucket path:(NSString *)path;
++ (id)requestWithBucket:(NSString *)bucket key:(NSString *)key;
 
 // Create a PUT request using the file at filePath as the body
-+ (id)PUTRequestForFile:(NSString *)filePath withBucket:(NSString *)bucket path:(NSString *)path;
++ (id)PUTRequestForFile:(NSString *)filePath withBucket:(NSString *)bucket key:(NSString *)key;
 
 // Create a PUT request using the supplied NSData as the body (set the mime-type manually with setMimeType: if necessary)
-+ (id)PUTRequestForData:(NSData *)data withBucket:(NSString *)bucket path:(NSString *)path;
++ (id)PUTRequestForData:(NSData *)data withBucket:(NSString *)bucket key:(NSString *)key;
 	
 // Create a DELETE request for the object at path
-+ (id)DELETERequestWithBucket:(NSString *)bucket path:(NSString *)path;
++ (id)DELETERequestWithBucket:(NSString *)bucket key:(NSString *)key;
 
 // Create a PUT request to copy an object from one location to another
 // Clang will complain because it thinks this method should return an object with +1 retain :(
-+ (id)COPYRequestFromBucket:(NSString *)sourceBucket path:(NSString *)sourcePath toBucket:(NSString *)bucket path:(NSString *)path;
++ (id)COPYRequestFromBucket:(NSString *)sourceBucket key:(NSString *)sourceKey toBucket:(NSString *)bucket key:(NSString *)key;
 
 // Creates a HEAD request for the object at path
-+ (id)HEADRequestWithBucket:(NSString *)bucket path:(NSString *)path;
++ (id)HEADRequestWithBucket:(NSString *)bucket key:(NSString *)key;
 
 
 // Uses the supplied date to create a Date header string
 - (void)setDate:(NSDate *)date;
 
++ (NSString *)stringByURLEncodingForS3Path:(NSString *)key;
+	
 #pragma mark Shared access keys
 
 // Get and set the global access key, this will be used for all requests the access key hasn't been set for
@@ -95,12 +97,12 @@ typedef enum _ASIS3ErrorType {
 
 
 @property (retain) NSString *bucket;
-@property (retain) NSString *path;
+@property (retain) NSString *key;
 @property (retain) NSString *dateString;
 @property (retain) NSString *mimeType;
 @property (retain) NSString *accessKey;
 @property (retain) NSString *secretAccessKey;
 @property (retain) NSString *accessPolicy;
 @property (retain) NSString *sourceBucket;
-@property (retain) NSString *sourcePath;
+@property (retain) NSString *sourceKey;
 @end

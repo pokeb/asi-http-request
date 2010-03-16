@@ -29,25 +29,38 @@ static NSString *sharedSecretAccessKey = nil;
 
 #pragma mark Constructors
 
-+ (id)requestWithBucket:(NSString *)bucket path:(NSString *)path
++ (NSString *)stringByURLEncodingForS3Path:(NSString *)key
 {
+	if (!key) {
+		return @"/";
+	}
+	NSString *path = [(NSString *)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, (CFStringRef)key, NULL, CFSTR(":?#[]@!$ &'()*+,;=\"<>%{}|\\^~`"), CFStringConvertNSStringEncodingToEncoding(NSUTF8StringEncoding)) autorelease];
+	if (![[path substringWithRange:NSMakeRange(0, 1)] isEqualToString:@"/"]) {
+		path = [@"/" stringByAppendingString:path];
+	}
+	return path;
+}
+
++ (id)requestWithBucket:(NSString *)bucket key:(NSString *)key
+{
+	NSString *path = [ASIS3Request stringByURLEncodingForS3Path:key];
 	ASIS3Request *request = [[[self alloc] initWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://%@.s3.amazonaws.com%@",bucket,path]]] autorelease];
 	[request setBucket:bucket];
-	[request setPath:path];
+	[request setKey:key];
 	return request;
 }
 
-+ (id)PUTRequestForData:(NSData *)data withBucket:(NSString *)bucket path:(NSString *)path
++ (id)PUTRequestForData:(NSData *)data withBucket:(NSString *)bucket key:(NSString *)key
 {
-	ASIS3Request *request = [self requestWithBucket:bucket path:path];
+	ASIS3Request *request = [self requestWithBucket:bucket key:key];
 	[request appendPostData:data];
 	[request setRequestMethod:@"PUT"];
 	return request;
 }
 
-+ (id)PUTRequestForFile:(NSString *)filePath withBucket:(NSString *)bucket path:(NSString *)path
++ (id)PUTRequestForFile:(NSString *)filePath withBucket:(NSString *)bucket key:(NSString *)key
 {
-	ASIS3Request *request = [self requestWithBucket:bucket path:path];
+	ASIS3Request *request = [self requestWithBucket:bucket key:key];
 	[request setPostBodyFilePath:filePath];
 	[request setShouldStreamPostDataFromDisk:YES];
 	[request setRequestMethod:@"PUT"];
@@ -55,25 +68,25 @@ static NSString *sharedSecretAccessKey = nil;
 	return request;
 }
 
-+ (id)DELETERequestWithBucket:(NSString *)bucket path:(NSString *)path
++ (id)DELETERequestWithBucket:(NSString *)bucket key:(NSString *)key
 {
-	ASIS3Request *request = [self requestWithBucket:bucket path:path];
+	ASIS3Request *request = [self requestWithBucket:bucket key:key];
 	[request setRequestMethod:@"DELETE"];
 	return request;
 }
 
-+ (id)COPYRequestFromBucket:(NSString *)sourceBucket path:(NSString *)sourcePath toBucket:(NSString *)bucket path:(NSString *)path
++ (id)COPYRequestFromBucket:(NSString *)sourceBucket key:(NSString *)sourceKey toBucket:(NSString *)bucket key:(NSString *)key
 {
-	ASIS3Request *request = [self requestWithBucket:bucket path:path];
+	ASIS3Request *request = [self requestWithBucket:bucket key:key];
 	[request setRequestMethod:@"PUT"];
 	[request setSourceBucket:sourceBucket];
-	[request setSourcePath:sourcePath];
+	[request setSourceKey:sourceKey];
 	return request;
 }
 
-+ (id)HEADRequestWithBucket:(NSString *)bucket path:(NSString *)path
++ (id)HEADRequestWithBucket:(NSString *)bucket key:(NSString *)key
 {
-	ASIS3Request *request = [self requestWithBucket:bucket path:path];
+	ASIS3Request *request = [self requestWithBucket:bucket key:key];
 	[request setRequestMethod:@"HEAD"];
 	return request;
 }
@@ -81,12 +94,12 @@ static NSString *sharedSecretAccessKey = nil;
 - (void)dealloc
 {
 	[bucket release];
-	[path release];
+	[key release];
 	[dateString release];
 	[mimeType release];
 	[accessKey release];
 	[secretAccessKey release];
-	[sourcePath release];
+	[sourceKey release];
 	[sourceBucket release];
 	[super dealloc];
 }
@@ -106,7 +119,7 @@ static NSString *sharedSecretAccessKey = nil;
 	ASIS3Request *headRequest = (ASIS3Request *)[super HEADRequest];
 	[headRequest setAccessKey:[self accessKey]];
 	[headRequest setSecretAccessKey:[self secretAccessKey]];
-	[headRequest setPath:[self path]];
+	[headRequest setKey:[self key]];
 	[headRequest setBucket:[self bucket]];
 	return headRequest;
 }
@@ -130,11 +143,7 @@ static NSString *sharedSecretAccessKey = nil;
 	[self addRequestHeader:@"Date" value:[self dateString]];
 	
 	// Ensure our formatted string doesn't use '(null)' for the empty path
-	if (![self path]) {
-		[self setPath:@"/"];
-	}
-
-	NSString *canonicalizedResource = [NSString stringWithFormat:@"/%@%@",[self bucket],[self path]];
+	NSString *canonicalizedResource = [NSString stringWithFormat:@"/%@%@",[self bucket],[ASIS3Request stringByURLEncodingForS3Path:[self key]]];
 	
 	// Add a header for the access policy if one was set, otherwise we won't add one (and S3 will default to private)
 	NSMutableDictionary *amzHeaders = [[[NSMutableDictionary alloc] init] autorelease];
@@ -142,18 +151,19 @@ static NSString *sharedSecretAccessKey = nil;
 	if ([self accessPolicy]) {
 		[amzHeaders setObject:[self accessPolicy] forKey:@"x-amz-acl"];
 	}
-	if ([self sourcePath]) {
-		[amzHeaders setObject:[[self sourceBucket] stringByAppendingString:[self sourcePath]] forKey:@"x-amz-copy-source"];
+	if ([self sourceKey]) {
+		NSString *path = [ASIS3Request stringByURLEncodingForS3Path:[self sourceKey]];
+		[amzHeaders setObject:[[self sourceBucket] stringByAppendingString:path] forKey:@"x-amz-copy-source"];
 	}
-	for (NSString *key in [amzHeaders keyEnumerator]) {
-		canonicalizedAmzHeaders = [NSString stringWithFormat:@"%@%@:%@\n",canonicalizedAmzHeaders,[key lowercaseString],[amzHeaders objectForKey:key]];
+	for (NSString *header in [amzHeaders keyEnumerator]) {
+		canonicalizedAmzHeaders = [NSString stringWithFormat:@"%@%@:%@\n",canonicalizedAmzHeaders,[header lowercaseString],[amzHeaders objectForKey:header]];
 		[self addRequestHeader:key value:[amzHeaders objectForKey:key]];
 	}
 	
 	
 	// Jump through hoops while eating hot food
 	NSString *stringToSign;
-	if ([[self requestMethod] isEqualToString:@"PUT"] && ![self sourcePath]) {
+	if ([[self requestMethod] isEqualToString:@"PUT"] && ![self sourceKey]) {
 		[self addRequestHeader:@"Content-Type" value:[self mimeType]];
 		stringToSign = [NSString stringWithFormat:@"PUT\n\n%@\n%@\n%@%@",[self mimeType],dateString,canonicalizedAmzHeaders,canonicalizedResource];
 	} else {
@@ -170,7 +180,7 @@ static NSString *sharedSecretAccessKey = nil;
 - (void)requestFinished
 {
 	// COPY requests return a 200 whether they succeed or fail, so we need to look at the XML to see if we were successful.
-	if ([self responseStatusCode] == 200 && [self sourcePath] && [self sourceBucket]) {
+	if ([self responseStatusCode] == 200 && [self sourceKey] && [self sourceBucket]) {
 		[self parseError];
 		return;
 	}
@@ -222,11 +232,11 @@ static NSString *sharedSecretAccessKey = nil;
 	[newRequest setAccessKey:[self accessKey]];
 	[newRequest setSecretAccessKey:[self secretAccessKey]];
 	[newRequest setBucket:[self bucket]];
-	[newRequest setPath:[self path]];
+	[newRequest setKey:[self key]];
 	[newRequest setMimeType:[self mimeType]];
 	[newRequest setAccessPolicy:[self accessPolicy]];
 	[newRequest setSourceBucket:[self sourceBucket]];
-	[newRequest setSourcePath:[self sourcePath]];
+	[newRequest setSourceKey:[self sourceKey]];
 	return newRequest;
 }
 
@@ -277,7 +287,7 @@ static NSString *sharedSecretAccessKey = nil;
 }
 
 @synthesize bucket;
-@synthesize path;
+@synthesize key;
 @synthesize dateString;
 @synthesize mimeType;
 @synthesize accessKey;
@@ -285,5 +295,5 @@ static NSString *sharedSecretAccessKey = nil;
 @synthesize accessPolicy;
 @synthesize currentErrorString;
 @synthesize sourceBucket;
-@synthesize sourcePath;
+@synthesize sourceKey;
 @end

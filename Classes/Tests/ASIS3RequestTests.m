@@ -43,9 +43,9 @@ static NSString *bucket = @"";
 	NSString *exampleBucket = @"johnsmith";
 	
 	// Test GET
-	NSString *path = @"/photos/puppy.jpg";
+	NSString *key = @"photos/puppy.jpg";
 	NSString *dateString = @"Tue, 27 Mar 2007 19:36:42 +0000";
-	ASIS3Request *request = [ASIS3Request requestWithBucket:exampleBucket path:path];
+	ASIS3Request *request = [ASIS3Request requestWithBucket:exampleBucket key:key];
 	[request setDateString:dateString];
 	[request setSecretAccessKey:exampleSecretAccessKey];
 	[request setAccessKey:exampleAccessKey];
@@ -54,9 +54,9 @@ static NSString *bucket = @"";
 	GHAssertTrue(success,@"Failed to generate the correct authorisation header for a GET request");
 	
 	// Test PUT
-	path = @"/photos/puppy.jpg";
+	key = @"photos/puppy.jpg";
 	dateString = @"Tue, 27 Mar 2007 21:15:45 +0000";
-	request = [ASIS3Request requestWithBucket:exampleBucket path:path];
+	request = [ASIS3Request requestWithBucket:exampleBucket key:key];
 	[request setRequestMethod:@"PUT"];
 	[request setMimeType:@"image/jpeg"];
 	[request setDateString:dateString];
@@ -80,9 +80,9 @@ static NSString *bucket = @"";
 	GHAssertTrue(success,@"Failed to generate the correct authorisation header for a list request");
 	
 	// Test fetch ACL
-	path = @"/?acl";
+	key = @"?acl";
 	dateString = @"Tue, 27 Mar 2007 19:44:46 +0000";
-	request = [ASIS3Request requestWithBucket:exampleBucket path:path];
+	request = [ASIS3Request requestWithBucket:exampleBucket key:key];
 	[request setDateString:dateString];
 	[request setSecretAccessKey:exampleSecretAccessKey];
 	[request setAccessKey:exampleAccessKey];
@@ -93,9 +93,9 @@ static NSString *bucket = @"";
 	// Test Unicode keys
 	// (I think Amazon's name for this example is misleading since this test actually only uses URL encoded strings)
 	exampleBucket = @"dictionary";
-	path = @"/fran%C3%A7ais/pr%c3%a9f%c3%a8re";
+	key = @"fran%C3%A7ais/pr%c3%a9f%c3%a8re";
 	dateString = @"Wed, 28 Mar 2007 01:49:49 +0000";
-	request = [ASIS3Request requestWithBucket:exampleBucket path:path];
+	request = [ASIS3Request requestWithBucket:exampleBucket key:key];
 	[request setDateString:dateString];
 	[request setSecretAccessKey:exampleSecretAccessKey];
 	[request setAccessKey:exampleAccessKey];
@@ -112,9 +112,9 @@ static NSString *bucket = @"";
 	NSString *exampleSecretAccessKey = @"uV3F3YluFJax1cknvbcGwgjvx4QpvB+leU8dUj2o";
 	NSString *exampleAccessKey = @"0PN5J17HBGZHT7JJ3X82";
 	NSString *exampleBucket = @"johnsmith";
-	NSString *path = @"/photos/puppy.jpg";
+	NSString *key = @"photos/puppy.jpg";
 	NSString *dateString = @"Tue, 27 Mar 2007 19:36:42 +0000";
-	ASIS3Request *request = [ASIS3Request requestWithBucket:exampleBucket path:path];
+	ASIS3Request *request = [ASIS3Request requestWithBucket:exampleBucket key:key];
 	[request setDateString:dateString];
 	[request setSecretAccessKey:exampleSecretAccessKey];
 	[request setAccessKey:exampleAccessKey];
@@ -136,7 +136,7 @@ static NSString *bucket = @"";
 	BOOL success = (![secretAccessKey isEqualToString:@""] && ![accessKey isEqualToString:@""] && ![bucket isEqualToString:@""]);
 	GHAssertTrue(success,@"You need to supply your S3 access details to run the REST test (see the top of ASIS3RequestTests.m)");
 	
-	NSString *path = @"/test";
+	NSString *key = @"test";
 	
 	// Create the file
 	NSString *text = @"This is my content";
@@ -144,7 +144,7 @@ static NSString *bucket = @"";
 	[[text dataUsingEncoding:NSUTF8StringEncoding] writeToFile:filePath atomically:NO];
 	
 	// PUT the file
-	ASIS3Request *request = [ASIS3Request PUTRequestForFile:filePath withBucket:bucket path:path];
+	ASIS3Request *request = [ASIS3Request PUTRequestForFile:filePath withBucket:bucket key:key];
 	[request setSecretAccessKey:secretAccessKey];
 	[request setAccessKey:accessKey];
 	[request startSynchronous];
@@ -152,7 +152,7 @@ static NSString *bucket = @"";
 	GHAssertTrue(success,@"Failed to PUT a file to S3");	
 
 	// GET the file
-	request = [ASIS3Request requestWithBucket:bucket path:path];
+	request = [ASIS3Request requestWithBucket:bucket key:key];
 	[request setSecretAccessKey:secretAccessKey];
 	[request setAccessKey:accessKey];
 	[request startSynchronous];
@@ -160,14 +160,14 @@ static NSString *bucket = @"";
 	GHAssertTrue(success,@"Failed to GET the correct data from S3");
 	
 	// COPY the file
-	request = [ASIS3Request COPYRequestFromBucket:bucket path:path toBucket:bucket path:@"/test-copy"];
+	request = [ASIS3Request COPYRequestFromBucket:bucket key:key toBucket:bucket key:@"test-copy"];
 	[request setSecretAccessKey:secretAccessKey];
 	[request setAccessKey:accessKey];
 	[request startSynchronous];
 	GHAssertNil([request error],@"Failed to COPY a file");
 	
 	// GET the copy
-	request = [ASIS3Request requestWithBucket:bucket path:@"/test-copy"];
+	request = [ASIS3Request requestWithBucket:bucket key:@"test-copy"];
 	[request setSecretAccessKey:secretAccessKey];
 	[request setAccessKey:accessKey];
 	[request startSynchronous];
@@ -176,7 +176,7 @@ static NSString *bucket = @"";
 	
 	
 	// HEAD the copy
-	request = [ASIS3Request HEADRequestWithBucket:bucket path:@"/test-copy"];
+	request = [ASIS3Request HEADRequestWithBucket:bucket key:@"test-copy"];
 	[request setSecretAccessKey:secretAccessKey];
 	[request setAccessKey:accessKey];
 	[request startSynchronous];
@@ -194,7 +194,7 @@ static NSString *bucket = @"";
 	GHAssertTrue(success,@"The file didn't show up in the list");	
 
 	// DELETE the file
-	request = [ASIS3Request requestWithBucket:bucket path:path];
+	request = [ASIS3Request requestWithBucket:bucket key:key];
 	[request setSecretAccessKey:secretAccessKey];
 	[request setRequestMethod:@"DELETE"];
 	[request setAccessKey:accessKey];
@@ -203,7 +203,7 @@ static NSString *bucket = @"";
 	GHAssertTrue(success,@"Failed to DELETE the file from S3");	
 	
 	// (Also DELETE the copy we made)
-	request = [ASIS3Request requestWithBucket:bucket path:@"/test-copy"];
+	request = [ASIS3Request requestWithBucket:bucket key:@"test-copy"];
 	[request setSecretAccessKey:secretAccessKey];
 	[request setRequestMethod:@"DELETE"];
 	[request setAccessKey:accessKey];
@@ -212,7 +212,7 @@ static NSString *bucket = @"";
 	GHAssertTrue(success,@"Failed to DELETE the copy from S3");	
 	
 	// Attempt to COPY the file, even though it is no longer there
-	request = [ASIS3Request COPYRequestFromBucket:bucket path:path toBucket:bucket path:@"/test-copy"];
+	request = [ASIS3Request COPYRequestFromBucket:bucket key:key toBucket:bucket key:@"test-copy"];
 	[request setSecretAccessKey:secretAccessKey];
 	[request setAccessKey:accessKey];
 	[request startSynchronous];
@@ -223,7 +223,7 @@ static NSString *bucket = @"";
 	
 	// PUT some data
 	NSData *data = [@"Hello" dataUsingEncoding:NSUTF8StringEncoding];
-	request = [ASIS3Request PUTRequestForData:data withBucket:bucket path:path];
+	request = [ASIS3Request PUTRequestForData:data withBucket:bucket key:key];
 	[request setMimeType:@"text/plain"];
 	[request setSecretAccessKey:secretAccessKey];
 	[request setAccessKey:accessKey];
@@ -232,7 +232,7 @@ static NSString *bucket = @"";
 	GHAssertTrue(success,@"Failed to PUT data to S3");
 	
 	// GET the data to check it uploaded properly
-	request = [ASIS3Request requestWithBucket:bucket path:path];
+	request = [ASIS3Request requestWithBucket:bucket key:key];
 	[request setSecretAccessKey:secretAccessKey];
 	[request setAccessKey:accessKey];
 	[request startSynchronous];
@@ -240,7 +240,7 @@ static NSString *bucket = @"";
 	GHAssertTrue(success,@"Failed to GET the correct data from S3");	
 	
 	// clean up (Delete it)
-	request = [ASIS3Request requestWithBucket:bucket path:path];
+	request = [ASIS3Request requestWithBucket:bucket key:key];
 	[request setSecretAccessKey:secretAccessKey];
 	[request setRequestMethod:@"DELETE"];
 	[request setAccessKey:accessKey];
@@ -266,8 +266,8 @@ static NSString *bucket = @"";
 	NSString *filePath = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:@"testfile.txt"];
 	[[text dataUsingEncoding:NSUTF8StringEncoding] writeToFile:filePath atomically:NO];
 	
-	NSString *path = @"/gzipped-data";
-	ASIS3Request *request = [ASIS3Request PUTRequestForFile:filePath withBucket:bucket path:path];
+	NSString *key = @"gzipped-data";
+	ASIS3Request *request = [ASIS3Request PUTRequestForFile:filePath withBucket:bucket key:key];
 	[request setSecretAccessKey:secretAccessKey];
 	[request setAccessKey:accessKey];
 	[request setShouldCompressRequestBody:YES];
@@ -277,7 +277,7 @@ static NSString *bucket = @"";
 	GHAssertTrue(success,@"Failed to PUT the gzipped file");		
 	
 	// GET the file
-	request = [ASIS3Request requestWithBucket:bucket path:path];
+	request = [ASIS3Request requestWithBucket:bucket key:key];
 	[request setSecretAccessKey:secretAccessKey];
 	[request setAccessKey:accessKey];
 	[request startSynchronous];
@@ -308,8 +308,8 @@ static NSString *bucket = @"";
 		NSString *text = [NSString stringWithFormat:@"This is the content of file #%hi",i];
 		NSString *filePath = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:[NSString stringWithFormat:@"%hi.txt",i]];
 		[[text dataUsingEncoding:NSUTF8StringEncoding] writeToFile:filePath atomically:NO];
-		NSString *path = [NSString stringWithFormat:@"/test-file/%hi",i];
-		ASIS3Request *request = [ASIS3Request PUTRequestForFile:filePath withBucket:bucket path:path];
+		NSString *key = [NSString stringWithFormat:@"test-file/%hi",i];
+		ASIS3Request *request = [ASIS3Request PUTRequestForFile:filePath withBucket:bucket key:key];
 		[request setSecretAccessKey:secretAccessKey];
 		[request setAccessKey:accessKey];
 		[request startSynchronous];
@@ -425,23 +425,23 @@ static NSString *bucket = @"";
 // Ensure class convenience constructors return an instance of our subclass
 - (void)testSubclasses
 {
-	ASIS3RequestSubclass *instance = [ASIS3RequestSubclass requestWithBucket:@"bucket" path:@"path"];
+	ASIS3RequestSubclass *instance = [ASIS3RequestSubclass requestWithBucket:@"bucket" key:@"key"];
 	BOOL success = [instance isKindOfClass:[ASIS3RequestSubclass class]];
 	GHAssertTrue(success,@"Convenience constructor failed to return an instance of the correct class");	
 
-	instance = [ASIS3RequestSubclass PUTRequestForFile:@"/file" withBucket:@"bucket" path:@"path"];
+	instance = [ASIS3RequestSubclass PUTRequestForFile:@"/file" withBucket:@"bucket" key:@"key"];
 	success = [instance isKindOfClass:[ASIS3RequestSubclass class]];
 	GHAssertTrue(success,@"Convenience constructor failed to return an instance of the correct class");	
 	
-	instance = [ASIS3RequestSubclass DELETERequestWithBucket:@"bucket" path:@"path"];
+	instance = [ASIS3RequestSubclass DELETERequestWithBucket:@"bucket" key:@"key"];
 	success = [instance isKindOfClass:[ASIS3RequestSubclass class]];
 	GHAssertTrue(success,@"Convenience constructor failed to return an instance of the correct class");	
 	
-	instance = [ASIS3RequestSubclass COPYRequestFromBucket:@"bucket" path:@"path" toBucket:@"bucket" path:@"path2"];
+	instance = [ASIS3RequestSubclass COPYRequestFromBucket:@"bucket" key:@"key" toBucket:@"bucket" key:@"key2"];
 	success = [instance isKindOfClass:[ASIS3RequestSubclass class]];
 	GHAssertTrue(success,@"Convenience constructor failed to return an instance of the correct class");	
 	
-	instance = [ASIS3RequestSubclass HEADRequestWithBucket:@"bucket" path:@"path"];
+	instance = [ASIS3RequestSubclass HEADRequestWithBucket:@"bucket" key:@"key"];
 	success = [instance isKindOfClass:[ASIS3RequestSubclass class]];
 	GHAssertTrue(success,@"Convenience constructor failed to return an instance of the correct class");	
 	
@@ -480,8 +480,8 @@ static NSString *bucket = @"";
 	
 	int i;
 	for (i=0; i<5; i++) {
-		NSString *path = [NSString stringWithFormat:@"/images/%hi.jpg",i+1];
-		ASIS3Request *s3Request = [ASIS3Request requestWithBucket:bucket path:path];
+		NSString *key = [NSString stringWithFormat:@"images/%hi.jpg",i+1];
+		ASIS3Request *s3Request = [ASIS3Request requestWithBucket:bucket key:key];
 		[s3Request setSecretAccessKey:secretAccessKey];
 		[s3Request setAccessKey:accessKey];
 		NSString *downloadPath = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:[NSString stringWithFormat:@"%hi.jpg",i+1]];
@@ -509,7 +509,7 @@ static NSString *bucket = @"";
 {
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
-	ASIS3Request *request = [ASIS3Request requestWithBucket:@"foo" path:@"eep"];
+	ASIS3Request *request = [ASIS3Request requestWithBucket:@"foo" key:@"eep"];
 	ASIS3Request *request2 = [request copy];
 	GHAssertNotNil(request2,@"Failed to create a copy");
 	

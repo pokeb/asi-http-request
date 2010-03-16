@@ -132,7 +132,7 @@ static NSDateFormatter *dateFormatter = nil;
 	[newRequest setPrefix:[self prefix]];
 	[newRequest setMarker:[self marker]];
 	[newRequest setMaxResultCount:[self maxResultCount]];
-	[newRequest setDelimiter:[self path]];
+	[newRequest setDelimiter:[self delimiter]];
 	return newRequest;
 }
 

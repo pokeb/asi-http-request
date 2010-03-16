@@ -30,17 +30,17 @@
 
 - (ASIS3Request *)GETRequest
 {
-	return [ASIS3Request requestWithBucket:[self bucket] path:[NSString stringWithFormat:@"/%@",[self key]]];
+	return [ASIS3Request requestWithBucket:[self bucket] key:[self key]];
 }
 
 - (ASIS3Request *)PUTRequestWithFile:(NSString *)filePath
 {
-	return [ASIS3Request PUTRequestForFile:filePath withBucket:[self bucket] path:[NSString stringWithFormat:@"/%@",[self key]]];
+	return [ASIS3Request PUTRequestForFile:filePath withBucket:[self bucket] key:[self key]];
 }
 
 - (ASIS3Request *)DELETERequest
 {
-	ASIS3Request *request = [ASIS3Request requestWithBucket:[self bucket] path:[NSString stringWithFormat:@"/%@",[self key]]];
+	ASIS3Request *request = [ASIS3Request requestWithBucket:[self bucket] key:[self key]];
 	[request setRequestMethod:@"DELETE"];
 	return request;
 }
