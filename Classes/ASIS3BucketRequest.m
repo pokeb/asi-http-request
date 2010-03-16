@@ -9,8 +9,6 @@
 #import "ASIS3BucketRequest.h"
 #import "ASIS3BucketObject.h"
 
-static NSDateFormatter *dateFormatter = nil;
-
 
 // Private stuff
 @interface ASIS3BucketRequest ()
@@ -21,18 +19,6 @@ static NSDateFormatter *dateFormatter = nil;
 @end
 
 @implementation ASIS3BucketRequest
-
-+ (NSDateFormatter *)dateFormatter
-{
-	if (!dateFormatter) {
-		dateFormatter = [[NSDateFormatter alloc] init];
-		[dateFormatter setLocale:[[[NSLocale alloc] initWithLocaleIdentifier:@"en_US_POSIX"] autorelease]];
-		[dateFormatter setTimeZone:[NSTimeZone timeZoneWithAbbreviation:@"UTC"]];
-		[dateFormatter setDateFormat:@"yyyy-MM-dd'T'HH:mm:ss'.000Z'"];
-	}
-	return dateFormatter;
-}
-
 
 + (id)requestWithBucket:(NSString *)bucket
 {
@@ -86,9 +72,6 @@ static NSDateFormatter *dateFormatter = nil;
 	} 
 	return [NSString stringWithFormat:@"/%@/",[self bucket]];
 }
-
-
-
 
 - (void)createQueryString
 {
@@ -149,7 +132,7 @@ static NSDateFormatter *dateFormatter = nil;
 	} else if ([elementName isEqualToString:@"Key"]) {
 		[[self currentObject] setKey:[self currentContent]];
 	} else if ([elementName isEqualToString:@"LastModified"]) {
-		[[self currentObject] setLastModified:[[ASIS3BucketRequest dateFormatter] dateFromString:[self currentContent]]];
+		[[self currentObject] setLastModified:[[ASIS3Request dateFormatter] dateFromString:[self currentContent]]];
 	} else if ([elementName isEqualToString:@"ETag"]) {
 		[[self currentObject] setETag:[self currentContent]];
 	} else if ([elementName isEqualToString:@"Size"]) {

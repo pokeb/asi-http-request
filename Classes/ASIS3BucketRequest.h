@@ -13,8 +13,12 @@
 @class ASIS3BucketObject;
 
 @interface ASIS3BucketRequest : ASIS3Request {
+	
 	// Name of the bucket to talk to
 	NSString *bucket;
+	
+	// A parameter passed to S3 in the query string to tell it to return specialised information
+	// Consult the S3 REST API documentation for more info
 	NSString *subResource;
 	
 	// Options for filtering GET requests
@@ -55,10 +59,6 @@
 
 //Builds a query string out of the list parameters we supplied
 - (void)createQueryString;
-
-// Returns a date formatter than can be used to parse a date from S3
-+ (NSDateFormatter *)dateFormatter;
-
 
 @property (retain) NSString *bucket;
 @property (retain) NSString *subResource;

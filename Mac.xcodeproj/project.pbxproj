@@ -49,6 +49,7 @@
 		B5F92D18114FB3BD00070E84 /* ASIS3ServiceRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5F92D17114FB3BD00070E84 /* ASIS3ServiceRequest.m */; };
 		B5F92D49114FB62C00070E84 /* ASIS3ObjectRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5F92D48114FB62C00070E84 /* ASIS3ObjectRequest.m */; };
 		B5F92DFD114FC9E100070E84 /* ASIS3BucketRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5F92DFC114FC9E100070E84 /* ASIS3BucketRequest.m */; };
+		B5F92FD7114FFA9700070E84 /* ASIS3Bucket.m in Sources */ = {isa = PBXBuildFile; fileRef = B5F92FD6114FFA9700070E84 /* ASIS3Bucket.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -138,6 +139,8 @@
 		B5F92D48114FB62C00070E84 /* ASIS3ObjectRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIS3ObjectRequest.m; sourceTree = "<group>"; };
 		B5F92DFB114FC9E100070E84 /* ASIS3BucketRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIS3BucketRequest.h; sourceTree = "<group>"; };
 		B5F92DFC114FC9E100070E84 /* ASIS3BucketRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIS3BucketRequest.m; sourceTree = "<group>"; };
+		B5F92FD5114FFA9700070E84 /* ASIS3Bucket.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIS3Bucket.h; sourceTree = "<group>"; };
+		B5F92FD6114FFA9700070E84 /* ASIS3Bucket.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIS3Bucket.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -250,6 +253,8 @@
 				B5F92D48114FB62C00070E84 /* ASIS3ObjectRequest.m */,
 				B5873F8610FF2884001E145F /* ASIS3BucketObject.h */,
 				B5873F8710FF2884001E145F /* ASIS3BucketObject.m */,
+				B5F92FD5114FFA9700070E84 /* ASIS3Bucket.h */,
+				B5F92FD6114FFA9700070E84 /* ASIS3Bucket.m */,
 				B5873F8A10FF2884001E145F /* ASIS3Request.h */,
 				B5873F8B10FF2884001E145F /* ASIS3Request.m */,
 			);
@@ -476,6 +481,7 @@
 				B5F92D18114FB3BD00070E84 /* ASIS3ServiceRequest.m in Sources */,
 				B5F92D49114FB62C00070E84 /* ASIS3ObjectRequest.m in Sources */,
 				B5F92DFD114FC9E100070E84 /* ASIS3BucketRequest.m in Sources */,
+				B5F92FD7114FFA9700070E84 /* ASIS3Bucket.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

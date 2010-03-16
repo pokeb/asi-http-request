@@ -16,6 +16,10 @@
 // Fill in these to run the tests that actually connect and manipulate objects on S3
 static NSString *secretAccessKey = @"";
 static NSString *accessKey = @"";
+
+// ********IMPORTANT***********************************************
+// Invent a new bucket name when running these tests
+// ***** NEVER USE AN EXISTING BUCKET - IT WILL BE DELETED! *******
 static NSString *bucket = @"";
 
 
@@ -35,16 +39,6 @@ static NSString *bucket = @"";
 @end
 
 @implementation ASIS3RequestTests
-
-
-- (void)testASIS3ServiceRequest
-{
-	ASIS3ServiceRequest *request = [ASIS3ServiceRequest serviceRequest];
-	[request setSecretAccessKey:secretAccessKey];
-	[request setAccessKey:accessKey];
-	[request startSynchronous];
-	GHAssertNil([request error],@"Failed to fetch the list of buckets from S3");	
-}
 
 // All these tests are based on Amazon's examples at: http://docs.amazonwebservices.com/AmazonS3/2006-03-01/
 - (void)testAuthenticationHeaderGeneration
@@ -101,7 +95,6 @@ static NSString *bucket = @"";
 	GHAssertTrue(success,@"Failed to generate the correct authorisation header for a list request");
 	
 	// Test fetch ACL
-	key = @"?acl";
 	dateString = @"Tue, 27 Mar 2007 19:44:46 +0000";
 	listRequest = [ASIS3BucketRequest requestWithBucket:exampleBucket subResource:@"acl"];
 	[listRequest setDateString:dateString];
@@ -157,6 +150,29 @@ static NSString *bucket = @"";
 
 	BOOL success = (![secretAccessKey isEqualToString:@""] && ![accessKey isEqualToString:@""] && ![bucket isEqualToString:@""]);
 	GHAssertTrue(success,@"You need to supply your S3 access details to run the REST test (see the top of ASIS3RequestTests.m)");
+	
+	// Test creating a bucket
+	ASIS3BucketRequest *bucketRequest = [ASIS3BucketRequest PUTRequestWithBucket:bucket];
+	[bucketRequest setSecretAccessKey:secretAccessKey];
+	[bucketRequest setAccessKey:accessKey];
+	[bucketRequest startSynchronous];
+	GHAssertNil([bucketRequest error],@"Failed to create a bucket");	
+	
+	// List buckets to make sure the bucket is there
+	ASIS3ServiceRequest *serviceRequest = [ASIS3ServiceRequest serviceRequest];
+	[serviceRequest setSecretAccessKey:secretAccessKey];
+	[serviceRequest setAccessKey:accessKey];
+	[serviceRequest startSynchronous];
+	GHAssertNil([serviceRequest error],@"Failed to fetch the list of buckets from S3");
+	
+	BOOL foundBucket = NO;
+	for (ASIS3Bucket *theBucket in [serviceRequest allBuckets]) {
+		if ([[theBucket name] isEqualToString:bucket]) {
+			foundBucket = YES;
+			break;
+		}
+	}
+	GHAssertTrue(foundBucket,@"Failed to retrive the newly-created bucket in a list of buckets");
 	
 	NSString *key = @"test";
 	
@@ -278,6 +294,13 @@ static NSString *bucket = @"";
 	[request startSynchronous];
 	success = [[request responseString] isEqualToString:@""];
 	GHAssertTrue(success,@"Failed to DELETE the file from S3");	
+	
+	// Delete the bucket
+	bucketRequest = [ASIS3BucketRequest DELETERequestWithBucket:bucket];
+	[bucketRequest setSecretAccessKey:secretAccessKey];
+	[bucketRequest setAccessKey:accessKey];
+	[bucketRequest startSynchronous];
+	GHAssertNil([bucketRequest error],@"Failed to create a bucket");
 	
 	
 }

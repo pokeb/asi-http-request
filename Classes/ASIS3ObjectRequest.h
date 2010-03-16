@@ -5,7 +5,7 @@
 //  Created by Ben Copsey on 16/03/2010.
 //  Copyright 2010 All-Seeing Interactive. All rights reserved.
 //
-//  Use this class to fetch, upload, copy and delete objects on Amazon S3
+//  Use an ASIS3ObjectRequest to fetch, upload, copy and delete objects on Amazon S3
 
 #import <Foundation/Foundation.h>
 #import "ASIS3Request.h"

@@ -6,7 +6,7 @@
 //  Copyright 2009 All-Seeing Interactive. All rights reserved.
 //
 //  Instances of this class represent objects stored in a bucket on S3
-//  ASIS3BucketRequests return an array of ASIS3BucketObject when you perform a list query
+//  ASIS3BucketRequests return an array of ASIS3BucketObjects when you perform a list query
 
 #import <Foundation/Foundation.h>
 @class ASIS3ObjectRequest;

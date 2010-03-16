@@ -99,7 +99,6 @@
 	[mimeType release];
 	[sourceKey release];
 	[sourceBucket release];
-	[accessPolicy release];
 	[super dealloc];
 }
 
@@ -120,10 +119,7 @@
 
 - (NSMutableDictionary *)S3Headers
 {
-	NSMutableDictionary *headers = [NSMutableDictionary dictionary];
-	if ([self accessPolicy]) {
-		[headers setObject:[self accessPolicy] forKey:@"x-amz-acl"];
-	}
+	NSMutableDictionary *headers = [super S3Headers];
 	if ([self sourceKey]) {
 		NSString *path = [ASIS3Request stringByURLEncodingForS3Path:[self sourceKey]];
 		[headers setObject:[[self sourceBucket] stringByAppendingString:path] forKey:@"x-amz-copy-source"];
@@ -146,5 +142,4 @@
 @synthesize sourceBucket;
 @synthesize sourceKey;
 @synthesize mimeType;
-@synthesize accessPolicy;
 @end

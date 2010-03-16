@@ -43,31 +43,40 @@ typedef enum _ASIS3ErrorType {
 
 	// Internally used while parsing errors
 	NSString *currentErrorString;
-	
 }
-
-#pragma mark Constructors
-
 
 // Uses the supplied date to create a Date header string
 - (void)setDate:(NSDate *)date;
 
+// Will return a dictionary of the 'amz-' headers that wil be sent to S3
+// Override in subclasses to add new ones	
 - (NSMutableDictionary *)S3Headers;
+	
+// Returns the string that will used to create a signature for this request
+// Is overridden in ASIS3ObjectRequest
 - (NSString *)stringToSignForHeaders:(NSString *)canonicalizedAmzHeaders resource:(NSString *)canonicalizedResource;
 
-	
-# pragma mark encoding S3 key
-	
-+ (NSString *)stringByURLEncodingForS3Path:(NSString *)key;
-	
-#pragma mark Shared access keys
+// Parses the response to work out if S3 returned an error	
+- (void)parseResponseXML;
+
+#pragma mark shared access keys
 
 // Get and set the global access key, this will be used for all requests the access key hasn't been set for
 + (NSString *)sharedAccessKey;
 + (void)setSharedAccessKey:(NSString *)newAccessKey;
 + (NSString *)sharedSecretAccessKey;
 + (void)setSharedSecretAccessKey:(NSString *)newAccessKey;
-- (void)parseResponseXML;
+	
+# pragma mark helpers
+	
+// Returns a date formatter than can be used to parse a date from S3
++ (NSDateFormatter *)dateFormatter;
+
+// URL-encodes an S3 key so it can be used in a url
+// You shouldn't normally need to use this yourself
++ (NSString *)stringByURLEncodingForS3Path:(NSString *)key;
+
+
 	
 @property (retain) NSString *dateString;
 @property (retain) NSString *accessKey;
