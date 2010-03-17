@@ -18,6 +18,7 @@
 		B5403FEF1151149E00D8BE63 /* ASIS3BucketRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5403FE91151149E00D8BE63 /* ASIS3BucketRequest.m */; };
 		B5403FF01151149E00D8BE63 /* ASIS3ObjectRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5403FEB1151149E00D8BE63 /* ASIS3ObjectRequest.m */; };
 		B5403FF11151149E00D8BE63 /* ASIS3ServiceRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5403FED1151149E00D8BE63 /* ASIS3ServiceRequest.m */; };
+		B54042E91151518800D8BE63 /* GHUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B54042E81151518800D8BE63 /* GHUnit.framework */; };
 		B55B5D200F76568E0064029C /* ASIFormDataRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B5D120F76568E0064029C /* ASIFormDataRequest.m */; };
 		B55B5D210F76568E0064029C /* ASIHTTPRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B5D140F76568E0064029C /* ASIHTTPRequest.m */; };
 		B55B5D220F76568E0064029C /* ASINetworkQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B5D160F76568E0064029C /* ASINetworkQueue.m */; };
@@ -46,8 +47,6 @@
 		B5873FA310FF2890001E145F /* ASICloudFilesObjectRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5873F9B10FF2890001E145F /* ASICloudFilesObjectRequest.m */; };
 		B5873FA410FF2890001E145F /* ASICloudFilesRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5873F9D10FF2890001E145F /* ASICloudFilesRequest.m */; };
 		B587400810FF2913001E145F /* ASICloudFilesRequestTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B587400610FF2913001E145F /* ASICloudFilesRequestTests.m */; };
-		B5B513680FBEE435002C74D0 /* GHUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B5B513670FBEE435002C74D0 /* GHUnit.framework */; };
-		B5B513830FBEE490002C74D0 /* GHUnit.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = B5B513670FBEE435002C74D0 /* GHUnit.framework */; };
 		B5B513860FBEE515002C74D0 /* GHUnitTestMain.m in Sources */ = {isa = PBXBuildFile; fileRef = B5B513850FBEE515002C74D0 /* GHUnitTestMain.m */; };
 		B5C664BC100A6220004F3C96 /* ASIS3RequestTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B5C664BB100A6220004F3C96 /* ASIS3RequestTests.m */; };
 /* End PBXBuildFile section */
@@ -59,7 +58,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				B5B513830FBEE490002C74D0 /* GHUnit.framework in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -88,6 +86,7 @@
 		B5403FEB1151149E00D8BE63 /* ASIS3ObjectRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ASIS3ObjectRequest.m; path = S3/ASIS3ObjectRequest.m; sourceTree = "<group>"; };
 		B5403FEC1151149E00D8BE63 /* ASIS3ServiceRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ASIS3ServiceRequest.h; path = S3/ASIS3ServiceRequest.h; sourceTree = "<group>"; };
 		B5403FED1151149E00D8BE63 /* ASIS3ServiceRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ASIS3ServiceRequest.m; path = S3/ASIS3ServiceRequest.m; sourceTree = "<group>"; };
+		B54042E81151518800D8BE63 /* GHUnit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GHUnit.framework; path = External/GHUnit/Project/build/Debug/GHUnit.framework; sourceTree = "<group>"; };
 		B551DD3310D6AB6B00EC1CBF /* ASIHTTPRequestConfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIHTTPRequestConfig.h; sourceTree = "<group>"; };
 		B55B5D110F76568E0064029C /* ASIFormDataRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIFormDataRequest.h; sourceTree = "<group>"; };
 		B55B5D120F76568E0064029C /* ASIFormDataRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIFormDataRequest.m; sourceTree = "<group>"; };
@@ -136,7 +135,6 @@
 		B5873F9D10FF2890001E145F /* ASICloudFilesRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASICloudFilesRequest.m; sourceTree = "<group>"; };
 		B587400610FF2913001E145F /* ASICloudFilesRequestTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASICloudFilesRequestTests.m; sourceTree = "<group>"; };
 		B587400710FF2913001E145F /* ASICloudFilesRequestTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASICloudFilesRequestTests.h; sourceTree = "<group>"; };
-		B5B513670FBEE435002C74D0 /* GHUnit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GHUnit.framework; path = Frameworks/GHUnit.framework; sourceTree = "<group>"; };
 		B5B513850FBEE515002C74D0 /* GHUnitTestMain.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GHUnitTestMain.m; sourceTree = "<group>"; };
 		B5C664BA100A6220004F3C96 /* ASIS3RequestTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIS3RequestTests.h; sourceTree = "<group>"; };
 		B5C664BB100A6220004F3C96 /* ASIS3RequestTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIS3RequestTests.m; sourceTree = "<group>"; };
@@ -159,8 +157,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				B55B60140F7659A30064029C /* libz.1.2.3.dylib in Frameworks */,
-				B5B513680FBEE435002C74D0 /* GHUnit.framework in Frameworks */,
 				B522DE601031BB03009A2D22 /* SystemConfiguration.framework in Frameworks */,
+				B54042E91151518800D8BE63 /* GHUnit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -170,7 +168,7 @@
 		1058C7A0FEA54F0111CA2CBB /* Linked Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				B5B513670FBEE435002C74D0 /* GHUnit.framework */,
+				B54042E81151518800D8BE63 /* GHUnit.framework */,
 				1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */,
 			);
 			name = "Linked Frameworks";
@@ -517,6 +515,7 @@
 					"$(inherited)",
 					"\"$(SRCROOT)/Classes/GHUnit\"",
 					"\"$(SRCROOT)/Frameworks\"",
+					"\"$(SRCROOT)/External/GHUnit/Project/build/Debug\"",
 				);
 				GCC_C_LANGUAGE_STANDARD = "compiler-default";
 				GCC_DYNAMIC_NO_PIC = NO;
@@ -552,6 +551,7 @@
 					"$(inherited)",
 					"\"$(SRCROOT)/Classes/GHUnit\"",
 					"\"$(SRCROOT)/Frameworks\"",
+					"\"$(SRCROOT)/External/GHUnit/Project/build/Debug\"",
 				);
 				GCC_C_LANGUAGE_STANDARD = "compiler-default";
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;

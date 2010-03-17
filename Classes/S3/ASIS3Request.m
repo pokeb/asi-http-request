@@ -32,7 +32,6 @@ static NSDateFormatter *dateFormatter = nil;
 - (id)initWithURL:(NSURL *)newURL
 {
 	self = [super initWithURL:newURL];
-	
 	// After a bit of experimentation/guesswork, this number seems to reduce the chance of a 'RequestTimeout' error
 	[self setPersistentConnectionTimeoutSeconds:20];
 	return self;
