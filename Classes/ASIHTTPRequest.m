@@ -21,7 +21,7 @@
 #import "ASIInputStream.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.6-8 2010-03-17";
+NSString *ASIHTTPRequestVersion = @"v1.6-9 2010-03-17";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
