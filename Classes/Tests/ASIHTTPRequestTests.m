@@ -278,7 +278,7 @@
 // Test fix for a bug that might have caused timeouts when posting data
 - (void)testTimeOutWithoutDownloadDelegate
 {
-	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://trails-network.net/Downloads/MemexTrails_1.0b1.zip"]];
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_great_american_novel_%28young_readers_edition%29.txt"]];
 	[request setTimeOutSeconds:5];
 	[request setShowAccurateProgress:NO];
 	[request setPostBody:[NSMutableData dataWithData:[@"Small Body" dataUsingEncoding:NSUTF8StringEncoding]]];

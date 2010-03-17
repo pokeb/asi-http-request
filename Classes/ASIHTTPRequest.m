@@ -21,7 +21,7 @@
 #import "ASIInputStream.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.6-9 2010-03-17";
+NSString *ASIHTTPRequestVersion = @"v1.6-10 2010-03-17";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -1545,15 +1545,17 @@ static BOOL isiPhoneOS2;
 	if ([self error] || [self mainRequest]) {
 		return;
 	}
+	// Let the delegate know we have started
+	if ([self didStartSelector] && [[self delegate] respondsToSelector:[self didStartSelector]]) {
+		[[self delegate] performSelectorOnMainThread:[self didStartSelector] withObject:self waitUntilDone:[NSThread isMainThread]];		
+	}
+	
 	// Let the queue know we have started
 	if ([[self queue] respondsToSelector:@selector(requestDidStart:)]) {
 		[[self queue] performSelectorOnMainThread:@selector(requestDidStart:) withObject:self waitUntilDone:[NSThread isMainThread]];		
 	}
 	
-	// Let the delegate know we have started
-	if ([self didStartSelector] && [[self delegate] respondsToSelector:[self didStartSelector]]) {
-		[[self delegate] performSelectorOnMainThread:[self didStartSelector] withObject:self waitUntilDone:[NSThread isMainThread]];		
-	}
+
 }
 
 // Subclasses might override this method to process the result in the same thread
@@ -1566,15 +1568,16 @@ static BOOL isiPhoneOS2;
 	if ([self error] || [self mainRequest]) {
 		return;
 	}
+	// Let the delegate know we are done
+	if ([self didFinishSelector] && [[self delegate] respondsToSelector:[self didFinishSelector]]) {
+		[[self delegate] performSelectorOnMainThread:[self didFinishSelector] withObject:self waitUntilDone:[NSThread isMainThread]];		
+	}
+	
 	// Let the queue know we are done
 	if ([[self queue] respondsToSelector:@selector(requestDidFinish:)]) {
 		[[self queue] performSelectorOnMainThread:@selector(requestDidFinish:) withObject:self waitUntilDone:[NSThread isMainThread]];		
 	}
 	
-	// Let the delegate know we are done
-	if ([self didFinishSelector] && [[self delegate] respondsToSelector:[self didFinishSelector]]) {
-		[[self delegate] performSelectorOnMainThread:[self didFinishSelector] withObject:self waitUntilDone:[NSThread isMainThread]];		
-	}
 }
 
 // Subclasses might override this method to perform error handling in the same thread
@@ -1615,14 +1618,14 @@ static BOOL isiPhoneOS2;
 		[failedRequest setError:theError];
 	}
 
-	// Let the queue know something went wrong
-	if ([[failedRequest queue] respondsToSelector:@selector(requestDidFail:)]) {
-		[[failedRequest queue] performSelectorOnMainThread:@selector(requestDidFail:) withObject:failedRequest waitUntilDone:[NSThread isMainThread]];		
-	}
-		
 	// Let the delegate know something went wrong
 	if ([failedRequest didFailSelector] && [[failedRequest delegate] respondsToSelector:[failedRequest didFailSelector]]) {
 		[[failedRequest delegate] performSelectorOnMainThread:[failedRequest didFailSelector] withObject:failedRequest waitUntilDone:[NSThread isMainThread]];	
+	}
+	
+	// Let the queue know something went wrong
+	if ([[failedRequest queue] respondsToSelector:@selector(requestDidFail:)]) {
+		[[failedRequest queue] performSelectorOnMainThread:@selector(requestDidFail:) withObject:failedRequest waitUntilDone:[NSThread isMainThread]];		
 	}
 	
 	[self markAsFinished];

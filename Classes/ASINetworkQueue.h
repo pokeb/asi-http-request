@@ -65,6 +65,9 @@
 // Convenience constructor
 + (id)queue;
 
+// Call this to reset a queue - it will cancel all operations, clear delegates, and suspend operation
+- (void)reset;
+
 // Used internally to manage HEAD requests when showAccurateProgress is YES, do not use!
 - (void)addHEADOperation:(NSOperation *)operation;
 

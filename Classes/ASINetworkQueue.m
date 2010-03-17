@@ -59,6 +59,24 @@
 	[self updateNetworkActivityIndicator];
 }
 
+// Call this to reset a queue - it will cancel all operations, clear delegates, and suspend operation
+- (void)reset
+{
+	[self cancelAllOperations];
+	[self setDelegate:nil];
+	[self setDownloadProgressDelegate:nil];
+	[self setUploadProgressDelegate:nil];
+	[self setRequestDidStartSelector:NULL];
+	[self setRequestDidFailSelector:NULL];
+	[self setRequestDidFinishSelector:NULL];
+	[self setQueueDidFinishSelector:NULL];
+	[self setTotalBytesToUpload:0];
+	[self setBytesUploadedSoFar:0];
+	[self setTotalBytesToDownload:0];
+	[self setBytesDownloadedSoFar:0];
+	[self setSuspended:YES];
+}
+
 
 - (void)go
 {
@@ -193,14 +211,15 @@
 	if ([self requestDidFailSelector]) {
 		[[self delegate] performSelector:[self requestDidFailSelector] withObject:request];
 	}
-	if ([self shouldCancelAllRequestsOnFailure] && [self requestsCount] > 0) {
-		[self cancelAllOperations];
-	}
 	if ([self requestsCount] == 0) {
 		if ([self queueDidFinishSelector]) {
 			[[self delegate] performSelector:[self queueDidFinishSelector] withObject:self];
 		}
 	}
+	if ([self shouldCancelAllRequestsOnFailure] && [self requestsCount] > 0) {
+		[self cancelAllOperations];
+	}
+
 }
 
 - (void)requestDidFinish:(ASIHTTPRequest *)request

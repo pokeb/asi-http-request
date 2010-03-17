@@ -206,7 +206,7 @@ IMPORTANT
 
 - (void)testAddingRequestsToQueueWhileInProgress
 {
-	[[self addMoreRequestsQueue] cancelAllOperations];
+	[[self addMoreRequestsQueue] reset];
 	[self setAddMoreRequestsQueue:[ASINetworkQueue queue]];
 	[[self addMoreRequestsQueue] setDownloadProgressDelegate:self];
 	[[self addMoreRequestsQueue] setDelegate:self];
@@ -647,17 +647,17 @@ IMPORTANT
 	complete = NO;
 	progress = 0;
 	
-	NSString *temporaryPath = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:@"MemexTrails_1.0b1.zip.download"];
+	NSString *temporaryPath = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:@"the_great_american_novel_%28young_readers_edition%29.txt.download"];
 	if ([[NSFileManager defaultManager] fileExistsAtPath:temporaryPath]) {
 		[[NSFileManager defaultManager] removeItemAtPath:temporaryPath error:nil];
 	}
 	
-	NSString *downloadPath = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:@"MemexTrails_1.0b1.zip"];
+	NSString *downloadPath = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:@"the_great_american_novel_%28young_readers_edition%29.txt"];
 	if ([[NSFileManager defaultManager] fileExistsAtPath:downloadPath]) {
 		[[NSFileManager defaultManager] removeItemAtPath:downloadPath error:nil];
 	}
 	
-	NSURL *downloadURL = [NSURL URLWithString:@"http://trails-network.net/Downloads/MemexTrails_1.0b1.zip"];
+	NSURL *downloadURL = [NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_great_american_novel_%28young_readers_edition%29.txt"];
 	ASINetworkQueue *networkQueue = [ASINetworkQueue queue];	
 
 	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:downloadURL] autorelease];
@@ -667,17 +667,15 @@ IMPORTANT
 	[networkQueue addOperation:request];
 	[networkQueue go];
 	 
-	// Let the download run for 5 seconds, which hopefully won't be enough time to grab this file. If you have a super fast connection, this test may fail, serves you right for being so smug. :)
-	NSTimer *timeoutTimer = [NSTimer scheduledTimerWithTimeInterval:5 target:self selector:@selector(stopQueue:) userInfo:nil repeats:NO];
+	// Let the download run for a second, which hopefully won't be enough time to grab this file. If you have a super fast connection, this test may fail, serves you right for being so smug. :)
+	NSTimer *timeoutTimer = [NSTimer scheduledTimerWithTimeInterval:1 target:self selector:@selector(stopQueue:) userInfo:nil repeats:NO];
 	
 	while (!complete) {
 		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
 	}
 	
-	// 5 seconds is up, let's tell the queue to stop
-	[networkQueue cancelAllOperations];
-	
-	networkQueue = [ASINetworkQueue queue];
+	// 1 second has passed, let's tell the queue to stop
+	[networkQueue reset];
 	[networkQueue setDownloadProgressDelegate:self];
 	[networkQueue setShowAccurateProgress:YES];
 	[networkQueue setDelegate:self];
@@ -708,7 +706,7 @@ IMPORTANT
 	
 	unsigned long long amountDownloaded = [[[NSFileManager defaultManager] attributesOfItemAtPath:downloadPath error:&err] fileSize];
 	GHAssertNil(err,@"Got an error obtaining attributes on the file, this shouldn't happen");
-	success = (amountDownloaded == 9145357);
+	success = (amountDownloaded == 1036935);
 	GHAssertTrue(success,@"Failed to complete the download");
 	
 	success = (progress > 0.95);
@@ -895,8 +893,7 @@ IMPORTANT
 
 	
 	// Reset the queue
-	[networkQueue cancelAllOperations];
-	networkQueue = [ASINetworkQueue queue];
+	[networkQueue reset];
 	[networkQueue setDelegate:self];
 	[networkQueue setRequestDidFailSelector:@selector(throttleFail:)];
 	[networkQueue setQueueDidFinishSelector:@selector(queueFinished:)];
@@ -960,8 +957,7 @@ IMPORTANT
 	GHAssertTrue(success,@"Uploaded the data too slowly - either this is a bug, or your internet connection is too slow to run this test (must be able to upload 160KB in less than 10 seconds, without throttling)");
 	
 	// Reset the queue
-	[networkQueue cancelAllOperations];
-	networkQueue = [ASINetworkQueue queue];
+	[networkQueue reset];
 	[networkQueue setDelegate:self];
 	[networkQueue setRequestDidFailSelector:@selector(throttleFail:)];
 	[networkQueue setQueueDidFinishSelector:@selector(queueFinished:)];
@@ -1137,7 +1133,36 @@ IMPORTANT
 	}
 	GHAssertTrue(complete,@"Failed to call queue finished delegate method");
 	
+	queueFinishedCallCount = 0;
+	complete = NO;
+	[networkQueue reset];
+	[networkQueue setDelegate:self];
+	[networkQueue setQueueDidFinishSelector:@selector(queueFailureFinishCallOnce:)];
+	[networkQueue setMaxConcurrentOperationCount:1];
 	
+	for (i=0; i<10; i++) {
+		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://there-is-no-spoon.allseeing-i.com"]];
+		[networkQueue addOperation:request];
+	}
+	
+	[networkQueue go];
+	
+	dateStarted = [NSDate date];
+	while (!complete) {
+		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.5]];
+		if ([dateStarted timeIntervalSinceNow] < -10) {
+			break;
+		}
+	}
+	BOOL success = (queueFinishedCallCount == 1);
+	GHAssertTrue(success,@"Called the queue finish method more/less than once");
+	
+}
+
+- (void)queueFailureFinishCallOnce:(ASINetworkQueue *)queue
+{
+	queueFinishedCallCount++;
+	complete = YES;
 }
 
 - (void)queueFailureFinish:(ASINetworkQueue *)queue
