@@ -21,7 +21,7 @@
 #import "ASIInputStream.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.6-7 2010-03-16";
+NSString *ASIHTTPRequestVersion = @"v1.6-8 2010-03-17";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -182,6 +182,7 @@ static BOOL isiPhoneOS2;
 @property (assign, nonatomic) BOOL readStreamIsScheduled;
 @property (retain, nonatomic) NSTimer *statusTimer;
 @property (assign, nonatomic) BOOL downloadComplete;
+@property (retain) NSNumber *requestID;
 @end
 
 
@@ -962,13 +963,17 @@ static BOOL isiPhoneOS2;
 			[persistentConnectionsPool addObject:[self connectionInfo]];
 		}
 		
-		nextRequestID++;
-		[[self connectionInfo] setObject:[NSNumber numberWithInt:nextRequestID] forKey:@"request"];		
+		// If we are retrying this request, it will already have a requestID
+		if (![self requestID]) {
+			nextRequestID++;
+			[self setRequestID:[NSNumber numberWithUnsignedInt:nextRequestID]];
+		}
+		[[self connectionInfo] setObject:[self requestID] forKey:@"request"];		
 		[[self connectionInfo] setObject:[self readStream] forKey:@"stream"];
 		CFReadStreamSetProperty((CFReadStreamRef)[self readStream],  kCFStreamPropertyHTTPAttemptPersistentConnection, kCFBooleanTrue);
 		
 		#if DEBUG_PERSISTENT_CONNECTIONS
-		NSLog(@"Request #%hi will use connection #%hi",nextRequestID,[[[self connectionInfo] objectForKey:@"id"] intValue]);
+		NSLog(@"Request #%@ will use connection #%hi",[self requestID],[[[self connectionInfo] objectForKey:@"id"] intValue]);
 		#endif
 		
 		
@@ -1037,7 +1042,7 @@ static BOOL isiPhoneOS2;
 	
 
 	[self setStatusTimer:[NSTimer scheduledTimerWithTimeInterval:0.25 target:self selector:@selector(updateStatus:) userInfo:nil repeats:YES]];
-	
+
 	// If we're running asynchronously on the main thread, the runloop will already be running and we can return control
 	if (![NSThread isMainThread] || [self isSynchronous]) {
 		while (!complete) {
@@ -1149,17 +1154,16 @@ static BOOL isiPhoneOS2;
 		// If we have a post body
 		if ([self postLength]) {
 		
-			// Find out if we've sent any more data than last time, and reset the timeout if so
-			if (totalBytesSent > lastBytesSent) {
-				[self setLastActivityTime:[NSDate date]];
-				[self setLastBytesSent:totalBytesSent];
-			}
+			[self setLastBytesSent:totalBytesSent];	
 			
 			// Find out how much data we've uploaded so far
 			[self setTotalBytesSent:[[(NSNumber *)CFReadStreamCopyProperty((CFReadStreamRef)[self readStream], kCFStreamPropertyHTTPRequestBytesWrittenCount) autorelease] unsignedLongLongValue]];
 			if (totalBytesSent > lastBytesSent) {
+				
+				// We've uploaded more data,  reset the timeout
+				[self setLastActivityTime:[NSDate date]];
 				[ASIHTTPRequest incrementBandwidthUsedInLastSecond:(unsigned long)(totalBytesSent-lastBytesSent)];		
-					
+						
 				#if DEBUG_REQUEST_STATUS
 				if ([self totalBytesSent] == [self postLength]) {
 					NSLog(@"Request %@ finished uploading data",self);
@@ -1359,12 +1363,15 @@ static BOOL isiPhoneOS2;
 		if (showAccurateProgress) {
 			if (totalBytesSent == postLength || lastBytesSent > 0) {
 				value = totalBytesSent-lastBytesSent;
-			} else {
-				value = 0;
 			}
 		} else {
 			value = 1;
 			[self setUpdatedProgress:YES];
+		}
+		
+		// No progress
+		if (value == 0) {
+			return;
 		}
 		
 		NSMethodSignature *signature = nil;
@@ -1387,6 +1394,9 @@ static BOOL isiPhoneOS2;
 			progress = (double)(1.0*(totalBytesSent-uploadBufferSize)/(postLength-uploadBufferSize));
 		}
 		[self setUpdatedProgress:YES];
+		if (progress == 0) {
+			return;
+		}
 		[ASIHTTPRequest setProgress:progress forProgressIndicator:uploadProgressDelegate];
 		
 	}
@@ -1436,6 +1446,10 @@ static BOOL isiPhoneOS2;
 				[self setUpdatedProgress:YES];
 			}
 			
+			// No progress
+			if (value == 0) {
+				return;
+			}
 			
 			NSMethodSignature *signature = [[queue class] instanceMethodSignatureForSelector:selector];
 			NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
@@ -1457,6 +1471,9 @@ static BOOL isiPhoneOS2;
 				}
 			}
 			[self setUpdatedProgress:YES];
+			if (progress == 0) {
+				return;
+			}
 			[ASIHTTPRequest setProgress:progress forProgressIndicator:downloadProgressDelegate];
 		}
 		
@@ -1471,7 +1488,7 @@ static BOOL isiPhoneOS2;
 	// We're using a progress queue or compatible controller to handle progress
 	SEL selector = @selector(decrementUploadProgressBy:);
 	if ([queue respondsToSelector:selector]) {
-		unsigned long long value = 0-lastBytesSent;
+		unsigned long long value = 0-[self totalBytesSent];
 		
 		NSMethodSignature *signature = [[queue class] instanceMethodSignatureForSelector:selector];
 		NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
@@ -1573,7 +1590,7 @@ static BOOL isiPhoneOS2;
 	if (theError && [theError code] != ASIAuthenticationErrorType && [theError code] != ASITooMuchRedirectionErrorType) {
 		[connectionsLock lock];
 		#if DEBUG_PERSISTENT_CONNECTIONS
-		NSLog(@"Request #%@ failed and will invalidate connection #%@",[[self connectionInfo] objectForKey:@"request"],[[self connectionInfo] objectForKey:@"id"]);
+		NSLog(@"Request #%@ failed and will invalidate connection #%@",[self requestID],[[self connectionInfo] objectForKey:@"id"]);
 		#endif
 		[[self connectionInfo] removeObjectForKey:@"request"];
 		[persistentConnectionsPool removeObject:[self connectionInfo]];
@@ -2545,6 +2562,7 @@ static BOOL isiPhoneOS2;
 
 	[progressLock lock];	
 	// Find out how much data we've uploaded so far
+	[self setLastBytesSent:totalBytesSent];	
 	[self setTotalBytesSent:[[(NSNumber *)CFReadStreamCopyProperty((CFReadStreamRef)[self readStream], kCFStreamPropertyHTTPRequestBytesWrittenCount) autorelease] unsignedLongLongValue]];
 	[self setComplete:YES];
 	[self updateProgressIndicators];
@@ -2605,7 +2623,7 @@ static BOOL isiPhoneOS2;
 		[self unscheduleReadStream];
 	}
 	#if DEBUG_PERSISTENT_CONNECTIONS
-	NSLog(@"Request #%@ finished using connection #%@",[[self connectionInfo] objectForKey:@"request"], [[self connectionInfo] objectForKey:@"id"]);
+	NSLog(@"Request #%@ finished using connection #%@",[self requestID], [[self connectionInfo] objectForKey:@"id"]);
 	#endif
 	[[self connectionInfo] removeObjectForKey:@"request"];
 	[[self connectionInfo] setObject:[NSDate dateWithTimeIntervalSinceNow:[self persistentConnectionTimeoutSeconds]] forKey:@"expires"];
@@ -2635,7 +2653,24 @@ static BOOL isiPhoneOS2;
 	CFRunLoopStop(CFRunLoopGetCurrent());
 }
 
-
+- (BOOL)retryUsingNewConnection
+{
+	if ([self retryCount] == 0) {
+		#if DEBUG_PERSISTENT_CONNECTIONS
+			NSLog(@"Request attempted to use connection #%@, but it has been closed - will retry with a new connection", [[self connectionInfo] objectForKey:@"id"]);
+		#endif
+		[[self connectionInfo] removeObjectForKey:@"request"];
+		[persistentConnectionsPool removeObject:[self connectionInfo]];
+		[self setConnectionInfo:nil];
+		[self setRetryCount:[self retryCount]+1];
+		[self startRequest];
+		return YES;
+	}
+	#if DEBUG_PERSISTENT_CONNECTIONS
+		NSLog(@"Request attempted to use connection #%@, but it has been closed - we have already retried with a new connection, so we must give up", [[self connectionInfo] objectForKey:@"id"]);
+	#endif	
+	return NO;
+}
 
 - (void)handleStreamError
 
@@ -2651,14 +2686,10 @@ static BOOL isiPhoneOS2;
 		// If we get this, we need to retry the request
 		// We'll only do this once - if it happens again on retry, we'll give up
 		if ([[underlyingError domain] isEqualToString:NSPOSIXErrorDomain]) {
-			if ([underlyingError code] == ENOTCONN && [self retryCount] == 0) {
-				
-				#if DEBUG_PERSISTENT_CONNECTIONS
-					NSLog(@"Request #%@ attempted to use connection #%@, but is has been closed - will retry with a new connection",[[self connectionInfo] objectForKey:@"request"], [[self connectionInfo] objectForKey:@"id"]);
-				#endif		
-				[self setRetryCount:[self retryCount]+1];
-				[self startRequest];
-				return;
+			if ([underlyingError code] == ENOTCONN) {
+				if ([self retryUsingNewConnection]) {
+					return;
+				}
 			}
 		}
 		
@@ -2731,7 +2762,7 @@ static BOOL isiPhoneOS2;
 		NSDictionary *existingConnection = [persistentConnectionsPool objectAtIndex:i];
 		if (![existingConnection objectForKey:@"request"] && [[existingConnection objectForKey:@"expires"] timeIntervalSinceNow] <= 0) {
 #if DEBUG_PERSISTENT_CONNECTIONS
-			NSLog(@"Not re-using connection #%hi because it has expired",[[existingConnection objectForKey:@"id"] intValue]);
+			NSLog(@"Closing connection #%hi because it has expired",[[existingConnection objectForKey:@"id"] intValue]);
 #endif
 			NSInputStream *stream = [existingConnection objectForKey:@"stream"];
 			if (stream) {
@@ -3784,4 +3815,5 @@ static BOOL isiPhoneOS2;
 @synthesize statusTimer;
 @synthesize shouldUseRFC2616RedirectBehaviour;
 @synthesize downloadComplete;
+@synthesize requestID;
 @end

@@ -1489,8 +1489,29 @@
 	success = ([[request connectionID] intValue] != [connectionId intValue]);
 	GHAssertTrue(success,@"Reused a connection that should have timed out");
 	
+}
 
+- (void)testRemoveUploadProgress
+{
+	[self performSelectorOnMainThread:@selector(runRemoveUploadProgressTest) withObject:nil waitUntilDone:YES];
+}
+
+- (void)runRemoveUploadProgressTest
+{
+	progress = 0;
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
+	NSData *data = [[[NSMutableData alloc] initWithLength:64*1024] autorelease];
+	[request appendPostData:data];
+	[request setRequestMethod:@"POST"];
+	[request setUploadProgressDelegate:self];
+	[request startSynchronous];
 	
+	BOOL success = (progress == 1.0);
+	GHAssertTrue(success,@"Failed to set upload progress, cannot proceed with test");
+	
+	[request removeUploadProgressSoFar];
+	success = (progress == 0);
+	GHAssertTrue(success,@"Failed to set upload progress, cannot proceed with test");
 }
 
 @end

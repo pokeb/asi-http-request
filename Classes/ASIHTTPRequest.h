@@ -371,6 +371,9 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	
 	// Used internally to record when a request has finished downloading data
 	BOOL downloadComplete;
+	
+	// An ID that uniquely identifies this request - primarily used for debugging persistent connections
+	NSNumber *requestID;
 }
 
 #pragma mark init / dealloc
@@ -462,6 +465,11 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 
 // Called when a request fails, and lets the delegate know via didFailSelector
 - (void)failWithError:(NSError *)theError;
+
+// Called to retry our request when our persistent connection is closed
+// Returns YES if we haven't already retried, and connection will be restarted
+// Otherwise, returns NO, and nothing will happen
+- (BOOL)retryUsingNewConnection;
 
 #pragma mark parsing HTTP response headers
 
@@ -724,4 +732,5 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 @property (assign) NSTimeInterval persistentConnectionTimeoutSeconds;
 @property (assign) BOOL shouldUseRFC2616RedirectBehaviour;
 @property (assign, readonly) BOOL connectionCanBeReused;
+@property (retain, readonly) NSNumber *requestID;
 @end

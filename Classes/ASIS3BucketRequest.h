@@ -51,7 +51,7 @@
 // Use for creating new buckets
 + (id)PUTRequestWithBucket:(NSString *)bucket;
 
-// Use for deleting buckets (CAREFULL!)
+// Use for deleting buckets - they must be empty for this to succeed
 + (id)DELETERequestWithBucket:(NSString *)bucket;
 
 // Returns an array of ASIS3BucketObjects created from the XML response

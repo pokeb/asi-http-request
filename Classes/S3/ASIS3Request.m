@@ -29,6 +29,16 @@ static NSDateFormatter *dateFormatter = nil;
 
 @implementation ASIS3Request
 
+- (id)initWithURL:(NSURL *)newURL
+{
+	self = [super initWithURL:newURL];
+	
+	// After a bit of experimentation/guesswork, this number seems to reduce the chance of a 'RequestTimeout' error
+	[self setPersistentConnectionTimeoutSeconds:20];
+	return self;
+}
+
+
 - (void)dealloc
 {
 	[dateString release];
@@ -109,6 +119,7 @@ static NSDateFormatter *dateFormatter = nil;
 	NSString *authorizationString = [NSString stringWithFormat:@"AWS %@:%@",[self accessKey],signature];
 	[self addRequestHeader:@"Authorization" value:authorizationString];
 	
+	
 }
 
 - (void)requestFinished
@@ -147,6 +158,14 @@ static NSDateFormatter *dateFormatter = nil;
 {
 	if ([elementName isEqualToString:@"Message"]) {
 		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIS3ResponseErrorType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[self currentErrorString],NSLocalizedDescriptionKey,nil]]];
+	// Handle S3 connection expiry errors
+	} else if ([elementName isEqualToString:@"Code"]) {
+		if ([[self currentErrorString] isEqualToString:@"RequestTimeout"]) {
+			if ([self retryUsingNewConnection]) {
+				[parser abortParsing];
+				return;
+			}
+		}
 	}
 }
 
@@ -160,6 +179,7 @@ static NSDateFormatter *dateFormatter = nil;
 	ASIS3Request *newRequest = [super copyWithZone:zone];
 	[newRequest setAccessKey:[self accessKey]];
 	[newRequest setSecretAccessKey:[self secretAccessKey]];
+	[newRequest setAccessPolicy:[self accessPolicy]];
 	return newRequest;
 }
 

@@ -88,7 +88,6 @@
 	[newRequest setMimeType:[self mimeType]];
 	[newRequest setSourceBucket:[self sourceBucket]];
 	[newRequest setSourceKey:[self sourceKey]];
-	[newRequest setAccessPolicy:[self accessPolicy]];
 	return newRequest;
 }
 
@@ -100,6 +99,17 @@
 	[sourceKey release];
 	[sourceBucket release];
 	[super dealloc];
+}
+
+- (NSString *)mimeType
+{
+	if (mimeType) {
+		return mimeType;
+	} else if ([self postBodyFilePath]) {
+		return [ASIHTTPRequest mimeTypeForFileAtPath:[self postBodyFilePath]];
+	} else {
+		return @"application/octet-stream";
+	}
 }
 
 - (void)requestFinished

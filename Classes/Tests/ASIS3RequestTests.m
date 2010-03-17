@@ -17,9 +17,7 @@
 static NSString *secretAccessKey = @"";
 static NSString *accessKey = @"";
 
-// ********IMPORTANT***********************************************
-// Invent a new bucket name when running these tests
-// ***** NEVER USE AN EXISTING BUCKET - IT WILL BE DELETED! *******
+// You should run these tests on a bucket that does not yet exist
 static NSString *bucket = @"";
 
 
@@ -120,6 +118,8 @@ static NSString *bucket = @"";
 
 - (void)testFailure
 {
+	[self createTestBucket];
+	
 	// Needs expanding to cover more failure states - this is just a test to ensure Amazon's error description is being added to the error
 	
 	// We're actually going to try with the Amazon example details, but the request will fail because the date is old
@@ -143,11 +143,21 @@ static NSString *bucket = @"";
 	
 }
 
+- (void)createTestBucket
+{
+	// Test creating a bucket
+	ASIS3BucketRequest *bucketRequest = [ASIS3BucketRequest PUTRequestWithBucket:bucket];
+	[bucketRequest setSecretAccessKey:secretAccessKey];
+	[bucketRequest setAccessKey:accessKey];
+	[bucketRequest startSynchronous];
+	GHAssertNil([bucketRequest error],@"Failed to create a bucket");		
+}
 
 // To run this test, uncomment and fill in your S3 access details
 - (void)testREST
 {
-
+	[self createTestBucket];
+	
 	BOOL success = (![secretAccessKey isEqualToString:@""] && ![accessKey isEqualToString:@""] && ![bucket isEqualToString:@""]);
 	GHAssertTrue(success,@"You need to supply your S3 access details to run the REST test (see the top of ASIS3RequestTests.m)");
 	
@@ -211,7 +221,6 @@ static NSString *bucket = @"";
 	[request startSynchronous];
 	success = [[request responseString] isEqualToString:@"This is my content"];
 	GHAssertTrue(success,@"Failed to GET the correct data from S3");	
-	
 	
 	// HEAD the copy
 	request = [ASIS3ObjectRequest HEADRequestWithBucket:bucket key:@"test-copy"];
@@ -311,6 +320,7 @@ static NSString *bucket = @"";
 // The file should still be accessible by any HTTP client that supports gzipped responses (eg browsers, NSURLConnection, etc)
 - (void)testGZippedContent
 {
+	[self createTestBucket];
 	
 	BOOL success = (![secretAccessKey isEqualToString:@""] && ![accessKey isEqualToString:@""] && ![bucket isEqualToString:@""]);
 	GHAssertTrue(success,@"You need to supply your S3 access details to run the gzipped put test (see the top of ASIS3RequestTests.m)");
@@ -345,14 +355,21 @@ static NSString *bucket = @"";
 	NSData *data = [NSURLConnection sendSynchronousRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://%@.s3.amazonaws.com/gzipped-data",bucket]]] returningResponse:NULL error:NULL];
 	NSString *string = [[[NSString alloc] initWithBytes:[data bytes] length:[data length] encoding:NSUTF8StringEncoding] autorelease];
 	success = [string isEqualToString:text];
-	GHAssertTrue(success,@"Failed to GET the correct data from S3");		
+	GHAssertTrue(success,@"Failed to GET the correct data from S3");	
+	
+	// Cleanup
+	request = [ASIS3ObjectRequest DELETERequestWithBucket:bucket key:key];
+	[request setSecretAccessKey:secretAccessKey];
+	[request setAccessKey:accessKey];
+	[request startSynchronous];
 	
 }
 
 
 - (void)testListRequest
 {	
-
+	[self createTestBucket];
+	
 	BOOL success = (![secretAccessKey isEqualToString:@""] && ![accessKey isEqualToString:@""] && ![bucket isEqualToString:@""]);
 	GHAssertTrue(success,@"You need to supply your S3 access details to run the list test (see the top of ASIS3RequestTests.m)");
 	
@@ -517,13 +534,49 @@ static NSString *bucket = @"";
 
 - (void)s3QueueFinished:(ASINetworkQueue *)queue
 {
-	BOOL success = (progress == 1.0);
-	GHAssertTrue(success,@"Failed to update progress properly");
+//	BOOL success = (progress == 1.0);
+//	GHAssertTrue(success,@"Failed to update progress properly");
 }
 
 
 - (void)testQueueProgress
 {
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/i/logo.png"]];
+	[request startSynchronous];
+	NSData *data = [request responseData];
+	
+	[self createTestBucket];
+
+	// Upload objects
+	progress = 0;	
+	[[self networkQueue] cancelAllOperations];
+	[self setNetworkQueue:[ASINetworkQueue queue]];
+	[[self networkQueue] setDelegate:self];
+	[[self networkQueue] setRequestDidFailSelector:@selector(s3RequestFailed:)];
+	[[self networkQueue] setQueueDidFinishSelector:@selector(s3QueueFinished:)];	
+	[[self networkQueue] setUploadProgressDelegate:self];
+	[[self networkQueue] setShowAccurateProgress:YES];
+	[[self networkQueue] setMaxConcurrentOperationCount:1];
+	
+	int i;	
+	for (i=0; i<5; i++) {
+		
+		NSString *key = [NSString stringWithFormat:@"stuff/file%hi.txt",i+1];
+		
+		ASIS3ObjectRequest *s3Request = [ASIS3ObjectRequest PUTRequestForData:data withBucket:bucket key:key];
+		[s3Request setSecretAccessKey:secretAccessKey];
+		[s3Request setAccessKey:accessKey];
+		[s3Request setTimeOutSeconds:20];
+		[s3Request setNumberOfTimesToRetryOnTimeout:3];
+		[s3Request setMimeType:@"image/png"];
+		[[self networkQueue] addOperation:s3Request];
+	}
+	[[self networkQueue] go];
+	[[self networkQueue] waitUntilAllOperationsAreFinished];
+
+	
+	// Download objects
+	progress = 0;	
 	[[self networkQueue] cancelAllOperations];
 	[self setNetworkQueue:[ASINetworkQueue queue]];
 	[[self networkQueue] setDelegate:self];
@@ -532,9 +585,10 @@ static NSString *bucket = @"";
 	[[self networkQueue] setDownloadProgressDelegate:self];
 	[[self networkQueue] setShowAccurateProgress:YES];
 	
-	int i;
 	for (i=0; i<5; i++) {
-		NSString *key = [NSString stringWithFormat:@"images/%hi.jpg",i+1];
+		
+		NSString *key = [NSString stringWithFormat:@"stuff/file%hi.txt",i+1];
+		
 		ASIS3ObjectRequest *s3Request = [ASIS3ObjectRequest requestWithBucket:bucket key:key];
 		[s3Request setSecretAccessKey:secretAccessKey];
 		[s3Request setAccessKey:accessKey];
@@ -544,6 +598,30 @@ static NSString *bucket = @"";
 	}
 	
 	[[self networkQueue] go];
+	[[self networkQueue] waitUntilAllOperationsAreFinished];
+	progress = 0;
+	
+	// Delete objects
+	progress = 0;
+	
+	[[self networkQueue] cancelAllOperations];
+	[self setNetworkQueue:[ASINetworkQueue queue]];
+	[[self networkQueue] setDelegate:self];
+	[[self networkQueue] setRequestDidFailSelector:@selector(s3RequestFailed:)];
+	[[self networkQueue] setShowAccurateProgress:YES];
+	
+
+	for (i=0; i<5; i++) {
+		
+		NSString *key = [NSString stringWithFormat:@"stuff/file%hi.txt",i+1];
+		
+		ASIS3ObjectRequest *s3Request = [ASIS3ObjectRequest DELETERequestWithBucket:bucket key:key];
+		[s3Request setSecretAccessKey:secretAccessKey];
+		[s3Request setAccessKey:accessKey];
+		[[self networkQueue] addOperation:s3Request];
+	}
+	[[self networkQueue] go];
+	[[self networkQueue] waitUntilAllOperationsAreFinished];
 
 }
 	
