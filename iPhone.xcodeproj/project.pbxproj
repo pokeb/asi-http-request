@@ -70,7 +70,21 @@
 		B5D145781029E7F3004379B8 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B5D145771029E7F3004379B8 /* SystemConfiguration.framework */; };
 		B5D1458C1029ED68004379B8 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B5D145771029E7F3004379B8 /* SystemConfiguration.framework */; };
 		B5EA45AA109B56D800E920CB /* StressTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B5EA45A9109B56D800E920CB /* StressTests.m */; };
+		B5F95171115237C800EDED69 /* libGHUnitIPhone3_0.a in CopyFiles */ = {isa = PBXBuildFile; fileRef = B54043751151538A00D8BE63 /* libGHUnitIPhone3_0.a */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		B5F95181115237CB00EDED69 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				B5F95171115237C800EDED69 /* libGHUnitIPhone3_0.a in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		1D30AB110D05D00D00671497 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -439,6 +453,7 @@
 				B55B60C30F765BB00064029C /* Resources */,
 				B55B60C40F765BB00064029C /* Sources */,
 				B55B60C50F765BB00064029C /* Frameworks */,
+				B5F95181115237CB00EDED69 /* CopyFiles */,
 				B52D492410DA403A008E8365 /* ShellScript */,
 			);
 			buildRules = (
