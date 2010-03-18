@@ -25,7 +25,7 @@
 	
 	// The mime type of the content for PUT requests
 	// Set this if having the correct mime type returned to you when you GET the data is important (eg it will be served by a web-server)
-	// Will be set to 'application/octet-stream' otherwise in iPhone apps, or autodetected on Mac OS X
+	// Can be autodetected when PUTing a file from disk, will default to 'application/octet-stream' when PUTing data
 	NSString *mimeType;
 }
 

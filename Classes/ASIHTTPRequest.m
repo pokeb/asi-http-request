@@ -15,13 +15,15 @@
 #if TARGET_OS_IPHONE
 #import "Reachability.h"
 #import "ASIAuthenticationDialog.h"
+#import <MobileCoreServices/MobileCoreServices.h>
 #else
 #import <SystemConfiguration/SystemConfiguration.h>
 #endif
 #import "ASIInputStream.h"
 
+
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.6-14 2010-03-18";
+NSString *ASIHTTPRequestVersion = @"v1.6-15 2010-03-18";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -3422,32 +3424,19 @@ static BOOL isiPhoneOS2;
 
 + (NSString *)mimeTypeForFileAtPath:(NSString *)path
 {
-	// NSTask does seem to exist in the 2.2.1 SDK, though it's not in the 3.0 SDK. It's probably best if we just use a generic mime type on iPhone all the time.
-#if TARGET_OS_IPHONE
-	return @"application/octet-stream";
-	
-	// Grab the mime type using an NSTask to run the 'file' program, with the Mac OS-specific parameters to grab the mime type
-	// Perhaps there is a better way to do this?
-#else
-	NSTask *task = [[[NSTask alloc] init] autorelease];
-	[task setLaunchPath: @"/usr/bin/file"];
-	[task setArguments:[NSMutableArray arrayWithObjects:@"-Ib",path,nil]];
-	
-    NSPipe *outputPipe = [NSPipe pipe];
-    [task setStandardOutput:outputPipe];
-	
-    NSFileHandle *file = [outputPipe fileHandleForReading];
-	
-	[task launch];
-	[task waitUntilExit];
-	
-	if ([task terminationStatus] != 0) {
-		return @"application/octet-stream";	
+	if (![[NSFileManager defaultManager] fileExistsAtPath:path]) {
+		return nil;
+	} else if ([ASIHTTPRequest isiPhoneOS2]) {
+		return @"application/octet-stream";
 	}
-	
-	NSString *mimeTypeString = [[[[NSString alloc] initWithData:[file readDataToEndOfFile] encoding: NSUTF8StringEncoding] autorelease] stringByReplacingOccurrencesOfString:@"\n" withString:@""];
-	return [[mimeTypeString componentsSeparatedByString:@";"] objectAtIndex:0];
-#endif
+	// Borrowed from http://stackoverflow.com/questions/2439020/wheres-the-iphone-mime-type-database
+	CFStringRef UTI = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, (CFStringRef)[path pathExtension], NULL);
+    CFStringRef MIMEType = UTTypeCopyPreferredTagWithClass (UTI, kUTTagClassMIMEType);
+    CFRelease(UTI);
+	if (!MIMEType) {
+		return @"application/octet-stream";
+	}
+    return [(NSString *)MIMEType autorelease];
 }
 
 #pragma mark bandwidth measurement / throttling

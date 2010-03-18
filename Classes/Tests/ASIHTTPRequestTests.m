@@ -1514,4 +1514,23 @@
 	GHAssertTrue(success,@"Failed to set upload progress, cannot proceed with test");
 }
 
+- (void)testMimeType
+{
+	NSString *text = @"This is my content";
+	NSString *filePath = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:@"testfile.txt"];
+	[[text dataUsingEncoding:NSUTF8StringEncoding] writeToFile:filePath atomically:NO];
+	
+	BOOL success = ([[ASIHTTPRequest mimeTypeForFileAtPath:filePath] isEqualToString:@"text/plain"]);
+	GHAssertTrue(success,@"Failed to detect the mime type for a file");
+	
+	filePath = @"/nowhere";
+	success = (![ASIHTTPRequest mimeTypeForFileAtPath:filePath]);
+	GHAssertTrue(success,@"Returned a mime type for a non-existent file");
+	
+	filePath = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:@"testfile"];
+	[[text dataUsingEncoding:NSUTF8StringEncoding] writeToFile:filePath atomically:NO];
+	success = ([[ASIHTTPRequest mimeTypeForFileAtPath:filePath] isEqualToString:@"application/octet-stream"]);
+	GHAssertTrue(success,@"Failed to return the default mime type when a file has no extension");
+}
+
 @end

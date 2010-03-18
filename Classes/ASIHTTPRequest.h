@@ -600,7 +600,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 
 #pragma mark mime-type detection
 
-// Only works on Mac OS, will always return 'application/octet-stream' on iPhone
+// Return the mime type for a file
 + (NSString *)mimeTypeForFileAtPath:(NSString *)path;
 
 #pragma mark bandwidth measurement / throttling

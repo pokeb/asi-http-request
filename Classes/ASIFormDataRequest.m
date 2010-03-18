@@ -97,8 +97,7 @@
 			fileName = [(NSString *)data lastPathComponent];
 		}
 	
-		// If we were given the path to a file, and the user didn't specify a mime type, we can detect it (currently only on Mac OS)
-		// Will return 'application/octet-stream' on iPhone, or if the mime type cannot be determined
+		// If we were given the path to a file, and the user didn't specify a mime type, we can detect it from the file extension
 		if (!contentType) {
 			contentType = [ASIHTTPRequest mimeTypeForFileAtPath:data];
 		}

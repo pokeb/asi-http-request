@@ -515,8 +515,6 @@
 				COPY_PHASE_STRIP = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(SRCROOT)/Classes/GHUnit\"",
-					"\"$(SRCROOT)/Frameworks\"",
 					"\"$(SRCROOT)/External/GHUnit/Project/build/Debug\"",
 				);
 				GCC_C_LANGUAGE_STANDARD = "compiler-default";
