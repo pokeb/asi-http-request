@@ -23,7 +23,7 @@
 
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.6-15 2010-03-18";
+NSString *ASIHTTPRequestVersion = @"v1.6-16 2010-03-19";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -1647,194 +1647,196 @@ static BOOL isiPhoneOS2;
 	if (!message) {
 		return;
 	}
-	if (CFHTTPMessageIsHeaderComplete(message)) {
+	
+	// Make sure we've received all the headers
+	if (!CFHTTPMessageIsHeaderComplete(message)) {
+		CFRelease(message);
+		return;
+	}
 
-#if DEBUG_REQUEST_STATUS
-		if ([self totalBytesSent] == [self postLength]) {
-			NSLog(@"Request %@ received response headers",self);
+	#if DEBUG_REQUEST_STATUS
+	if ([self totalBytesSent] == [self postLength]) {
+		NSLog(@"Request %@ received response headers",self);
+	}
+	#endif		
+
+	CFDictionaryRef headerFields = CFHTTPMessageCopyAllHeaderFields(message);
+	[self setResponseHeaders:(NSDictionary *)headerFields];
+
+	CFRelease(headerFields);
+	[self setResponseStatusCode:CFHTTPMessageGetResponseStatusCode(message)];
+	[self setResponseStatusMessage:[(NSString *)CFHTTPMessageCopyResponseStatusLine(message) autorelease]];
+
+	// Is the server response a challenge for credentials?
+	if ([self responseStatusCode] == 401) {
+		[self setAuthenticationNeeded:ASIHTTPAuthenticationNeeded];
+	} else if ([self responseStatusCode] == 407) {
+		[self setAuthenticationNeeded:ASIProxyAuthenticationNeeded];
+	}
+		
+	// Authentication succeeded, or no authentication was required
+	if (![self authenticationNeeded]) {
+
+		// Did we get here without an authentication challenge? (which can happen when shouldPresentCredentialsBeforeChallenge is YES and basic auth was successful)
+		if (!requestAuthentication && [self username] && [self password] && [self useSessionPersistence]) {
+			
+			NSMutableDictionary *newCredentials = [NSMutableDictionary dictionaryWithCapacity:2];
+			[newCredentials setObject:[self username] forKey:(NSString *)kCFHTTPAuthenticationUsername];
+			[newCredentials setObject:[self password] forKey:(NSString *)kCFHTTPAuthenticationPassword];
+			
+			// Store the credentials in the session 
+			NSMutableDictionary *sessionCredentials = [NSMutableDictionary dictionary];
+			[sessionCredentials setObject:newCredentials forKey:@"Credentials"];
+			[sessionCredentials setObject:[self url] forKey:@"URL"];
+			[sessionCredentials setObject:(NSString *)kCFHTTPAuthenticationSchemeBasic forKey:@"AuthenticationScheme"];
+			[[self class] storeAuthenticationCredentialsInSessionStore:sessionCredentials];
 		}
-#endif		
+	}
+	
+	// See if we got a Content-length header
+	NSString *cLength = [responseHeaders valueForKey:@"Content-Length"];
+	if (cLength) {
+		SInt32 length = CFStringGetIntValue((CFStringRef)cLength);
+		
+		// Workaround for Apache HEAD requests for dynamically generated content returning the wrong Content-Length when using gzip
+		if ([self mainRequest] && [self allowCompressedResponse] && length == 20 && [self showAccurateProgress] && [self shouldResetProgressIndicators]) {
+			[[self mainRequest] setShowAccurateProgress:NO];
+			[self resetDownloadProgress:1];
+			
+		} else {
+			[self setContentLength:length];
+			if ([self mainRequest]) {
+				[[self mainRequest] setContentLength:length];
+			}
 
-		CFDictionaryRef headerFields = CFHTTPMessageCopyAllHeaderFields(message);
-		[self setResponseHeaders:(NSDictionary *)headerFields];
-
-		CFRelease(headerFields);
-		[self setResponseStatusCode:CFHTTPMessageGetResponseStatusCode(message)];
-		[self setResponseStatusMessage:[(NSString *)CFHTTPMessageCopyResponseStatusLine(message) autorelease]];
-
-		// Is the server response a challenge for credentials?
-		if ([self responseStatusCode] == 401) {
-			[self setAuthenticationNeeded:ASIHTTPAuthenticationNeeded];
-		} else if ([self responseStatusCode] == 407) {
-			[self setAuthenticationNeeded:ASIProxyAuthenticationNeeded];
+			if ([self showAccurateProgress] && [self shouldResetProgressIndicators]) {
+				[self resetDownloadProgress:[self contentLength]+[self partialDownloadSize]];
+			}
 		}
 		
-		// Authentication succeeded, or no authentication was required
-		if (![self authenticationNeeded]) {
+	} else if ([self showAccurateProgress] && [self shouldResetProgressIndicators]) {
+		[[self mainRequest] setShowAccurateProgress:NO];
+		[self resetDownloadProgress:1];			
+	}
 
-			// Did we get here without an authentication challenge? (which can happen when shouldPresentCredentialsBeforeChallenge is YES and basic auth was successful)
-			if (!requestAuthentication && [self username] && [self password] && [self useSessionPersistence]) {
-				
-				NSMutableDictionary *newCredentials = [NSMutableDictionary dictionaryWithCapacity:2];
-				[newCredentials setObject:[self username] forKey:(NSString *)kCFHTTPAuthenticationUsername];
-				[newCredentials setObject:[self password] forKey:(NSString *)kCFHTTPAuthenticationPassword];
-				
-				// Store the credentials in the session 
-				NSMutableDictionary *sessionCredentials = [NSMutableDictionary dictionary];
-				[sessionCredentials setObject:newCredentials forKey:@"Credentials"];
-				[sessionCredentials setObject:[self url] forKey:@"URL"];
-				[sessionCredentials setObject:(NSString *)kCFHTTPAuthenticationSchemeBasic forKey:@"AuthenticationScheme"];
-				[[self class] storeAuthenticationCredentialsInSessionStore:sessionCredentials];
+	// Handle response text encoding
+	// If the Content-Type header specified an encoding, we'll use that, otherwise we use defaultStringEncoding (which defaults to NSISOLatin1StringEncoding)
+	NSString *contentType = [[self responseHeaders] objectForKey:@"Content-Type"];
+	NSStringEncoding encoding = [self defaultResponseEncoding];
+	if (contentType) {
+
+		NSString *charsetSeparator = @"charset=";
+		NSScanner *charsetScanner = [NSScanner scannerWithString: contentType];
+		NSString *IANAEncoding = nil;
+
+		if ([charsetScanner scanUpToString: charsetSeparator intoString: NULL] && [charsetScanner scanLocation] < [contentType length])
+		{
+			[charsetScanner setScanLocation: [charsetScanner scanLocation] + [charsetSeparator length]];
+			[charsetScanner scanUpToString: @";" intoString: &IANAEncoding];
+		}
+
+		if (IANAEncoding) {
+			CFStringEncoding cfEncoding = CFStringConvertIANACharSetNameToEncoding((CFStringRef)IANAEncoding);
+			if (cfEncoding != kCFStringEncodingInvalidId) {
+				encoding = CFStringConvertEncodingToNSStringEncoding(cfEncoding);
 			}
-			
-			
-			// See if we got a Content-length header
-			NSString *cLength = [responseHeaders valueForKey:@"Content-Length"];
-			if (cLength) {
-				SInt32 length = CFStringGetIntValue((CFStringRef)cLength);
-				
-				// Workaround for Apache HEAD requests for dynamically generated content returning the wrong Content-Length when using gzip
-				if ([self mainRequest] && [self allowCompressedResponse] && length == 20 && [self showAccurateProgress] && [self shouldResetProgressIndicators]) {
-					[[self mainRequest] setShowAccurateProgress:NO];
-					[self resetDownloadProgress:1];
-					
-				} else {
-					[self setContentLength:length];
-					if ([self mainRequest]) {
-						[[self mainRequest] setContentLength:length];
-					}
+		}
+	}
+	[self setResponseEncoding:encoding];
 
-					if ([self showAccurateProgress] && [self shouldResetProgressIndicators]) {
-						[self resetDownloadProgress:[self contentLength]+[self partialDownloadSize]];
-					}
-				}
-						 
-			} else if ([self showAccurateProgress] && [self shouldResetProgressIndicators]) {
-				[[self mainRequest] setShowAccurateProgress:NO];
-				[self resetDownloadProgress:1];			
+	// Handle cookies
+	NSArray *newCookies = [NSHTTPCookie cookiesWithResponseHeaderFields:responseHeaders forURL:url];
+	[self setResponseCookies:newCookies];
+	
+	if ([self useCookiePersistence]) {
+		
+		// Store cookies in global persistent store
+		[[NSHTTPCookieStorage sharedHTTPCookieStorage] setCookies:newCookies forURL:url mainDocumentURL:nil];
+		
+		// We also keep any cookies in the sessionCookies array, so that we have a reference to them if we need to remove them later
+		NSHTTPCookie *cookie;
+		for (cookie in newCookies) {
+			[ASIHTTPRequest addSessionCookie:cookie];
+		}
+	}
+	
+	// Do we need to redirect?
+	// Note that ASIHTTPRequest does not currently support 305 Use Proxy
+	if ([self shouldRedirect] && [responseHeaders valueForKey:@"Location"]) {
+		if (([self responseStatusCode] > 300 && [self responseStatusCode] < 304) || [self responseStatusCode] == 307) {
+			
+			// By default, we redirect 301 and 302 response codes as GET requests
+			// According to RFC 2616 this is wrong, but this is what most browsers do, so it's probably what you're expecting to happen
+			// See also:
+			// http://allseeing-i.lighthouseapp.com/projects/27881/tickets/27-302-redirection-issue
+							
+			if ([self responseStatusCode] != 307 && (![self shouldUseRFC2616RedirectBehaviour] || [self responseStatusCode] == 303)) {
+				[self setRequestMethod:@"GET"];
+				[self setPostBody:nil];
+				[self setPostLength:0];
+				[self setRequestHeaders:nil];
+				[self setHaveBuiltRequestHeaders:NO];
+			} else {
+			
+				// Force rebuild the cookie header incase we got some new cookies from this request
+				// All other request headers will remain as they are for 301 / 302 redirects
+				[self applyCookieHeader];
 			}
+
+			// Force the redirected request to rebuild the request headers (if not a 303, it will re-use old ones, and add any new ones)
 			
-			// Handle response text encoding
-			// If the Content-Type header specified an encoding, we'll use that, otherwise we use defaultStringEncoding (which defaults to NSISOLatin1StringEncoding)
-			NSString *contentType = [[self responseHeaders] objectForKey:@"Content-Type"];
-			NSStringEncoding encoding = [self defaultResponseEncoding];
-			if (contentType) {
-
-				NSString *charsetSeparator = @"charset=";
-				NSScanner *charsetScanner = [NSScanner scannerWithString: contentType];
-				NSString *IANAEncoding = nil;
-
-				if ([charsetScanner scanUpToString: charsetSeparator intoString: NULL] && [charsetScanner scanLocation] < [contentType length])
-				{
-					[charsetScanner setScanLocation: [charsetScanner scanLocation] + [charsetSeparator length]];
-					[charsetScanner scanUpToString: @";" intoString: &IANAEncoding];
-				}
-
-				if (IANAEncoding) {
-					CFStringEncoding cfEncoding = CFStringConvertIANACharSetNameToEncoding((CFStringRef)IANAEncoding);
-					if (cfEncoding != kCFStringEncodingInvalidId) {
-						encoding = CFStringConvertEncodingToNSStringEncoding(cfEncoding);
-					}
-				}
-			}
-			[self setResponseEncoding:encoding];
+			[self setURL:[[NSURL URLWithString:[responseHeaders valueForKey:@"Location"] relativeToURL:[self url]] absoluteURL]];
+			[self setNeedsRedirect:YES];
 			
-			// Handle cookies
-			NSArray *newCookies = [NSHTTPCookie cookiesWithResponseHeaderFields:responseHeaders forURL:url];
-			[self setResponseCookies:newCookies];
+			// Clear the request cookies
+			// This means manually added cookies will not be added to the redirect request - only those stored in the global persistent store
+			// But, this is probably the safest option - we might be redirecting to a different domain
+			[self setRequestCookies:[NSMutableArray array]];
 			
-			if ([self useCookiePersistence]) {
-				
-				// Store cookies in global persistent store
-				[[NSHTTPCookieStorage sharedHTTPCookieStorage] setCookies:newCookies forURL:url mainDocumentURL:nil];
-				
-				// We also keep any cookies in the sessionCookies array, so that we have a reference to them if we need to remove them later
-				NSHTTPCookie *cookie;
-				for (cookie in newCookies) {
-					[ASIHTTPRequest addSessionCookie:cookie];
-				}
-			}
-			// Do we need to redirect?
-			// Note that ASIHTTPRequest does not currently support 305 Use Proxy
-			if ([self shouldRedirect] && [responseHeaders valueForKey:@"Location"]) {
-				if (([self responseStatusCode] > 300 && [self responseStatusCode] < 304) || [self responseStatusCode] == 307) {
-					
-					// By default, we redirect 301 and 302 response codes as GET requests
-					// According to RFC 2616 this is wrong, but this is what most browsers do, so it's probably what you're expecting to happen
-					// See also:
-					// http://allseeing-i.lighthouseapp.com/projects/27881/tickets/27-302-redirection-issue
-									
-					if ([self responseStatusCode] != 307 && (![self shouldUseRFC2616RedirectBehaviour] || [self responseStatusCode] == 303)) {
-						[self setRequestMethod:@"GET"];
-						[self setPostBody:nil];
-						[self setPostLength:0];
-						[self setRequestHeaders:nil];
-						[self setHaveBuiltRequestHeaders:NO];
-					} else {
-					
-						// Force rebuild the cookie header incase we got some new cookies from this request
-						// All other request headers will remain as they are for 301 / 302 redirects
-						[self applyCookieHeader];
-					}
-
-					// Force the redirected request to rebuild the request headers (if not a 303, it will re-use old ones, and add any new ones)
-					
-					[self setURL:[[NSURL URLWithString:[responseHeaders valueForKey:@"Location"] relativeToURL:[self url]] absoluteURL]];
-					[self setNeedsRedirect:YES];
-					
-					// Clear the request cookies
-					// This means manually added cookies will not be added to the redirect request - only those stored in the global persistent store
-					// But, this is probably the safest option - we might be redirecting to a different domain
-					[self setRequestCookies:[NSMutableArray array]];
-					
-					#if DEBUG_REQUEST_STATUS
-						NSLog(@"Request will redirect (code: %hi): %@",[self responseStatusCode],self);
-					#endif
-					
-				}
-			}
+			#if DEBUG_REQUEST_STATUS
+				NSLog(@"Request will redirect (code: %hi): %@",[self responseStatusCode],self);
+			#endif
 			
 		}
+	}
+	// Handle connection persistence
+	if ([self shouldAttemptPersistentConnection]) {
 		
-		// Handle connection persistence
-		if ([self shouldAttemptPersistentConnection]) {
-			
-			NSString *connectionHeader = [[[self responseHeaders] objectForKey:@"Connection"] lowercaseString];
-			NSString *httpVersion = [(NSString *)CFHTTPMessageCopyVersion(message) autorelease];
-			
-			// Don't re-use the connection if the server is HTTP 1.0 and didn't send Connection: Keep-Alive
-			if (![httpVersion isEqualToString:(NSString *)kCFHTTPVersion1_0] || [connectionHeader isEqualToString:@"keep-alive"]) {
+		NSString *connectionHeader = [[[self responseHeaders] objectForKey:@"Connection"] lowercaseString];
+		NSString *httpVersion = [(NSString *)CFHTTPMessageCopyVersion(message) autorelease];
+		
+		// Don't re-use the connection if the server is HTTP 1.0 and didn't send Connection: Keep-Alive
+		if (![httpVersion isEqualToString:(NSString *)kCFHTTPVersion1_0] || [connectionHeader isEqualToString:@"keep-alive"]) {
 
-				// See if server explicitly told us to close the connection
-				if (![connectionHeader isEqualToString:@"close"]) {
-					
-					NSString *keepAliveHeader = [[self responseHeaders] objectForKey:@"Keep-Alive"];
-					
-					// If we got a keep alive header, we'll reuse the connection for as long as the server tells us
-					if (keepAliveHeader) { 
-						int timeout = 0;
-						int max = 0;
-						NSScanner *scanner = [NSScanner scannerWithString:keepAliveHeader];
-						[scanner scanString:@"timeout=" intoString:NULL];
-						[scanner scanInt:&timeout];
-						[scanner scanUpToString:@"max=" intoString:NULL];
-						[scanner scanString:@"max=" intoString:NULL];
-						[scanner scanInt:&max];
-						if (max > 5) {
-							[self setConnectionCanBeReused:YES];
-							[self setPersistentConnectionTimeoutSeconds:timeout];
-							#if DEBUG_PERSISTENT_CONNECTIONS
-								NSLog(@"Got a keep-alive header, will keep this connection open for %f seconds", [self persistentConnectionTimeoutSeconds]);
-							#endif					
-						}
-					
-					// Otherwise, we'll assume we can keep this connection open
-					} else {
+			// See if server explicitly told us to close the connection
+			if (![connectionHeader isEqualToString:@"close"]) {
+				
+				NSString *keepAliveHeader = [[self responseHeaders] objectForKey:@"Keep-Alive"];
+				
+				// If we got a keep alive header, we'll reuse the connection for as long as the server tells us
+				if (keepAliveHeader) { 
+					int timeout = 0;
+					int max = 0;
+					NSScanner *scanner = [NSScanner scannerWithString:keepAliveHeader];
+					[scanner scanString:@"timeout=" intoString:NULL];
+					[scanner scanInt:&timeout];
+					[scanner scanUpToString:@"max=" intoString:NULL];
+					[scanner scanString:@"max=" intoString:NULL];
+					[scanner scanInt:&max];
+					if (max > 5) {
 						[self setConnectionCanBeReused:YES];
+						[self setPersistentConnectionTimeoutSeconds:timeout];
 						#if DEBUG_PERSISTENT_CONNECTIONS
-							NSLog(@"Got no keep-alive header, will keep this connection open for %f seconds", [self persistentConnectionTimeoutSeconds]);
-						#endif
+							NSLog(@"Got a keep-alive header, will keep this connection open for %f seconds", [self persistentConnectionTimeoutSeconds]);
+						#endif					
 					}
+				
+				// Otherwise, we'll assume we can keep this connection open
+				} else {
+					[self setConnectionCanBeReused:YES];
+					#if DEBUG_PERSISTENT_CONNECTIONS
+						NSLog(@"Got no keep-alive header, will keep this connection open for %f seconds", [self persistentConnectionTimeoutSeconds]);
+					#endif
 				}
 			}
 		}
@@ -2687,15 +2689,13 @@ static BOOL isiPhoneOS2;
 	
 	if (![self error]) { // We may already have handled this error
 		
-		// First, check for a socket not connected error
+		// First, check for a 'socket not connected' or 'connection lost' error
 		// This may occur when we've attempted to reuse a connection that should have been closed
 		// If we get this, we need to retry the request
 		// We'll only do this once - if it happens again on retry, we'll give up
-		if ([[underlyingError domain] isEqualToString:NSPOSIXErrorDomain]) {
-			if ([underlyingError code] == ENOTCONN) {
-				if ([self retryUsingNewConnection]) {
-					return;
-				}
+		if (([[underlyingError domain] isEqualToString:NSPOSIXErrorDomain] && [underlyingError code] == ENOTCONN) || ([[underlyingError domain] isEqualToString:(NSString *)kCFErrorDomainCFNetwork] && [underlyingError code] == kCFURLErrorNetworkConnectionLost)) {
+			if ([self retryUsingNewConnection]) {
+				return;
 			}
 		}
 		
@@ -2706,7 +2706,7 @@ static BOOL isiPhoneOS2;
 		// Also, iPhone seems to handle errors differently from Mac OS X - a self-signed certificate returns a different error code on each platform, so we'll just provide a general error
 		if ([[underlyingError domain] isEqualToString:NSOSStatusErrorDomain]) {
 			if ([underlyingError code] <= -9800 && [underlyingError code] >= -9818) {
-				reason = [NSString stringWithFormat:@"%@: SSL problem (possibily a bad/expired/self-signed certificate)",reason];
+				reason = [NSString stringWithFormat:@"%@: SSL problem (possibly a bad/expired/self-signed certificate)",reason];
 			}
 		}
 		

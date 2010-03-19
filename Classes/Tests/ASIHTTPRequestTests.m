@@ -1464,6 +1464,13 @@
 	BOOL success = ![request connectionCanBeReused];
 	GHAssertTrue(success,@"Should not be able to re-use a request sent with Connection:close");
 	
+	// Ensure we close the connection when authentication is needed
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/close-connection-auth-needed"]];
+	[request startSynchronous];
+	
+	success = ![request connectionCanBeReused];
+	GHAssertTrue(success,@"Should not be able to re-use a request sent with Connection:close");
+	
 }
 
 - (void)testPersistentConnectionTimeout
