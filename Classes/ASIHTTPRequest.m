@@ -23,7 +23,7 @@
 
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.6-18 2010-03-22";
+NSString *ASIHTTPRequestVersion = @"v1.6-19 2010-03-22";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -2689,12 +2689,13 @@ static BOOL isiPhoneOS2;
 	
 	if (![self error]) { // We may already have handled this error
 		
-		// First, check for a 'socket not connected' or 'connection lost' error
+		// First, check for a 'socket not connected', 'broken pipe' or 'connection lost' error
 		// This may occur when we've attempted to reuse a connection that should have been closed
 		// If we get this, we need to retry the request
 		// We'll only do this once - if it happens again on retry, we'll give up
 		// -1005 = kCFURLErrorNetworkConnectionLost - this doesn't seem to be declared on Mac OS 10.5
-		if (([[underlyingError domain] isEqualToString:NSPOSIXErrorDomain] && [underlyingError code] == ENOTCONN) || ([[underlyingError domain] isEqualToString:(NSString *)kCFErrorDomainCFNetwork] && [underlyingError code] == -1005)) {
+		if (([[underlyingError domain] isEqualToString:NSPOSIXErrorDomain] && ([underlyingError code] == ENOTCONN || [underlyingError code] == EPIPE)) 
+			|| ([[underlyingError domain] isEqualToString:(NSString *)kCFErrorDomainCFNetwork] && [underlyingError code] == -1005)) {
 			if ([self retryUsingNewConnection]) {
 				return;
 			}
