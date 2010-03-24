@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
 		B502441B1025D36B002B13E1 /* ProxyTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B502441A1025D36B002B13E1 /* ProxyTests.m */; };
+		B50FDEAA115A325E00BBC736 /* GHUnit.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = B5DB497C115624BF0062DB57 /* GHUnit.framework */; };
 		B522D71F103074AC009A2D22 /* ASIInputStream.m in Sources */ = {isa = PBXBuildFile; fileRef = B522D71E103074AC009A2D22 /* ASIInputStream.m */; };
 		B522D720103074AC009A2D22 /* ASIInputStream.m in Sources */ = {isa = PBXBuildFile; fileRef = B522D71E103074AC009A2D22 /* ASIInputStream.m */; };
 		B522DE601031BB03009A2D22 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B53FADE70FF38B2A002E2DE6 /* SystemConfiguration.framework */; };
@@ -56,21 +57,21 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = B5DB4976115624BF0062DB57 /* GHUnit.xcodeproj */;
 			proxyType = 2;
-			remoteGlobalIDString = 8DC2EF5B0486A6940098B216 /* GHUnit.framework */;
+			remoteGlobalIDString = 8DC2EF5B0486A6940098B216;
 			remoteInfo = GHUnit;
 		};
 		B5DB497D115624BF0062DB57 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = B5DB4976115624BF0062DB57 /* GHUnit.xcodeproj */;
 			proxyType = 2;
-			remoteGlobalIDString = 002E73B60F2C213700427636 /* Tests.app */;
+			remoteGlobalIDString = 002E73B60F2C213700427636;
 			remoteInfo = Tests;
 		};
 		B5DB4981115624C60062DB57 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = B5DB4976115624BF0062DB57 /* GHUnit.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 8DC2EF4F0486A6940098B216 /* GHUnit */;
+			remoteGlobalIDString = 8DC2EF4F0486A6940098B216;
 			remoteInfo = GHUnit;
 		};
 /* End PBXContainerItemProxy section */
@@ -82,6 +83,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				B50FDEAA115A325E00BBC736 /* GHUnit.framework in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
