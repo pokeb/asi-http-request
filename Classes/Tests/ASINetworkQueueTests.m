@@ -715,6 +715,7 @@ IMPORTANT
 
 	
 	//Test the temporary file cleanup
+	downloadURL = [NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_great_american_novel.txt"];
 	complete = NO;
 	progress = 0;
 	networkQueue = [ASINetworkQueue queue];
@@ -730,8 +731,8 @@ IMPORTANT
 	[networkQueue addOperation:request];
 	[networkQueue go];
 	
-	// Let the download run for 5 seconds
-	timeoutTimer = [NSTimer scheduledTimerWithTimeInterval:5 target:self selector:@selector(stopQueue:) userInfo:nil repeats:NO];
+	// Let the download run for 3 seconds
+	timeoutTimer = [NSTimer scheduledTimerWithTimeInterval:3 target:self selector:@selector(stopQueue:) userInfo:nil repeats:NO];
 	while (!complete) {
 		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
 	}
