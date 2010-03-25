@@ -18,6 +18,16 @@ static NSString *proxyPassword = @"";
 
 @implementation ProxyTests
 
+- (void)testProxyForHTTPS
+{
+	// Also test we are case-insensitive comparing our scheme
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"HTTPS://selfsigned.allseeing-i.com/"]];
+	[request setValidatesSecureCertificate:NO];
+	[request startSynchronous];
+	BOOL success = ([[request responseString] rangeOfString:@"All-Seeing Interactive"].location != NSNotFound);
+	GHAssertTrue(success,@"Failed to connect to an HTTPS URL using a proxy");
+}
+
 - (void)testAutoConfigureWithPAC
 {
 

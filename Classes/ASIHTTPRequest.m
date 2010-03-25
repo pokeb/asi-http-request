@@ -23,7 +23,7 @@
 
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.6-20 2010-03-24";
+NSString *ASIHTTPRequestVersion = @" 2010-03-25";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -897,7 +897,13 @@ static BOOL isiPhoneOS2;
 		}
 	}
 	if ([self proxyHost] && [self proxyPort]) {
-		NSMutableDictionary *proxyToUse = [NSMutableDictionary dictionaryWithObjectsAndKeys:[self proxyHost],kCFStreamPropertyHTTPProxyHost,[NSNumber numberWithInt:[self proxyPort]],kCFStreamPropertyHTTPProxyPort,nil];
+		NSString *hostKey = (NSString *)kCFStreamPropertyHTTPProxyHost;
+		NSString *portKey = (NSString *)kCFStreamPropertyHTTPProxyPort;
+		if ([[[[self url] scheme] lowercaseString] isEqualToString:@"https"]) {
+			hostKey = (NSString *)kCFStreamPropertyHTTPSProxyHost;
+			portKey = (NSString *)kCFStreamPropertyHTTPSProxyPort;
+		}
+		NSMutableDictionary *proxyToUse = [NSMutableDictionary dictionaryWithObjectsAndKeys:[self proxyHost],hostKey,[NSNumber numberWithInt:[self proxyPort]],portKey,nil];
 		CFReadStreamSetProperty((CFReadStreamRef)[self readStream], kCFStreamPropertyHTTPProxy, proxyToUse);
 	}
 
