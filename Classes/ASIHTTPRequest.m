@@ -23,7 +23,7 @@
 
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @" 2010-03-25";
+NSString *ASIHTTPRequestVersion = @"v1.6.1-2 2010-03-25";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -221,7 +221,7 @@ static BOOL isiPhoneOS2;
 
 - (id)initWithURL:(NSURL *)newURL
 {
-	self = [super init];
+	self = [self init];
 	[self setRequestMethod:@"GET"];
 
 	[self setShouldAttemptPersistentConnection:YES];
