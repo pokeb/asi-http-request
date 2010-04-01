@@ -63,7 +63,63 @@ static NSLock *readLock = nil;
 	return [stream read:buffer maxLength:toRead];
 }
 
-// If we get asked to perform a method we don't have (which is almost all of them), we'll just forward the message to our stream
+/*
+ * Implement NSInputStream mandatory methods to make sure they are implemented
+ * (necessary for MacRuby for example) and avoir the overhead of method
+ * forwarding for these common methods.
+ */
+- (void)open
+{
+    [stream open];
+}
+
+- (void)close
+{
+    [stream close];
+}
+
+- (id)delegate
+{
+    return [stream delegate];
+}
+
+- (void)setDelegate:(id)delegate
+{
+    [stream setDelegate:delegate];
+}
+
+- (void)scheduleInRunLoop:(NSRunLoop *)aRunLoop forMode:(NSString *)mode
+{
+    [stream scheduleInRunLoop:aRunLoop forMode:mode];
+}
+
+- (void)removeFromRunLoop:(NSRunLoop *)aRunLoop forMode:(NSString *)mode
+{
+    [stream removeFromRunLoop:aRunLoop forMode:mode];
+}
+
+- (id)propertyForKey:(NSString *)key
+{
+    return [stream propertyForKey:key];
+}
+
+- (BOOL)setProperty:(id)property forKey:(NSString *)key
+{
+    return [stream setProperty:property forKey:key];
+}
+
+- (NSStreamStatus)streamStatus
+{
+    return [stream streamStatus];
+}
+
+- (NSError *)streamError
+{
+    return [stream streamError];
+}
+
+// If we get asked to perform a method we don't have (probably internal ones),
+// we'll just forward the message to our stream
 
 - (NSMethodSignature *)methodSignatureForSelector:(SEL)aSelector
 {
