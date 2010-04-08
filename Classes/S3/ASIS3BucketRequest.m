@@ -16,6 +16,8 @@
 @property (retain, nonatomic) NSString *currentElement;
 @property (retain, nonatomic) ASIS3BucketObject *currentObject;
 @property (retain, nonatomic) NSMutableArray *objects;
+@property (retain, nonatomic) NSMutableArray *foundFolders;
+@property (readwrite) BOOL isTruncated;
 @end
 
 @implementation ASIS3BucketRequest
@@ -57,6 +59,7 @@
 	[currentElement release];
 	[currentContent release];
 	[objects release];
+	[foundFolders release];
 	[prefix release];
 	[marker release];
 	[delimiter release];
@@ -88,8 +91,12 @@
 	if ([self maxResultCount] > 0) {
 		[queryParts addObject:[NSString stringWithFormat:@"delimiter=%hi",[self maxResultCount]]];
 	}
-	if ([queryParts count]) {
-		[self setURL:[NSURL URLWithString:[NSString stringWithFormat:@"%@?%@",[[self url] absoluteString],[queryParts componentsJoinedByString:@"&"]]]];
+	if ([queryParts count]) 
+    {
+		NSString* template = @"%@?%@";
+		if ([self.subResource length] > 0)
+				template = @"%@&%@";
+		[self setURL:[NSURL URLWithString:[NSString stringWithFormat:template,[[self url] absoluteString],[queryParts componentsJoinedByString:@"&"]]]];
 	}
 }
 
@@ -99,19 +106,34 @@
 	[super main];
 }
 
-- (NSArray *)bucketObjects
+-(void)makeBucketsAndPrefixes;
 {
-	if ([self objects]) {
-		return [self objects];
-	}
 	[self setObjects:[[[NSMutableArray alloc] init] autorelease]];
+	[self setFoundFolders:[[[NSMutableArray alloc] init] autorelease]];
 	NSXMLParser *parser = [[[NSXMLParser alloc] initWithData:[self responseData]] autorelease];
 	[parser setDelegate:self];
 	[parser setShouldProcessNamespaces:NO];
 	[parser setShouldReportNamespacePrefixes:NO];
 	[parser setShouldResolveExternalEntities:NO];
 	[parser parse];
+}
+
+- (NSArray *)bucketObjects
+{
+	if ([self objects]) {
+		return [self objects];
+	}
+	[self makeBucketsAndPrefixes];
 	return [self objects];
+}
+
+-(NSArray*)commonPrefixes;
+{
+	if ([self foundFolders]) {
+		return [self foundFolders];
+	}
+	[self makeBucketsAndPrefixes];
+	return [self foundFolders];
 }
 
 - (void)parser:(NSXMLParser *)parser didStartElement:(NSString *)elementName namespaceURI:(NSString *)namespaceURI qualifiedName:(NSString *)qName attributes:(NSDictionary *)attributeDict
@@ -141,9 +163,12 @@
 		[[self currentObject] setOwnerID:[self currentContent]];
 	} else if ([elementName isEqualToString:@"DisplayName"]) {
 		[[self currentObject] setOwnerName:[self currentContent]];
+	} else if ([elementName isEqualToString:@"Prefix"]) {
+		[foundFolders addObject:[NSString stringWithString:[self currentContent]]];
+	} else if ([elementName isEqualToString:@"IsTruncated"]) {
+		self.isTruncated = [[NSString stringWithString:[self currentContent]] boolValue];
 	}
 }
-
 - (void)parser:(NSXMLParser *)parser foundCharacters:(NSString *)string
 {
 	[self setCurrentContent:[[self currentContent] stringByAppendingString:string]];
@@ -169,8 +194,11 @@
 @synthesize currentElement;
 @synthesize currentObject;
 @synthesize objects;
+@synthesize foundFolders;
 @synthesize prefix;
 @synthesize marker;
 @synthesize maxResultCount;
 @synthesize delimiter;
+@synthesize isTruncated;
+
 @end

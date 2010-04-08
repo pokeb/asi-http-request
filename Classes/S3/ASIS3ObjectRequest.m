@@ -31,7 +31,7 @@
 + (id)requestWithBucket:(NSString *)bucket key:(NSString *)key subResource:(NSString *)subResource
 {
 	NSString *path = [ASIS3Request stringByURLEncodingForS3Path:key];
-	ASIS3ObjectRequest *request = [[[self alloc] initWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://%@.s3.amazonaws.com%@?",bucket,path,subResource]]] autorelease];
+	ASIS3ObjectRequest *request = [[[self alloc] initWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://%@.s3.amazonaws.com%@?%@",bucket,path,subResource]]] autorelease];
 	[request setBucket:bucket];
 	[request setKey:key];
 	return request;

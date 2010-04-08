@@ -33,6 +33,9 @@
 	NSString *currentElement;
 	ASIS3BucketObject *currentObject;
 	NSMutableArray *objects;	
+	
+	NSMutableArray* foundFolders;
+	BOOL isTruncated;
 }
 
 // Fetch a bucket
@@ -57,6 +60,9 @@
 // Returns an array of ASIS3BucketObjects created from the XML response
 - (NSArray *)bucketObjects;
 
+// prefixes are like folders - get them by setting a delimiter string (usually always @"/")
+-(NSArray*)commonPrefixes;
+
 //Builds a query string out of the list parameters we supplied
 - (void)createQueryString;
 
@@ -66,4 +72,5 @@
 @property (retain) NSString *marker;
 @property (assign) int maxResultCount;
 @property (retain) NSString *delimiter;	
+@property (readonly) BOOL isTruncated;
 @end
