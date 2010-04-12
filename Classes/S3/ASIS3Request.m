@@ -19,12 +19,11 @@ static NSString *sharedSecretAccessKey = nil;
 
 static NSDateFormatter *dateFormatter = nil;
 
-
-
 // Private stuff
 @interface ASIS3Request ()
 	+ (NSData *)HMACSHA1withKey:(NSString *)key forString:(NSString *)string;
-	@property (retain, nonatomic) NSString *currentErrorString;
+	@property (retain, nonatomic) NSString *currentXMLElementContent;
+	@property (retain, nonatomic) NSMutableArray *currentXMLElementStack;
 @end
 
 @implementation ASIS3Request
@@ -40,6 +39,8 @@ static NSDateFormatter *dateFormatter = nil;
 
 - (void)dealloc
 {
+	[currentXMLElementContent release];
+	[currentXMLElementStack release];
 	[dateString release];
 	[accessKey release];
 	[secretAccessKey release];
@@ -123,11 +124,12 @@ static NSDateFormatter *dateFormatter = nil;
 
 - (void)requestFinished
 {
-	if ([self responseStatusCode] < 207) {
-		[super requestFinished];
-		return;
+	if ([[[self responseHeaders] objectForKey:@"Content-Type"] isEqualToString:@"application/xml"]) {
+		[self parseResponseXML];
 	}
-	[self parseResponseXML];
+	if (![self error]) {
+		[super requestFinished];
+	}
 }
 
 #pragma mark Error XML parsing
@@ -135,6 +137,7 @@ static NSDateFormatter *dateFormatter = nil;
 - (void)parseResponseXML
 {
 	NSXMLParser *parser = [[[NSXMLParser alloc] initWithData:[self responseData]] autorelease];
+	[self setCurrentXMLElementStack:[NSMutableArray array]];
 	[parser setDelegate:self];
 	[parser setShouldProcessNamespaces:NO];
 	[parser setShouldReportNamespacePrefixes:NO];
@@ -150,16 +153,18 @@ static NSDateFormatter *dateFormatter = nil;
 
 - (void)parser:(NSXMLParser *)parser didStartElement:(NSString *)elementName namespaceURI:(NSString *)namespaceURI qualifiedName:(NSString *)qName attributes:(NSDictionary *)attributeDict
 {
-	[self setCurrentErrorString:@""];
+	[self setCurrentXMLElementContent:@""];
+	[[self currentXMLElementStack] addObject:elementName];
 }
 
 - (void)parser:(NSXMLParser *)parser didEndElement:(NSString *)elementName namespaceURI:(NSString *)namespaceURI qualifiedName:(NSString *)qName
 {
+	[[self currentXMLElementStack] removeLastObject];
 	if ([elementName isEqualToString:@"Message"]) {
-		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIS3ResponseErrorType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[self currentErrorString],NSLocalizedDescriptionKey,nil]]];
+		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIS3ResponseErrorType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[self currentXMLElementContent],NSLocalizedDescriptionKey,nil]]];
 	// Handle S3 connection expiry errors
 	} else if ([elementName isEqualToString:@"Code"]) {
-		if ([[self currentErrorString] isEqualToString:@"RequestTimeout"]) {
+		if ([[self currentXMLElementContent] isEqualToString:@"RequestTimeout"]) {
 			if ([self retryUsingNewConnection]) {
 				[parser abortParsing];
 				return;
@@ -170,7 +175,7 @@ static NSDateFormatter *dateFormatter = nil;
 
 - (void)parser:(NSXMLParser *)parser foundCharacters:(NSString *)string
 {
-	[self setCurrentErrorString:[[self currentErrorString] stringByAppendingString:string]];
+	[self setCurrentXMLElementContent:[[self currentXMLElementContent] stringByAppendingString:string]];
 }
 
 - (id)copyWithZone:(NSZone *)zone
@@ -255,6 +260,7 @@ static NSDateFormatter *dateFormatter = nil;
 @synthesize dateString;
 @synthesize accessKey;
 @synthesize secretAccessKey;
-@synthesize currentErrorString;
+@synthesize currentXMLElementContent;
+@synthesize currentXMLElementStack;
 @synthesize accessPolicy;
 @end

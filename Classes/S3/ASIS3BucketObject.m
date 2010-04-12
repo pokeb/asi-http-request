@@ -20,6 +20,7 @@
 
 - (void)dealloc
 {
+	[bucket release];
 	[key release];
 	[lastModified release];
 	[ETag release];

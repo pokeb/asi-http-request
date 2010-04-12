@@ -112,16 +112,6 @@
 	}
 }
 
-- (void)requestFinished
-{
-	// COPY requests return a 200 whether they succeed or fail, so we need to look at the XML to see if we were successful.
-	if ([self responseStatusCode] == 200 && [self sourceKey] && [self sourceBucket]) {
-		[self parseResponseXML];
-		return;
-	}
-	[super requestFinished];
-}
-
 - (NSString *)canonicalizedResource
 {
 	return [NSString stringWithFormat:@"/%@%@",[self bucket],[ASIS3Request stringByURLEncodingForS3Path:[self key]]];
@@ -145,6 +135,7 @@
 	} 
 	return [super stringToSignForHeaders:canonicalizedAmzHeaders resource:canonicalizedResource];
 }
+
 
 
 @synthesize bucket;

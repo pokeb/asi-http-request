@@ -118,8 +118,6 @@ static NSString *bucket = @"";
 
 - (void)testFailure
 {
-	[self createTestBucket];
-	
 	// Needs expanding to cover more failure states - this is just a test to ensure Amazon's error description is being added to the error
 	
 	// We're actually going to try with the Amazon example details, but the request will fail because the date is old
@@ -141,6 +139,33 @@ static NSString *bucket = @"";
 	success = ([[[request error] localizedDescription] isEqualToString:@"The difference between the request time and the current time is too large."]);
 	GHAssertTrue(success,@"Generated error had the wrong description");	
 	
+	// Ensure a bucket request will correctly parse an error from S3
+	request = [ASIS3BucketRequest requestWithBucket:exampleBucket];
+	[request setDateString:dateString];
+	[request setSecretAccessKey:exampleSecretAccessKey];
+	[request setAccessKey:exampleAccessKey];
+	[request startSynchronous];
+	GHAssertNotNil([request error],@"Failed to generate an error when the request was not correctly signed");	
+	
+	success = ([[request error] code] == ASIS3ResponseErrorType);
+	GHAssertTrue(success,@"Generated error had the wrong error code");	
+	
+	success = ([[[request error] localizedDescription] isEqualToString:@"The difference between the request time and the current time is too large."]);
+	GHAssertTrue(success,@"Generated error had the wrong description");
+	
+	// Ensure a service request will correctly parse an error from S3
+	request = [ASIS3ServiceRequest serviceRequest];
+	[request setDateString:dateString];
+	[request setSecretAccessKey:exampleSecretAccessKey];
+	[request setAccessKey:exampleAccessKey];
+	[request startSynchronous];
+	GHAssertNotNil([request error],@"Failed to generate an error when the request was not correctly signed");	
+	
+	success = ([[request error] code] == ASIS3ResponseErrorType);
+	GHAssertTrue(success,@"Generated error had the wrong error code");	
+	
+	success = ([[[request error] localizedDescription] isEqualToString:@"The difference between the request time and the current time is too large."]);
+	GHAssertTrue(success,@"Generated error had the wrong description");		
 }
 
 - (void)createTestBucket
@@ -176,7 +201,7 @@ static NSString *bucket = @"";
 	GHAssertNil([serviceRequest error],@"Failed to fetch the list of buckets from S3");
 	
 	BOOL foundBucket = NO;
-	for (ASIS3Bucket *theBucket in [serviceRequest allBuckets]) {
+	for (ASIS3Bucket *theBucket in [serviceRequest buckets]) {
 		if ([[theBucket name] isEqualToString:bucket]) {
 			foundBucket = YES;
 			break;
@@ -236,7 +261,7 @@ static NSString *bucket = @"";
 	[listRequest setAccessKey:accessKey];
 	[listRequest startSynchronous];
 	GHAssertNil([listRequest error],@"Failed to download a list from S3");
-	success = [[listRequest bucketObjects] count];
+	success = [[listRequest objects] count];
 	GHAssertTrue(success,@"The file didn't show up in the list");	
 
 	// Test again with a prefix query
@@ -246,7 +271,7 @@ static NSString *bucket = @"";
 	[listRequest setAccessKey:accessKey];
 	[listRequest startSynchronous];
 	GHAssertNil([listRequest error],@"Failed to download a list from S3");
-	success = [[listRequest bucketObjects] count];
+	success = [[listRequest objects] count];
 	GHAssertTrue(success,@"The file didn't show up in the list");
 	
 	// DELETE the file
@@ -309,7 +334,7 @@ static NSString *bucket = @"";
 	[bucketRequest setSecretAccessKey:secretAccessKey];
 	[bucketRequest setAccessKey:accessKey];
 	[bucketRequest startSynchronous];
-	GHAssertNil([bucketRequest error],@"Failed to create a bucket");
+	GHAssertNil([bucketRequest error],@"Failed to delete a bucket");
 	
 	
 }
@@ -387,14 +412,52 @@ static NSString *bucket = @"";
 		GHAssertNil([request error],@"Give up on list request test - failed to upload a file");	
 	}
 	
-	// Now get a list of the files
+	// Test common prefixes
 	ASIS3BucketRequest *listRequest = [ASIS3BucketRequest requestWithBucket:bucket];
+	[listRequest setSecretAccessKey:secretAccessKey];
+	[listRequest setAccessKey:accessKey];
+	[listRequest setDelimiter:@"/"];
+	[listRequest startSynchronous];
+	GHAssertNil([listRequest error],@"Failed to download a list from S3");
+	success = NO;
+	for (NSString *prefix in [listRequest commonPrefixes]) {
+		if ([prefix isEqualToString:@"test-file/"]) {
+			success = YES;
+		}
+	}
+	GHAssertTrue(success,@"Failed to obtain a list of common prefixes");
+	
+	
+	// Test truncation
+	listRequest = [ASIS3BucketRequest requestWithBucket:bucket];
+	[listRequest setSecretAccessKey:secretAccessKey];
+	[listRequest setAccessKey:accessKey];
+	[listRequest setMaxResultCount:1];
+	[listRequest startSynchronous];
+	GHAssertTrue([listRequest isTruncated],@"Failed to identify what should be a truncated list of results");
+	
+	// Test urls are built correctly when requesting a subresource
+	listRequest = [ASIS3BucketRequest requestWithBucket:bucket subResource:@"acl"];
+	[listRequest setSecretAccessKey:secretAccessKey];
+	[listRequest setAccessKey:accessKey];
+	[listRequest setDelimiter:@"/"];
+	[listRequest setPrefix:@"foo"];
+	[listRequest setMarker:@"bar"];
+	[listRequest setMaxResultCount:5];
+	[listRequest createQueryString];
+	NSString *expectedURL = [NSString stringWithFormat:@"http://%@.s3.amazonaws.com/?acl&prefix=foo&key-marker=bar&delimiter=/&max-keys=5",bucket];
+	success = ([[[listRequest url] absoluteString] isEqualToString:expectedURL]);
+	GHAssertTrue(success,@"Generated the wrong url when requesting a subresource");
+	
+	
+	// Now get a list of the files
+	listRequest = [ASIS3BucketRequest requestWithBucket:bucket];
 	[listRequest setPrefix:@"test-file"];
 	[listRequest setSecretAccessKey:secretAccessKey];
 	[listRequest setAccessKey:accessKey];
 	[listRequest startSynchronous];
 	GHAssertNil([listRequest error],@"Failed to download a list from S3");
-	success = ([[listRequest bucketObjects] count] == 5);
+	success = ([[listRequest objects] count] == 5);
 	GHAssertTrue(success,@"List did not contain all files");
 	
 	// Please don't use an autoreleased operation queue with waitUntilAllOperationsAreFinished in your own code unless you're writing a test like this one
@@ -405,7 +468,7 @@ static NSString *bucket = @"";
 	[queue setRequestDidFinishSelector:@selector(GETRequestDone:)];
 	[queue setRequestDidFailSelector:@selector(GETRequestFailed:)];
 	[queue setDelegate:self];
-	for (ASIS3BucketObject *object in [listRequest bucketObjects]) {
+	for (ASIS3BucketObject *object in [listRequest objects]) {
 		ASIS3ObjectRequest *request = [object GETRequest];
 		[request setAccessKey:accessKey];
 		[request setSecretAccessKey:secretAccessKey];
@@ -421,7 +484,7 @@ static NSString *bucket = @"";
 	[queue setDelegate:self];
 	i=0;
 	// For each one, we'll just upload the same content again
-	for (ASIS3BucketObject *object in [listRequest bucketObjects]) {
+	for (ASIS3BucketObject *object in [listRequest objects]) {
 		NSString *oldFilePath = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:[NSString stringWithFormat:@"%hi.txt",i]];;
 		ASIS3Request *request = [object PUTRequestWithFile:oldFilePath];
 		[request setAccessKey:accessKey];
@@ -439,7 +502,7 @@ static NSString *bucket = @"";
 	[queue setDelegate:self];
 	i=0;
 
-	for (ASIS3BucketObject *object in [listRequest bucketObjects]) {
+	for (ASIS3BucketObject *object in [listRequest objects]) {
 		ASIS3ObjectRequest *request = [object DELETERequest];
 		[request setAccessKey:accessKey];
 		[request setSecretAccessKey:secretAccessKey];
@@ -456,7 +519,7 @@ static NSString *bucket = @"";
 	[listRequest setAccessKey:accessKey];
 	[listRequest startSynchronous];
 	GHAssertNil([listRequest error],@"Failed to download a list from S3");
-	success = ([[listRequest bucketObjects] count] == 0);
+	success = ([[listRequest objects] count] == 0);
 	GHAssertTrue(success,@"List contained files that should have been deleted");
 	
 }
@@ -684,6 +747,8 @@ static NSString *bucket = @"";
 	
 	[bucketObject2 release];
 }
+
+
 
 @synthesize networkQueue;
 

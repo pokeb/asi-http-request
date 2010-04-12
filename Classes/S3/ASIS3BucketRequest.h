@@ -29,12 +29,15 @@
 	NSString *delimiter;
 	
 	// Internally used while parsing the response
-	NSString *currentContent;
-	NSString *currentElement;
 	ASIS3BucketObject *currentObject;
+	
+	// Returns an array of ASIS3BucketObjects created from the XML response
 	NSMutableArray *objects;	
 	
-	NSMutableArray* foundFolders;
+	// Will be populated with a list of 'folders' when a delimiter is set
+	NSMutableArray *commonPrefixes;
+	
+	// Will be true if this request did not return all the results matching the query (use maxResultCount to configure the number of results to return)
 	BOOL isTruncated;
 }
 
@@ -57,12 +60,6 @@
 // Use for deleting buckets - they must be empty for this to succeed
 + (id)DELETERequestWithBucket:(NSString *)bucket;
 
-// Returns an array of ASIS3BucketObjects created from the XML response
-- (NSArray *)bucketObjects;
-
-// prefixes are like folders - get them by setting a delimiter string (usually always @"/")
--(NSArray*)commonPrefixes;
-
 //Builds a query string out of the list parameters we supplied
 - (void)createQueryString;
 
@@ -72,5 +69,7 @@
 @property (retain) NSString *marker;
 @property (assign) int maxResultCount;
 @property (retain) NSString *delimiter;	
-@property (readonly) BOOL isTruncated;
+@property (retain, readonly) NSMutableArray *objects;
+@property (retain, readonly) NSMutableArray *commonPrefixes;
+@property (assign, readonly) BOOL isTruncated;
 @end
