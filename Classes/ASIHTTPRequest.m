@@ -23,7 +23,7 @@
 
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.6.1-5 2010-04-01";
+NSString *ASIHTTPRequestVersion = @"v1.6.1-6 2010-04-12";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -2673,9 +2673,11 @@ static BOOL isiPhoneOS2;
 		#if DEBUG_PERSISTENT_CONNECTIONS
 			NSLog(@"Request attempted to use connection #%@, but it has been closed - will retry with a new connection", [[self connectionInfo] objectForKey:@"id"]);
 		#endif
+		[connectionsLock lock];
 		[[self connectionInfo] removeObjectForKey:@"request"];
 		[persistentConnectionsPool removeObject:[self connectionInfo]];
 		[self setConnectionInfo:nil];
+		[connectionsLock unlock];
 		[self setRetryCount:[self retryCount]+1];
 		[self startRequest];
 		return YES;
