@@ -22,8 +22,6 @@ static NSDateFormatter *dateFormatter = nil;
 // Private stuff
 @interface ASIS3Request ()
 	+ (NSData *)HMACSHA1withKey:(NSString *)key forString:(NSString *)string;
-	@property (retain, nonatomic) NSString *currentXMLElementContent;
-	@property (retain, nonatomic) NSMutableArray *currentXMLElementStack;
 @end
 
 @implementation ASIS3Request

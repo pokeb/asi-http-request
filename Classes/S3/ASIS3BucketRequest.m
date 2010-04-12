@@ -13,8 +13,6 @@
 // Private stuff
 @interface ASIS3BucketRequest ()
 @property (retain, nonatomic) ASIS3BucketObject *currentObject;
-@property (retain, nonatomic) NSString *currentXMLElementContent;
-@property (retain, nonatomic) NSMutableArray *currentXMLElementStack;
 @property (retain) NSMutableArray *objects;
 @property (retain) NSMutableArray *commonPrefixes;
 @property (assign) BOOL isTruncated;
@@ -176,6 +174,5 @@
 @synthesize maxResultCount;
 @synthesize delimiter;
 @synthesize isTruncated;
-@synthesize currentXMLElementContent;
-@synthesize currentXMLElementStack;
+
 @end

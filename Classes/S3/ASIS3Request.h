@@ -82,4 +82,6 @@ typedef enum _ASIS3ErrorType {
 @property (retain) NSString *accessKey;
 @property (retain) NSString *secretAccessKey;
 @property (retain) NSString *accessPolicy;
+@property (retain) NSString *currentXMLElementContent;
+@property (retain) NSMutableArray *currentXMLElementStack;
 @end

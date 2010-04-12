@@ -15,9 +15,6 @@
 @property (retain, nonatomic) ASIS3Bucket *currentBucket;
 @property (retain, nonatomic) NSString *ownerID;
 @property (retain, nonatomic) NSString *ownerName;
-
-@property (retain, nonatomic) NSMutableArray *currentXMLElementStack;
-@property (retain, nonatomic) NSString *currentXMLElementContent;
 @end
 
 @implementation ASIS3ServiceRequest
@@ -73,8 +70,6 @@
 }
 
 @synthesize buckets;
-@synthesize currentXMLElementContent;
-@synthesize currentXMLElementStack;
 @synthesize currentBucket;
 @synthesize ownerID;
 @synthesize ownerName;
