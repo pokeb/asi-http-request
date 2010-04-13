@@ -483,9 +483,8 @@
 	unsigned long long partialFileSize = [fileSize unsignedLongLongValue];
 	BOOL success = (partialFileSize < 1036935);
 	GHAssertTrue(success,@"Downloaded whole file too quickly, cannot proceed with this test");
-	
-	
-	
+
+
 	// Resume the download synchronously
 	request = [ASIHTTPRequest requestWithURL:url];
 	[request setTemporaryFileDownloadPath:temporaryPath];

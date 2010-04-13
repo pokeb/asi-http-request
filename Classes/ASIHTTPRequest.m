@@ -23,7 +23,7 @@
 
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.6.1-9 2010-04-12";
+NSString *ASIHTTPRequestVersion = @"v1.6.1-10 2010-04-13";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -138,6 +138,9 @@ static BOOL isiPhoneOS2;
 - (void)markAsFinished;
 - (void)performRedirect;
 - (BOOL)shouldTimeOut;
+
+// Helper method used for performing invocations on the main thread
++ (void)performSelector:(SEL)selector onTarget:(id)target withObject:(id)object args:(void *)firstArgument, ...;
 
 #if TARGET_OS_IPHONE
 + (void)registerForNetworkReachabilityNotifications;
@@ -789,10 +792,7 @@ static BOOL isiPhoneOS2;
 	}
 	
 	[self setLastBytesSent:0];
-	if ([self shouldResetProgressIndicators]) {
-		[self setContentLength:0];
-		[self resetDownloadProgress:0];
-	}
+	[self setContentLength:0];
 	[self setResponseHeaders:nil];
 	if (![self downloadDestinationPath]) {
 		[self setRawResponseData:[[[NSMutableData alloc] init] autorelease]];
@@ -1031,18 +1031,18 @@ static BOOL isiPhoneOS2;
 
 	[[self cancelledLock] unlock];
 	
-	if (shouldResetProgressIndicators) {
+	if ([self shouldResetProgressIndicators]) {
 		double amount = 1;
-		if (showAccurateProgress) {
+		if ([self showAccurateProgress]) {
 			
 			//Workaround for an issue with converting a long to a double on iPhone OS 2.2.1 with a base SDK >= 3.0
 			if ([ASIHTTPRequest isiPhoneOS2]) {
-				amount = [[NSNumber numberWithUnsignedLongLong:postLength] doubleValue]; 
+				amount = [[NSNumber numberWithUnsignedLongLong:[self postLength]] doubleValue]; 
 			} else {
-				amount = (double)postLength;
+				amount = (double)[self postLength];
 			}
 		}
-		[self resetUploadProgress:amount];
+		[self resetUploadProgressWithNewLength:amount];
 	}	
 	
 	
@@ -1292,13 +1292,7 @@ static BOOL isiPhoneOS2;
 	SEL selector = @selector(setMaxValue:);
 	if ([uploadProgressDelegate respondsToSelector:selector]) {
 		double max = 1.0;
-		NSMethodSignature *signature = [[uploadProgressDelegate class] instanceMethodSignatureForSelector:selector];
-		NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
-		[invocation setTarget:uploadProgressDelegate];
-		[invocation setSelector:selector];
-		[invocation setArgument:&max atIndex:2];
-		[invocation invoke];
-		
+		[ASIHTTPRequest performSelector:selector onTarget:[self uploadProgressDelegate] withObject:nil args:&max,nil];
 	}
 #endif
 	[[self cancelledLock] unlock];
@@ -1315,233 +1309,151 @@ static BOOL isiPhoneOS2;
 	SEL selector = @selector(setMaxValue:);
 	if ([downloadProgressDelegate respondsToSelector:selector]) {
 		double max = 1.0;
-		NSMethodSignature *signature = [[downloadProgressDelegate class] instanceMethodSignatureForSelector:selector];
-		NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
-		[invocation setSelector:@selector(setMaxValue:)];
-		[invocation setArgument:&max atIndex:2];
-		[invocation invokeWithTarget:downloadProgressDelegate];
+		[ASIHTTPRequest performSelector:selector onTarget:[self downloadProgressDelegate] withObject:nil args:&max,nil];
 	}	
 #endif
 	[[self cancelledLock] unlock];
 }
 
 
-- (void)resetUploadProgress:(unsigned long long)value
+- (void)updateDownloadProgress
 {
-	[progressLock lock];
 	
-	// Request this request's own upload progress delegate
-	if (uploadProgressDelegate) {
-		[ASIHTTPRequest setProgress:0 forProgressIndicator:uploadProgressDelegate];
+	// We won't update download progress until we've examined the headers, since we might need to authenticate
+	if (![self responseHeaders] || [self needsRedirect] || !([self contentLength] || [self complete])) {
+		return;
 	}
-	[progressLock unlock];
-}		
+		
+	unsigned long long bytesReadSoFar = [self totalBytesRead]+[self partialDownloadSize];
+			
+	unsigned long long value = 0;
+	if ([self showAccurateProgress] && [self contentLength]) {
+		value = bytesReadSoFar-[self lastBytesRead];
+		if (value == 0) {
+			return;
+		}
+	} else {
+		value = 1;
+		[self setUpdatedProgress:YES];
+	}
+	
+
+	[ASIHTTPRequest performSelector:@selector(request:didReceiveBytes:) onTarget:[self queue] withObject:self args:&value,nil];
+	[ASIHTTPRequest performSelector:@selector(request:didReceiveBytes:) onTarget:[self downloadProgressDelegate] withObject:self args:&value,nil];
+	[ASIHTTPRequest updateProgressIndicator:[self downloadProgressDelegate] withProgress:[self totalBytesRead]+[self partialDownloadSize] ofTotal:[self contentLength]+[self partialDownloadSize]];
+		
+	[self setLastBytesRead:bytesReadSoFar];
+}
+
 
 - (void)updateUploadProgress
 {
-	if ([self isCancelled]) {
+	if ([self isCancelled] || [self totalBytesSent] == 0) {
 		return;
 	}
 	
 	// If this is the first time we've written to the buffer, byteCount will be the size of the buffer (currently seems to be 128KB on both Leopard and iPhone 2.2.1, 32KB on iPhone 3.0)
 	// If request body is less than the buffer size, byteCount will be the total size of the request body
 	// We will remove this from any progress display, as kCFStreamPropertyHTTPRequestBytesWrittenCount does not tell us how much data has actually be written
-	if (totalBytesSent > 0 && uploadBufferSize == 0 && totalBytesSent != postLength) {
-		[self setUploadBufferSize:totalBytesSent];
-		SEL selector = @selector(setUploadBufferSize:);
-		if ([queue respondsToSelector:selector]) {
-			NSMethodSignature *signature = nil;
-			signature = [[queue class] instanceMethodSignatureForSelector:selector];
-			NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
-			[invocation setTarget:queue];
-			[invocation setSelector:selector];
-			[invocation setArgument:&totalBytesSent atIndex:2];
-			[invocation invoke];
-		}
+	if ([self uploadBufferSize] == 0 && [self totalBytesSent] != [self postLength]) {
+		[self setUploadBufferSize:[self totalBytesSent]];
+		[self resetUploadProgressWithNewLength:-[self uploadBufferSize]];
 	}
 	
-	if (totalBytesSent == 0) {
-		return;
-	}
-	
-		
-	// Update the progress queue, if we have one
-	SEL selector = @selector(incrementUploadProgressBy:);
-	if ([queue respondsToSelector:selector]) {
-		unsigned long long value = 0;
-		if (showAccurateProgress) {
-			if (totalBytesSent == postLength || lastBytesSent > 0) {
-				value = totalBytesSent-lastBytesSent;
-			}
+	unsigned long long value = 0;
+	if ([self showAccurateProgress]) {
+		if ([self totalBytesSent] == [self postLength] || [self lastBytesSent] > 0) {
+			value = [self totalBytesSent]-[self lastBytesSent];
 		} else {
-			value = 1;
-			[self setUpdatedProgress:YES];
-		}
-		
-		// No progress
-		if (value == 0) {
 			return;
 		}
-		
-		NSMethodSignature *signature = nil;
-		signature = [[queue class] instanceMethodSignatureForSelector:selector];
-		NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
-		[invocation setTarget:queue];
-		[invocation setSelector:selector];
-		[invocation setArgument:&value atIndex:2];
-		[invocation invoke];
-	}
-
-	// Update this request's own upload progress delegate
-	if (uploadProgressDelegate) {
-		
-		double progress;
-		//Workaround for an issue with converting a long to a double on iPhone OS 2.2.1 with a base SDK >= 3.0
-		if ([ASIHTTPRequest isiPhoneOS2]) {
-			progress = [[NSNumber numberWithUnsignedLongLong:(totalBytesSent-uploadBufferSize)/(postLength-uploadBufferSize)] doubleValue]; 
-		} else {
-			progress = (double)(1.0*(totalBytesSent-uploadBufferSize)/(postLength-uploadBufferSize));
-		}
+	} else {
+		value = 1;
 		[self setUpdatedProgress:YES];
-		if (progress == 0) {
-			return;
-		}
-		[ASIHTTPRequest setProgress:progress forProgressIndicator:uploadProgressDelegate];
-		
 	}
-
+	
+	[ASIHTTPRequest performSelector:@selector(request:didSendBytes:) onTarget:[self queue] withObject:self args:&value,nil];
+	[ASIHTTPRequest performSelector:@selector(request:didSendBytes:) onTarget:[self uploadProgressDelegate] withObject:self args:&value,nil];
+	[ASIHTTPRequest updateProgressIndicator:[self uploadProgressDelegate] withProgress:[self totalBytesSent] ofTotal:[self postLength]];
 }
 
 
-- (void)resetDownloadProgress:(unsigned long long)value
+- (void)resetDownloadProgressWithNewLength:(unsigned long long)length
 {
-	[progressLock lock];	
-	
-	// Reset download progress for this request in the queue
-	SEL selector = @selector(incrementDownloadSizeBy:);
-	if ([queue respondsToSelector:selector]) {
-		NSMethodSignature *signature = [[queue class] instanceMethodSignatureForSelector:selector];
-		NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
-		[invocation setTarget:queue];
-		[invocation setSelector:selector];
-		[invocation setArgument:&value atIndex:2];
-		[invocation invoke];
-	}
-	
-	// Request this request's own download progress delegate
-	if (downloadProgressDelegate) {
-		[ASIHTTPRequest setProgress:0 forProgressIndicator:downloadProgressDelegate];
-	}
-	[progressLock unlock];
-}	
+	[ASIHTTPRequest performSelector:@selector(request:resetDownloadContentLength:) onTarget:[self queue] withObject:self args:&length,nil];
+	[ASIHTTPRequest performSelector:@selector(request:resetDownloadContentLength:) onTarget:[self uploadProgressDelegate] withObject:self args:&length,nil];
+	[ASIHTTPRequest updateProgressIndicator:[self uploadProgressDelegate] withProgress:0 ofTotal:length];
+}
 
-- (void)updateDownloadProgress
+- (void)resetUploadProgressWithNewLength:(unsigned long long)length
 {
-	
-	// We won't update download progress until we've examined the headers, since we might need to authenticate
-	if ([self responseHeaders] && ([self contentLength] || [self complete])) {
-		
-		unsigned long long bytesReadSoFar = totalBytesRead+partialDownloadSize;
-
-		// We're using a progress queue or compatible controller to handle progress
-		SEL selector = @selector(incrementDownloadProgressBy:);
-		if ([queue respondsToSelector:@selector(incrementDownloadProgressBy:)]) {
-			
-			unsigned long long value = 0;
-			if ([self showAccurateProgress] && [self contentLength]) {
-				value = bytesReadSoFar-[self lastBytesRead];
-			} else {
-				value = 1;
-				[self setUpdatedProgress:YES];
-			}
-			
-			// No progress
-			if (value == 0) {
-				return;
-			}
-			
-			NSMethodSignature *signature = [[queue class] instanceMethodSignatureForSelector:selector];
-			NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
-			[invocation setTarget:queue];
-			[invocation setSelector:selector];
-			[invocation setArgument:&value atIndex:2];
-			[invocation invoke];
-			
-		}
-			
-		if (downloadProgressDelegate) {
-			double progress = 1.0;
-			if ([self contentLength]) {
-				//Workaround for an issue with converting a long to a double on iPhone OS 2.2.1 with a base SDK >= 3.0
-				if ([ASIHTTPRequest isiPhoneOS2]) {
-					progress = [[NSNumber numberWithUnsignedLongLong:bytesReadSoFar/(contentLength+partialDownloadSize)] doubleValue]; 
-				} else {
-					progress = (double)(1.0*bytesReadSoFar/(contentLength+partialDownloadSize));
-				}
-			}
-			[self setUpdatedProgress:YES];
-			if (progress == 0) {
-				return;
-			}
-			[ASIHTTPRequest setProgress:progress forProgressIndicator:downloadProgressDelegate];
-		}
-		
-		[self setLastBytesRead:bytesReadSoFar];
-	}
-	
+	[ASIHTTPRequest performSelector:@selector(request:resetUploadContentLength:) onTarget:[self queue] withObject:self args:&length,nil];
+	[ASIHTTPRequest performSelector:@selector(request:resetUploadContentLength:) onTarget:[self uploadProgressDelegate] withObject:self args:&length,nil];
+	[ASIHTTPRequest updateProgressIndicator:[self uploadProgressDelegate] withProgress:0 ofTotal:length];
 }
 
 -(void)removeUploadProgressSoFar
 {
-	
-	// We're using a progress queue or compatible controller to handle progress
-	SEL selector = @selector(decrementUploadProgressBy:);
-	if ([queue respondsToSelector:selector]) {
-		unsigned long long value = 0-[self totalBytesSent];
-		
-		NSMethodSignature *signature = [[queue class] instanceMethodSignatureForSelector:selector];
-		NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
-		[invocation setTarget:queue];
-		[invocation setSelector:selector];
-		[invocation setArgument:&value atIndex:2];
-		[invocation invoke];
-		
-	}
-	
-	if (uploadProgressDelegate) {
-		[ASIHTTPRequest setProgress:0 forProgressIndicator:uploadProgressDelegate];
-	}
+	long long progressToRemove = -[self totalBytesSent];
+	[ASIHTTPRequest performSelector:@selector(request:didReceiveBytes:) onTarget:[self queue] withObject:self args:&progressToRemove,nil];
+	[ASIHTTPRequest performSelector:@selector(request:didReceiveBytes:) onTarget:[self downloadProgressDelegate] withObject:self args:&progressToRemove,nil];
+	[ASIHTTPRequest updateProgressIndicator:[self uploadProgressDelegate] withProgress:0 ofTotal:[self postLength]];
 }
 
 
-+ (void)setProgress:(double)progress forProgressIndicator:(id)indicator
++ (void)performSelector:(SEL)selector onTarget:(id)target withObject:(id)object args:(void *)firstArgument, ...
+{
+	if ([target respondsToSelector:selector]) {
+		NSMethodSignature *signature = nil;
+		signature = [[target class] instanceMethodSignatureForSelector:selector];
+		NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
+		[invocation setTarget:target];
+		[invocation setSelector:selector];
+		
+		void *argument;
+		int argumentNumber = 2;
+		if (object) {
+			[invocation setArgument:&argument atIndex:argumentNumber];
+			argumentNumber++;	
+		}
+		if (firstArgument) {
+			[invocation setArgument:firstArgument atIndex:argumentNumber];
+			argumentNumber++;			
+		}
+		va_list args;
+		va_start(args, firstArgument);
+		while(argument = va_arg(args, void *) ) {
+			[invocation setArgument:argument atIndex:argumentNumber];
+			argumentNumber++;
+		}
+		va_end(args);
+		[invocation performSelectorOnMainThread:@selector(invokeWithTarget:) withObject:target waitUntilDone:[NSThread isMainThread]];
+	}
+}
+	
+	
++ (void)updateProgressIndicator:(id)indicator withProgress:(unsigned long long)progress ofTotal:(unsigned long long)total
 {
 
-	SEL selector;
+	double progressAmount;
+	//Workaround for an issue with converting a long to a double on iPhone OS 2.2.1 with a base SDK >= 3.0
+	if ([ASIHTTPRequest isiPhoneOS2]) {
+		progressAmount = [[NSNumber numberWithUnsignedLongLong:progress] doubleValue]/[[NSNumber numberWithUnsignedLongLong:total] doubleValue]; 
+	} else {
+		progressAmount = (progress*1.0)/(total*1.0);
+	}
+	
 	[progressLock lock];
 
+	
 #if TARGET_OS_IPHONE
 	// Cocoa Touch: UIProgressView
-	if ([indicator respondsToSelector:@selector(setProgress:)]) {
-		selector = @selector(setProgress:);
-		NSMethodSignature *signature = [[indicator class] instanceMethodSignatureForSelector:selector];
-		NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
-		[invocation setSelector:selector];
-		float progressFloat = (float)progress; // UIProgressView wants a float for the progress parameter
-		[invocation setArgument:&progressFloat atIndex:2];
-		[invocation performSelectorOnMainThread:@selector(invokeWithTarget:) withObject:indicator waitUntilDone:[NSThread isMainThread]];
-	}
+	SEL selector = @selector(setProgress:);
 #else
 	// Cocoa: NSProgressIndicator
-	if ([indicator respondsToSelector:@selector(setDoubleValue:)]) {
-		selector = @selector(setDoubleValue:);
-		NSMethodSignature *signature = [[indicator class] instanceMethodSignatureForSelector:selector];
-		NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
-		[invocation setSelector:selector];
-		[invocation setArgument:&progress atIndex:2];
-		[invocation performSelectorOnMainThread:@selector(invokeWithTarget:) withObject:indicator waitUntilDone:[NSThread isMainThread]];
-	}
+	SEL selector = @selector(setDoubleValue:);
 #endif
+	[ASIHTTPRequest performSelector:selector onTarget:indicator withObject:nil args:&progressAmount,nil];
 	[progressLock unlock];
 }
 
@@ -1707,7 +1619,7 @@ static BOOL isiPhoneOS2;
 		// Workaround for Apache HEAD requests for dynamically generated content returning the wrong Content-Length when using gzip
 		if ([self mainRequest] && [self allowCompressedResponse] && length == 20 && [self showAccurateProgress] && [self shouldResetProgressIndicators]) {
 			[[self mainRequest] setShowAccurateProgress:NO];
-			[self resetDownloadProgress:1];
+			[self resetDownloadProgressWithNewLength:1];
 			
 		} else {
 			[self setContentLength:length];
@@ -1716,13 +1628,13 @@ static BOOL isiPhoneOS2;
 			}
 
 			if ([self showAccurateProgress] && [self shouldResetProgressIndicators]) {
-				[self resetDownloadProgress:[self contentLength]+[self partialDownloadSize]];
+				[self resetDownloadProgressWithNewLength:[self contentLength]+[self partialDownloadSize]];
 			}
 		}
 		
 	} else if ([self showAccurateProgress] && [self shouldResetProgressIndicators]) {
 		[[self mainRequest] setShowAccurateProgress:NO];
-		[self resetDownloadProgress:1];			
+		[self resetDownloadProgressWithNewLength:1];			
 	}
 
 	// Handle response text encoding

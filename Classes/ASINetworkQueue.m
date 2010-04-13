@@ -81,10 +81,10 @@
 {
 	if (![self showAccurateProgress]) {
 		if ([self downloadProgressDelegate]) {
-			[self incrementDownloadSizeBy:[self requestsCount]];
+			[self setTotalBytesToDownload:[self requestsCount]];
 		}
 		if ([self uploadProgressDelegate]) {
-			[self incrementUploadSizeBy:[self requestsCount]];
+			[self setTotalBytesToUpload:[self requestsCount]];
 		}		
 	}
 	[self setSuspended:NO];
@@ -185,6 +185,7 @@
 		} else if (uploadProgressDelegate) {
 			[request buildPostBody];
 			[self setTotalBytesToUpload:[self totalBytesToUpload]+[request postLength]];
+			[request setShouldResetProgressIndicators:NO];
 		}
 	}
 	[request setShowAccurateProgress:[self showAccurateProgress]];
@@ -235,85 +236,30 @@
 	}
 }
 
-
-- (void)setUploadBufferSize:(unsigned long long)bytes
+- (void)request:(ASIHTTPRequest *)request didReceiveBytes:(long long)bytes
 {
-	if (![self uploadProgressDelegate]) {
-		return;
+	[self setBytesDownloadedSoFar:[self bytesDownloadedSoFar]+bytes];
+	if ([self downloadProgressDelegate]) {
+		[ASIHTTPRequest updateProgressIndicator:[self downloadProgressDelegate] withProgress:[self bytesDownloadedSoFar] ofTotal:[self totalBytesToDownload]];
 	}
-	[self setTotalBytesToUpload:[self totalBytesToUpload] - bytes];
-	[self incrementUploadProgressBy:0];
 }
 
-- (void)incrementUploadSizeBy:(unsigned long long)bytes
+- (void)request:(ASIHTTPRequest *)request didSendBytes:(long long)bytes
 {
-	if (![self uploadProgressDelegate]) {
-		return;
+	[self setBytesUploadedSoFar:[self bytesUploadedSoFar]+bytes];
+	if ([self uploadProgressDelegate]) {
+		[ASIHTTPRequest updateProgressIndicator:[self uploadProgressDelegate] withProgress:[self bytesUploadedSoFar] ofTotal:[self totalBytesToUpload]];
 	}
-	[self setTotalBytesToUpload:[self totalBytesToUpload] + bytes];
-	[self incrementUploadProgressBy:0];
 }
 
-- (void)decrementUploadProgressBy:(unsigned long long)bytes
+- (void)request:(ASIHTTPRequest *)request resetDownloadContentLength:(long long)newLength
 {
-	if (![self uploadProgressDelegate] || [self totalBytesToUpload] == 0) {
-		return;
-	}
-	[self setBytesUploadedSoFar:[self bytesUploadedSoFar] - bytes];
-	
-	double progress;
-	//Workaround for an issue with converting a long to a double on iPhone OS 2.2.1 with a base SDK >= 3.0
-	if ([ASIHTTPRequest isiPhoneOS2]) {
-		progress = [[NSNumber numberWithUnsignedLongLong:[self bytesUploadedSoFar]] doubleValue]/[[NSNumber numberWithUnsignedLongLong:[self totalBytesToUpload]] doubleValue]; 
-	} else {
-		progress = ([self bytesUploadedSoFar]*1.0)/([self totalBytesToUpload]*1.0);
-	}
-	[ASIHTTPRequest setProgress:progress forProgressIndicator:[self uploadProgressDelegate]];
+	[self setTotalBytesToDownload:[self totalBytesToDownload]+newLength];
 }
 
-
-- (void)incrementUploadProgressBy:(unsigned long long)bytes
+- (void)request:(ASIHTTPRequest *)request resetUploadContentLength:(long long)newLength
 {
-	if (![self uploadProgressDelegate] || [self totalBytesToUpload] == 0) {
-		return;
-	}
-	[self setBytesUploadedSoFar:[self bytesUploadedSoFar] + bytes];
-	
-	double progress;
-	//Workaround for an issue with converting a long to a double on iPhone OS 2.2.1 with a base SDK >= 3.0
-	if ([ASIHTTPRequest isiPhoneOS2]) {
-		progress = [[NSNumber numberWithUnsignedLongLong:[self bytesUploadedSoFar]] doubleValue]/[[NSNumber numberWithUnsignedLongLong:[self totalBytesToUpload]] doubleValue]; 
-	} else {
-		progress = ([self bytesUploadedSoFar]*1.0)/([self totalBytesToUpload]*1.0);
-	}
-	[ASIHTTPRequest setProgress:progress forProgressIndicator:[self uploadProgressDelegate]];
-
-}
-
-- (void)incrementDownloadSizeBy:(unsigned long long)bytes
-{
-	if (![self downloadProgressDelegate]) {
-		return;
-	}
-	[self setTotalBytesToDownload:[self totalBytesToDownload] + bytes];
-	[self incrementDownloadProgressBy:0];
-}
-
-- (void)incrementDownloadProgressBy:(unsigned long long)bytes
-{
-	if (![self downloadProgressDelegate] || [self totalBytesToDownload] == 0) {
-		return;
-	}
-	[self setBytesDownloadedSoFar:[self bytesDownloadedSoFar] + bytes];
-	
-	double progress;
-	//Workaround for an issue with converting a long to a double on iPhone OS 2.2.1 with a base SDK >= 3.0
-	if ([ASIHTTPRequest isiPhoneOS2]) {
-		progress = [[NSNumber numberWithUnsignedLongLong:[self bytesDownloadedSoFar]] doubleValue]/[[NSNumber numberWithUnsignedLongLong:[self totalBytesToDownload]] doubleValue]; 
-	} else {
-		progress = ([self bytesDownloadedSoFar]*1.0)/([self totalBytesToDownload]*1.0);
-	}
-	[ASIHTTPRequest setProgress:progress forProgressIndicator:[self downloadProgressDelegate]];
+	[self setTotalBytesToUpload:[self totalBytesToUpload]+newLength];
 }
 
 

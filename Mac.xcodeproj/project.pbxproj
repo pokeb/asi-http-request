@@ -140,6 +140,7 @@
 		B565297D101C8D01000499CF /* ASITestCase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASITestCase.h; sourceTree = "<group>"; };
 		B5728C9E10AEC2F4004F4CE6 /* StressTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StressTests.h; sourceTree = "<group>"; };
 		B5728C9F10AEC2F4004F4CE6 /* StressTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = StressTests.m; sourceTree = "<group>"; };
+		B5747B3A11746CF500C9414E /* ASIProgressDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIProgressDelegate.h; sourceTree = "<group>"; };
 		B5873F8610FF2884001E145F /* ASIS3BucketObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ASIS3BucketObject.h; path = S3/ASIS3BucketObject.h; sourceTree = "<group>"; };
 		B5873F8710FF2884001E145F /* ASIS3BucketObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ASIS3BucketObject.m; path = S3/ASIS3BucketObject.m; sourceTree = "<group>"; };
 		B5873F8A10FF2884001E145F /* ASIS3Request.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ASIS3Request.h; path = S3/ASIS3Request.h; sourceTree = "<group>"; };
@@ -295,6 +296,7 @@
 				B55B5D120F76568E0064029C /* ASIFormDataRequest.m */,
 				B55B5D130F76568E0064029C /* ASIHTTPRequest.h */,
 				B55B5D140F76568E0064029C /* ASIHTTPRequest.m */,
+				B5747B3A11746CF500C9414E /* ASIProgressDelegate.h */,
 				B55B5D150F76568E0064029C /* ASINetworkQueue.h */,
 				B55B5D160F76568E0064029C /* ASINetworkQueue.m */,
 				B564D0510FEE677F00A2098A /* ASINSStringAdditions.h */,

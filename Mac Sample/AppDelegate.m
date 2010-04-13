@@ -54,7 +54,7 @@
 	[startButton setTitle:@"Stop"];
 	[startButton setAction:@selector(stopURLFetchWithProgress:)];
 	
-	NSString *tempFile = [[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"MemexTrails_1.0b1.zip.download"];
+	NSString *tempFile = [[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"The Great American Novel.txt.download"];
 	if ([[NSFileManager defaultManager] fileExistsAtPath:tempFile]) {
 		[[NSFileManager defaultManager] removeItemAtPath:tempFile error:nil];
 	}
@@ -74,6 +74,7 @@
 
 - (IBAction)resumeURLFetchWithProgress:(id)sender
 {
+	[fileLocation setStringValue:@"(Request running)"];
 	[resumeButton setEnabled:NO];
 	[startButton setTitle:@"Stop"];
 	[startButton setAction:@selector(stopURLFetchWithProgress:)];
@@ -81,24 +82,33 @@
 	// Stop any other requests
 	[networkQueue cancelAllOperations];
 	
-	[self setBigFetchRequest:[[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://trails-network.net/Downloads/MemexTrails_1.0b1.zip"]] autorelease]];
-	[[self bigFetchRequest] setDownloadDestinationPath:[[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"MemexTrails_1.0b1.zip"]];
-	[[self bigFetchRequest] setTemporaryFileDownloadPath:[[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"MemexTrails_1.0b1.zip.download"]];
+	[self setBigFetchRequest:[[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/redirect_resume"]] autorelease]];
+	[[self bigFetchRequest] setDownloadDestinationPath:[[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"The Great American Novel.txt"]];
+	[[self bigFetchRequest] setTemporaryFileDownloadPath:[[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"The Great American Novel.txt.download"]];
 	[[self bigFetchRequest] setAllowResumeForFileDownloads:YES];
+	[[self bigFetchRequest] setDelegate:self];
 	[[self bigFetchRequest] setDidFinishSelector:@selector(URLFetchWithProgressComplete:)];
+	[[self bigFetchRequest] setDidFailSelector:@selector(URLFetchWithProgressFailed:)];
 	[[self bigFetchRequest] setDownloadProgressDelegate:progressIndicator];
 	[[self bigFetchRequest] startAsynchronous];
 }
 
 - (void)URLFetchWithProgressComplete:(ASIHTTPRequest *)request
 {
-	if ([request error]) {
-		[fileLocation setStringValue:[NSString stringWithFormat:@"An error occurred: %@",[[[request error] userInfo] objectForKey:@"Title"]]];
-	} else {
-		[fileLocation setStringValue:[NSString stringWithFormat:@"File downloaded to %@",[request downloadDestinationPath]]];
-	}
+	[fileLocation setStringValue:[NSString stringWithFormat:@"File downloaded to %@",[request downloadDestinationPath]]];
 	[startButton setTitle:@"Start"];
 	[startButton setAction:@selector(URLFetchWithProgress:)];
+}
+
+- (void)URLFetchWithProgressFailed:(ASIHTTPRequest *)request
+{
+	if ([[request error] domain] == NetworkRequestErrorDomain && [[request error] code] == ASIRequestCancelledErrorType) {
+		[fileLocation setStringValue:@"(Request paused)"];
+	} else {
+		[fileLocation setStringValue:[NSString stringWithFormat:@"An error occurred: %@",[[request error] localizedDescription]]];
+		[startButton setTitle:@"Start"];
+		[startButton setAction:@selector(URLFetchWithProgress:)];
+	}
 }
 
 - (IBAction)fetchThreeImages:(id)sender
@@ -252,8 +262,8 @@
 
 - (IBAction)postWithProgress:(id)sender
 {	
-	//Create a 2MB file
-	NSMutableData *data = [NSMutableData dataWithLength:1024*2048];
+	//Create a 1MB file
+	NSMutableData *data = [NSMutableData dataWithLength:1024*1024];
 	NSString *path = [[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"bigfile"];
 	[data writeToFile:path atomically:NO];
 	
@@ -261,6 +271,8 @@
 	[networkQueue cancelAllOperations];
 	[networkQueue setShowAccurateProgress:YES];
 	[networkQueue setUploadProgressDelegate:progressIndicator];
+	[networkQueue setRequestDidFailSelector:@selector(postFailed:)];
+	[networkQueue setRequestDidFinishSelector:@selector(postFinished:)];
 	[networkQueue setDelegate:self];
 	
 	ASIFormDataRequest *request = [[[ASIFormDataRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ignore"]] autorelease];
@@ -272,6 +284,15 @@
 
 	[networkQueue addOperation:request];
 	[networkQueue go];
+}
+
+- (void)postFinished:(ASIHTTPRequest *)request
+{
+	[postStatus setStringValue:@"Post Finished"];
+}
+- (void)postFailed:(ASIHTTPRequest *)request
+{
+	[postStatus setStringValue:[NSString stringWithFormat:@"Post Failed: %@",[[request error] localizedDescription]]];
 }
 
 

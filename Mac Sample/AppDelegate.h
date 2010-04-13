@@ -39,6 +39,7 @@
 	IBOutlet NSTextField *bandwidthUsed;
 	
 	ASIHTTPRequest *bigFetchRequest;
+	IBOutlet NSTextField *postStatus;
 }
 
 - (IBAction)simpleURLFetch:(id)sender;
@@ -56,5 +57,5 @@
 
 - (IBAction)throttleBandwidth:(id)sender;
 
-@property (assign, nonatomic) ASIHTTPRequest *bigFetchRequest;
+@property (retain, nonatomic) ASIHTTPRequest *bigFetchRequest;
 @end

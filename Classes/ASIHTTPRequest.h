@@ -444,16 +444,18 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 #pragma mark upload/download progress
 
 - (void)updateProgressIndicators;
-- (void)resetUploadProgress:(unsigned long long)value;
 - (void)updateUploadProgress;
-- (void)resetDownloadProgress:(unsigned long long)value;
 - (void)updateDownloadProgress;
 
 // Called when authorisation is needed, as we only find out we don't have permission to something when the upload is complete
 - (void)removeUploadProgressSoFar;
 
 // Helper method for interacting with progress indicators to abstract the details of different APIS (NSProgressIndicator and UIProgressView)
-+ (void)setProgress:(double)progress forProgressIndicator:(id)indicator;
++ (void)updateProgressIndicator:(id)indicator withProgress:(unsigned long long)progress ofTotal:(unsigned long long)total;
+
+
+- (void)resetDownloadProgressWithNewLength:(unsigned long long)length;
+- (void)resetUploadProgressWithNewLength:(unsigned long long)value;
 
 #pragma mark handling request complete / failure
 
