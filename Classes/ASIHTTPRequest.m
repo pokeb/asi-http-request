@@ -23,7 +23,7 @@
 
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.6.1-11 2010-04-13";
+NSString *ASIHTTPRequestVersion = @"v1.6.1-12 2010-04-13";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -1434,8 +1434,20 @@ static BOOL isiPhoneOS2;
 	
 + (void)updateProgressIndicator:(id)indicator withProgress:(unsigned long long)progress ofTotal:(unsigned long long)total
 {
-
+#if TARGET_OS_IPHONE
+	// Cocoa Touch: UIProgressView
+	float progressAmount;
+	SEL selector = @selector(setProgress:);
+#else
+	// Cocoa: NSProgressIndicator
 	double progressAmount;
+	SEL selector = @selector(setDoubleValue:);
+#endif
+	if (![indicator respondsToSelector:selector]) {
+		return;
+	}
+
+	
 	//Workaround for an issue with converting a long to a double on iPhone OS 2.2.1 with a base SDK >= 3.0
 	if ([ASIHTTPRequest isiPhoneOS2]) {
 		progressAmount = [[NSNumber numberWithUnsignedLongLong:progress] doubleValue]/[[NSNumber numberWithUnsignedLongLong:total] doubleValue]; 
@@ -1446,13 +1458,7 @@ static BOOL isiPhoneOS2;
 	[progressLock lock];
 
 	
-#if TARGET_OS_IPHONE
-	// Cocoa Touch: UIProgressView
-	SEL selector = @selector(setProgress:);
-#else
-	// Cocoa: NSProgressIndicator
-	SEL selector = @selector(setDoubleValue:);
-#endif
+
 	[ASIHTTPRequest performSelector:selector onTarget:indicator withObject:nil args:&progressAmount,nil];
 	[progressLock unlock];
 }
@@ -2461,8 +2467,7 @@ static BOOL isiPhoneOS2;
 			[invocation setArgument:self atIndex:2];
 			[invocation setArgument:[NSData dataWithBytes:buffer length:bytesRead] atIndex:3];
 			[invocation performSelectorOnMainThread:@selector(invokeWithTarget:) withObject:[self delegate] waitUntilDone:[NSThread isMainThread]];
-			
-			
+
 		// Are we downloading to a file?
 		} else if ([self downloadDestinationPath]) {
 			if (![self fileDownloadOutputStream]) {

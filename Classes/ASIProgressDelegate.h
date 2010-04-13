@@ -6,7 +6,6 @@
 //  Copyright 2010 All-Seeing Interactive. All rights reserved.
 //
 
-#import <Cocoa/Cocoa.h>
 @class ASIHTTPRequest;
 
 @protocol ASIProgressDelegate <NSObject>
