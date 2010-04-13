@@ -23,7 +23,7 @@
 
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.6.1-10 2010-04-13";
+NSString *ASIHTTPRequestVersion = @"v1.6.1-11 2010-04-13";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -2451,8 +2451,20 @@ static BOOL isiPhoneOS2;
 			return;
 		}
 		
+		// Does the delegate want to handle the data manually?
+		SEL receivedDataSelector = @selector(request:didReceiveData:);
+		if ([[self delegate] respondsToSelector:receivedDataSelector]) {
+			NSMethodSignature *signature = [[[self delegate] class] instanceMethodSignatureForSelector:receivedDataSelector];
+			NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
+			[invocation setTarget:[self delegate]];
+			[invocation setSelector:receivedDataSelector];
+			[invocation setArgument:self atIndex:2];
+			[invocation setArgument:[NSData dataWithBytes:buffer length:bytesRead] atIndex:3];
+			[invocation performSelectorOnMainThread:@selector(invokeWithTarget:) withObject:[self delegate] waitUntilDone:[NSThread isMainThread]];
+			
+			
 		// Are we downloading to a file?
-		if ([self downloadDestinationPath]) {
+		} else if ([self downloadDestinationPath]) {
 			if (![self fileDownloadOutputStream]) {
 				BOOL append = NO;
 				if (![self temporaryFileDownloadPath]) {

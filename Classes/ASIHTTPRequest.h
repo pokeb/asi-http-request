@@ -16,6 +16,8 @@
 #endif
 #import <stdio.h>
 #import "ASIHTTPRequestConfig.h"
+#import "ASIHTTPRequestDelegate.h"
+#import "ASIProgressDelegate.h"
 
 extern NSString *ASIHTTPRequestVersion;
 
@@ -62,10 +64,11 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	NSURL *originalURL;
 	
 	// The delegate, you need to manage setting and talking to your delegate in your subclasses
-	id delegate;
+	id <ASIHTTPRequestDelegate> delegate;
 	
-	// A queue delegate that should *ALSO* be notified of delegate message (used by ASINetworkQueue)
-	id queue;
+	// Another delegate that is also notified of request status changes and progress updates
+	// Generally, you won't use this directly, but ASINetworkQueue sets itself as the queue so it can proxy updates to its own delegates
+	id <ASIHTTPRequestDelegate, ASIProgressDelegate> queue;
 	
 	// HTTP method to use (GET / POST / PUT / DELETE / HEAD). Defaults to GET
 	NSString *requestMethod;
@@ -159,10 +162,10 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	NSString *proxyDomain;
 	
 	// Delegate for displaying upload progress (usually an NSProgressIndicator, but you can supply a different object and handle this yourself)
-	id uploadProgressDelegate;
+	id <ASIProgressDelegate> uploadProgressDelegate;
 	
 	// Delegate for displaying download progress (usually an NSProgressIndicator, but you can supply a different object and handle this yourself)
-	id downloadProgressDelegate;
+	id <ASIProgressDelegate> downloadProgressDelegate;
 	
 	// Whether we've seen the headers of the response yet
     BOOL haveExaminedHeaders;
