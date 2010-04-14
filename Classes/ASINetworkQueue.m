@@ -66,6 +66,7 @@
 	[self setDownloadProgressDelegate:nil];
 	[self setUploadProgressDelegate:nil];
 	[self setRequestDidStartSelector:NULL];
+	[self setRequestDidReceiveResponseHeadersSelector:NULL];
 	[self setRequestDidFailSelector:NULL];
 	[self setRequestDidFinishSelector:NULL];
 	[self setQueueDidFinishSelector:NULL];
@@ -197,14 +198,36 @@
 
 }
 
-- (void)requestDidStart:(ASIHTTPRequest *)request
+- (void)requestStarted:(ASIHTTPRequest *)request
 {
 	if ([self requestDidStartSelector]) {
 		[[self delegate] performSelector:[self requestDidStartSelector] withObject:request];
 	}
 }
 
-- (void)requestDidFail:(ASIHTTPRequest *)request
+- (void)requestDidReceiveResponseHeaders:(ASIHTTPRequest *)request
+{
+	if ([self requestDidReceiveResponseHeadersSelector]) {
+		[[self delegate] performSelector:[self requestDidReceiveResponseHeadersSelector] withObject:request];
+	}	
+}
+
+
+- (void)requestFinished:(ASIHTTPRequest *)request
+{
+	[self setRequestsCount:[self requestsCount]-1];
+	[self updateNetworkActivityIndicator];
+	if ([self requestDidFinishSelector]) {
+		[[self delegate] performSelector:[self requestDidFinishSelector] withObject:request];
+	}
+	if ([self requestsCount] == 0) {
+		if ([self queueDidFinishSelector]) {
+			[[self delegate] performSelector:[self queueDidFinishSelector] withObject:self];
+		}
+	}
+}
+
+- (void)requestFailed:(ASIHTTPRequest *)request
 {
 	[self setRequestsCount:[self requestsCount]-1];
 	[self updateNetworkActivityIndicator];
@@ -219,22 +242,9 @@
 	if ([self shouldCancelAllRequestsOnFailure] && [self requestsCount] > 0) {
 		[self cancelAllOperations];
 	}
-
+	
 }
 
-- (void)requestDidFinish:(ASIHTTPRequest *)request
-{
-	[self setRequestsCount:[self requestsCount]-1];
-	[self updateNetworkActivityIndicator];
-	if ([self requestDidFinishSelector]) {
-		[[self delegate] performSelector:[self requestDidFinishSelector] withObject:request];
-	}
-	if ([self requestsCount] == 0) {
-		if ([self queueDidFinishSelector]) {
-			[[self delegate] performSelector:[self queueDidFinishSelector] withObject:self];
-		}
-	}
-}
 
 - (void)request:(ASIHTTPRequest *)request didReceiveBytes:(long long)bytes
 {
@@ -252,12 +262,12 @@
 	}
 }
 
-- (void)request:(ASIHTTPRequest *)request resetDownloadContentLength:(long long)newLength
+- (void)request:(ASIHTTPRequest *)request incrementDownloadSizeBy:(long long)newLength
 {
 	[self setTotalBytesToDownload:[self totalBytesToDownload]+newLength];
 }
 
-- (void)request:(ASIHTTPRequest *)request resetUploadContentLength:(long long)newLength
+- (void)request:(ASIHTTPRequest *)request incrementUploadSizeBy:(long long)newLength
 {
 	[self setTotalBytesToUpload:[self totalBytesToUpload]+newLength];
 }
@@ -323,6 +333,7 @@
 @synthesize uploadProgressDelegate;
 @synthesize downloadProgressDelegate;
 @synthesize requestDidStartSelector;
+@synthesize requestDidReceiveResponseHeadersSelector;
 @synthesize requestDidFinishSelector;
 @synthesize requestDidFailSelector;
 @synthesize queueDidFinishSelector;

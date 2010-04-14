@@ -16,8 +16,7 @@
 {
 	[super init];
 	networkQueue = [[ASINetworkQueue alloc] init];
-	NSTimer *timer = [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(updateBandwidthUsageIndicator) userInfo:nil repeats:YES];
-	timer = nil;
+	[NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(updateBandwidthUsageIndicator) userInfo:nil repeats:YES];
 	return self;
 }
 
@@ -206,7 +205,7 @@
 
 }
 
-- (IBAction)topSecretFetchComplete:(ASIHTTPRequest *)request
+- (void)topSecretFetchComplete:(ASIHTTPRequest *)request
 {
 	if (![request error]) {
 		[topSecretInfo setStringValue:[request responseString]];
@@ -243,7 +242,8 @@
     [[NSApplication sharedApplication] endSheet: loginWindow returnCode: [(NSControl*)sender tag]];
 }
 
-- (void)authSheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo {
+- (void)authSheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
+{
 	ASIHTTPRequest *request = (ASIHTTPRequest *)contextInfo;
     if (returnCode == NSOKButton) {
 		if ([request authenticationNeeded] == ASIProxyAuthenticationNeeded) {

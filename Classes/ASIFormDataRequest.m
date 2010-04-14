@@ -243,8 +243,8 @@
 	
 	NSEnumerator *e = [[self postData] keyEnumerator];
 	NSString *key;
-	int i=0;
-	int count = [[self postData] count]-1;
+	NSUInteger i=0;
+	NSUInteger count = [[self postData] count]-1;
 	while (key = [e nextObject]) {
         NSString *data = [NSString stringWithFormat:@"%@=%@%@", [self encodeURL:key], [self encodeURL:[[self postData] objectForKey:key]],(i<count ?  @"&" : @"")]; 
 		[self appendPostString:data];

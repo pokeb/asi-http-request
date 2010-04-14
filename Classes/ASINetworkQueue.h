@@ -7,15 +7,19 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "ASIHTTPRequestDelegate.h"
 #import "ASIProgressDelegate.h"
 
-@interface ASINetworkQueue : NSOperationQueue <ASIProgressDelegate, NSCopying> {
+@interface ASINetworkQueue : NSOperationQueue <ASIProgressDelegate, ASIHTTPRequestDelegate, NSCopying> {
 	
 	// Delegate will get didFail + didFinish messages (if set)
 	id delegate;
 
 	// Will be called when a request starts with the request as the argument
 	SEL requestDidStartSelector;
+	
+	// Will be called when a request receives response headers with the request as the argument
+	SEL requestDidReceiveResponseHeadersSelector;
 	
 	// Will be called when a request completes with the request as the argument
 	SEL requestDidFinishSelector;
@@ -88,6 +92,7 @@
 @property (assign,setter=setDownloadProgressDelegate:) id downloadProgressDelegate;
 
 @property (assign) SEL requestDidStartSelector;
+@property (assign) SEL requestDidReceiveResponseHeadersSelector;
 @property (assign) SEL requestDidFinishSelector;
 @property (assign) SEL requestDidFailSelector;
 @property (assign) SEL queueDidFinishSelector;

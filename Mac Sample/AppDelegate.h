@@ -57,5 +57,16 @@
 
 - (IBAction)throttleBandwidth:(id)sender;
 
+- (void)updateBandwidthUsageIndicator;
+- (void)URLFetchWithProgressComplete:(ASIHTTPRequest *)request;
+- (void)URLFetchWithProgressFailed:(ASIHTTPRequest *)request;
+- (void)imageFetch1Complete:(ASIHTTPRequest *)request;
+- (void)imageFetch2Complete:(ASIHTTPRequest *)request;
+- (void)imageFetch3Complete:(ASIHTTPRequest *)request;
+- (void)topSecretFetchComplete:(ASIHTTPRequest *)request;
+- (void)authSheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo;
+- (void)postFinished:(ASIHTTPRequest *)request;
+- (void)postFailed:(ASIHTTPRequest *)request;
+
 @property (retain, nonatomic) ASIHTTPRequest *bigFetchRequest;
 @end

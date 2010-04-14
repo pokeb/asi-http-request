@@ -245,6 +245,9 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	// Called on the delegate (if implemented) when the request starts. Default is requestStarted:
 	SEL didStartSelector;
 	
+	// Called on the delegate (if implemented) when the request receives response headers. Default is requestDidReceiveResponseHeaders:
+	SEL didReceiveResponseHeadersSelector;
+
 	// Called on the delegate (if implemented) when the request completes successfully. Default is requestFinished:
 	SEL didFinishSelector;
 	
@@ -446,24 +449,36 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 
 #pragma mark upload/download progress
 
+// Called approximately every 0.25 seconds to update the progress delegates
 - (void)updateProgressIndicators;
+
+// Updates upload progress (notifies the queue and/or uploadProgressDelegate of this request)
 - (void)updateUploadProgress;
+
+// Updates download progress (notifies the queue and/or uploadProgressDelegate of this request)
 - (void)updateDownloadProgress;
 
 // Called when authorisation is needed, as we only find out we don't have permission to something when the upload is complete
 - (void)removeUploadProgressSoFar;
 
+// Called when we get a content-length header and shouldResetProgressIndicators is true
+- (void)incrementDownloadSizeBy:(long long)length;
+
+// Called when a request starts and shouldResetProgressIndicators is true
+// Also called (with a negative length) to remove the size of the underlying buffer used for uploading
+- (void)incrementUploadSizeBy:(long long)length;
+
 // Helper method for interacting with progress indicators to abstract the details of different APIS (NSProgressIndicator and UIProgressView)
 + (void)updateProgressIndicator:(id)indicator withProgress:(unsigned long long)progress ofTotal:(unsigned long long)total;
 
-
-- (void)resetDownloadProgressWithNewLength:(unsigned long long)length;
-- (void)resetUploadProgressWithNewLength:(unsigned long long)value;
 
 #pragma mark handling request complete / failure
 
 // Called when a request starts, lets the delegate know via didStartSelector
 - (void)requestStarted;
+
+// Called when a request receives response headers, lets the delegate know via didReceiveResponseHeadersSelector
+- (void)requestReceivedResponseHeaders;
 
 // Called when a request completes successfully, lets the delegate know via didFinishSelector
 - (void)requestFinished;
@@ -678,6 +693,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 @property (retain) NSString *downloadDestinationPath;
 @property (retain) NSString *temporaryFileDownloadPath;
 @property (assign) SEL didStartSelector;
+@property (assign) SEL didReceiveResponseHeadersSelector;
 @property (assign) SEL didFinishSelector;
 @property (assign) SEL didFailSelector;
 @property (retain,readonly) NSString *authenticationRealm;
@@ -728,7 +744,6 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 @property (assign, readonly) int proxyAuthenticationRetryCount;
 @property (assign) BOOL haveBuiltRequestHeaders;
 @property (assign, nonatomic) BOOL haveBuiltPostBody;
-
 @property (assign, readonly) BOOL isSynchronous;
 @property (assign, readonly) BOOL inProgress;
 @property (assign) int numberOfTimesToRetryOnTimeout;

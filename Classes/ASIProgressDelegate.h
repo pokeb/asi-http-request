@@ -30,8 +30,8 @@
 - (void)request:(ASIHTTPRequest *)request didSendBytes:(long long)bytes;
 
 // Called when a request needs to change the length of the content to download
-- (void)request:(ASIHTTPRequest *)request resetDownloadContentLength:(long long)newLength;
+- (void)request:(ASIHTTPRequest *)request incrementDownloadSizeBy:(long long)newLength;
 
 // Called when a request needs to change the length of the content to upload
-- (void)request:(ASIHTTPRequest *)request resetUploadContentLength:(long long)newLength;
+- (void)request:(ASIHTTPRequest *)request incrementUploadSizeBy:(long long)newLength;
 @end
