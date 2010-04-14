@@ -10,6 +10,19 @@
 #import "ASIFormDataRequest.h"
 #import "ASINetworkQueue.h"
 
+@interface AppDelegate ()
+- (void)updateBandwidthUsageIndicator;
+- (void)URLFetchWithProgressComplete:(ASIHTTPRequest *)request;
+- (void)URLFetchWithProgressFailed:(ASIHTTPRequest *)request;
+- (void)imageFetch1Complete:(ASIHTTPRequest *)request;
+- (void)imageFetch2Complete:(ASIHTTPRequest *)request;
+- (void)imageFetch3Complete:(ASIHTTPRequest *)request;
+- (void)topSecretFetchComplete:(ASIHTTPRequest *)request;
+- (void)authSheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo;
+- (void)postFinished:(ASIHTTPRequest *)request;
+- (void)postFailed:(ASIHTTPRequest *)request;
+@end
+
 @implementation AppDelegate
 
 - (id)init
@@ -79,7 +92,7 @@
 	[startButton setAction:@selector(stopURLFetchWithProgress:)];
 	
 	// Stop any other requests
-	[networkQueue cancelAllOperations];
+	[networkQueue reset];
 	
 	[self setBigFetchRequest:[[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/redirect_resume"]] autorelease]];
 	[[self bigFetchRequest] setDownloadDestinationPath:[[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"The Great American Novel.txt"]];
@@ -116,8 +129,7 @@
 	[imageView2 setImage:nil];
 	[imageView3 setImage:nil];
 	
-	[networkQueue cancelAllOperations];
-	[networkQueue setRequestDidFinishSelector:NULL];
+	[networkQueue reset];
 	[networkQueue setDownloadProgressDelegate:progressIndicator];
 	[networkQueue setDelegate:self];
 	[networkQueue setShowAccurateProgress:([showAccurateProgress state] == NSOnState)];
@@ -192,7 +204,7 @@
 
 - (IBAction)fetchTopSecretInformation:(id)sender
 {
-	[networkQueue cancelAllOperations];
+	[networkQueue reset];
 	
 	[progressIndicator setDoubleValue:0];
 	
@@ -268,7 +280,7 @@
 	[data writeToFile:path atomically:NO];
 	
 	
-	[networkQueue cancelAllOperations];
+	[networkQueue reset];
 	[networkQueue setShowAccurateProgress:YES];
 	[networkQueue setUploadProgressDelegate:progressIndicator];
 	[networkQueue setRequestDidFailSelector:@selector(postFailed:)];

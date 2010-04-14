@@ -11,6 +11,7 @@
 
 // Private stuff
 @interface ASINetworkQueue ()
+	- (void)resetProgressDelegate:(id)progressDelegate;
 	@property (assign) int requestsCount;
 @end
 
@@ -104,36 +105,35 @@
 - (void)setUploadProgressDelegate:(id)newDelegate
 {
 	uploadProgressDelegate = newDelegate;
+	[self resetProgressDelegate:newDelegate];
 
-#if !TARGET_OS_IPHONE
-	// If the uploadProgressDelegate is an NSProgressIndicator, we set it's MaxValue to 1.0 so we can treat it similarly to UIProgressViews
-	SEL selector = @selector(setMaxValue:);
-	if ([[self uploadProgressDelegate] respondsToSelector:selector]) {
-		double max = 1.0;
-		NSMethodSignature *signature = [[[self uploadProgressDelegate] class] instanceMethodSignatureForSelector:selector];
-		NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
-		[invocation setSelector:selector];
-		[invocation setArgument:&max atIndex:2];
-		[invocation invokeWithTarget:[self uploadProgressDelegate]];
-	}
-#endif
 }
-
 
 - (void)setDownloadProgressDelegate:(id)newDelegate
 {
 	downloadProgressDelegate = newDelegate;
+	[self resetProgressDelegate:newDelegate];
+}
 
+- (void)resetProgressDelegate:(id)progressDelegate
+{
 #if !TARGET_OS_IPHONE
-	// If the downloadProgressDelegate is an NSProgressIndicator, we set it's MaxValue to 1.0 so we can treat it similarly to UIProgressViews
+	// If the uploadProgressDelegate is an NSProgressIndicator, we set its MaxValue to 1.0 so we can treat it similarly to UIProgressViews
 	SEL selector = @selector(setMaxValue:);
-	if ([[self downloadProgressDelegate] respondsToSelector:selector]) {
+	if ([progressDelegate respondsToSelector:selector]) {
 		double max = 1.0;
-		NSMethodSignature *signature = [[[self downloadProgressDelegate] class] instanceMethodSignatureForSelector:selector];
-		NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
-		[invocation setSelector:@selector(setMaxValue:)];
-		[invocation setArgument:&max atIndex:2];
-		[invocation invokeWithTarget:[self downloadProgressDelegate]];
+		[ASIHTTPRequest performSelector:selector onTarget:progressDelegate withObject:nil amount:&max];
+	}
+	selector = @selector(setDoubleValue:);
+	if ([progressDelegate respondsToSelector:selector]) {
+		double value = 0.0;
+		[ASIHTTPRequest performSelector:selector onTarget:progressDelegate withObject:nil amount:&value];
+	}
+#else
+	SEL selector = @selector(setProgress:);
+	if ([progressDelegate respondsToSelector:selector]) {
+		float value = 0.0f;
+		[ASIHTTPRequest performSelector:selector onTarget:progressDelegate withObject:nil amount:&value];
 	}
 #endif
 }
@@ -177,6 +177,10 @@
 			ASIHTTPRequest *HEADRequest = [request HEADRequest];
 			[self addHEADOperation:HEADRequest];
 			
+			if ([request shouldResetProgressIndicators]) {
+				[self resetProgressDelegate:[request downloadProgressDelegate]];
+			}
+			
 			//Tell the request not to reset the progress indicator when it gets a content-length, as we will get the length from the HEAD request
 			[request setShouldResetProgressIndicators:NO];
 			
@@ -186,6 +190,12 @@
 		} else if (uploadProgressDelegate) {
 			[request buildPostBody];
 			[self setTotalBytesToUpload:[self totalBytesToUpload]+[request postLength]];
+			
+			
+			if ([request shouldResetProgressIndicators]) {
+				[self resetProgressDelegate:[request uploadProgressDelegate]];
+			}
+			
 			[request setShouldResetProgressIndicators:NO];
 		}
 	}

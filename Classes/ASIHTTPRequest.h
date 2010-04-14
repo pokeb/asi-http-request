@@ -216,6 +216,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	// HTTP status code, eg: 200 = OK, 404 = Not found etc
 	int responseStatusCode;
 	
+	// Description of the HTTP status code
 	NSString *responseStatusMessage;
 	
 	// Size of the response
@@ -471,6 +472,8 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 // Helper method for interacting with progress indicators to abstract the details of different APIS (NSProgressIndicator and UIProgressView)
 + (void)updateProgressIndicator:(id)indicator withProgress:(unsigned long long)progress ofTotal:(unsigned long long)total;
 
+// Helper method used for performing invocations on the main thread (used for progress)
++ (void)performSelector:(SEL)selector onTarget:(id)target withObject:(id)object amount:(void *)amount;
 
 #pragma mark handling request complete / failure
 

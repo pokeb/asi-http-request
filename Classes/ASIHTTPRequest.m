@@ -23,7 +23,7 @@
 
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.6.1-13 2010-04-14";
+NSString *ASIHTTPRequestVersion = @"v1.6.1-14 2010-04-14";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -141,9 +141,6 @@ static BOOL isiPhoneOS2;
 
 - (void)updateStatus:(NSTimer*)timer;
 
-// Helper method used for performing invocations on the main thread
-+ (void)performSelector:(SEL)selector onTarget:(id)target withObject:(id)object amount:(void *)amount;
-
 #if TARGET_OS_IPHONE
 + (void)registerForNetworkReachabilityNotifications;
 + (void)unsubscribeFromNetworkReachabilityNotifications;
@@ -220,7 +217,6 @@ static BOOL isiPhoneOS2;
 		isiPhoneOS2 = NO;
 #endif
 	}
-	[super initialize];
 }
 
 
@@ -1034,11 +1030,15 @@ static BOOL isiPhoneOS2;
 
 	[[self cancelledLock] unlock];
 	
-	if ([self shouldResetProgressIndicators]) {
+	if (![self mainRequest] && [self shouldResetProgressIndicators]) {
 		if ([self showAccurateProgress]) {
 			[self incrementUploadSizeBy:[self postLength]];
 		} else {
 			[self incrementUploadSizeBy:1];	 
+		}
+		[ASIHTTPRequest updateProgressIndicator:[self uploadProgressDelegate] withProgress:0 ofTotal:1];
+		if (![self partialDownloadSize]) {
+			[ASIHTTPRequest updateProgressIndicator:[self downloadProgressDelegate] withProgress:0 ofTotal:1];
 		}
 	}	
 	
@@ -1056,8 +1056,6 @@ static BOOL isiPhoneOS2;
 		}
 	}
 }
-
-
 
 - (void)setStatusTimer:(NSTimer *)timer
 {
@@ -1361,7 +1359,7 @@ static BOOL isiPhoneOS2;
 	
 	[ASIHTTPRequest performSelector:@selector(request:didSendBytes:) onTarget:[self queue] withObject:self amount:&value];
 	[ASIHTTPRequest performSelector:@selector(request:didSendBytes:) onTarget:[self uploadProgressDelegate] withObject:self amount:&value];
-	[ASIHTTPRequest updateProgressIndicator:[self uploadProgressDelegate] withProgress:[self totalBytesSent] ofTotal:[self postLength]];
+	[ASIHTTPRequest updateProgressIndicator:[self uploadProgressDelegate] withProgress:[self totalBytesSent]-[self uploadBufferSize] ofTotal:[self postLength]];
 }
 
 
@@ -1633,7 +1631,7 @@ static BOOL isiPhoneOS2;
 		} else {
 			[theRequest setContentLength:length];
 			if ([self showAccurateProgress] && [self shouldResetProgressIndicators]) {
-				[theRequest incrementDownloadSizeBy:[self contentLength]+[self partialDownloadSize]];
+				[theRequest incrementDownloadSizeBy:[theRequest contentLength]+[theRequest partialDownloadSize]];
 			}
 		}
 		
@@ -3010,7 +3008,7 @@ static BOOL isiPhoneOS2;
 	
 	z_stream strm;
 	strm.next_in = (Bytef *)[compressedData bytes];
-	strm.avail_in = (UInt)[compressedData length];
+	strm.avail_in = (unsigned int)[compressedData length];
 	strm.total_out = 0;
 	strm.zalloc = Z_NULL;
 	strm.zfree = Z_NULL;
@@ -3023,7 +3021,7 @@ static BOOL isiPhoneOS2;
 			[decompressed increaseLengthBy: half_length];
 		}
 		strm.next_out = [decompressed mutableBytes] + strm.total_out;
-		strm.avail_out = (UInt)([decompressed length] - strm.total_out);
+		strm.avail_out = (unsigned int)([decompressed length] - strm.total_out);
 		
 		// Inflate another chunk.
 		status = inflate (&strm, Z_SYNC_FLUSH);
@@ -3098,7 +3096,7 @@ static BOOL isiPhoneOS2;
 	
     /* decompress until deflate stream ends or end of file */
     do {
-        strm.avail_in = (UInt)fread(in, 1, CHUNK, source);
+        strm.avail_in = (unsigned int)fread(in, 1, CHUNK, source);
         if (ferror(source)) {
             (void)inflateEnd(&strm);
             return Z_ERRNO;
@@ -3152,7 +3150,7 @@ static BOOL isiPhoneOS2;
 	strm.opaque = Z_NULL;
 	strm.total_out = 0;
 	strm.next_in=(Bytef *)[uncompressedData bytes];
-	strm.avail_in = (UInt)[uncompressedData length];
+	strm.avail_in = (unsigned int)[uncompressedData length];
 	
 	// Compresssion Levels:
 	//   Z_NO_COMPRESSION
@@ -3170,7 +3168,7 @@ static BOOL isiPhoneOS2;
 			[compressed increaseLengthBy: 16384];
 		
 		strm.next_out = [compressed mutableBytes] + strm.total_out;
-		strm.avail_out = (UInt)([compressed length] - strm.total_out);
+		strm.avail_out = (unsigned int)([compressed length] - strm.total_out);
 		
 		deflate(&strm, Z_FINISH);  
 		
@@ -3231,7 +3229,7 @@ static BOOL isiPhoneOS2;
 	
     /* compress until end of file */
     do {
-        strm.avail_in = (UInt)fread(in, 1, CHUNK, source);
+        strm.avail_in = (unsigned int)fread(in, 1, CHUNK, source);
         if (ferror(source)) {
             (void)deflateEnd(&strm);
             return Z_ERRNO;
