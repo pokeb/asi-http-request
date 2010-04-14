@@ -21,6 +21,7 @@
 
 // When a delegate implements this method, it is expected to process all incoming data itself
 // This means that responseData / responseString / downloadDestinationPath etc are ignored
+// You can have the request call a different method by setting didReceiveDataSelector
 - (void)request:(ASIHTTPRequest *)request didReceiveData:(NSData *)data;
 
 // If a delegate implements one of these, it will be asked to supply credentials when none are available

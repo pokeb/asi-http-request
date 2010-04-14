@@ -23,7 +23,7 @@
 
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.6.1-14 2010-04-14";
+NSString *ASIHTTPRequestVersion = @"v1.6.1-15 2010-04-14";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -244,6 +244,7 @@ static BOOL isiPhoneOS2;
 	[self setDidReceiveResponseHeadersSelector:@selector(requestReceivedResponseHeaders:)];
 	[self setDidFinishSelector:@selector(requestFinished:)];
 	[self setDidFailSelector:@selector(requestFailed:)];
+	[self setDidReceiveDataSelector:@selector(request:didReceiveData:)];
 	[self setURL:newURL];
 	[self setCancelledLock:[[[NSRecursiveLock alloc] init] autorelease]];
 	return self;
@@ -2454,14 +2455,15 @@ static BOOL isiPhoneOS2;
 		}
 		
 		// Does the delegate want to handle the data manually?
-		SEL receivedDataSelector = @selector(request:didReceiveData:);
-		if ([[self delegate] respondsToSelector:receivedDataSelector]) {
-			NSMethodSignature *signature = [[[self delegate] class] instanceMethodSignatureForSelector:receivedDataSelector];
+		if ([[self delegate] respondsToSelector:[self didReceiveDataSelector]]) {
+			NSMethodSignature *signature = [[[self delegate] class] instanceMethodSignatureForSelector:[self didReceiveDataSelector]];
 			NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
 			[invocation setTarget:[self delegate]];
-			[invocation setSelector:receivedDataSelector];
-			[invocation setArgument:self atIndex:2];
-			[invocation setArgument:[NSData dataWithBytes:buffer length:bytesRead] atIndex:3];
+			[invocation setSelector:[self didReceiveDataSelector]];
+			[invocation setArgument:&self atIndex:2];
+			NSData *data = [NSData dataWithBytes:buffer length:bytesRead];
+			[invocation setArgument:&data atIndex:3];
+			[invocation retainArguments];
 			[invocation performSelectorOnMainThread:@selector(invokeWithTarget:) withObject:[self delegate] waitUntilDone:[NSThread isMainThread]];
 
 		// Are we downloading to a file?
@@ -3669,6 +3671,7 @@ static BOOL isiPhoneOS2;
 @synthesize didReceiveResponseHeadersSelector;
 @synthesize didFinishSelector;
 @synthesize didFailSelector;
+@synthesize didReceiveDataSelector;
 @synthesize authenticationRealm;
 @synthesize proxyAuthenticationRealm;
 @synthesize error;

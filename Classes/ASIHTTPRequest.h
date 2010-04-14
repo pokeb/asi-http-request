@@ -255,6 +255,10 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	// Called on the delegate (if implemented) when the request fails. Default is requestFailed:
 	SEL didFailSelector;
 	
+	// Called on the delegate (if implemented) when the request receives data. Default is request:didReceiveData:
+	// If you set this and implement the method in your delegate, you must handle the data yourself - ASIHTTPRequest will not populate responseData or write the data to downloadDestinationPath
+	SEL didReceiveDataSelector;
+	
 	// Used for recording when something last happened during the request, we will compare this value with the current date to time out requests when appropriate
 	NSDate *lastActivityTime;
 	
@@ -699,6 +703,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 @property (assign) SEL didReceiveResponseHeadersSelector;
 @property (assign) SEL didFinishSelector;
 @property (assign) SEL didFailSelector;
+@property (assign) SEL didReceiveDataSelector;
 @property (retain,readonly) NSString *authenticationRealm;
 @property (retain,readonly) NSString *proxyAuthenticationRealm;
 @property (retain) NSError *error;
