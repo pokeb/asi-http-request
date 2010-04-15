@@ -27,6 +27,8 @@
 	// Set this if having the correct mime type returned to you when you GET the data is important (eg it will be served by a web-server)
 	// Can be autodetected when PUTing a file from disk, will default to 'application/octet-stream' when PUTing data
 	NSString *mimeType;
+	
+	NSString* subResource;
 }
 
 // Create a request, building an appropriate url
@@ -63,5 +65,6 @@
 @property (retain) NSString *sourceBucket;
 @property (retain) NSString *sourceKey;
 @property (retain) NSString *mimeType;
+@property (retain) NSString *subResource;
 
 @end
