@@ -182,7 +182,10 @@ IMPORTANT
 	BOOL success = (progress == 1.0);
 	GHAssertTrue(success,@"Failed to increment progress properly");
 	
-	[networkQueue cancelAllOperations];
+	[networkQueue reset];
+	[networkQueue setDownloadProgressDelegate:self];
+	[networkQueue setDelegate:self];
+	[networkQueue setQueueDidFinishSelector:@selector(queueFinished:)];	
 	
 	// This test will request gzipped content, but the content-length header we get on the HEAD request will be wrong, ASIHTTPRequest should fall back to simple progress
 	// This is to workaround an issue Apache has with HEAD requests for dynamically generated content when accepting gzip - it returns the content-length of a gzipped empty body
@@ -210,14 +213,13 @@ IMPORTANT
 	[self setAddMoreRequestsQueue:[ASINetworkQueue queue]];
 	[[self addMoreRequestsQueue] setDownloadProgressDelegate:self];
 	[[self addMoreRequestsQueue] setDelegate:self];
-	[[self addMoreRequestsQueue] setShowAccurateProgress:NO];
+	[[self addMoreRequestsQueue] setShowAccurateProgress:YES];
 	[[self addMoreRequestsQueue]setQueueDidFinishSelector:@selector(addMoreRequestsQueueFinished:)];	
 	
 	requestsFinishedCount = 0;
 	
 	complete = NO;
 	progress = 0;
-	[[self addMoreRequestsQueue] setShowAccurateProgress:YES];
 	
 	int i;
 	for (i=0; i<5; i++) {
@@ -311,13 +313,18 @@ IMPORTANT
 		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
 	}
 	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1]];
-	BOOL success = (progress > 0.95);
+	BOOL success = (progress == 1.0f);
 	GHAssertTrue(success,@"Failed to increment progress properly");
 	
 	//Now test again with accurate progress
 	complete = NO;
 	progress = 0;
-	[networkQueue cancelAllOperations];
+	[networkQueue reset];
+	[networkQueue setUploadProgressDelegate:self];
+	[networkQueue setDelegate:self];
+	[networkQueue setShowAccurateProgress:NO];
+	[networkQueue setRequestDidFailSelector:@selector(uploadFailed:)];
+	[networkQueue setQueueDidFinishSelector:@selector(queueFinished:)];	
 	[networkQueue setShowAccurateProgress:YES];
 	
 	for (i=0; i<3; i++) {
@@ -335,7 +342,7 @@ IMPORTANT
 		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
 	}
 	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1]];
-	success = (progress > 0.95);
+	success = (progress == 1.0f);
 	GHAssertTrue(success,@"Failed to increment progress properly");
 	
 }
@@ -709,7 +716,7 @@ IMPORTANT
 	success = (amountDownloaded == 1036935);
 	GHAssertTrue(success,@"Failed to complete the download");
 	
-	success = (progress > 0.95);
+	success = (progress == 1.0f);
 	GHAssertTrue(success,@"Failed to increment progress properly");
 	
 
@@ -1112,6 +1119,10 @@ IMPORTANT
 
 - (void)testQueueFinishedCalledOnFailure
 {
+	[self performSelectorOnMainThread:@selector(runTestQueueFinishedCalledOnFailureTest) withObject:nil waitUntilDone:YES];
+}
+- (void)runTestQueueFinishedCalledOnFailureTest
+{
 	complete = NO;
 	ASINetworkQueue *networkQueue = [[ASINetworkQueue queue] retain];
 	[networkQueue setDelegate:self];
@@ -1136,7 +1147,9 @@ IMPORTANT
 	
 	queueFinishedCallCount = 0;
 	complete = NO;
-	[networkQueue reset];
+
+	[networkQueue release];
+	networkQueue = [[ASINetworkQueue queue] retain];
 	[networkQueue setDelegate:self];
 	[networkQueue setQueueDidFinishSelector:@selector(queueFailureFinishCallOnce:)];
 	[networkQueue setMaxConcurrentOperationCount:1];
@@ -1150,7 +1163,7 @@ IMPORTANT
 	
 	dateStarted = [NSDate date];
 	while (!complete) {
-		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.5]];
+		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:2.0f]];
 		if ([dateStarted timeIntervalSinceNow] < -10) {
 			break;
 		}

@@ -71,24 +71,12 @@
 	[self setRequestDidFailSelector:NULL];
 	[self setRequestDidFinishSelector:NULL];
 	[self setQueueDidFinishSelector:NULL];
-	[self setTotalBytesToUpload:0];
-	[self setBytesUploadedSoFar:0];
-	[self setTotalBytesToDownload:0];
-	[self setBytesDownloadedSoFar:0];
 	[self setSuspended:YES];
 }
 
 
 - (void)go
 {
-	if (![self showAccurateProgress]) {
-		if ([self downloadProgressDelegate]) {
-			[self setTotalBytesToDownload:[self requestsCount]];
-		}
-		if ([self uploadProgressDelegate]) {
-			[self setTotalBytesToUpload:[self requestsCount]];
-		}		
-	}
 	[self setSuspended:NO];
 }
 
@@ -172,35 +160,33 @@
 		// If this is a GET request and we want accurate progress, perform a HEAD request first to get the content-length
 		// We'll only do this before the queue is started
 		// If requests are added after the queue is started they will probably move the overall progress backwards anyway, so there's no value performing the HEAD requests first
-		// Instead, they'll update the total progress if and when they recieve a content-length header
-		if ([[request requestMethod] isEqualToString:@"GET"] && [self isSuspended]) {
-			ASIHTTPRequest *HEADRequest = [request HEADRequest];
-			[self addHEADOperation:HEADRequest];
-			
-			if ([request shouldResetProgressIndicators]) {
-				[self resetProgressDelegate:[request downloadProgressDelegate]];
+		// Instead, they'll update the total progress if and when they receive a content-length header
+		if ([[request requestMethod] isEqualToString:@"GET"]) {
+			if ([self isSuspended]) {
+				ASIHTTPRequest *HEADRequest = [request HEADRequest];
+				[self addHEADOperation:HEADRequest];
+				[request addDependency:HEADRequest];
+				if ([request shouldResetDownloadProgress]) {
+					[self resetProgressDelegate:[request downloadProgressDelegate]];
+					[request setShouldResetDownloadProgress:NO];
+				}
 			}
-			
-			//Tell the request not to reset the progress indicator when it gets a content-length, as we will get the length from the HEAD request
-			[request setShouldResetProgressIndicators:NO];
-			
-			[request addDependency:HEADRequest];
-		
-		// If we want to track uploading for this request accurately, we need to add the size of the post content to the total
-		} else if (uploadProgressDelegate) {
-			[request buildPostBody];
-			[self setTotalBytesToUpload:[self totalBytesToUpload]+[request postLength]];
-			
-			
-			if ([request shouldResetProgressIndicators]) {
-				[self resetProgressDelegate:[request uploadProgressDelegate]];
-			}
-			
-			[request setShouldResetProgressIndicators:NO];
 		}
-	}
-	[request setShowAccurateProgress:[self showAccurateProgress]];
+		[request buildPostBody];
+		[self request:nil incrementUploadSizeBy:[request postLength]];
 
+
+	} else {
+		[self request:nil incrementDownloadSizeBy:1];
+		[self request:nil incrementUploadSizeBy:1];
+	}
+	// Tell the request not to increment the upload size when it starts, as we've already added its length
+	if ([request shouldResetUploadProgress]) {
+		[self resetProgressDelegate:[request uploadProgressDelegate]];
+		[request setShouldResetUploadProgress:NO];
+	}
+	
+	[request setShowAccurateProgress:[self showAccurateProgress]];
 	
 	[request setQueue:self];
 	[super addOperation:request];

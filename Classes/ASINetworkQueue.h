@@ -55,7 +55,7 @@
 	int requestsCount;
 	
 	// When NO, this request will only update the progress indicator when it completes
-	// When YES, this request will update the progress indicator according to how much data it has recieved so far
+	// When YES, this request will update the progress indicator according to how much data it has received so far
 	// When YES, the queue will first perform HEAD requests for all GET requests in the queue, so it can calculate the total download size before it starts
 	// NO means better performance, because it skips this step for GET requests, and it won't waste time updating the progress indicator until a request completes 
 	// Set to YES if the size of a requests in the queue varies greatly for much more accurate results
