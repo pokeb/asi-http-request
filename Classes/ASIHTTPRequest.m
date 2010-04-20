@@ -1382,7 +1382,7 @@ static BOOL isiPhoneOS2;
 - (void)incrementDownloadSizeBy:(long long)length
 {
 	[ASIHTTPRequest performSelector:@selector(request:incrementDownloadSizeBy:) onTarget:[self queue] withObject:self amount:&length];
-	[ASIHTTPRequest performSelector:@selector(request:incrementDownloadSizeBy:) onTarget:[self uploadProgressDelegate] withObject:self amount:&length];
+	[ASIHTTPRequest performSelector:@selector(request:incrementDownloadSizeBy:) onTarget:[self downloadProgressDelegate] withObject:self amount:&length];
 }
 
 
@@ -1397,7 +1397,7 @@ static BOOL isiPhoneOS2;
 {
 	long long progressToRemove = -[self totalBytesSent];
 	[ASIHTTPRequest performSelector:@selector(request:didSendBytes:) onTarget:[self queue] withObject:self amount:&progressToRemove];
-	[ASIHTTPRequest performSelector:@selector(request:didSendBytes:) onTarget:[self downloadProgressDelegate] withObject:self amount:&progressToRemove];
+	[ASIHTTPRequest performSelector:@selector(request:didSendBytes:) onTarget:[self uploadProgressDelegate] withObject:self amount:&progressToRemove];
 	[ASIHTTPRequest updateProgressIndicator:[self uploadProgressDelegate] withProgress:0 ofTotal:[self postLength]];
 }
 
