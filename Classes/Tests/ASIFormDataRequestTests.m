@@ -176,7 +176,16 @@
 	[request setStringEncoding:NSWindowsCP1252StringEncoding];
 	[request startSynchronous];
 	success = ([[request responseString] isEqualToString:[NSString stringWithFormat:@"Got data in %@: %@",charset,testString]]);
-	GHAssertTrue(success,@"Failed to correctly encode the data");	
+	GHAssertTrue(success,@"Failed to correctly encode the data");
+	
+	// Ensure charset isn't added to file post (GH issue 36)
+	request = [ASIFormDataRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/Tests/return-raw-request"]];
+	[request setData:[@"test 123" dataUsingEncoding:NSUTF8StringEncoding] forKey:@"file"];
+	[request setRequestMethod:@"PUT"];
+	[request startSynchronous];	
+	success = ([[request responseString] rangeOfString:@"charset=utf-8"].location == NSNotFound);
+	GHAssertTrue(success,@"Sent a charset header for an uploaded file");
+
 
 }
 

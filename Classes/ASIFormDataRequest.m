@@ -200,7 +200,7 @@
 		NSString *fileName = [fileInfo objectForKey:@"fileName"];
 		
 		[self appendPostString:[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"; filename=\"%@\"\r\n", key, fileName]];
-		[self appendPostString:[NSString stringWithFormat:@"Content-Type: %@; charset=%@\r\n\r\n", contentType, charset]];
+		[self appendPostString:[NSString stringWithFormat:@"Content-Type: %@\r\n\r\n", contentType]];
 		
 		if ([file isKindOfClass:[NSString class]]) {
 			[self appendPostDataFromFile:file];
