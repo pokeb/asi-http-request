@@ -48,6 +48,7 @@ IMPORTANT
 	BOOL finished;
 	BOOL failed;
 	BOOL headFailed;
+	BOOL receivedResponseHeaders;
 	
 	int queueFinishedCallCount;
 }

@@ -63,6 +63,7 @@ IMPORTANT
 	[networkQueue setDelegate:self];
 	[networkQueue setRequestDidStartSelector:@selector(delegateTestStarted:)];
 	[networkQueue setRequestDidFinishSelector:@selector(delegateTestFinished:)];
+	[networkQueue setRequestDidReceiveResponseHeadersSelector:@selector(delegateTestResponseHeaders:)];
 	
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
 	[networkQueue addOperation:request];
@@ -70,7 +71,10 @@ IMPORTANT
 	
 	[networkQueue waitUntilAllOperationsAreFinished];
 	
-	GHAssertTrue(started,@"Failed to call the delegate method when the request started");	
+	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:2]];
+
+	GHAssertTrue(started,@"Failed to call the delegate method when the request started");
+	GHAssertTrue(receivedResponseHeaders,@"Failed to call the delegate method when the request received response headers");
 	GHAssertTrue(finished,@"Failed to call the delegate method when the request finished");
 	
 	networkQueue = [ASINetworkQueue queue];
@@ -83,6 +87,8 @@ IMPORTANT
 	[networkQueue go];
 	
 	[networkQueue waitUntilAllOperationsAreFinished];
+
+	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:2]];
 	
 	GHAssertTrue(failed,@"Failed to call the delegate method when the request failed");
 	
@@ -91,6 +97,12 @@ IMPORTANT
 - (void)delegateTestStarted:(ASIHTTPRequest *)request
 {
 	started = YES;
+}
+
+- (void)delegateTestResponseHeaders:(ASIHTTPRequest *)request
+{
+	GHAssertNotNil([request responseHeaders],@"Called delegateTestResponseHeaders: when we have no headers");
+	receivedResponseHeaders = YES;
 }
 
 - (void)delegateTestFinished:(ASIHTTPRequest *)request
