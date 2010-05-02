@@ -9,6 +9,7 @@
 #import "ASIHTTPRequest.h"
 #import "ASIFormDataRequest.h"
 #import "ASINetworkQueue.h"
+#import "ASIDownloadCache.h"
 
 @interface AppDelegate ()
 - (void)updateBandwidthUsageIndicator;
@@ -24,6 +25,7 @@
 @end
 
 @implementation AppDelegate
+
 
 - (id)init
 {
@@ -307,6 +309,82 @@
 	[postStatus setStringValue:[NSString stringWithFormat:@"Post Failed: %@",[[request error] localizedDescription]]];
 }
 
+- (void)tabView:(NSTabView *)tabView didSelectTabViewItem:(NSTabViewItem *)tabViewItem
+{
+	if ([[tabViewItem label] isEqualToString:@"Cache"]) {
+		[self reloadTableData:nil];
+	}
+}
+
+- (IBAction)reloadTableData:(id)sender
+{
+	[[self tableQueue] cancelAllOperations];
+	[self setTableQueue:[ASINetworkQueue queue]];
+	[[ASIDownloadCache sharedCache] setDefaultCachePolicy:ASIOnlyLoadIfNotCachedCachePolicy];
+	
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/table-row-data.xml"]];
+	[request setDownloadCache:[ASIDownloadCache sharedCache]];
+	[request setDidFinishSelector:@selector(tableViewDataFetchFinished:)];
+	[request setDelegate:self];
+	[[self tableQueue] addOperation:request];
+	[[self tableQueue] go];
+}
+
+- (void)tableViewDataFetchFailed:(ASIHTTPRequest *)request
+{
+	if ([[request error] domain] != NetworkRequestErrorDomain || ![[request error] code] == ASIRequestCancelledErrorType) {
+		[tableLoadStatus setStringValue:@"Loading data failed"];
+	}
+}
+
+- (void)tableViewDataFetchFinished:(ASIHTTPRequest *)request
+{
+	[self setRowData:[NSMutableArray array]];
+	NSXMLDocument *xml = [[[NSXMLDocument alloc] initWithData:[request responseData] options:NSXMLDocumentValidate error:nil] autorelease];
+	for (NSXMLElement *row in [[xml rootElement] elementsForName:@"row"]) {
+		NSMutableDictionary *rowInfo = [NSMutableDictionary dictionary];
+		NSString *description = [[[row elementsForName:@"description"] objectAtIndex:0] stringValue];
+		[rowInfo setValue:description forKey:@"description"];
+		NSString *imageURL = [[[row elementsForName:@"image"] objectAtIndex:0] stringValue];
+		ASIHTTPRequest *imageRequest = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:imageURL]];
+		[imageRequest setDownloadCache:[ASIDownloadCache sharedCache]];
+		[imageRequest setDidFinishSelector:@selector(rowImageDownloadFinished:)];
+		[imageRequest setDidFailSelector:@selector(tableViewDataFetchFailed:)];
+		[imageRequest setDelegate:self];
+		[imageRequest setUserInfo:rowInfo];
+		[[self tableQueue] addOperation:imageRequest];
+		[[self rowData] addObject:rowInfo];
+	}
+	[tableView reloadData];
+}
+
+- (NSInteger)numberOfRowsInTableView:(NSTableView *)aTableView
+{
+    return [[self rowData] count];
+}
+
+- (id)tableView:(NSTableView *)aTableView objectValueForTableColumn:(NSTableColumn *)aTableColumn row:(NSInteger)rowIndex
+{
+	if ([[aTableColumn identifier] isEqualToString:@"image"]) {
+		return [[[self rowData] objectAtIndex:rowIndex] objectForKey:@"image"];
+	} else {
+		return [[[self rowData] objectAtIndex:rowIndex] objectForKey:@"description"];
+	}
+}
+
+- (void)rowImageDownloadFinished:(ASIHTTPRequest *)request
+{
+	[(NSMutableDictionary *)[request userInfo] setObject:[[[NSImage alloc] initWithData:[request responseData]] autorelease] forKey:@"image"];
+	[tableView reloadData]; // Not efficient, but I hate table view programming :)
+}
+
+- (IBAction)clearCache:(id)sender
+{
+	[[ASIDownloadCache sharedCache] clearCachedResponsesForStoragePolicy:ASICacheForSessionDurationCacheStoragePolicy];
+}
+
 
 @synthesize bigFetchRequest;
+@synthesize rowData;
+@synthesize tableQueue;
 @end

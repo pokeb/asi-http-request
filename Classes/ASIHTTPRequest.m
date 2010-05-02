@@ -23,7 +23,7 @@
 
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.6.2-9 2010-05-02";
+NSString *ASIHTTPRequestVersion = @"v1.6.2-10 2010-05-02";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -144,6 +144,8 @@ static id <ASICacheDelegate> defaultCache = nil;
 - (BOOL)shouldTimeOut;
 
 - (void)updateStatus:(NSTimer*)timer;
+
+- (BOOL)useDataFromCache;
 
 #if TARGET_OS_IPHONE
 + (void)registerForNetworkReachabilityNotifications;
@@ -798,14 +800,19 @@ static id <ASICacheDelegate> defaultCache = nil;
 		return;
 	}
 	
-	// See if we should pull from the cache rather than fetching the data
-	if ([self downloadCache] && [self cachePolicy] == ASIOnlyLoadIfNotCachedCachePolicy) {
-		if ([[self downloadCache] useDataFromCacheForRequest:self]) {
-			[[self cancelledLock] unlock];
-			return;
+	if ([self downloadCache]) {
+		if ([self cachePolicy] == ASIDefaultCachePolicy) {
+			[self setCachePolicy:[[self downloadCache] defaultCachePolicy]];
+		}
+		
+		// See if we should pull from the cache rather than fetching the data
+		if ([self cachePolicy] == ASIOnlyLoadIfNotCachedCachePolicy) {
+			if ([self useDataFromCache]) {
+				[[self cancelledLock] unlock];
+				return;
+			}
 		}
 	}
-	
 	
 	[self requestStarted];
 	
@@ -1573,11 +1580,7 @@ static id <ASICacheDelegate> defaultCache = nil;
 	}
 	
 	if ([self downloadCache] && [self cachePolicy] == ASIUseCacheIfLoadFailsCachePolicy) {
-		if ([[self downloadCache] useDataFromCacheForRequest:self]) {
-			[self markAsFinished];
-			if ([self mainRequest]) {
-				[[self mainRequest] markAsFinished];
-			}
+		if ([self useDataFromCache]) {
 			return;
 		}
 	}
@@ -1638,10 +1641,8 @@ static id <ASICacheDelegate> defaultCache = nil;
 	CFRelease(headerFields);
 	
 	if ([self downloadCache] && [self cachePolicy] == ASIReloadIfDifferentCachePolicy) {
-		if ([[self downloadCache] useDataFromCacheForRequest:self]) {
+		if ([self useDataFromCache]) {
 			CFRelease(message);
-			[self cancelLoad];
-			[self markAsFinished];
 			return;
 		}
 	}
@@ -2660,6 +2661,45 @@ static id <ASICacheDelegate> defaultCache = nil;
 	[self didChangeValueForKey:@"isFinished"];
 	[self setInProgress:NO];
 	CFRunLoopStop(CFRunLoopGetCurrent());
+}
+
+- (BOOL)useDataFromCache
+{
+	NSDictionary *headers = [[self downloadCache] cachedHeadersForRequest:self];
+	if (!headers) {
+		return NO;
+	}
+	NSString *dataPath = [[self downloadCache] pathToCachedResponseDataForRequest:self];
+	if (!dataPath) {
+		return NO;
+	}
+	
+	[self cancelLoad];
+	
+	ASIHTTPRequest *theRequest = self;
+	if ([self mainRequest]) {
+		theRequest = [self mainRequest];
+	}
+	[theRequest setResponseHeaders:headers];
+	if ([theRequest downloadDestinationPath]) {
+		[theRequest setDownloadDestinationPath:dataPath];
+	} else {
+		[theRequest setRawResponseData:[NSMutableData dataWithData:[[self downloadCache] cachedResponseDataForRequest:self]]];
+	}
+	[theRequest setContentLength:[[[self responseHeaders] objectForKey:@"Content-Length"] longLongValue]];
+	[theRequest setTotalBytesRead:[self contentLength]];
+	
+	
+	[theRequest setComplete:YES];
+	[theRequest setDownloadComplete:YES];
+	
+	[theRequest updateProgressIndicators];
+	[theRequest requestFinished];
+	[theRequest markAsFinished];	
+	if ([self mainRequest]) {
+		[self markAsFinished];
+	}
+	return YES;
 }
 
 - (BOOL)retryUsingNewConnection

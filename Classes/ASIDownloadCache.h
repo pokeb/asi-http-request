@@ -13,7 +13,7 @@
 	ASICachePolicy defaultCachePolicy;
 	ASICacheStoragePolicy defaultCacheStoragePolicy;
 	NSString *storagePath;
-	NSLock *accessLock;
+	NSRecursiveLock *accessLock;
 	BOOL shouldRespectCacheHeaders;
 }
 + (id)sharedCache;
@@ -22,6 +22,6 @@
 @property (assign) ASICachePolicy defaultCachePolicy;
 @property (assign) ASICacheStoragePolicy defaultCacheStoragePolicy;
 @property (retain) NSString *storagePath;
-@property (retain) NSLock *accessLock;
+@property (retain) NSRecursiveLock *accessLock;
 @property (assign) BOOL shouldRespectCacheHeaders;
 @end

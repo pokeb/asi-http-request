@@ -27,7 +27,7 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 	self = [super init];
 	[self setDefaultCachePolicy:ASIReloadIfDifferentCachePolicy];
 	[self setDefaultCacheStoragePolicy:ASICacheForSessionDurationCacheStoragePolicy];
-	[self setAccessLock:[[[NSLock alloc] init] autorelease]];
+	[self setAccessLock:[[[NSRecursiveLock alloc] init] autorelease]];
 	return self;
 }
 
@@ -51,21 +51,23 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 - (void)setStoragePath:(NSString *)path
 {
 	[[self accessLock] lock];
+	[self clearCachedResponsesForStoragePolicy:ASICacheForSessionDurationCacheStoragePolicy];
 	[storagePath release];
 	storagePath = [path retain];
 	BOOL isDirectory = NO;
 	NSArray *directories = [NSArray arrayWithObjects:path,[path stringByAppendingPathComponent:sessionCacheFolder],[path stringByAppendingPathComponent:permanentCacheFolder],nil];
 	for (NSString *directory in directories) {
-		BOOL exists = [[NSFileManager defaultManager] fileExistsAtPath:path isDirectory:&isDirectory];
+		BOOL exists = [[NSFileManager defaultManager] fileExistsAtPath:directory isDirectory:&isDirectory];
 		if (exists && !isDirectory) {
-			[NSException raise:@"FileExistsAtCachePath" format:@"Cannot create a directory for the cache at '%@', because a file already exists",path];
+			[NSException raise:@"FileExistsAtCachePath" format:@"Cannot create a directory for the cache at '%@', because a file already exists",directory];
 		} else if (!exists) {
-			[[NSFileManager defaultManager] createDirectoryAtPath:path attributes:nil];
-			if (![[NSFileManager defaultManager] fileExistsAtPath:path]) {
-				[NSException raise:@"FailedToCreateCacheDirectory" format:@"Failed to create a directory for the cache at '%@'",path];
+			[[NSFileManager defaultManager] createDirectoryAtPath:directory attributes:nil];
+			if (![[NSFileManager defaultManager] fileExistsAtPath:directory]) {
+				[NSException raise:@"FailedToCreateCacheDirectory" format:@"Failed to create a directory for the cache at '%@'",directory];
 			}
 		}
 	}
+	[self clearCachedResponsesForStoragePolicy:ASICacheForSessionDurationCacheStoragePolicy];
 	[[self accessLock] unlock];
 }
 
@@ -103,10 +105,14 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 	NSString *metadataPath = [path stringByAppendingPathExtension:@"cachedheaders"];
 	NSString *dataPath = [path stringByAppendingPathExtension:@"cacheddata"];
 	
-	[[request responseHeaders] writeToFile:metadataPath atomically:NO];
+	NSMutableDictionary *responseHeaders = [NSMutableDictionary dictionaryWithDictionary:[request responseHeaders]];
+	if ([request isResponseCompressed]) {
+		[responseHeaders removeObjectForKey:@"Content-Encoding"];
+	}
+	[responseHeaders writeToFile:metadataPath atomically:NO];
 	
 	if ([request responseData]) {
-		[[request responseData] writeToFile:path atomically:NO];
+		[[request responseData] writeToFile:dataPath atomically:NO];
 	} else if ([request downloadDestinationPath]) {
 		[[NSFileManager defaultManager] copyPath:[request downloadDestinationPath] toPath:dataPath handler:nil];
 	}
@@ -185,27 +191,6 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 	return YES;
 }
 
-- (BOOL)useDataFromCacheForRequest:(ASIHTTPRequest *)request
-{
-	if (![self storagePath]) {
-		return NO;
-	}
-	NSDictionary *headers = [self cachedHeadersForRequest:request];
-	if (!headers) {
-		return NO;
-	}
-	NSString *dataPath = [self pathToCachedResponseDataForRequest:request];
-	if (!dataPath) {
-		return NO;
-	}
-	[request setResponseHeaders:headers];
-	if ([request downloadDestinationPath]) {
-		[request setDownloadDestinationPath:dataPath];
-	} else {
-		[request setRawResponseData:[NSMutableData dataWithData:[self cachedResponseDataForRequest:request]]];
-	}
-	return YES;
-}
 
 - (void)setDefaultCachePolicy:(ASICachePolicy)cachePolicy
 {

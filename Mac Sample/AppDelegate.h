@@ -40,6 +40,11 @@
 	
 	ASIHTTPRequest *bigFetchRequest;
 	IBOutlet NSTextField *postStatus;
+	
+	IBOutlet NSTableView *tableView;
+	IBOutlet NSTextField *tableLoadStatus;
+	NSMutableArray *rowData;
+	ASINetworkQueue *tableQueue;
 }
 
 - (IBAction)simpleURLFetch:(id)sender;
@@ -57,6 +62,10 @@
 
 - (IBAction)throttleBandwidth:(id)sender;
 
+- (IBAction)reloadTableData:(id)sender;
+- (IBAction)clearCache:(id)sender;
 
 @property (retain, nonatomic) ASIHTTPRequest *bigFetchRequest;
+@property (retain, nonatomic) NSMutableArray *rowData;
+@property (retain, nonatomic) ASINetworkQueue *tableQueue;
 @end
