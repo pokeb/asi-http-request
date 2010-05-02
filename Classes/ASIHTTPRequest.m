@@ -23,7 +23,7 @@
 
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.6.2-8 2010-05-01";
+NSString *ASIHTTPRequestVersion = @"v1.6.2-9 2010-05-02";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -121,6 +121,8 @@ static NSDate *throttleWakeUpTime = nil;
 // Run once in initalize to record at runtime whether we're on iPhone OS 2. When YES, a workaround for a type conversion bug in iPhone OS 2.2.x is applied in some places
 static BOOL isiPhoneOS2;
 
+static id <ASICacheDelegate> defaultCache = nil;
+
 // Private stuff
 @interface ASIHTTPRequest ()
 
@@ -151,10 +153,8 @@ static BOOL isiPhoneOS2;
 #endif
 
 @property (assign) BOOL complete;
-@property (retain) NSDictionary *responseHeaders;
 @property (retain) NSArray *responseCookies;
 @property (assign) int responseStatusCode;
-@property (retain) NSMutableData *rawResponseData;
 @property (retain, nonatomic) NSDate *lastActivityTime;
 @property (assign) unsigned long long contentLength;
 @property (assign) unsigned long long partialDownloadSize;
@@ -252,12 +252,26 @@ static BOOL isiPhoneOS2;
 	[self setDidReceiveDataSelector:@selector(request:didReceiveData:)];
 	[self setURL:newURL];
 	[self setCancelledLock:[[[NSRecursiveLock alloc] init] autorelease]];
+	[self setDownloadCache:[[self class] defaultCache]];
 	return self;
 }
 
 + (id)requestWithURL:(NSURL *)newURL
 {
 	return [[[self alloc] initWithURL:newURL] autorelease];
+}
+
++ (id)requestWithURL:(NSURL *)newURL usingCache:(id <ASICacheDelegate>)cache
+{
+	return [self requestWithURL:newURL usingCache:cache andCachePolicy:ASIDefaultCachePolicy];
+}
+
++ (id)requestWithURL:(NSURL *)newURL usingCache:(id <ASICacheDelegate>)cache andCachePolicy:(ASICachePolicy)policy
+{
+	ASIHTTPRequest *request = [[[self alloc] initWithURL:newURL] autorelease];
+	[request setDownloadCache:cache];
+	[request setCachePolicy:policy];
+	return request;
 }
 
 - (void)dealloc
@@ -607,6 +621,10 @@ static BOOL isiPhoneOS2;
 		[self buildPostBody];
 	}
 	
+	if (![[self requestMethod] isEqualToString:@"GET"]) {
+		[self setDownloadCache:nil];
+	}
+	
 	// If we're redirecting, we'll already have a CFHTTPMessageRef
 	if (request) {
 		CFRelease(request);
@@ -779,6 +797,15 @@ static BOOL isiPhoneOS2;
 		[[self cancelledLock] unlock];
 		return;
 	}
+	
+	// See if we should pull from the cache rather than fetching the data
+	if ([self downloadCache] && [self cachePolicy] == ASIOnlyLoadIfNotCachedCachePolicy) {
+		if ([[self downloadCache] useDataFromCacheForRequest:self]) {
+			[[self cancelledLock] unlock];
+			return;
+		}
+	}
+	
 	
 	[self requestStarted];
 	
@@ -1545,6 +1572,17 @@ static BOOL isiPhoneOS2;
 		return;
 	}
 	
+	if ([self downloadCache] && [self cachePolicy] == ASIUseCacheIfLoadFailsCachePolicy) {
+		if ([[self downloadCache] useDataFromCacheForRequest:self]) {
+			[self markAsFinished];
+			if ([self mainRequest]) {
+				[[self mainRequest] markAsFinished];
+			}
+			return;
+		}
+	}
+	
+	
 	[self setError:theError];
 	
 	ASIHTTPRequest *failedRequest = self;
@@ -1598,6 +1636,17 @@ static BOOL isiPhoneOS2;
 	[self setResponseHeaders:(NSDictionary *)headerFields];
 
 	CFRelease(headerFields);
+	
+	if ([self downloadCache] && [self cachePolicy] == ASIReloadIfDifferentCachePolicy) {
+		if ([[self downloadCache] useDataFromCacheForRequest:self]) {
+			CFRelease(message);
+			[self cancelLoad];
+			[self markAsFinished];
+			return;
+		}
+	}
+	
+	
 	[self setResponseStatusCode:(int)CFHTTPMessageGetResponseStatusCode(message)];
 	[self setResponseStatusMessage:[(NSString *)CFHTTPMessageCopyResponseStatusLine(message) autorelease]];
 
@@ -2569,6 +2618,12 @@ static BOOL isiPhoneOS2;
 			
 		}
 	}
+	
+	// Save to the cache
+	if ([self downloadCache]) {
+		[[self downloadCache] storeResponseForRequest:self];
+	}
+	
 	[progressLock unlock];
 
 	
@@ -3001,6 +3056,7 @@ static BOOL isiPhoneOS2;
 	[[[self class] sessionCredentialsStore] removeAllObjects];
 	[sessionCredentialsLock unlock];
 	[[self class] setSessionCookies:nil];
+	[[[self class] defaultCache] clearCachedResponsesForStoragePolicy:ASICacheForSessionDurationCacheStoragePolicy];
 }
 
 #pragma mark gzip decompression
@@ -3617,6 +3673,18 @@ static BOOL isiPhoneOS2;
 #endif
 
 
++ (void)setDefaultCache:(id <ASICacheDelegate>)cache
+{
+	[defaultCache release];
+	defaultCache = [cache retain];
+}
+
++ (id <ASICacheDelegate>)defaultCache
+{
+	return defaultCache;
+}
+
+
 #pragma mark miscellany 
 
 + (BOOL)isiPhoneOS2
@@ -3761,4 +3829,7 @@ static BOOL isiPhoneOS2;
 @synthesize downloadComplete;
 @synthesize requestID;
 @synthesize runLoopMode;
+@synthesize downloadCache;
+@synthesize cachePolicy;
+@synthesize cacheStoragePolicy;
 @end

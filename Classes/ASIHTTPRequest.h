@@ -18,6 +18,7 @@
 #import "ASIHTTPRequestConfig.h"
 #import "ASIHTTPRequestDelegate.h"
 #import "ASIProgressDelegate.h"
+#import "ASICacheDelegate.h"
 
 extern NSString *ASIHTTPRequestVersion;
 
@@ -389,6 +390,16 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	
 	// Will be ASIHTTPRequestRunLoopMode for synchronous requests, NSDefaultRunLoopMode for all other requests
 	NSString *runLoopMode;
+	
+	// The download cache that will be used for this request (use [ASIHTTPRequest setDefaultCache:cache] to configure a default cache
+	id <ASICacheDelegate> downloadCache;
+	
+	// The cache policy that will be used for this request - See ASICacheDelegate.h for possible values
+	ASICachePolicy cachePolicy;
+	
+	// The cache storage policy that will be used for this request - See ASICacheDelegate.h for possible values
+	ASICacheStoragePolicy cacheStoragePolicy;
+
 }
 
 #pragma mark init / dealloc
@@ -398,6 +409,9 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 
 // Convenience constructor
 + (id)requestWithURL:(NSURL *)newURL;
+
++ (id)requestWithURL:(NSURL *)newURL usingCache:(id <ASICacheDelegate>)cache;
++ (id)requestWithURL:(NSURL *)newURL usingCache:(id <ASICacheDelegate>)cache andCachePolicy:(ASICachePolicy)policy;
 
 #pragma mark setup request
 
@@ -668,6 +682,11 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 
 #endif
 
+#pragma mark cache
+
++ (void)setDefaultCache:(id <ASICacheDelegate>)cache;
++ (id <ASICacheDelegate>)defaultCache;
+
 // Returns the maximum amount of data we can read as part of the current measurement period, and sleeps this thread if our allowance is used up
 + (unsigned long)maxUploadReadLength;
 
@@ -712,7 +731,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 @property (retain,readonly) NSString *proxyAuthenticationRealm;
 @property (retain) NSError *error;
 @property (assign,readonly) BOOL complete;
-@property (retain,readonly) NSDictionary *responseHeaders;
+@property (retain) NSDictionary *responseHeaders;
 @property (retain) NSMutableDictionary *requestHeaders;
 @property (retain) NSMutableArray *requestCookies;
 @property (retain,readonly) NSArray *responseCookies;
@@ -721,7 +740,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 @property (retain) NSDictionary *proxyCredentials;
 @property (assign,readonly) int responseStatusCode;
 @property (retain,readonly) NSString *responseStatusMessage;
-@property (retain,readonly) NSMutableData *rawResponseData;
+@property (retain) NSMutableData *rawResponseData;
 @property (assign) NSTimeInterval timeOutSeconds;
 @property (retain) NSString *requestMethod;
 @property (retain) NSMutableData *postBody;
@@ -766,4 +785,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 @property (assign) BOOL shouldUseRFC2616RedirectBehaviour;
 @property (assign, readonly) BOOL connectionCanBeReused;
 @property (retain, readonly) NSNumber *requestID;
+@property (assign) id <ASICacheDelegate> downloadCache;
+@property (assign) ASICachePolicy cachePolicy;
+@property (assign) ASICacheStoragePolicy cacheStoragePolicy;
 @end
