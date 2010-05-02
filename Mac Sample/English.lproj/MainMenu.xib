@@ -1489,7 +1489,7 @@ b3ZlcmFsbCBwcm9ncmVzcyBkaXNwbGF5ZWQgYXQgdGhlIGJvdHRvbSBvZiB0aGUgd2luZG93LiAKCg</
 															<object class="NSTableView" id="834559101">
 																<reference key="NSNextResponder" ref="1009035736"/>
 																<int key="NSvFlags">256</int>
-																<string key="NSFrameSize">{433, 244}</string>
+																<string key="NSFrameSize">{433, 156}</string>
 																<reference key="NSSuperview" ref="1009035736"/>
 																<bool key="NSEnabled">YES</bool>
 																<object class="_NSCornerView" key="NSCornerView">
@@ -1551,8 +1551,8 @@ b3ZlcmFsbCBwcm9ncmVzcyBkaXNwbGF5ZWQgYXQgdGhlIGJvdHRvbSBvZiB0aGUgd2luZG93LiAKCg</
 																			<reference key="NSTextColor" ref="1005404965"/>
 																		</object>
 																		<object class="NSTextFieldCell" key="NSDataCell" id="961889546">
-																			<int key="NSCellFlags">337772032</int>
-																			<int key="NSCellFlags2">0</int>
+																			<int key="NSCellFlags">67239424</int>
+																			<int key="NSCellFlags2">4096</int>
 																			<string key="NSContents">Text Cell</string>
 																			<reference key="NSSupport" ref="359994262"/>
 																			<reference key="NSControlView" ref="834559101"/>
@@ -1588,7 +1588,7 @@ b3ZlcmFsbCBwcm9ncmVzcyBkaXNwbGF5ZWQgYXQgdGhlIGJvdHRvbSBvZiB0aGUgd2luZG93LiAKCg</
 																<int key="NSTableViewDraggingDestinationStyle">0</int>
 															</object>
 														</object>
-														<string key="NSFrame">{{1, 1}, {433, 244}}</string>
+														<string key="NSFrame">{{1, 1}, {433, 156}}</string>
 														<reference key="NSSuperview" ref="687277006"/>
 														<reference key="NSNextKeyView" ref="834559101"/>
 														<reference key="NSDocView" ref="834559101"/>
@@ -1615,7 +1615,7 @@ b3ZlcmFsbCBwcm9ncmVzcyBkaXNwbGF5ZWQgYXQgdGhlIGJvdHRvbSBvZiB0aGUgd2luZG93LiAKCg</
 														<double key="NSPercent">0.57142859697341919</double>
 													</object>
 												</object>
-												<string key="NSFrame">{{17, 29}, {435, 246}}</string>
+												<string key="NSFrame">{{17, 29}, {435, 158}}</string>
 												<reference key="NSSuperview" ref="466254629"/>
 												<reference key="NSNextKeyView" ref="1009035736"/>
 												<int key="NSsFlags">530</int>
@@ -1678,6 +1678,22 @@ b3ZlcmFsbCBwcm9ncmVzcyBkaXNwbGF5ZWQgYXQgdGhlIGJvdHRvbSBvZiB0aGUgd2luZG93LiAKCg</
 													<string key="NSKeyEquivalent"/>
 													<int key="NSPeriodicDelay">400</int>
 													<int key="NSPeriodicInterval">75</int>
+												</object>
+											</object>
+											<object class="NSTextField" id="277159338">
+												<reference key="NSNextResponder" ref="466254629"/>
+												<int key="NSvFlags">268</int>
+												<string key="NSFrame">{{14, 195}, {441, 85}}</string>
+												<reference key="NSSuperview" ref="466254629"/>
+												<bool key="NSEnabled">YES</bool>
+												<object class="NSTextFieldCell" key="NSCell" id="21493926">
+													<int key="NSCellFlags">67239424</int>
+													<int key="NSCellFlags2">4194304</int>
+													<string key="NSContents">The table view below is populated by downloading an XML file, then downloading the images from the URLs in the XML. The requests are configured to store their responses in the global ASIDownloadCache, and will re-use previously downloaded data if it exists rather than fetching it again.</string>
+													<reference key="NSSupport" ref="584670792"/>
+													<reference key="NSControlView" ref="277159338"/>
+													<reference key="NSBackgroundColor" ref="482475293"/>
+													<reference key="NSTextColor" ref="981560827"/>
 												</object>
 											</object>
 										</object>
@@ -3870,6 +3886,7 @@ b3ZlcmFsbCBwcm9ncmVzcyBkaXNwbGF5ZWQgYXQgdGhlIGJvdHRvbSBvZiB0aGUgd2luZG93LiAKCg</
 							<reference ref="359482544"/>
 							<reference ref="634855581"/>
 							<reference ref="272531850"/>
+							<reference ref="277159338"/>
 						</object>
 						<reference key="parent" ref="701736964"/>
 					</object>
@@ -3973,6 +3990,20 @@ b3ZlcmFsbCBwcm9ncmVzcyBkaXNwbGF5ZWQgYXQgdGhlIGJvdHRvbSBvZiB0aGUgd2luZG93LiAKCg</
 						<int key="objectID">569</int>
 						<reference key="object" ref="15177589"/>
 						<reference key="parent" ref="634855581"/>
+					</object>
+					<object class="IBObjectRecord">
+						<int key="objectID">572</int>
+						<reference key="object" ref="277159338"/>
+						<object class="NSMutableArray" key="children">
+							<bool key="EncodedWithXMLCoder">YES</bool>
+							<reference ref="21493926"/>
+						</object>
+						<reference key="parent" ref="466254629"/>
+					</object>
+					<object class="IBObjectRecord">
+						<int key="objectID">573</int>
+						<reference key="object" ref="21493926"/>
+						<reference key="parent" ref="277159338"/>
 					</object>
 				</object>
 			</object>
@@ -4235,6 +4266,8 @@ b3ZlcmFsbCBwcm9ncmVzcyBkaXNwbGF5ZWQgYXQgdGhlIGJvdHRvbSBvZiB0aGUgd2luZG93LiAKCg</
 					<string>57.IBPluginDependency</string>
 					<string>57.ImportedFromIB2</string>
 					<string>57.editorWindowContentRectSynchronizationRect</string>
+					<string>572.IBPluginDependency</string>
+					<string>573.IBPluginDependency</string>
 					<string>58.IBPluginDependency</string>
 					<string>58.ImportedFromIB2</string>
 					<string>72.IBPluginDependency</string>
@@ -4521,6 +4554,8 @@ b3ZlcmFsbCBwcm9ncmVzcyBkaXNwbGF5ZWQgYXQgdGhlIGJvdHRvbSBvZiB0aGUgd2luZG93LiAKCg</
 					<integer value="1"/>
 					<string>{{23, 794}, {245, 183}}</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
+					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
+					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<integer value="1"/>
@@ -4565,7 +4600,7 @@ b3ZlcmFsbCBwcm9ncmVzcyBkaXNwbGF5ZWQgYXQgdGhlIGJvdHRvbSBvZiB0aGUgd2luZG93LiAKCg</
 				</object>
 			</object>
 			<nil key="sourceID"/>
-			<int key="maxID">571</int>
+			<int key="maxID">573</int>
 		</object>
 		<object class="IBClassDescriber" key="IBDocument.Classes">
 			<object class="NSMutableArray" key="referencedPartialClassDescriptions">

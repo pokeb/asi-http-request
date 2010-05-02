@@ -309,12 +309,6 @@
 	[postStatus setStringValue:[NSString stringWithFormat:@"Post Failed: %@",[[request error] localizedDescription]]];
 }
 
-- (void)tabView:(NSTabView *)tabView didSelectTabViewItem:(NSTabViewItem *)tabViewItem
-{
-	if ([[tabViewItem label] isEqualToString:@"Cache"]) {
-		[self reloadTableData:nil];
-	}
-}
 
 - (IBAction)reloadTableData:(id)sender
 {
