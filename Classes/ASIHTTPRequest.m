@@ -23,7 +23,7 @@
 
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.6.2-11 2010-05-02";
+NSString *ASIHTTPRequestVersion = @"v1.6.2-12 2010-05-03";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -192,6 +192,7 @@ static id <ASICacheDelegate> defaultCache = nil;
 @property (assign, nonatomic) BOOL downloadComplete;
 @property (retain) NSNumber *requestID;
 @property (assign, nonatomic) NSString *runLoopMode;
+@property (assign) BOOL didUseCachedResponse;
 @end
 
 
@@ -2460,6 +2461,11 @@ static id <ASICacheDelegate> defaultCache = nil;
 		[self readResponseHeaders];
 	}
 	
+	// If we've cancelled the load part way through (for example, after deciding to use a cached version)
+	if ([self complete]) {
+		return;
+	}
+	
 	// In certain (presumably very rare) circumstances, handleBytesAvailable seems to be called when there isn't actually any data available
 	// We'll check that there is actually data available to prevent blocking on CFReadStreamRead()
 	// So far, I've only seen this in the stress tests, so it might never happen in real-world situations.
@@ -2674,6 +2680,13 @@ static id <ASICacheDelegate> defaultCache = nil;
 		return NO;
 	}
 	
+	if ([self cachePolicy] == ASIReloadIfDifferentCachePolicy) {
+		if (![[self downloadCache] isCachedDataCurrentForRequest:self]) {
+			return NO;
+		}
+	}
+	
+	[self setDidUseCachedResponse:YES];
 	[self cancelLoad];
 	
 	ASIHTTPRequest *theRequest = self;
@@ -3872,4 +3885,5 @@ static id <ASICacheDelegate> defaultCache = nil;
 @synthesize downloadCache;
 @synthesize cachePolicy;
 @synthesize cacheStoragePolicy;
+@synthesize didUseCachedResponse;
 @end

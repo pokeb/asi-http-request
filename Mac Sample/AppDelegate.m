@@ -313,6 +313,9 @@
 - (IBAction)reloadTableData:(id)sender
 {
 	[[self tableQueue] cancelAllOperations];
+	[self setRowData:[NSMutableArray array]];
+	[tableView reloadData];
+
 	[self setTableQueue:[ASINetworkQueue queue]];
 	[[ASIDownloadCache sharedCache] setDefaultCachePolicy:ASIOnlyLoadIfNotCachedCachePolicy];
 	
@@ -333,7 +336,6 @@
 
 - (void)tableViewDataFetchFinished:(ASIHTTPRequest *)request
 {
-	[self setRowData:[NSMutableArray array]];
 	NSXMLDocument *xml = [[[NSXMLDocument alloc] initWithData:[request responseData] options:NSXMLDocumentValidate error:nil] autorelease];
 	for (NSXMLElement *row in [[xml rootElement] elementsForName:@"row"]) {
 		NSMutableDictionary *rowInfo = [NSMutableDictionary dictionary];

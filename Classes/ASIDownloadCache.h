@@ -14,7 +14,7 @@
 	ASICacheStoragePolicy defaultCacheStoragePolicy;
 	NSString *storagePath;
 	NSRecursiveLock *accessLock;
-	BOOL shouldRespectCacheHeaders;
+	BOOL shouldRespectCacheControlHeaders;
 }
 + (id)sharedCache;
 + (BOOL)serverAllowsResponseCachingForRequest:(ASIHTTPRequest *)request;
@@ -23,5 +23,5 @@
 @property (assign) ASICacheStoragePolicy defaultCacheStoragePolicy;
 @property (retain) NSString *storagePath;
 @property (retain) NSRecursiveLock *accessLock;
-@property (assign) BOOL shouldRespectCacheHeaders;
+@property (assign) BOOL shouldRespectCacheControlHeaders;
 @end

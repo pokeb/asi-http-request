@@ -27,6 +27,7 @@ typedef enum _ASICacheStoragePolicy {
 
 @required
 - (ASICachePolicy)defaultCachePolicy;
+- (BOOL)isCachedDataCurrentForRequest:(ASIHTTPRequest *)request;
 - (void)storeResponseForRequest:(ASIHTTPRequest *)request;
 - (NSDictionary *)cachedHeadersForRequest:(ASIHTTPRequest *)request;
 - (NSData *)cachedResponseDataForRequest:(ASIHTTPRequest *)request;

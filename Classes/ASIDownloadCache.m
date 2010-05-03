@@ -80,7 +80,7 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 		return;
 	}
 	
-	if ([self shouldRespectCacheHeaders] && ![[self class] serverAllowsResponseCachingForRequest:request]) {
+	if ([self shouldRespectCacheControlHeaders] && ![[self class] serverAllowsResponseCachingForRequest:request]) {
 		[[self accessLock] unlock];
 		return;
 	}
@@ -287,5 +287,5 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 @synthesize defaultCachePolicy;
 @synthesize defaultCacheStoragePolicy;
 @synthesize accessLock;
-@synthesize shouldRespectCacheHeaders;
+@synthesize shouldRespectCacheControlHeaders;
 @end

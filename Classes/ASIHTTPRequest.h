@@ -399,6 +399,9 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	
 	// The cache storage policy that will be used for this request - See ASICacheDelegate.h for possible values
 	ASICacheStoragePolicy cacheStoragePolicy;
+	
+	// Will be true when the response was pulled from the cache rather than downloaded
+	BOOL didUseCachedResponse;
 
 }
 
@@ -788,4 +791,5 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 @property (assign) id <ASICacheDelegate> downloadCache;
 @property (assign) ASICachePolicy cachePolicy;
 @property (assign) ASICacheStoragePolicy cacheStoragePolicy;
+@property (assign, readonly) BOOL didUseCachedResponse;
 @end
