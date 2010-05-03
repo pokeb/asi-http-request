@@ -14,12 +14,22 @@ static ASIDownloadCache *sharedCache = nil;
 
 static NSString *sessionCacheFolder = @"SessionStore";
 static NSString *permanentCacheFolder = @"PermanentStore";
+static NSDateFormatter *rfc1123DateFormatter = nil;
 
 @interface ASIDownloadCache ()
 + (NSString *)keyForRequest:(ASIHTTPRequest *)request;
 @end
 
 @implementation ASIDownloadCache
+
++ (void)initialize
+{
+	if (self == [ASIDownloadCache class]) {
+		rfc1123DateFormatter = [[NSDateFormatter alloc] init];
+		[rfc1123DateFormatter setLocale:[[[NSLocale alloc] initWithLocaleIdentifier:@"en_US_POSIX"] autorelease]];
+		[rfc1123DateFormatter setDateFormat:@"EEE, dd MMM yyyy HH:mm:ss z"];
+	}
+}
 
 - (id)init
 {
@@ -109,13 +119,14 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 		[responseHeaders removeObjectForKey:@"Content-Encoding"];
 	}
 	// We use this special key to help expire the request when we get a max-age header
-	[responseHeaders setObject:[NSDate date] forKey:@"X-ASIHTTPRequest-Fetch-date"];
+	[responseHeaders setObject:[rfc1123DateFormatter stringFromDate:[NSDate date]] forKey:@"X-ASIHTTPRequest-Fetch-date"];
 	[responseHeaders writeToFile:metadataPath atomically:NO];
 	
 	if ([request responseData]) {
 		[[request responseData] writeToFile:dataPath atomically:NO];
 	} else if ([request downloadDestinationPath]) {
-		[[NSFileManager defaultManager] copyPath:[request downloadDestinationPath] toPath:dataPath handler:nil];
+		NSError *error = nil;
+		[[NSFileManager defaultManager] copyItemAtPath:[request downloadDestinationPath] toPath:dataPath error:&error];
 	}
 	[[self accessLock] unlock];
 	
@@ -208,8 +219,14 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 			[scanner scanString:@"=" intoString:NULL];
 			NSTimeInterval maxAge = 0;
 			[scanner scanDouble:&maxAge];
-			NSDate *fetchDate = [[cachedHeaders objectForKey:@"X-ASIHTTPRequest-Fetch-date"] dateValue];
+			NSDate *fetchDate = [ASIHTTPRequest dateFromRFC1123String:[cachedHeaders objectForKey:@"X-ASIHTTPRequest-Fetch-date"]];
+			
+#if (TARGET_OS_IPHONE && (!defined(__IPHONE_4_0) || __IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_4_0)) || !defined(MAC_OS_X_VERSION_10_6) || MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_6
 			NSDate *expiryDate = [fetchDate addTimeInterval:maxAge];
+#else
+			NSDate *expiryDate = [fetchDate dateByAddingTimeInterval:maxAge];
+#endif
+			
 			if ([expiryDate timeIntervalSinceNow] < 0) {
 				return NO;
 			}
