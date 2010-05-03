@@ -23,7 +23,7 @@
 
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.6.2-12 2010-05-03";
+NSString *ASIHTTPRequestVersion = @"v1.6.2-13 2010-05-03";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -3778,6 +3778,25 @@ static id <ASICacheDelegate> defaultCache = nil;
     }
 	
     return [[[NSString alloc] initWithData:data encoding:NSASCIIStringEncoding] autorelease];
+}
+
+// Based on hints from http://stackoverflow.com/questions/1850824/parsing-a-rfc-822-date-with-nsdateformatter
++ (NSDate *)dateFromRFC1123String:(NSString *)string
+{
+	NSDateFormatter *formatter = [[[NSDateFormatter alloc] init] autorelease];
+	[formatter setLocale:[[[NSLocale alloc] initWithLocaleIdentifier:@"en_US_POSIX"] autorelease]];
+	// Does the string include a week day?
+	NSString *day = @"";
+	if ([string rangeOfString:@","].location != NSNotFound) {
+		day = @"EEE, ";
+	}
+	// Does the string include seconds?
+	NSString *seconds = @"";
+	if ([[string componentsSeparatedByString:@":"] count] == 3) {
+		seconds = @":ss";
+	}
+	[formatter setDateFormat:[NSString stringWithFormat:@"%@dd MMM yyyy HH:mm%@ z",day,seconds]];
+	return [formatter dateFromString:string];
 }
 
 #pragma mark ===

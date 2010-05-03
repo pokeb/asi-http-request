@@ -702,6 +702,9 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 // And also by ASIS3Request
 + (NSString *)base64forData:(NSData *)theData;
 
+// Returns a date from a string in RFC1123 format
++ (NSDate *)dateFromRFC1123String:(NSString *)string;
+
 #pragma mark ===
 
 @property (retain) NSString *username;

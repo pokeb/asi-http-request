@@ -109,6 +109,8 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 	if ([request isResponseCompressed]) {
 		[responseHeaders removeObjectForKey:@"Content-Encoding"];
 	}
+	// We use this special key to help expire the request when we get a max-age header
+	[responseHeaders setObject:[NSDate date] forKey:@"X-ASIHTTPRequest-Fetch-date"];
 	[responseHeaders writeToFile:metadataPath atomically:NO];
 	
 	if ([request responseData]) {
@@ -182,10 +184,36 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 	if (!dataPath) {
 		return NO;
 	}
+	// If the Etag or Last-Modified date are different from the one we have, fetch the document again
 	NSArray *headersToCompare = [NSArray arrayWithObjects:@"etag",@"last-modified",nil];
 	for (NSString *header in headersToCompare) {
 		if (![[[self class] responseHeader:header fromHeaders:[request responseHeaders]] isEqualToString:[[self class] responseHeader:header fromHeaders:cachedHeaders]]) {
 			return NO;
+		}
+	}
+	if (![self shouldRespectCacheControlHeaders]) {
+		return YES;
+	}
+	// Look for an Expires header to see if the content is out of data
+	NSString *expires = [[self class] responseHeader:@"expires" fromHeaders:cachedHeaders];
+	if (expires) {
+		if ([[ASIHTTPRequest dateFromRFC1123String:expires] timeIntervalSinceNow] < 0) {
+			return NO;
+		}
+	}
+	// Look for a max-age header
+	NSString *cacheControl = [[[self class] responseHeader:@"cache-control" fromHeaders:cachedHeaders] lowercaseString];
+	if (cacheControl) {
+		NSScanner *scanner = [NSScanner scannerWithString:cacheControl];
+		if ([scanner scanString:@"max-age" intoString:NULL]) {
+			[scanner scanString:@"=" intoString:NULL];
+			NSTimeInterval maxAge = 0;
+			[scanner scanDouble:&maxAge];
+			NSDate *fetchDate = [[cachedHeaders objectForKey:@"X-ASIHTTPRequest-Fetch-date"] dateValue];
+			NSDate *expiryDate = [fetchDate addTimeInterval:maxAge];
+			if ([expiryDate timeIntervalSinceNow] < 0) {
+				return NO;
+			}
 		}
 	}
 	return YES;
