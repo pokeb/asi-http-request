@@ -23,7 +23,7 @@
 
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.6.2-13 2010-05-03";
+NSString *ASIHTTPRequestVersion = @"v1.6.2-14 2010-05-03";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -811,6 +811,21 @@ static id <ASICacheDelegate> defaultCache = nil;
 			if ([self useDataFromCache]) {
 				[[self cancelledLock] unlock];
 				return;
+			}
+		} else if ([self cachePolicy] == ASIReloadIfDifferentCachePolicy) {
+
+			// Force a conditional GET if we have a cached version of this content already
+			NSDictionary *cachedHeaders = [[self downloadCache] cachedHeadersForRequest:self];
+			if (cachedHeaders) {
+				NSString *etag = [cachedHeaders objectForKey:@"Etag"];
+				if (etag) {
+					[[self requestHeaders] setObject:etag forKey:@"If-None-Match"];
+				} else {
+					NSString *lastModified = [cachedHeaders objectForKey:@"Last-Modified"];
+					if (lastModified) {
+						[[self requestHeaders] setObject:lastModified forKey:@"If-Modified-Since"];
+					}
+				}
 			}
 		}
 	}

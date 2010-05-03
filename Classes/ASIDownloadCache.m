@@ -17,7 +17,6 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 
 @interface ASIDownloadCache ()
 + (NSString *)keyForRequest:(ASIHTTPRequest *)request;
-+ (NSString *)responseHeader:(NSString *)header fromHeaders:(NSDictionary *)headers;
 @end
 
 @implementation ASIDownloadCache
@@ -185,9 +184,9 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 		return NO;
 	}
 	// If the Etag or Last-Modified date are different from the one we have, fetch the document again
-	NSArray *headersToCompare = [NSArray arrayWithObjects:@"etag",@"last-modified",nil];
+	NSArray *headersToCompare = [NSArray arrayWithObjects:@"Etag",@"Last-Modified",nil];
 	for (NSString *header in headersToCompare) {
-		if (![[[self class] responseHeader:header fromHeaders:[request responseHeaders]] isEqualToString:[[self class] responseHeader:header fromHeaders:cachedHeaders]]) {
+		if (![[[request responseHeaders] objectForKey:header] isEqualToString:[cachedHeaders objectForKey:header]]) {
 			return NO;
 		}
 	}
@@ -195,14 +194,14 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 		return YES;
 	}
 	// Look for an Expires header to see if the content is out of data
-	NSString *expires = [[self class] responseHeader:@"expires" fromHeaders:cachedHeaders];
+	NSString *expires = [cachedHeaders objectForKey:@"Expires"];
 	if (expires) {
 		if ([[ASIHTTPRequest dateFromRFC1123String:expires] timeIntervalSinceNow] < 0) {
 			return NO;
 		}
 	}
 	// Look for a max-age header
-	NSString *cacheControl = [[[self class] responseHeader:@"cache-control" fromHeaders:cachedHeaders] lowercaseString];
+	NSString *cacheControl = [[cachedHeaders objectForKey:@"Cache-Control"] lowercaseString];
 	if (cacheControl) {
 		NSScanner *scanner = [NSScanner scannerWithString:cacheControl];
 		if ([scanner scanString:@"max-age" intoString:NULL]) {
@@ -277,13 +276,13 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 
 + (BOOL)serverAllowsResponseCachingForRequest:(ASIHTTPRequest *)request
 {
-	NSString *cacheControl = [[[self class] responseHeader:@"cache-control" fromHeaders:[request responseHeaders]] lowercaseString];
+	NSString *cacheControl = [[[request responseHeaders] objectForKey:@"Cache-Control"] lowercaseString];
 	if (cacheControl) {
 		if ([cacheControl isEqualToString:@"no-cache"] || [cacheControl isEqualToString:@"no-store"]) {
 			return NO;
 		}
 	}
-	NSString *pragma = [[[self class] responseHeader:@"pragma" fromHeaders:[request responseHeaders]] lowercaseString];
+	NSString *pragma = [[[request responseHeaders] objectForKey:@"Pragma"] lowercaseString];
 	if (pragma) {
 		if ([pragma isEqualToString:@"no-cache"]) {
 			return NO;
@@ -301,15 +300,6 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 	return [NSString stringWithFormat:@"%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X",result[0], result[1], result[2], result[3], result[4], result[5], result[6], result[7],result[8], result[9], result[10], result[11],result[12], result[13], result[14], result[15]]; 	
 }
 
-+ (NSString *)responseHeader:(NSString *)header fromHeaders:(NSDictionary *)headers
-{
-	for (NSString *responseHeader in headers) {
-		if ([[responseHeader lowercaseString] isEqualToString:header]) {
-			return [headers objectForKey:responseHeader];
-		}
-	}
-	return nil;
-}
 
 @synthesize storagePath;
 @synthesize defaultCachePolicy;
