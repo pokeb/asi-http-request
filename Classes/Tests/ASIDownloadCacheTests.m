@@ -215,7 +215,29 @@
 	[request startSynchronous];
 
 	success = [request didUseCachedResponse];
-	GHAssertTrue(success,@"Cached data should have expired");
+	GHAssertTrue(success,@"Cached data should have been used");
+}
+
+- (void)test304
+{
+	// Test default cache policy
+	[[ASIDownloadCache sharedCache] clearCachedResponsesForStoragePolicy:ASICacheForSessionDurationCacheStoragePolicy];
+	[[ASIDownloadCache sharedCache] setDefaultCachePolicy:ASIReloadIfDifferentCachePolicy];
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/the_great_american_novel_(abridged).txt"]];
+	[request setDownloadCache:[ASIDownloadCache sharedCache]];
+	[request startSynchronous];
+
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/the_great_american_novel_(abridged).txt"]];
+	[request setDownloadCache:[ASIDownloadCache sharedCache]];
+	[request startSynchronous];
+	BOOL success = ([request responseStatusCode] == 304);
+	GHAssertTrue(success,@"Failed to perform a conditional get");
+
+	success = [request didUseCachedResponse];
+	GHAssertTrue(success,@"Cached data should have been used");
+
+	success = ([[request responseData] length]);
+	GHAssertTrue(success,@"Response was empty");
 }
 
 @end

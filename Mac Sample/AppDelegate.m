@@ -317,7 +317,6 @@
 	[tableView reloadData];
 
 	[self setTableQueue:[ASINetworkQueue queue]];
-	[[ASIDownloadCache sharedCache] setDefaultCachePolicy:ASIOnlyLoadIfNotCachedCachePolicy];
 	
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/table-row-data.xml"]];
 	[request setDownloadCache:[ASIDownloadCache sharedCache]];
@@ -370,7 +369,8 @@
 
 - (void)rowImageDownloadFinished:(ASIHTTPRequest *)request
 {
-	[(NSMutableDictionary *)[request userInfo] setObject:[[[NSImage alloc] initWithData:[request responseData]] autorelease] forKey:@"image"];
+	NSImage *image = [[[NSImage alloc] initWithData:[request responseData]] autorelease];
+	[(NSMutableDictionary *)[request userInfo] setObject:image forKey:@"image"];
 	[tableView reloadData]; // Not efficient, but I hate table view programming :)
 }
 

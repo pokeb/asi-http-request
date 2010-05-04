@@ -23,7 +23,7 @@
 
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.6.2-17 2010-05-04";
+NSString *ASIHTTPRequestVersion = @"v1.6.2-18 2010-05-04";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -648,6 +648,34 @@ static id <ASICacheDelegate> defaultCache = nil;
 	// Even if this is a HEAD request with a mainRequest, we still need to call to give subclasses a chance to add their own to HEAD requests (ASIS3Request does this)
 	[self buildRequestHeaders];
 	
+	if ([self downloadCache]) {
+		if ([self cachePolicy] == ASIDefaultCachePolicy) {
+			[self setCachePolicy:[[self downloadCache] defaultCachePolicy]];
+		}
+
+		// See if we should pull from the cache rather than fetching the data
+		if ([self cachePolicy] == ASIOnlyLoadIfNotCachedCachePolicy) {
+			if ([self useDataFromCache]) {
+				[[self cancelledLock] unlock];
+				return;
+			}
+		} else if ([self cachePolicy] == ASIReloadIfDifferentCachePolicy) {
+
+			// Force a conditional GET if we have a cached version of this content already
+			NSDictionary *cachedHeaders = [[self downloadCache] cachedHeadersForRequest:self];
+			if (cachedHeaders) {
+				NSString *etag = [cachedHeaders objectForKey:@"Etag"];
+				if (etag) {
+					[[self requestHeaders] setObject:etag forKey:@"If-None-Match"];
+				}
+				NSString *lastModified = [cachedHeaders objectForKey:@"Last-Modified"];
+				if (lastModified) {
+					[[self requestHeaders] setObject:lastModified forKey:@"If-Modified-Since"];
+				}
+			}
+		}
+	}
+
 	[self applyAuthorizationHeader];
 	
 	
@@ -789,7 +817,6 @@ static id <ASICacheDelegate> defaultCache = nil;
 		}
 		[self addRequestHeader:@"Range" value:[NSString stringWithFormat:@"bytes=%llu-",[self partialDownloadSize]]];
 	}	
-	
 }
 
 - (void)startRequest
@@ -799,35 +826,6 @@ static id <ASICacheDelegate> defaultCache = nil;
 	if ([self isCancelled]) {
 		[[self cancelledLock] unlock];
 		return;
-	}
-	
-	if ([self downloadCache]) {
-		if ([self cachePolicy] == ASIDefaultCachePolicy) {
-			[self setCachePolicy:[[self downloadCache] defaultCachePolicy]];
-		}
-		
-		// See if we should pull from the cache rather than fetching the data
-		if ([self cachePolicy] == ASIOnlyLoadIfNotCachedCachePolicy) {
-			if ([self useDataFromCache]) {
-				[[self cancelledLock] unlock];
-				return;
-			}
-		} else if ([self cachePolicy] == ASIReloadIfDifferentCachePolicy) {
-
-			// Force a conditional GET if we have a cached version of this content already
-			NSDictionary *cachedHeaders = [[self downloadCache] cachedHeadersForRequest:self];
-			if (cachedHeaders) {
-				NSString *etag = [cachedHeaders objectForKey:@"Etag"];
-				if (etag) {
-					[[self requestHeaders] setObject:etag forKey:@"If-None-Match"];
-				} else {
-					NSString *lastModified = [cachedHeaders objectForKey:@"Last-Modified"];
-					if (lastModified) {
-						[[self requestHeaders] setObject:lastModified forKey:@"If-Modified-Since"];
-					}
-				}
-			}
-		}
 	}
 	
 	[self requestStarted];
@@ -1656,16 +1654,15 @@ static id <ASICacheDelegate> defaultCache = nil;
 
 	CFRelease(headerFields);
 	
+	[self setResponseStatusCode:(int)CFHTTPMessageGetResponseStatusCode(message)];
+	[self setResponseStatusMessage:[(NSString *)CFHTTPMessageCopyResponseStatusLine(message) autorelease]];
+	
 	if ([self downloadCache] && [self cachePolicy] == ASIReloadIfDifferentCachePolicy) {
 		if ([self useDataFromCache]) {
 			CFRelease(message);
 			return;
 		}
 	}
-	
-	
-	[self setResponseStatusCode:(int)CFHTTPMessageGetResponseStatusCode(message)];
-	[self setResponseStatusMessage:[(NSString *)CFHTTPMessageCopyResponseStatusLine(message) autorelease]];
 
 	// Is the server response a challenge for credentials?
 	if ([self responseStatusCode] == 401) {
@@ -2703,7 +2700,6 @@ static id <ASICacheDelegate> defaultCache = nil;
 	}
 	
 	[self setDidUseCachedResponse:YES];
-	[self cancelLoad];
 	
 	ASIHTTPRequest *theRequest = self;
 	if ([self mainRequest]) {
@@ -2713,7 +2709,7 @@ static id <ASICacheDelegate> defaultCache = nil;
 	if ([theRequest downloadDestinationPath]) {
 		[theRequest setDownloadDestinationPath:dataPath];
 	} else {
-		[theRequest setRawResponseData:[NSMutableData dataWithData:[[self downloadCache] cachedResponseDataForRequest:self]]];
+		[theRequest setRawResponseData:[NSMutableData dataWithContentsOfFile:dataPath]];
 	}
 	[theRequest setContentLength:[[[self responseHeaders] objectForKey:@"Content-Length"] longLongValue]];
 	[theRequest setTotalBytesRead:[self contentLength]];
