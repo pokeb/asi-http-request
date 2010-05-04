@@ -69,10 +69,12 @@ static NSDateFormatter *rfc1123DateFormatter = nil;
 	for (NSString *directory in directories) {
 		BOOL exists = [[NSFileManager defaultManager] fileExistsAtPath:directory isDirectory:&isDirectory];
 		if (exists && !isDirectory) {
+			[[self accessLock] unlock];
 			[NSException raise:@"FileExistsAtCachePath" format:@"Cannot create a directory for the cache at '%@', because a file already exists",directory];
 		} else if (!exists) {
 			[[NSFileManager defaultManager] createDirectoryAtPath:directory attributes:nil];
 			if (![[NSFileManager defaultManager] fileExistsAtPath:directory]) {
+				[[self accessLock] unlock];
 				[NSException raise:@"FailedToCreateCacheDirectory" format:@"Failed to create a directory for the cache at '%@'",directory];
 			}
 		}
@@ -138,21 +140,26 @@ static NSDateFormatter *rfc1123DateFormatter = nil;
 
 - (NSDictionary *)cachedHeadersForRequest:(ASIHTTPRequest *)request
 {
+	[[self accessLock] lock];
 	if (![self storagePath]) {
+		[[self accessLock] unlock];
 		return nil;
 	}
 	// Look in the session store
 	NSString *path = [[self storagePath] stringByAppendingPathComponent:sessionCacheFolder];
 	NSString *dataPath = [path stringByAppendingPathComponent:[[[self class] keyForRequest:request] stringByAppendingPathExtension:@"cachedheaders"]];
 	if ([[NSFileManager defaultManager] fileExistsAtPath:dataPath]) {
+		[[self accessLock] unlock];
 		return [NSDictionary dictionaryWithContentsOfFile:dataPath];
 	}
 	// Look in the permanent store
 	path = [[self storagePath] stringByAppendingPathComponent:permanentCacheFolder];
 	dataPath = [path stringByAppendingPathComponent:[[[self class] keyForRequest:request] stringByAppendingPathExtension:@"cachedheaders"]];
 	if ([[NSFileManager defaultManager] fileExistsAtPath:dataPath]) {
+		[[self accessLock] unlock];
 		return [NSDictionary dictionaryWithContentsOfFile:dataPath];
 	}
+	[[self accessLock] unlock];
 	return nil;
 }
 							  
@@ -167,52 +174,66 @@ static NSDateFormatter *rfc1123DateFormatter = nil;
 
 - (NSString *)pathToCachedResponseDataForRequest:(ASIHTTPRequest *)request
 {
+	[[self accessLock] lock];
 	if (![self storagePath]) {
+		[[self accessLock] unlock];
 		return nil;
 	}
 	// Look in the session store
 	NSString *path = [[self storagePath] stringByAppendingPathComponent:sessionCacheFolder];
 	NSString *dataPath = [path stringByAppendingPathComponent:[[[self class] keyForRequest:request] stringByAppendingPathExtension:@"cacheddata"]];
 	if ([[NSFileManager defaultManager] fileExistsAtPath:dataPath]) {
+		[[self accessLock] unlock];
 		return dataPath;
 	}
 	// Look in the permanent store
 	path = [[self storagePath] stringByAppendingPathComponent:permanentCacheFolder];
 	dataPath = [path stringByAppendingPathComponent:[[[self class] keyForRequest:request] stringByAppendingPathExtension:@"cacheddata"]];
 	if ([[NSFileManager defaultManager] fileExistsAtPath:dataPath]) {
+		[[self accessLock] unlock];
 		return dataPath;
 	}
+	[[self accessLock] unlock];
 	return nil;
 }
 
 - (void)removeCachedDataForRequest:(ASIHTTPRequest *)request
 {
+	[[self accessLock] lock];
 	if (![self storagePath]) {
+		[[self accessLock] unlock];
 		return;
 	}
 	NSString *cachedHeadersPath = [[self storagePath] stringByAppendingPathComponent:[[[self class] keyForRequest:request] stringByAppendingPathExtension:@"cachedheaders"]];
 	if (!cachedHeadersPath) {
+		[[self accessLock] unlock];
 		return;
 	}
 	NSString *dataPath = [self pathToCachedResponseDataForRequest:request];
 	if (!dataPath) {
+		[[self accessLock] unlock];
 		return;
 	}
 	[[NSFileManager defaultManager] removeItemAtPath:cachedHeadersPath error:NULL];
 	[[NSFileManager defaultManager] removeItemAtPath:dataPath error:NULL];
+	[[self accessLock] unlock];
 }
 
 - (BOOL)isCachedDataCurrentForRequest:(ASIHTTPRequest *)request
 {
+	[[self accessLock] lock];
 	if (![self storagePath]) {
+		[[self accessLock] unlock];
 		return NO;
 	}
 	NSDictionary *cachedHeaders = [self cachedHeadersForRequest:request];
 	if (!cachedHeaders) {
+		[[self accessLock] unlock];
 		return NO;
 	}
 	NSString *dataPath = [self pathToCachedResponseDataForRequest:request];
 	if (!dataPath) {
+		[[self accessLock] unlock];
 		return NO;
 	}
 
@@ -222,6 +243,7 @@ static NSDateFormatter *rfc1123DateFormatter = nil;
 		NSString *expires = [cachedHeaders objectForKey:@"Expires"];
 		if (expires) {
 			if ([[ASIHTTPRequest dateFromRFC1123String:expires] timeIntervalSinceNow] < 0) {
+				[[self accessLock] unlock];
 				return NO;
 			}
 		}
@@ -242,6 +264,7 @@ static NSDateFormatter *rfc1123DateFormatter = nil;
 				#endif
 
 				if ([expiryDate timeIntervalSinceNow] < 0) {
+					[[self accessLock] unlock];
 					return NO;
 				}
 			}
@@ -255,10 +278,12 @@ static NSDateFormatter *rfc1123DateFormatter = nil;
 		NSArray *headersToCompare = [NSArray arrayWithObjects:@"Etag",@"Last-Modified",nil];
 		for (NSString *header in headersToCompare) {
 			if (![[[request responseHeaders] objectForKey:header] isEqualToString:[cachedHeaders objectForKey:header]]) {
+				[[self accessLock] unlock];
 				return NO;
 			}
 		}
 	}
+	[[self accessLock] unlock];
 	return YES;
 }
 
@@ -290,11 +315,13 @@ static NSDateFormatter *rfc1123DateFormatter = nil;
 	BOOL isDirectory = NO;
 	BOOL exists = [[NSFileManager defaultManager] fileExistsAtPath:path isDirectory:&isDirectory];
 	if (exists && !isDirectory || !exists) {
+		[[self accessLock] unlock];
 		return;
 	}
 	NSError *error = nil;
 	NSArray *cacheFiles = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:path error:&error];
 	if (error) {
+		[[self accessLock] unlock];
 		[NSException raise:@"FailedToTraverseCacheDirectory" format:@"Listing cache directory failed at path '%@'",path];	
 	}
 	for (NSString *file in cacheFiles) {
@@ -302,6 +329,7 @@ static NSDateFormatter *rfc1123DateFormatter = nil;
 		if ([extension isEqualToString:@"cacheddata"] || [extension isEqualToString:@"cachedheaders"]) {
 			[[NSFileManager defaultManager] removeItemAtPath:[path stringByAppendingPathComponent:file] error:&error];
 			if (error) {
+				[[self accessLock] unlock];
 				[NSException raise:@"FailedToRemoveCacheFile" format:@"Failed to remove cached data at path '%@'",path];	
 			}
 		}

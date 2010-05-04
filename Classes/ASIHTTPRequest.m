@@ -23,7 +23,7 @@
 
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.6.2-18 2010-05-04";
+NSString *ASIHTTPRequestVersion = @"v1.6.2-19 2010-05-04";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -656,7 +656,6 @@ static id <ASICacheDelegate> defaultCache = nil;
 		// See if we should pull from the cache rather than fetching the data
 		if ([self cachePolicy] == ASIOnlyLoadIfNotCachedCachePolicy) {
 			if ([self useDataFromCache]) {
-				[[self cancelledLock] unlock];
 				return;
 			}
 		} else if ([self cachePolicy] == ASIReloadIfDifferentCachePolicy) {
