@@ -27,13 +27,15 @@ static NSDateFormatter *rfc1123DateFormatter = nil;
 	if (self == [ASIDownloadCache class]) {
 		rfc1123DateFormatter = [[NSDateFormatter alloc] init];
 		[rfc1123DateFormatter setLocale:[[[NSLocale alloc] initWithLocaleIdentifier:@"en_US_POSIX"] autorelease]];
-		[rfc1123DateFormatter setDateFormat:@"EEE, dd MMM yyyy HH:mm:ss z"];
+		[rfc1123DateFormatter setTimeZone:[NSTimeZone timeZoneWithAbbreviation:@"GMT"]];
+		[rfc1123DateFormatter setDateFormat:@"EEE, dd MMM yyyy HH:mm:ss 'GMT'"];
 	}
 }
 
 - (id)init
 {
 	self = [super init];
+	[self setShouldRespectCacheControlHeaders:YES];
 	[self setDefaultCachePolicy:ASIReloadIfDifferentCachePolicy];
 	[self setDefaultCacheStoragePolicy:ASICacheForSessionDurationCacheStoragePolicy];
 	[self setAccessLock:[[[NSRecursiveLock alloc] init] autorelease]];

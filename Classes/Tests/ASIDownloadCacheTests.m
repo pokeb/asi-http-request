@@ -163,7 +163,28 @@
 	[request startSynchronous];
 	success = ![request didUseCachedResponse];
 	GHAssertTrue(success,@"Should not have used data cached in default cache");
-	
+}
+
+- (void)testExpiry
+{
+	[[ASIDownloadCache sharedCache] clearCachedResponsesForStoragePolicy:ASICacheForSessionDurationCacheStoragePolicy];
+
+	NSArray *headers = [NSArray arrayWithObjects:@"last-modified",@"etag",@"expires",@"max-age",nil];
+	for (NSString *header in headers) {
+		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://asi/ASIHTTPRequest/tests/content-always-new/%@",header]]];
+		[request setDownloadCache:[ASIDownloadCache sharedCache]];
+		[request startSynchronous];
+
+		if ([header isEqualToString:@"last-modified"]) {
+			[NSThread sleepForTimeInterval:2];
+		}
+
+		request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://asi/ASIHTTPRequest/tests/content-always-new/%@",header]]];
+		[request setDownloadCache:[ASIDownloadCache sharedCache]];
+		[request startSynchronous];
+		BOOL success = ![request didUseCachedResponse];
+		GHAssertTrue(success,@"Cached data should have expired");
+	}
 }
 
 @end
