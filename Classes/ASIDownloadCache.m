@@ -37,7 +37,6 @@ static NSDateFormatter *rfc1123DateFormatter = nil;
 	self = [super init];
 	[self setShouldRespectCacheControlHeaders:YES];
 	[self setDefaultCachePolicy:ASIReloadIfDifferentCachePolicy];
-	[self setDefaultCacheStoragePolicy:ASICacheForSessionDurationCacheStoragePolicy];
 	[self setAccessLock:[[[NSRecursiveLock alloc] init] autorelease]];
 	return self;
 }
@@ -82,7 +81,7 @@ static NSDateFormatter *rfc1123DateFormatter = nil;
 	[[self accessLock] unlock];
 }
 
-- (void)storeResponseForRequest:(ASIHTTPRequest *)request
+- (void)storeResponseForRequest:(ASIHTTPRequest *)request maxAge:(NSTimeInterval)maxAge
 {
 	[[self accessLock] lock];
 	
@@ -120,6 +119,10 @@ static NSDateFormatter *rfc1123DateFormatter = nil;
 	if ([request isResponseCompressed]) {
 		[responseHeaders removeObjectForKey:@"Content-Encoding"];
 	}
+	if (maxAge != 0) {
+		[responseHeaders removeObjectForKey:@"Expires"];
+		[responseHeaders setObject:[NSString stringWithFormat:@"max-age=%i",(int)maxAge] forKey:@"Cache-Control"];
+	}
 	// We use this special key to help expire the request when we get a max-age header
 	[responseHeaders setObject:[rfc1123DateFormatter stringFromDate:[NSDate date]] forKey:@"X-ASIHTTPRequest-Fetch-date"];
 	[responseHeaders writeToFile:metadataPath atomically:NO];
@@ -131,7 +134,6 @@ static NSDateFormatter *rfc1123DateFormatter = nil;
 		[[NSFileManager defaultManager] copyItemAtPath:[request downloadDestinationPath] toPath:dataPath error:&error];
 	}
 	[[self accessLock] unlock];
-	
 }
 
 - (NSDictionary *)cachedHeadersForRequest:(ASIHTTPRequest *)request
@@ -183,6 +185,23 @@ static NSDateFormatter *rfc1123DateFormatter = nil;
 	return nil;
 }
 
+- (void)removeCachedDataForRequest:(ASIHTTPRequest *)request
+{
+	if (![self storagePath]) {
+		return;
+	}
+	NSString *cachedHeadersPath = [[self storagePath] stringByAppendingPathComponent:[[[self class] keyForRequest:request] stringByAppendingPathExtension:@"cachedheaders"]];
+	if (!cachedHeadersPath) {
+		return;
+	}
+	NSString *dataPath = [self pathToCachedResponseDataForRequest:request];
+	if (!dataPath) {
+		return;
+	}
+	[[NSFileManager defaultManager] removeItemAtPath:cachedHeadersPath error:NULL];
+	[[NSFileManager defaultManager] removeItemAtPath:dataPath error:NULL];
+}
+
 - (BOOL)isCachedDataCurrentForRequest:(ASIHTTPRequest *)request
 {
 	if (![self storagePath]) {
@@ -196,40 +215,46 @@ static NSDateFormatter *rfc1123DateFormatter = nil;
 	if (!dataPath) {
 		return NO;
 	}
-	// If the Etag or Last-Modified date are different from the one we have, fetch the document again
-	NSArray *headersToCompare = [NSArray arrayWithObjects:@"Etag",@"Last-Modified",nil];
-	for (NSString *header in headersToCompare) {
-		if (![[[request responseHeaders] objectForKey:header] isEqualToString:[cachedHeaders objectForKey:header]]) {
-			return NO;
+
+	if ([self shouldRespectCacheControlHeaders]) {
+
+		// Look for an Expires header to see if the content is out of data
+		NSString *expires = [cachedHeaders objectForKey:@"Expires"];
+		if (expires) {
+			if ([[ASIHTTPRequest dateFromRFC1123String:expires] timeIntervalSinceNow] < 0) {
+				return NO;
+			}
 		}
-	}
-	if (![self shouldRespectCacheControlHeaders]) {
-		return YES;
-	}
-	// Look for an Expires header to see if the content is out of data
-	NSString *expires = [cachedHeaders objectForKey:@"Expires"];
-	if (expires) {
-		if ([[ASIHTTPRequest dateFromRFC1123String:expires] timeIntervalSinceNow] < 0) {
-			return NO;
+		// Look for a max-age header
+		NSString *cacheControl = [[cachedHeaders objectForKey:@"Cache-Control"] lowercaseString];
+		if (cacheControl) {
+			NSScanner *scanner = [NSScanner scannerWithString:cacheControl];
+			if ([scanner scanString:@"max-age" intoString:NULL]) {
+				[scanner scanString:@"=" intoString:NULL];
+				NSTimeInterval maxAge = 0;
+				[scanner scanDouble:&maxAge];
+				NSDate *fetchDate = [ASIHTTPRequest dateFromRFC1123String:[cachedHeaders objectForKey:@"X-ASIHTTPRequest-Fetch-date"]];
+
+				#if (TARGET_OS_IPHONE && (!defined(__IPHONE_4_0) || __IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_4_0)) || !defined(MAC_OS_X_VERSION_10_6) || MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_6
+				NSDate *expiryDate = [fetchDate addTimeInterval:maxAge];
+				#else
+				NSDate *expiryDate = [fetchDate dateByAddingTimeInterval:maxAge];
+				#endif
+
+				if ([expiryDate timeIntervalSinceNow] < 0) {
+					return NO;
+				}
+			}
 		}
+		
 	}
-	// Look for a max-age header
-	NSString *cacheControl = [[cachedHeaders objectForKey:@"Cache-Control"] lowercaseString];
-	if (cacheControl) {
-		NSScanner *scanner = [NSScanner scannerWithString:cacheControl];
-		if ([scanner scanString:@"max-age" intoString:NULL]) {
-			[scanner scanString:@"=" intoString:NULL];
-			NSTimeInterval maxAge = 0;
-			[scanner scanDouble:&maxAge];
-			NSDate *fetchDate = [ASIHTTPRequest dateFromRFC1123String:[cachedHeaders objectForKey:@"X-ASIHTTPRequest-Fetch-date"]];
-			
-#if (TARGET_OS_IPHONE && (!defined(__IPHONE_4_0) || __IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_4_0)) || !defined(MAC_OS_X_VERSION_10_6) || MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_6
-			NSDate *expiryDate = [fetchDate addTimeInterval:maxAge];
-#else
-			NSDate *expiryDate = [fetchDate dateByAddingTimeInterval:maxAge];
-#endif
-			
-			if ([expiryDate timeIntervalSinceNow] < 0) {
+	
+	// If we already have response headers for this request, check to see if the new content is different
+	if ([request responseHeaders]) {
+		// If the Etag or Last-Modified date are different from the one we have, fetch the document again
+		NSArray *headersToCompare = [NSArray arrayWithObjects:@"Etag",@"Last-Modified",nil];
+		for (NSString *header in headersToCompare) {
+			if (![[[request responseHeaders] objectForKey:header] isEqualToString:[cachedHeaders objectForKey:header]]) {
 				return NO;
 			}
 		}
@@ -248,15 +273,6 @@ static NSDateFormatter *rfc1123DateFormatter = nil;
 	}
 	[[self accessLock] unlock];
 }
-
-
-- (void)setDefaultCacheStoragePolicy:(ASICacheStoragePolicy)storagePolicy
-{
-	[[self accessLock] lock];
-	defaultCacheStoragePolicy = storagePolicy;
-	[[self accessLock] unlock];
-}
-
 
 - (void)clearCachedResponsesForStoragePolicy:(ASICacheStoragePolicy)storagePolicy
 {
@@ -322,7 +338,6 @@ static NSDateFormatter *rfc1123DateFormatter = nil;
 
 @synthesize storagePath;
 @synthesize defaultCachePolicy;
-@synthesize defaultCacheStoragePolicy;
 @synthesize accessLock;
 @synthesize shouldRespectCacheControlHeaders;
 @end

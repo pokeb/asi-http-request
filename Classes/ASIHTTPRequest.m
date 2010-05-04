@@ -23,7 +23,7 @@
 
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.6.2-16 2010-05-04";
+NSString *ASIHTTPRequestVersion = @"v1.6.2-17 2010-05-04";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -2643,7 +2643,7 @@ static id <ASICacheDelegate> defaultCache = nil;
 	
 	// Save to the cache
 	if ([self downloadCache]) {
-		[[self downloadCache] storeResponseForRequest:self];
+		[[self downloadCache] storeResponseForRequest:self maxAge:[self secondsToCache]];
 	}
 	
 	[progressLock unlock];
@@ -2697,6 +2697,7 @@ static id <ASICacheDelegate> defaultCache = nil;
 	
 	if ([self cachePolicy] == ASIReloadIfDifferentCachePolicy) {
 		if (![[self downloadCache] isCachedDataCurrentForRequest:self]) {
+			[[self downloadCache] removeCachedDataForRequest:self];
 			return NO;
 		}
 	}
@@ -3920,4 +3921,5 @@ static id <ASICacheDelegate> defaultCache = nil;
 @synthesize cachePolicy;
 @synthesize cacheStoragePolicy;
 @synthesize didUseCachedResponse;
+@synthesize secondsToCache;
 @end

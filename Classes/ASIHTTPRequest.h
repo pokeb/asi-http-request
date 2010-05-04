@@ -403,6 +403,9 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	// Will be true when the response was pulled from the cache rather than downloaded
 	BOOL didUseCachedResponse;
 
+	// Set secondsToCache to use a custom time interval for expiring the response when it is stored in a cache
+	NSTimeInterval secondsToCache;
+
 }
 
 #pragma mark init / dealloc
@@ -795,4 +798,5 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 @property (assign) ASICachePolicy cachePolicy;
 @property (assign) ASICacheStoragePolicy cacheStoragePolicy;
 @property (assign, readonly) BOOL didUseCachedResponse;
+@property (assign) NSTimeInterval secondsToCache;
 @end

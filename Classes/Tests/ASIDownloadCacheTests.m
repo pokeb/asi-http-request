@@ -147,7 +147,7 @@
 - (void)testSharedCache
 {
 	[[ASIDownloadCache sharedCache] clearCachedResponsesForStoragePolicy:ASICacheForSessionDurationCacheStoragePolicy];
-	
+
 	// Make using the cache automatic
 	[ASIHTTPRequest setDefaultCache:[ASIDownloadCache sharedCache]];
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/the_great_american_novel_(abridged).txt"]];
@@ -168,6 +168,7 @@
 - (void)testExpiry
 {
 	[[ASIDownloadCache sharedCache] clearCachedResponsesForStoragePolicy:ASICacheForSessionDurationCacheStoragePolicy];
+	[[ASIDownloadCache sharedCache] setDefaultCachePolicy:ASIReloadIfDifferentCachePolicy];
 
 	NSArray *headers = [NSArray arrayWithObjects:@"last-modified",@"etag",@"expires",@"max-age",nil];
 	for (NSString *header in headers) {
@@ -185,6 +186,36 @@
 		BOOL success = ![request didUseCachedResponse];
 		GHAssertTrue(success,@"Cached data should have expired");
 	}
+}
+
+- (void)testCustomExpiry
+{
+	[[ASIDownloadCache sharedCache] clearCachedResponsesForStoragePolicy:ASICacheForSessionDurationCacheStoragePolicy];
+	[[ASIDownloadCache sharedCache] setDefaultCachePolicy:ASIReloadIfDifferentCachePolicy];
+
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/cache-away"]];
+	[request setDownloadCache:[ASIDownloadCache sharedCache]];
+	[request setSecondsToCache:-2];
+	[request startSynchronous];
+
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/cache-away"]];
+	[request setDownloadCache:[ASIDownloadCache sharedCache]];
+	[request startSynchronous];
+
+	BOOL success = ![request didUseCachedResponse];
+	GHAssertTrue(success,@"Cached data should have expired");
+
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/cache-away"]];
+	[request setDownloadCache:[ASIDownloadCache sharedCache]];
+	[request setSecondsToCache:20];
+	[request startSynchronous];
+
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/cache-away"]];
+	[request setDownloadCache:[ASIDownloadCache sharedCache]];
+	[request startSynchronous];
+
+	success = [request didUseCachedResponse];
+	GHAssertTrue(success,@"Cached data should have expired");
 }
 
 @end
