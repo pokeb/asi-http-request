@@ -134,7 +134,11 @@ static NSDateFormatter *dateFormatter = nil;
 
 - (void)parseResponseXML
 {
-	NSXMLParser *parser = [[[NSXMLParser alloc] initWithData:[self responseData]] autorelease];
+	NSData* xmlData = [self responseData];
+	if (![xmlData length]) {
+		return;
+	}
+	NSXMLParser *parser = [[[NSXMLParser alloc] initWithData:xmlData] autorelease];
 	[self setCurrentXMLElementStack:[NSMutableArray array]];
 	[parser setDelegate:self];
 	[parser setShouldProcessNamespaces:NO];

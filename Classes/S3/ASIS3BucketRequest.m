@@ -30,14 +30,14 @@
 
 + (id)requestWithBucket:(NSString *)bucket
 {
-	ASIS3ObjectRequest *request = [[[self alloc] initWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://%@.s3.amazonaws.com",bucket]]] autorelease];
+	ASIS3BucketRequest *request = [[[self alloc] initWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://%@.s3.amazonaws.com",bucket]]] autorelease];
 	[request setBucket:bucket];
 	return request;
 }
 
 + (id)requestWithBucket:(NSString *)bucket subResource:(NSString *)subResource
 {
-	ASIS3ObjectRequest *request = [[[self alloc] initWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://%@.s3.amazonaws.com/?%@",bucket,subResource]]] autorelease];
+	ASIS3BucketRequest *request = [[[self alloc] initWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://%@.s3.amazonaws.com/?%@",bucket,subResource]]] autorelease];
 	[request setBucket:bucket];
 	[request setSubResource:subResource];
 	return request;

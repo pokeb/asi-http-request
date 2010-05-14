@@ -453,7 +453,7 @@ static NSString *bucket = @"";
 	[listRequest setMarker:@"bar"];
 	[listRequest setMaxResultCount:5];
 	[listRequest createQueryString];
-	NSString *expectedURL = [NSString stringWithFormat:@"http://%@.s3.amazonaws.com/?acl&prefix=foo&key-marker=bar&delimiter=/&max-keys=5",bucket];
+	NSString *expectedURL = [NSString stringWithFormat:@"http://%@.s3.amazonaws.com/?acl&prefix=foo&marker=bar&delimiter=/&max-keys=5",bucket];
 	success = ([[[listRequest url] absoluteString] isEqualToString:expectedURL]);
 	GHAssertTrue(success,@"Generated the wrong url when requesting a subresource");
 	
