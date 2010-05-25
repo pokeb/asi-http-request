@@ -15,6 +15,8 @@
 	BOOL started;
 	BOOL finished;
 	BOOL failed;
+	BOOL receivedResponseHeaders;
+	NSMutableData *responseData;
 }
 
 - (void)testBasicDownload;
@@ -60,4 +62,8 @@
 - (void)testReachability;
 #endif
 - (void)testAutomaticRetry;
+- (void)testCloseConnection;
+- (void)testPersistentConnectionTimeout;
+
+@property (retain, nonatomic) NSMutableData *responseData;
 @end

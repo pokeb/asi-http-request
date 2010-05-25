@@ -27,6 +27,7 @@ IMPORTANT
 	float progress;
 	int addedRequests;
 	
+	
 	NSOperationQueue *immediateCancelQueue;
 	NSMutableArray *failedRequests;
 	NSMutableArray *finishedRequests;
@@ -47,6 +48,9 @@ IMPORTANT
 	BOOL finished;
 	BOOL failed;
 	BOOL headFailed;
+	BOOL receivedResponseHeaders;
+	
+	int queueFinishedCallCount;
 }
 - (void)testFailure;
 - (void)testFailureCancelsOtherRequests;

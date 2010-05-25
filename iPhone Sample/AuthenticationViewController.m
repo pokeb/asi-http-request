@@ -14,7 +14,7 @@
 - (IBAction)fetchTopSecretInformation:(id)sender
 {
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/top_secret/"]];
-	[request setUseKeychainPersistance:[useKeychain isOn]];
+	[request setUseKeychainPersistence:[useKeychain isOn]];
 	[request setDelegate:self];
 	[request setShouldPresentAuthenticationDialog:[useBuiltInDialog isOn]];
 	[request setDidFinishSelector:@selector(topSecretFetchComplete:)];

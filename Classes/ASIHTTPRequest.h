@@ -2,7 +2,7 @@
 //  ASIHTTPRequest.h
 //
 //  Created by Ben Copsey on 04/10/2007.
-//  Copyright 2007-2009 All-Seeing Interactive. All rights reserved.
+//  Copyright 2007-2010 All-Seeing Interactive. All rights reserved.
 //
 //  A guide to the main features is available at:
 //  http://allseeing-i.com/ASIHTTPRequest
@@ -16,6 +16,8 @@
 #endif
 #import <stdio.h>
 #import "ASIHTTPRequestConfig.h"
+#import "ASIHTTPRequestDelegate.h"
+#import "ASIProgressDelegate.h"
 
 extern NSString *ASIHTTPRequestVersion;
 
@@ -58,11 +60,15 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	// The url for this operation, should include GET params in the query string where appropriate
 	NSURL *url; 
 	
-	// The delegate, you need to manage setting and talking to your delegate in your subclasses
-	id delegate;
+	// Will always contain the original url used for making the request (the value of url can change when a request is redirected)
+	NSURL *originalURL;
 	
-	// A queue delegate that should *ALSO* be notified of delegate message (used by ASINetworkQueue)
-	id queue;
+	// The delegate, you need to manage setting and talking to your delegate in your subclasses
+	id <ASIHTTPRequestDelegate> delegate;
+	
+	// Another delegate that is also notified of request status changes and progress updates
+	// Generally, you won't use this directly, but ASINetworkQueue sets itself as the queue so it can proxy updates to its own delegates
+	id <ASIHTTPRequestDelegate, ASIProgressDelegate> queue;
 	
 	// HTTP method to use (GET / POST / PUT / DELETE / HEAD). Defaults to GET
 	NSString *requestMethod;
@@ -108,14 +114,14 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	// Will be populated with cookies
 	NSArray *responseCookies;
 	
-	// If use useCookiePersistance is true, network requests will present valid cookies from previous requests
-	BOOL useCookiePersistance;
+	// If use useCookiePersistence is true, network requests will present valid cookies from previous requests
+	BOOL useCookiePersistence;
 	
-	// If useKeychainPersistance is true, network requests will attempt to read credentials from the keychain, and will save them in the keychain when they are successfully presented
-	BOOL useKeychainPersistance;
+	// If useKeychainPersistence is true, network requests will attempt to read credentials from the keychain, and will save them in the keychain when they are successfully presented
+	BOOL useKeychainPersistence;
 	
-	// If useSessionPersistance is true, network requests will save credentials and reuse for the duration of the session (until clearSession is called)
-	BOOL useSessionPersistance;
+	// If useSessionPersistence is true, network requests will save credentials and reuse for the duration of the session (until clearSession is called)
+	BOOL useSessionPersistence;
 	
 	// If allowCompressedResponse is true, requests will inform the server they can accept compressed data, and will automatically decompress gzipped responses. Default is true.
 	BOOL allowCompressedResponse;
@@ -156,10 +162,10 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	NSString *proxyDomain;
 	
 	// Delegate for displaying upload progress (usually an NSProgressIndicator, but you can supply a different object and handle this yourself)
-	id uploadProgressDelegate;
+	id <ASIProgressDelegate> uploadProgressDelegate;
 	
 	// Delegate for displaying download progress (usually an NSProgressIndicator, but you can supply a different object and handle this yourself)
-	id downloadProgressDelegate;
+	id <ASIProgressDelegate> downloadProgressDelegate;
 	
 	// Whether we've seen the headers of the response yet
     BOOL haveExaminedHeaders;
@@ -210,6 +216,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	// HTTP status code, eg: 200 = OK, 404 = Not found etc
 	int responseStatusCode;
 	
+	// Description of the HTTP status code
 	NSString *responseStatusMessage;
 	
 	// Size of the response
@@ -239,11 +246,18 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	// Called on the delegate (if implemented) when the request starts. Default is requestStarted:
 	SEL didStartSelector;
 	
+	// Called on the delegate (if implemented) when the request receives response headers. Default is requestDidReceiveResponseHeaders:
+	SEL didReceiveResponseHeadersSelector;
+
 	// Called on the delegate (if implemented) when the request completes successfully. Default is requestFinished:
 	SEL didFinishSelector;
 	
 	// Called on the delegate (if implemented) when the request fails. Default is requestFailed:
 	SEL didFailSelector;
+	
+	// Called on the delegate (if implemented) when the request receives data. Default is request:didReceiveData:
+	// If you set this and implement the method in your delegate, you must handle the data yourself - ASIHTTPRequest will not populate responseData or write the data to downloadDestinationPath
+	SEL didReceiveDataSelector;
 	
 	// Used for recording when something last happened during the request, we will compare this value with the current date to time out requests when appropriate
 	NSDate *lastActivityTime;
@@ -252,7 +266,8 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	NSTimeInterval timeOutSeconds;
 	
 	// Will be YES when a HEAD request will handle the content-length before this request starts
-	BOOL shouldResetProgressIndicators;
+	BOOL shouldResetUploadProgress;
+	BOOL shouldResetDownloadProgress;
 	
 	// Used by HEAD requests when showAccurateProgress is YES to preset the content-length for this request
 	ASIHTTPRequest *mainRequest;
@@ -298,7 +313,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	// Incremented every time this request redirects. When it reaches 5, we give up
 	int redirectCount;
 	
-	// When NO, requests will not check the secure certificate is valid (use for self-signed cerficates during development, DO NOT USE IN PRODUCTION) Default is YES
+	// When NO, requests will not check the secure certificate is valid (use for self-signed certificates during development, DO NOT USE IN PRODUCTION) Default is YES
 	BOOL validatesSecureCertificate;
 	
 	// Details on the proxy to use - you could set these yourself, but it's probably best to let ASIHTTPRequest detect the system proxy settings
@@ -313,8 +328,8 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	
 	// When YES, ASIHTTPRequests will present credentials from the session store for requests to the same server before being asked for them
 	// This avoids an extra round trip for requests after authentication has succeeded, which is much for efficient for authenticated requests with large bodies, or on slower connections
-	// Set to NO to only present credentials when explictly asked for them
-	// This only affects credentials stored in the session cache when useSessionPersistance is YES. Credentials from the keychain are never presented unless the server asks for them
+	// Set to NO to only present credentials when explicitly asked for them
+	// This only affects credentials stored in the session cache when useSessionPersistence is YES. Credentials from the keychain are never presented unless the server asks for them
 	// Default is YES
 	BOOL shouldPresentCredentialsBeforeChallenge;
 	
@@ -335,17 +350,19 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	// The number of times this request has retried (when numberOfTimesToRetryOnTimeout > 0)
 	int retryCount;
 	
-	// When YES, requests will keep the connection to the server alive for a while to allow subsequent requests to re-use it for a substatial speed-boost
-	// Persistent connections only work when the server sends a 'Keep-Alive' header
+	// When YES, requests will keep the connection to the server alive for a while to allow subsequent requests to re-use it for a substantial speed-boost
+	// Persistent connections will not be used if the server explicitly closes the connection
 	// Default is YES
 	BOOL shouldAttemptPersistentConnection;
+
+	// Number of seconds to keep an inactive persistent connection open on the client side
+	// Default is 60
+	// If we get a keep-alive header, this is this value is replaced with how long the server told us to keep the connection around
+	// A future date is created from this and used for expiring the connection, this is stored in connectionInfo's expires value
+	NSTimeInterval persistentConnectionTimeoutSeconds;
 	
 	// Set to yes when an appropriate keep-alive header is found
-	BOOL canUsePersistentConnection;
-	
-	// Populated with the number of seconds the server told us we could keep a persistent connection around
-	// A future date is created from this and used for expiring the connection, this is stored in connectionInfo's expires value
-	NSTimeInterval closeStreamTime;
+	BOOL connectionCanBeReused;
 	
 	// Stores information about the persistent connection that is currently in use.
 	// It may contain:
@@ -359,6 +376,19 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	
 	// This timer checks up on the request every 0.25 seconds, and updates progress
 	NSTimer *statusTimer;
+	
+	// When set to YES, 301 and 302 automatic redirects will use the original method and and body, according to the HTTP 1.1 standard
+	// Default is NO (to follow the behaviour of most browsers)
+	BOOL shouldUseRFC2616RedirectBehaviour;
+	
+	// Used internally to record when a request has finished downloading data
+	BOOL downloadComplete;
+	
+	// An ID that uniquely identifies this request - primarily used for debugging persistent connections
+	NSNumber *requestID;
+	
+	// Will be ASIHTTPRequestRunLoopMode for synchronous requests, NSDefaultRunLoopMode for all other requests
+	NSString *runLoopMode;
 }
 
 #pragma mark init / dealloc
@@ -374,11 +404,15 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 // Add a custom header to the request
 - (void)addRequestHeader:(NSString *)header value:(NSString *)value;
 
+// Called during buildRequestHeaders and after a redirect to create a cookie header from request cookies and the global store
+- (void)applyCookieHeader;
+
 // Populate the request headers dictionary. Called before a request is started, or by a HEAD request that needs to borrow them
 - (void)buildRequestHeaders;
 
 // Used to apply authorization header to a request before it is sent (when shouldPresentCredentialsBeforeChallenge is YES)
 - (void)applyAuthorizationHeader;
+
 
 // Create the post body
 - (void)buildPostBody;
@@ -424,28 +458,49 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 
 #pragma mark upload/download progress
 
+// Called approximately every 0.25 seconds to update the progress delegates
 - (void)updateProgressIndicators;
-- (void)resetUploadProgress:(unsigned long long)value;
+
+// Updates upload progress (notifies the queue and/or uploadProgressDelegate of this request)
 - (void)updateUploadProgress;
-- (void)resetDownloadProgress:(unsigned long long)value;
+
+// Updates download progress (notifies the queue and/or uploadProgressDelegate of this request)
 - (void)updateDownloadProgress;
 
 // Called when authorisation is needed, as we only find out we don't have permission to something when the upload is complete
 - (void)removeUploadProgressSoFar;
 
+// Called when we get a content-length header and shouldResetDownloadProgress is true
+- (void)incrementDownloadSizeBy:(long long)length;
+
+// Called when a request starts and shouldResetUploadProgress is true
+// Also called (with a negative length) to remove the size of the underlying buffer used for uploading
+- (void)incrementUploadSizeBy:(long long)length;
+
 // Helper method for interacting with progress indicators to abstract the details of different APIS (NSProgressIndicator and UIProgressView)
-+ (void)setProgress:(double)progress forProgressIndicator:(id)indicator;
++ (void)updateProgressIndicator:(id)indicator withProgress:(unsigned long long)progress ofTotal:(unsigned long long)total;
+
+// Helper method used for performing invocations on the main thread (used for progress)
++ (void)performSelector:(SEL)selector onTarget:(id)target withObject:(id)object amount:(void *)amount;
 
 #pragma mark handling request complete / failure
 
 // Called when a request starts, lets the delegate know via didStartSelector
 - (void)requestStarted;
 
+// Called when a request receives response headers, lets the delegate know via didReceiveResponseHeadersSelector
+- (void)requestReceivedResponseHeaders;
+
 // Called when a request completes successfully, lets the delegate know via didFinishSelector
 - (void)requestFinished;
 
 // Called when a request fails, and lets the delegate know via didFailSelector
 - (void)failWithError:(NSError *)theError;
+
+// Called to retry our request when our persistent connection is closed
+// Returns YES if we haven't already retried, and connection will be restarted
+// Otherwise, returns NO, and nothing will happen
+- (BOOL)retryUsingNewConnection;
 
 #pragma mark parsing HTTP response headers
 
@@ -491,6 +546,17 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 - (void)handleBytesAvailable;
 - (void)handleStreamComplete;
 - (void)handleStreamError;
+
+// Get the ID of the connection this request used (only really useful in tests and debugging)
+- (NSNumber *)connectionID;
+
+// Called automatically when a request is started to clean up any persistent connections that have expired
++ (void)expirePersistentConnections;
+
+#pragma mark default time out
+
++ (NSTimeInterval)defaultTimeOutSeconds;
++ (void)setDefaultTimeOutSeconds:(NSTimeInterval)newTimeOutSeconds;
 
 #pragma mark session credentials
 
@@ -565,7 +631,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 
 #pragma mark mime-type detection
 
-// Only works on Mac OS, will always return 'application/octet-stream' on iPhone
+// Return the mime type for a file
 + (NSString *)mimeTypeForFileAtPath:(NSString *)path;
 
 #pragma mark bandwidth measurement / throttling
@@ -628,17 +694,20 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 @property (assign) int proxyPort;
 
 @property (retain,setter=setURL:) NSURL *url;
+@property (retain) NSURL *originalURL;
 @property (assign) id delegate;
 @property (assign) id queue;
 @property (assign) id uploadProgressDelegate;
 @property (assign) id downloadProgressDelegate;
-@property (assign) BOOL useKeychainPersistance;
-@property (assign) BOOL useSessionPersistance;
+@property (assign) BOOL useKeychainPersistence;
+@property (assign) BOOL useSessionPersistence;
 @property (retain) NSString *downloadDestinationPath;
 @property (retain) NSString *temporaryFileDownloadPath;
 @property (assign) SEL didStartSelector;
+@property (assign) SEL didReceiveResponseHeadersSelector;
 @property (assign) SEL didFinishSelector;
 @property (assign) SEL didFailSelector;
+@property (assign) SEL didReceiveDataSelector;
 @property (retain,readonly) NSString *authenticationRealm;
 @property (retain,readonly) NSString *proxyAuthenticationRealm;
 @property (retain) NSError *error;
@@ -647,7 +716,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 @property (retain) NSMutableDictionary *requestHeaders;
 @property (retain) NSMutableArray *requestCookies;
 @property (retain,readonly) NSArray *responseCookies;
-@property (assign) BOOL useCookiePersistance;
+@property (assign) BOOL useCookiePersistence;
 @property (retain) NSDictionary *requestCredentials;
 @property (retain) NSDictionary *proxyCredentials;
 @property (assign,readonly) int responseStatusCode;
@@ -658,7 +727,8 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 @property (retain) NSMutableData *postBody;
 @property (assign,readonly) unsigned long long contentLength;
 @property (assign) unsigned long long postLength;
-@property (assign) BOOL shouldResetProgressIndicators;
+@property (assign) BOOL shouldResetDownloadProgress;
+@property (assign) BOOL shouldResetUploadProgress;
 @property (assign) ASIHTTPRequest *mainRequest;
 @property (assign) BOOL showAccurateProgress;
 @property (assign,readonly) unsigned long long totalBytesRead;
@@ -687,10 +757,13 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 @property (assign, readonly) int proxyAuthenticationRetryCount;
 @property (assign) BOOL haveBuiltRequestHeaders;
 @property (assign, nonatomic) BOOL haveBuiltPostBody;
-
 @property (assign, readonly) BOOL isSynchronous;
 @property (assign, readonly) BOOL inProgress;
 @property (assign) int numberOfTimesToRetryOnTimeout;
 @property (assign, readonly) int retryCount;
 @property (assign) BOOL shouldAttemptPersistentConnection;
+@property (assign) NSTimeInterval persistentConnectionTimeoutSeconds;
+@property (assign) BOOL shouldUseRFC2616RedirectBehaviour;
+@property (assign, readonly) BOOL connectionCanBeReused;
+@property (retain, readonly) NSNumber *requestID;
 @end

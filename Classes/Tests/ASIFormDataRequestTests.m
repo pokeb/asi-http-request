@@ -176,8 +176,38 @@
 	[request setStringEncoding:NSWindowsCP1252StringEncoding];
 	[request startSynchronous];
 	success = ([[request responseString] isEqualToString:[NSString stringWithFormat:@"Got data in %@: %@",charset,testString]]);
-	GHAssertTrue(success,@"Failed to correctly encode the data");	
+	GHAssertTrue(success,@"Failed to correctly encode the data");
+	
+	// Ensure charset isn't added to file post (GH issue 36)
+	request = [ASIFormDataRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/Tests/return-raw-request"]];
+	[request setData:[@"test 123" dataUsingEncoding:NSUTF8StringEncoding] forKey:@"file"];
+	[request setRequestMethod:@"PUT"];
+	[request startSynchronous];	
+	success = ([[request responseString] rangeOfString:@"charset=utf-8"].location == NSNotFound);
+	GHAssertTrue(success,@"Sent a charset header for an uploaded file");
 
+
+}
+
+- (void)testPUT
+{
+	ASIFormDataRequest *request = [ASIFormDataRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/Tests/put_form_data"]];
+	[request setRequestMethod:@"PUT"];
+	[request setPostValue:@"cheep cheep" forKey:@"hello"];
+	[request startSynchronous];
+	
+	NSString *expectedResponse = [[[NSString alloc] initWithBytes:[[request postBody] bytes] length:[[request postBody] length] encoding:[request stringEncoding]] autorelease];
+	BOOL success = ([[request responseString] isEqualToString:expectedResponse]);
+	GHAssertTrue(success,@"Failed to send form data using PUT");
+	
+	// Ensure that other methods still default to POST
+	request = [ASIFormDataRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/Tests/put_form_data"]];
+	[request setRequestMethod:@"DELETE"];
+	[request setPostValue:@"cheep cheep" forKey:@"hello"];
+	[request startSynchronous];
+	
+	success = ([[request responseString] isEqualToString:@"Got POST instead"]);
+	GHAssertTrue(success,@"Failed to send form data using PUT");		
 }
 
 - (void)testCopy
@@ -197,5 +227,44 @@
 	[request2 release];
 }
 
+- (void)testMultipleValuesForASingleKey
+{
+	ASIFormDataRequest *request = [ASIFormDataRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/multiple-values"]];
+	[request addPostValue:@"here" forKey:@"test_value[]"];
+	[request addPostValue:@"are" forKey:@"test_value[]"];
+	[request addPostValue:@"some" forKey:@"test_value[]"];
+	[request addPostValue:@"values" forKey:@"test_value[]"];
+
+	NSString *path1 = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:@"file1.txt"];
+	NSString *path2 = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:@"file2.txt"];
+	[@"hello" writeToFile:path1 atomically:NO encoding:NSUTF8StringEncoding error:nil];
+	[@"there" writeToFile:path2 atomically:NO encoding:NSUTF8StringEncoding error:nil];
+	[request addFile:path1 forKey:@"test_file[]"];
+	[request addFile:path2 forKey:@"test_file[]"];
+
+	[request startSynchronous];
+	NSString *expectedOutput = @"here\r\nare\r\nsome\r\nvalues\r\nfile1.txt\r\nfile2.txt\r\n";
+	BOOL success = [[request responseString] isEqualToString:expectedOutput];
+	GHAssertTrue(success,@"Failed to send the correct data");
+
+	// Check data replaces older data
+	request = [ASIFormDataRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/single-values"]];
+	[request addPostValue:@"here" forKey:@"test_value[]"];
+	[request addPostValue:@"are" forKey:@"test_value[]"];
+	[request addPostValue:@"some" forKey:@"test_value[]"];
+	[request addPostValue:@"values" forKey:@"test_value[]"];
+
+	[request setPostValue:@"this is new data" forKey:@"test_value[]"];
+
+	[request addFile:path1 forKey:@"test_file[]"];
+	[request addFile:path2 forKey:@"test_file[]"];
+
+	[request setData:[@"this is new data" dataUsingEncoding:NSUTF8StringEncoding] forKey:@"test_file[]"];
+
+	[request startSynchronous];
+	expectedOutput = @"this is new data\r\nfile\r\n";
+	success = [[request responseString] isEqualToString:expectedOutput];
+	GHAssertTrue(success,@"Failed to send the correct data");
+}
 
 @end

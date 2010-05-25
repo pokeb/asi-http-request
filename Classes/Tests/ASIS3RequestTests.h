@@ -20,6 +20,7 @@
 - (void)testFailure;
 - (void)testListRequest;
 - (void)testSubclasses;
+- (void)createTestBucket;
 
 @property (retain,nonatomic) ASINetworkQueue *networkQueue;
 @end

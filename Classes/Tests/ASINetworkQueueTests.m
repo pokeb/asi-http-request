@@ -63,6 +63,7 @@ IMPORTANT
 	[networkQueue setDelegate:self];
 	[networkQueue setRequestDidStartSelector:@selector(delegateTestStarted:)];
 	[networkQueue setRequestDidFinishSelector:@selector(delegateTestFinished:)];
+	[networkQueue setRequestDidReceiveResponseHeadersSelector:@selector(delegateTestResponseHeaders:)];
 	
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
 	[networkQueue addOperation:request];
@@ -70,7 +71,10 @@ IMPORTANT
 	
 	[networkQueue waitUntilAllOperationsAreFinished];
 	
-	GHAssertTrue(started,@"Failed to call the delegate method when the request started");	
+	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:2]];
+
+	GHAssertTrue(started,@"Failed to call the delegate method when the request started");
+	GHAssertTrue(receivedResponseHeaders,@"Failed to call the delegate method when the request received response headers");
 	GHAssertTrue(finished,@"Failed to call the delegate method when the request finished");
 	
 	networkQueue = [ASINetworkQueue queue];
@@ -83,6 +87,8 @@ IMPORTANT
 	[networkQueue go];
 	
 	[networkQueue waitUntilAllOperationsAreFinished];
+
+	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:2]];
 	
 	GHAssertTrue(failed,@"Failed to call the delegate method when the request failed");
 	
@@ -91,6 +97,12 @@ IMPORTANT
 - (void)delegateTestStarted:(ASIHTTPRequest *)request
 {
 	started = YES;
+}
+
+- (void)delegateTestResponseHeaders:(ASIHTTPRequest *)request
+{
+	GHAssertNotNil([request responseHeaders],@"Called delegateTestResponseHeaders: when we have no headers");
+	receivedResponseHeaders = YES;
 }
 
 - (void)delegateTestFinished:(ASIHTTPRequest *)request
@@ -182,7 +194,10 @@ IMPORTANT
 	BOOL success = (progress == 1.0);
 	GHAssertTrue(success,@"Failed to increment progress properly");
 	
-	[networkQueue cancelAllOperations];
+	[networkQueue reset];
+	[networkQueue setDownloadProgressDelegate:self];
+	[networkQueue setDelegate:self];
+	[networkQueue setQueueDidFinishSelector:@selector(queueFinished:)];	
 	
 	// This test will request gzipped content, but the content-length header we get on the HEAD request will be wrong, ASIHTTPRequest should fall back to simple progress
 	// This is to workaround an issue Apache has with HEAD requests for dynamically generated content when accepting gzip - it returns the content-length of a gzipped empty body
@@ -206,18 +221,17 @@ IMPORTANT
 
 - (void)testAddingRequestsToQueueWhileInProgress
 {
-	[[self addMoreRequestsQueue] cancelAllOperations];
+	[[self addMoreRequestsQueue] reset];
 	[self setAddMoreRequestsQueue:[ASINetworkQueue queue]];
 	[[self addMoreRequestsQueue] setDownloadProgressDelegate:self];
 	[[self addMoreRequestsQueue] setDelegate:self];
-	[[self addMoreRequestsQueue] setShowAccurateProgress:NO];
+	[[self addMoreRequestsQueue] setShowAccurateProgress:YES];
 	[[self addMoreRequestsQueue]setQueueDidFinishSelector:@selector(addMoreRequestsQueueFinished:)];	
 	
 	requestsFinishedCount = 0;
 	
 	complete = NO;
 	progress = 0;
-	[[self addMoreRequestsQueue] setShowAccurateProgress:YES];
 	
 	int i;
 	for (i=0; i<5; i++) {
@@ -311,13 +325,18 @@ IMPORTANT
 		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
 	}
 	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1]];
-	BOOL success = (progress > 0.95);
+	BOOL success = (progress == 1.0f);
 	GHAssertTrue(success,@"Failed to increment progress properly");
 	
 	//Now test again with accurate progress
 	complete = NO;
 	progress = 0;
-	[networkQueue cancelAllOperations];
+	[networkQueue reset];
+	[networkQueue setUploadProgressDelegate:self];
+	[networkQueue setDelegate:self];
+	[networkQueue setShowAccurateProgress:NO];
+	[networkQueue setRequestDidFailSelector:@selector(uploadFailed:)];
+	[networkQueue setQueueDidFinishSelector:@selector(queueFinished:)];	
 	[networkQueue setShowAccurateProgress:YES];
 	
 	for (i=0; i<3; i++) {
@@ -335,7 +354,7 @@ IMPORTANT
 		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
 	}
 	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1]];
-	success = (progress > 0.95);
+	success = (progress == 1.0f);
 	GHAssertTrue(success,@"Failed to increment progress properly");
 	
 }
@@ -647,17 +666,17 @@ IMPORTANT
 	complete = NO;
 	progress = 0;
 	
-	NSString *temporaryPath = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:@"MemexTrails_1.0b1.zip.download"];
+	NSString *temporaryPath = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:@"the_great_american_novel_%28young_readers_edition%29.txt.download"];
 	if ([[NSFileManager defaultManager] fileExistsAtPath:temporaryPath]) {
 		[[NSFileManager defaultManager] removeItemAtPath:temporaryPath error:nil];
 	}
 	
-	NSString *downloadPath = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:@"MemexTrails_1.0b1.zip"];
+	NSString *downloadPath = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:@"the_great_american_novel_%28young_readers_edition%29.txt"];
 	if ([[NSFileManager defaultManager] fileExistsAtPath:downloadPath]) {
 		[[NSFileManager defaultManager] removeItemAtPath:downloadPath error:nil];
 	}
 	
-	NSURL *downloadURL = [NSURL URLWithString:@"http://trails-network.net/Downloads/MemexTrails_1.0b1.zip"];
+	NSURL *downloadURL = [NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_great_american_novel_%28young_readers_edition%29.txt"];
 	ASINetworkQueue *networkQueue = [ASINetworkQueue queue];	
 
 	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:downloadURL] autorelease];
@@ -667,17 +686,15 @@ IMPORTANT
 	[networkQueue addOperation:request];
 	[networkQueue go];
 	 
-	// Let the download run for 5 seconds, which hopefully won't be enough time to grab this file. If you have a super fast connection, this test may fail, serves you right for being so smug. :)
-	NSTimer *timeoutTimer = [NSTimer scheduledTimerWithTimeInterval:5 target:self selector:@selector(stopQueue:) userInfo:nil repeats:NO];
+	// Let the download run for a second, which hopefully won't be enough time to grab this file. If you have a super fast connection, this test may fail, serves you right for being so smug. :)
+	NSTimer *timeoutTimer = [NSTimer scheduledTimerWithTimeInterval:1 target:self selector:@selector(stopQueue:) userInfo:nil repeats:NO];
 	
 	while (!complete) {
 		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
 	}
 	
-	// 5 seconds is up, let's tell the queue to stop
-	[networkQueue cancelAllOperations];
-	
-	networkQueue = [ASINetworkQueue queue];
+	// 1 second has passed, let's tell the queue to stop
+	[networkQueue reset];
 	[networkQueue setDownloadProgressDelegate:self];
 	[networkQueue setShowAccurateProgress:YES];
 	[networkQueue setDelegate:self];
@@ -708,15 +725,16 @@ IMPORTANT
 	
 	unsigned long long amountDownloaded = [[[NSFileManager defaultManager] attributesOfItemAtPath:downloadPath error:&err] fileSize];
 	GHAssertNil(err,@"Got an error obtaining attributes on the file, this shouldn't happen");
-	success = (amountDownloaded == 9145357);
+	success = (amountDownloaded == 1036935);
 	GHAssertTrue(success,@"Failed to complete the download");
 	
-	success = (progress > 0.95);
+	success = (progress == 1.0f);
 	GHAssertTrue(success,@"Failed to increment progress properly");
 	
 
 	
 	//Test the temporary file cleanup
+	downloadURL = [NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_great_american_novel.txt"];
 	complete = NO;
 	progress = 0;
 	networkQueue = [ASINetworkQueue queue];
@@ -732,8 +750,8 @@ IMPORTANT
 	[networkQueue addOperation:request];
 	[networkQueue go];
 	
-	// Let the download run for 5 seconds
-	timeoutTimer = [NSTimer scheduledTimerWithTimeInterval:5 target:self selector:@selector(stopQueue:) userInfo:nil repeats:NO];
+	// Let the download run for 3 seconds
+	timeoutTimer = [NSTimer scheduledTimerWithTimeInterval:3 target:self selector:@selector(stopQueue:) userInfo:nil repeats:NO];
 	while (!complete) {
 		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
 	}
@@ -895,8 +913,7 @@ IMPORTANT
 
 	
 	// Reset the queue
-	[networkQueue cancelAllOperations];
-	networkQueue = [ASINetworkQueue queue];
+	[networkQueue reset];
 	[networkQueue setDelegate:self];
 	[networkQueue setRequestDidFailSelector:@selector(throttleFail:)];
 	[networkQueue setQueueDidFinishSelector:@selector(queueFinished:)];
@@ -960,8 +977,7 @@ IMPORTANT
 	GHAssertTrue(success,@"Uploaded the data too slowly - either this is a bug, or your internet connection is too slow to run this test (must be able to upload 160KB in less than 10 seconds, without throttling)");
 	
 	// Reset the queue
-	[networkQueue cancelAllOperations];
-	networkQueue = [ASINetworkQueue queue];
+	[networkQueue reset];
 	[networkQueue setDelegate:self];
 	[networkQueue setRequestDidFailSelector:@selector(throttleFail:)];
 	[networkQueue setQueueDidFinishSelector:@selector(queueFinished:)];
@@ -1041,8 +1057,8 @@ IMPORTANT
 	[self setTestNTLMQueue:[ASINetworkQueue queue]];
 	
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/pretend-ntlm-handshake"]];
-	[request setUseKeychainPersistance:NO];
-	[request setUseSessionPersistance:NO];
+	[request setUseKeychainPersistence:NO];
+	[request setUseSessionPersistence:NO];
 	[request setUserInfo:[NSDictionary dictionaryWithObject:@"ntlm" forKey:@"test"]];
 	
 	[[self testNTLMQueue] setRequestDidFinishSelector:@selector(ntlmDone:)];
@@ -1109,6 +1125,75 @@ IMPORTANT
 	GHAssertTrue(success,@"Failed to create a retained copy");
 	
 	[queue2 release];
+}
+
+// Test for: http://allseeing-i.lighthouseapp.com/projects/27881/tickets/43-asinetworkqueue-and-setshouldcancelallrequestsonfailure-yes-will-not-trigger-queuefinished-selector-with-multiple-requests
+
+- (void)testQueueFinishedCalledOnFailure
+{
+	[self performSelectorOnMainThread:@selector(runTestQueueFinishedCalledOnFailureTest) withObject:nil waitUntilDone:YES];
+}
+- (void)runTestQueueFinishedCalledOnFailureTest
+{
+	complete = NO;
+	ASINetworkQueue *networkQueue = [[ASINetworkQueue queue] retain];
+	[networkQueue setDelegate:self];
+	[networkQueue setQueueDidFinishSelector:@selector(queueFailureFinish:)];
+	
+	NSUInteger i;
+	for (i=0; i<10; i++) {
+		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://there-is-no-spoon.allseeing-i.com"]];
+		[networkQueue addOperation:request];
+	}
+	
+	[networkQueue go];
+	
+	NSDate *dateStarted = [NSDate date];
+	while (!complete) {
+		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.5]];
+		if ([dateStarted timeIntervalSinceNow] < -10) {
+			break;
+		}
+	}
+	GHAssertTrue(complete,@"Failed to call queue finished delegate method");
+	
+	queueFinishedCallCount = 0;
+	complete = NO;
+
+	[networkQueue release];
+	networkQueue = [[ASINetworkQueue queue] retain];
+	[networkQueue setDelegate:self];
+	[networkQueue setQueueDidFinishSelector:@selector(queueFailureFinishCallOnce:)];
+	[networkQueue setMaxConcurrentOperationCount:1];
+	
+	for (i=0; i<10; i++) {
+		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://there-is-no-spoon.allseeing-i.com"]];
+		[networkQueue addOperation:request];
+	}
+	
+	[networkQueue go];
+	
+	dateStarted = [NSDate date];
+	while (!complete) {
+		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:2.0f]];
+		if ([dateStarted timeIntervalSinceNow] < -10) {
+			break;
+		}
+	}
+	BOOL success = (queueFinishedCallCount == 1);
+	GHAssertTrue(success,@"Called the queue finish method more/less than once");
+	
+}
+
+- (void)queueFailureFinishCallOnce:(ASINetworkQueue *)queue
+{
+	queueFinishedCallCount++;
+	complete = YES;
+}
+
+- (void)queueFailureFinish:(ASINetworkQueue *)queue
+{
+	complete = YES;
 }
 
 @synthesize immediateCancelQueue;

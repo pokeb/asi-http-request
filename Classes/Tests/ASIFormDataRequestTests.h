@@ -17,4 +17,6 @@
 - (void)testSubclass;
 - (void)testURLEncodedPost;
 - (void)testCharset;
+- (void)testPUT;
+- (void)testCopy;
 @end

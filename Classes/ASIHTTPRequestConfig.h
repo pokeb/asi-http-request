@@ -12,16 +12,24 @@
 // ======
 
 // When set to 1 ASIHTTPRequests will print information about what a request is doing
-#define DEBUG_REQUEST_STATUS 0
+#ifndef DEBUG_REQUEST_STATUS
+	#define DEBUG_REQUEST_STATUS 0
+#endif
 
 // When set to 1, ASIFormDataRequests will print information about the request body to the console
-#define DEBUG_FORM_DATA_REQUEST 0
+#ifndef DEBUG_FORM_DATA_REQUEST
+	#define DEBUG_FORM_DATA_REQUEST 0
+#endif
 
 // When set to 1, ASIHTTPRequests will print information about bandwidth throttling to the console
-#define DEBUG_THROTTLING 0
+#ifndef DEBUG_THROTTLING
+	#define DEBUG_THROTTLING 0
+#endif
 
 // When set to 1, ASIHTTPRequests will print information about persistent connections to the console
-#define DEBUG_PERSISTENT_CONNECTIONS 0
+#ifndef DEBUG_PERSISTENT_CONNECTIONS
+	#define DEBUG_PERSISTENT_CONNECTIONS 0
+#endif
 
 // ======
 // Reachability API (iPhone only)
@@ -34,13 +42,14 @@ There are two versions of Apple's Reachability class, both of which are included
 
  *    Version 2.0 is the latest version. You should use this if you are targeting iPhone OS 3.x and later
       To use Version 2.0, set this to 1, and include Reachability.h + Reachability.m from the Reachability 2.0 folder in your project
- 
+
  *    Version 1.5 is the old version, but it is compatible with both iPhone OS 2.2.1 and iPhone OS 3.0 and later. You should use this if your application needs to work on iPhone OS 2.2.1.
       To use Version 1.5, set this to 0, and include Reachability.h + Reachability.m from the Reachability 1.5 folder in your project
 
-This config option is not used for apps targeting Mac OS X 
+This config option is not used for apps targeting Mac OS X
 */
 
-#define REACHABILITY_20_API 1
-
+#ifndef REACHABILITY_20_API
+	#define REACHABILITY_20_API 0
+#endif
 

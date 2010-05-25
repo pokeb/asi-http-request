@@ -7,14 +7,19 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "ASIHTTPRequestDelegate.h"
+#import "ASIProgressDelegate.h"
 
-@interface ASINetworkQueue : NSOperationQueue <NSCopying> {
+@interface ASINetworkQueue : NSOperationQueue <ASIProgressDelegate, ASIHTTPRequestDelegate, NSCopying> {
 	
 	// Delegate will get didFail + didFinish messages (if set)
 	id delegate;
 
 	// Will be called when a request starts with the request as the argument
 	SEL requestDidStartSelector;
+	
+	// Will be called when a request receives response headers with the request as the argument
+	SEL requestDidReceiveResponseHeadersSelector;
 	
 	// Will be called when a request completes with the request as the argument
 	SEL requestDidFinishSelector;
@@ -50,7 +55,7 @@
 	int requestsCount;
 	
 	// When NO, this request will only update the progress indicator when it completes
-	// When YES, this request will update the progress indicator according to how much data it has recieved so far
+	// When YES, this request will update the progress indicator according to how much data it has received so far
 	// When YES, the queue will first perform HEAD requests for all GET requests in the queue, so it can calculate the total download size before it starts
 	// NO means better performance, because it skips this step for GET requests, and it won't waste time updating the progress indicator until a request completes 
 	// Set to YES if the size of a requests in the queue varies greatly for much more accurate results
@@ -65,28 +70,11 @@
 // Convenience constructor
 + (id)queue;
 
+// Call this to reset a queue - it will cancel all operations, clear delegates, and suspend operation
+- (void)reset;
+
 // Used internally to manage HEAD requests when showAccurateProgress is YES, do not use!
 - (void)addHEADOperation:(NSOperation *)operation;
-
-// Called at the start of a request to add on the size of this upload to the total
-- (void)incrementUploadSizeBy:(unsigned long long)bytes;
-
-// Called during a request when data is written to the upload stream to increment the progress indicator
-- (void)incrementUploadProgressBy:(unsigned long long)bytes;
-
-// Called at the start of a request to add on the size of this download to the total
-- (void)incrementDownloadSizeBy:(unsigned long long)bytes;
-
-// Called during a request when data is received to increment the progress indicator
-- (void)incrementDownloadProgressBy:(unsigned long long)bytes;
-
-// Called during a request when authorisation fails to cancel any progress so far
-- (void)decrementUploadProgressBy:(unsigned long long)bytes;
-
-// Called when the first chunk of data is written to the upload buffer
-// We ignore the first part chunk when tracking upload progress, as kCFStreamPropertyHTTPRequestBytesWrittenCount reports the amount of data written to the buffer, not the amount sent
-// This is to workaround the first 128KB of data appearing in an upload progress delegate immediately
-- (void)setUploadBufferSize:(unsigned long long)bytes;
 
 // All ASINetworkQueues are paused when created so that total size can be calculated before the queue starts
 // This method will start the queue
@@ -104,6 +92,7 @@
 @property (assign,setter=setDownloadProgressDelegate:) id downloadProgressDelegate;
 
 @property (assign) SEL requestDidStartSelector;
+@property (assign) SEL requestDidReceiveResponseHeadersSelector;
 @property (assign) SEL requestDidFinishSelector;
 @property (assign) SEL requestDidFailSelector;
 @property (assign) SEL queueDidFinishSelector;

@@ -1,0 +1,3 @@
+[submodule "External/GHUnit"]
+	path = External/GHUnit
+	url = git://github.com/gabriel/gh-unit.git
