@@ -71,7 +71,11 @@ typedef enum _ASIS3ErrorType {
 # pragma mark helpers
 	
 // Returns a date formatter than can be used to parse a date from S3
-+ (NSDateFormatter *)dateFormatter;
++ (NSDateFormatter*)S3ResponseDateFormatter;
+	
+// Returns a date formatter than can be used to send a date header to S3
++ (NSDateFormatter*)S3RequestDateFormatter;
+
 
 // URL-encodes an S3 key so it can be used in a url
 // You shouldn't normally need to use this yourself

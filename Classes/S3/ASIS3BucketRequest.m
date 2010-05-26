@@ -127,7 +127,7 @@
 	} else if ([elementName isEqualToString:@"Key"]) {
 		[[self currentObject] setKey:[self currentXMLElementContent]];
 	} else if ([elementName isEqualToString:@"LastModified"]) {
-		[[self currentObject] setLastModified:[[ASIS3Request dateFormatter] dateFromString:[self currentXMLElementContent]]];
+		[[self currentObject] setLastModified:[[ASIS3Request S3ResponseDateFormatter] dateFromString:[self currentXMLElementContent]]];
 	} else if ([elementName isEqualToString:@"ETag"]) {
 		[[self currentObject] setETag:[self currentXMLElementContent]];
 	} else if ([elementName isEqualToString:@"Size"]) {

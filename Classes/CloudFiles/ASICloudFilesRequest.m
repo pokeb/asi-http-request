@@ -103,15 +103,21 @@ static NSRecursiveLock *accessDetailsLock = nil;
 #pragma mark -
 #pragma mark Date Parser
 
--(NSDate *)dateFromString:(NSString *)dateString {
-	NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
-	[dateFormatter setLocale:[[[NSLocale alloc] initWithLocaleIdentifier:@"en_US_POSIX"] autorelease]];
-	// example: 2009-11-04T19:46:20.192723
-	[dateFormatter setDateFormat:@"yyyy-MM-dd'T'H:mm:ss.SSSSSS"];
-	NSDate *date = [dateFormatter dateFromString:dateString];
-	[dateFormatter release];
-	
-	return date;
+-(NSDate *)dateFromString:(NSString *)dateString
+{
+	// We store our date formatter in the calling thread's dictionary
+	// NSDateFormatter is not thread-safe, this approach ensures each formatter is only used on a single thread
+	// This formatter can be reused many times in parsing a single response, so it would be expensive to keep creating new date formatters
+	NSMutableDictionary *threadDict = [[NSThread currentThread] threadDictionary];
+	NSDateFormatter *dateFormatter = [threadDict objectForKey:@"ASICloudFilesResponseDateFormatter"];
+	if (dateFormatter == nil) {
+		dateFormatter = [[[NSDateFormatter alloc] init] autorelease];
+		[dateFormatter setLocale:[[[NSLocale alloc] initWithLocaleIdentifier:@"en_US_POSIX"] autorelease]];
+		// example: 2009-11-04T19:46:20.192723
+		[dateFormatter setDateFormat:@"yyyy-MM-dd'T'H:mm:ss.SSSSSS"];
+		[threadDict setObject:dateFormatter forKey:@"ASICloudFilesResponseDateFormatter"];
+	}
+	return [dateFormatter dateFromString:dateString];
 }
 
 @end
