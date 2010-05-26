@@ -23,7 +23,7 @@
 
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.6.2-11 2010-05-26";
+NSString *ASIHTTPRequestVersion = @"v1.6.2-12 2010-05-26";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -2901,7 +2901,7 @@ static BOOL isiPhoneOS2;
 		NSURL *theURL = [theCredentials objectForKey:@"URL"];
 		
 		// Port can be nil!
-		if ([[theURL host] isEqualToString:[requestURL host]] && ([theURL port] == [requestURL port] || [[theURL port] isEqualToNumber:[requestURL port]]) && [[theURL scheme] isEqualToString:[requestURL scheme]]) {
+		if ([[theURL host] isEqualToString:[requestURL host]] && ([theURL port] == [requestURL port] || ([requestURL port] && [[theURL port] isEqualToNumber:[requestURL port]])) && [[theURL scheme] isEqualToString:[requestURL scheme]]) {
 			if (![self responseStatusCode] || (![theCredentials objectForKey:@"AuthenticationRealm"] || [[theCredentials objectForKey:@"AuthenticationRealm"] isEqualToString:[self authenticationRealm]])) {
 				[sessionCredentialsLock unlock];
 				return theCredentials;

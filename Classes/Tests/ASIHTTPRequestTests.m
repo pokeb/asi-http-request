@@ -1579,5 +1579,29 @@
 	[[self responseData] appendData:data];
 }
 
+- (void)testNilPortCredentialsMatching
+{
+	// Test for http://github.com/pokeb/asi-http-request/issues#issue/39
+	[ASIHTTPRequest clearSession];
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com:80/ASIHTTPRequest/tests/basic-authentication"]];
+	[request setUsername:@"secret_username"];
+	[request setPassword:@"secret_password"];
+	[request startSynchronous];
+
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/basic-authentication"]];
+	[request startSynchronous];
+
+	// Now let's test the other way around
+	[ASIHTTPRequest clearSession];
+
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com:/ASIHTTPRequest/tests/basic-authentication"]];
+	[request setUsername:@"secret_username"];
+	[request setPassword:@"secret_password"];
+	[request startSynchronous];
+
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com:80/ASIHTTPRequest/tests/basic-authentication"]];
+	[request startSynchronous];
+}
+
 @synthesize responseData;
 @end
