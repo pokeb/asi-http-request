@@ -23,7 +23,7 @@
 
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.6.2-12 2010-05-26";
+NSString *ASIHTTPRequestVersion = @"v1.6.2-13 2010-06-01";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -843,7 +843,7 @@ static BOOL isiPhoneOS2;
     }
 
 	// Tell CFNetwork not to validate SSL certificates
-	if (!validatesSecureCertificate) {
+	if (![self validatesSecureCertificate] && [[[[self url] scheme] lowercaseString] isEqualToString:@"https"]) {
 		CFReadStreamSetProperty((CFReadStreamRef)[self readStream], kCFStreamPropertySSLSettings, [NSMutableDictionary dictionaryWithObject:(NSString *)kCFBooleanFalse forKey:(NSString *)kCFStreamSSLValidatesCertificateChain]); 
 	}
 	
@@ -930,7 +930,7 @@ static BOOL isiPhoneOS2;
 	NSInputStream *oldStream = nil;
 	
 	// Use a persistent connection if possible
-	if (shouldAttemptPersistentConnection) {
+	if ([self shouldAttemptPersistentConnection]) {
 		
 
 		// If we are redirecting, we will re-use the current connection only if we are connecting to the same server
