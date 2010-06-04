@@ -179,7 +179,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	
 	// Used for authentication
     CFHTTPAuthenticationRef requestAuthentication; 
-	NSMutableDictionary *requestCredentials;
+	NSDictionary *requestCredentials;
 	
 	// Used during NTLM authentication
 	int authenticationRetryCount;
@@ -202,7 +202,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	
 	// Used for proxy authentication
     CFHTTPAuthenticationRef proxyAuthentication; 
-	NSMutableDictionary *proxyCredentials;
+	NSDictionary *proxyCredentials;
 	
 	// Used during authentication with an NTLM proxy
 	int proxyAuthenticationRetryCount;
