@@ -23,7 +23,7 @@
 
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.6.2-15 2010-06-15";
+NSString *ASIHTTPRequestVersion = @"v1.6.2-16 2010-06-15";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -2600,9 +2600,10 @@ static BOOL isiPhoneOS2;
 
 - (void)markAsFinished
 {
+	[[self retain] autorelease];
 	[self willChangeValueForKey:@"isFinished"];
-	[self didChangeValueForKey:@"isFinished"];
 	[self setInProgress:NO];
+	[self didChangeValueForKey:@"isFinished"];
 	CFRunLoopStop(CFRunLoopGetCurrent());
 }
 
