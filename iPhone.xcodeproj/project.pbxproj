@@ -7,10 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		1D60589F0D05DD5A006BFB54 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1D30AB110D05D00D00671497 /* Foundation.framework */; };
-		1DF5F4E00D08C38300B7A737 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1DF5F4DF0D08C38300B7A737 /* UIKit.framework */; };
-		288765080DF74369002DB57D /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 288765070DF74369002DB57D /* CoreGraphics.framework */; };
-		B517900B1024AD1B00583567 /* libz.1.2.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B55B60940F765AF80064029C /* libz.1.2.3.dylib */; };
 		B51791951024C3DA00583567 /* Authentication.xib in Resources */ = {isa = PBXBuildFile; fileRef = B51791941024C3DA00583567 /* Authentication.xib */; };
 		B51791A31024C3E800583567 /* AuthenticationViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B51791A21024C3E800583567 /* AuthenticationViewController.m */; };
 		B522DACE1030B2AB009A2D22 /* ASIInputStream.m in Sources */ = {isa = PBXBuildFile; fileRef = B522DACD1030B2AB009A2D22 /* ASIInputStream.m */; };
@@ -23,7 +19,6 @@
 		B540400E115114BA00D8BE63 /* ASIS3ServiceRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5404006115114BA00D8BE63 /* ASIS3ServiceRequest.m */; };
 		B54043B11151542C00D8BE63 /* GHUnitIPhoneTestMain.m in Sources */ = {isa = PBXBuildFile; fileRef = B54043AB1151542C00D8BE63 /* GHUnitIPhoneTestMain.m */; };
 		B54043BB1151546F00D8BE63 /* libGHUnitIPhone3_0.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B54043BA1151546F00D8BE63 /* libGHUnitIPhone3_0.a */; };
-		B545F6A611577E1A003FA377 /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B545F6A511577E1A003FA377 /* MobileCoreServices.framework */; };
 		B551DCAF10D6A11200EC1CBF /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = B551DCAE10D6A11200EC1CBF /* Reachability.m */; };
 		B551DCF610D6A8A900EC1CBF /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = B551DCAE10D6A11200EC1CBF /* Reachability.m */; };
 		B55B604D0F765A320064029C /* ASIFormDataRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B60460F765A320064029C /* ASIFormDataRequest.m */; };
@@ -40,7 +35,6 @@
 		B55B608C0F765AD90064029C /* UploadProgress.xib in Resources */ = {isa = PBXBuildFile; fileRef = B55B60880F765AD90064029C /* UploadProgress.xib */; };
 		B55B608D0F765AD90064029C /* Synchronous.xib in Resources */ = {isa = PBXBuildFile; fileRef = B55B60890F765AD90064029C /* Synchronous.xib */; };
 		B55B608E0F765AD90064029C /* MainWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = B55B608A0F765AD90064029C /* MainWindow.xib */; };
-		B55B60930F765AF50064029C /* CFNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B55B60920F765AF50064029C /* CFNetwork.framework */; };
 		B55B60CF0F765BBA0064029C /* ASIFormDataRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B60460F765A320064029C /* ASIFormDataRequest.m */; };
 		B55B60D00F765BBD0064029C /* ASIHTTPRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B60480F765A320064029C /* ASIHTTPRequest.m */; };
 		B55B60D10F765BC00064029C /* ASINetworkQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B604A0F765A320064029C /* ASINetworkQueue.m */; };
@@ -48,13 +42,21 @@
 		B55B60D30F765BC90064029C /* ASIFormDataRequestTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B60530F765A3C0064029C /* ASIFormDataRequestTests.m */; };
 		B55B60D40F765BCD0064029C /* ASIHTTPRequestTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B60550F765A3C0064029C /* ASIHTTPRequestTests.m */; };
 		B55B60D50F765BD00064029C /* ASINetworkQueueTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B60570F765A3C0064029C /* ASINetworkQueueTests.m */; };
-		B55B61360F765C130064029C /* CFNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B55B60920F765AF50064029C /* CFNetwork.framework */; };
-		B55B61370F765C170064029C /* libz.1.2.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B55B60940F765AF80064029C /* libz.1.2.3.dylib */; };
-		B55B613C0F765C240064029C /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 288765070DF74369002DB57D /* CoreGraphics.framework */; };
-		B55B615B0F765C720064029C /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1DF5F4DF0D08C38300B7A737 /* UIKit.framework */; };
-		B55B616A0F765CA40064029C /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1D30AB110D05D00D00671497 /* Foundation.framework */; };
 		B5652920101C8BD7000499CF /* ASITestCase.m in Sources */ = {isa = PBXBuildFile; fileRef = B565291F101C8BD7000499CF /* ASITestCase.m */; };
 		B56529A3101C8EDA000499CF /* iphone-tests-icon.png in Resources */ = {isa = PBXBuildFile; fileRef = B56529A2101C8EDA000499CF /* iphone-tests-icon.png */; };
+		B576D4C111C7CC970059B815 /* CFNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D4C011C7CC970059B815 /* CFNetwork.framework */; };
+		B576D4C411C7CC9C0059B815 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D4C311C7CC9C0059B815 /* UIKit.framework */; };
+		B576D4C711C7CC9F0059B815 /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D4C611C7CC9F0059B815 /* MobileCoreServices.framework */; };
+		B576D4CA11C7CCA60059B815 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D4C911C7CCA60059B815 /* SystemConfiguration.framework */; };
+		B576D4D111C7CCBC0059B815 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D4D011C7CCBC0059B815 /* CoreGraphics.framework */; };
+		B576D51411C7CE6D0059B815 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D51311C7CE6D0059B815 /* Foundation.framework */; };
+		B576D51F11C7CEB20059B815 /* CFNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D51E11C7CEB20059B815 /* CFNetwork.framework */; };
+		B576D52111C7CEB70059B815 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D52011C7CEB70059B815 /* SystemConfiguration.framework */; };
+		B576D52311C7CEBC0059B815 /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D52211C7CEBC0059B815 /* MobileCoreServices.framework */; };
+		B576D52511C7CEC00059B815 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D52411C7CEC00059B815 /* UIKit.framework */; };
+		B576D52D11C7CEFA0059B815 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D52C11C7CEFA0059B815 /* Foundation.framework */; };
+		B576D53511C7CF0A0059B815 /* libz.1.1.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D53411C7CF0A0059B815 /* libz.1.1.3.dylib */; };
+		B576D53E11C7CF350059B815 /* libz.1.2.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D53D11C7CF350059B815 /* libz.1.2.3.dylib */; };
 		B5873FD610FF28CA001E145F /* ASIS3BucketObject.m in Sources */ = {isa = PBXBuildFile; fileRef = B5873FC210FF28CA001E145F /* ASIS3BucketObject.m */; };
 		B5873FD810FF28CA001E145F /* ASIS3Request.m in Sources */ = {isa = PBXBuildFile; fileRef = B5873FC610FF28CA001E145F /* ASIS3Request.m */; };
 		B5873FD910FF28CA001E145F /* ASICloudFilesCDNRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5873FC910FF28CA001E145F /* ASICloudFilesCDNRequest.m */; };
@@ -68,11 +70,8 @@
 		B59A87C2103EC6F200300252 /* ASIAuthenticationDialog.m in Sources */ = {isa = PBXBuildFile; fileRef = B59A87C1103EC6F200300252 /* ASIAuthenticationDialog.m */; };
 		B59A87C3103EC6F200300252 /* ASIAuthenticationDialog.m in Sources */ = {isa = PBXBuildFile; fileRef = B59A87C1103EC6F200300252 /* ASIAuthenticationDialog.m */; };
 		B5C6663E100A82D7004F3C96 /* ASIS3RequestTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B5C6663D100A82D7004F3C96 /* ASIS3RequestTests.m */; };
-		B5D145781029E7F3004379B8 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B5D145771029E7F3004379B8 /* SystemConfiguration.framework */; };
-		B5D1458C1029ED68004379B8 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B5D145771029E7F3004379B8 /* SystemConfiguration.framework */; };
 		B5EA45AA109B56D800E920CB /* StressTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B5EA45A9109B56D800E920CB /* StressTests.m */; };
 		B5F95171115237C800EDED69 /* libGHUnitIPhone3_0.a in CopyFiles */ = {isa = PBXBuildFile; fileRef = B54043751151538A00D8BE63 /* libGHUnitIPhone3_0.a */; };
-		B5FE289C1152417A002EA2B7 /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B5FE289B1152417A002EA2B7 /* MobileCoreServices.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -89,11 +88,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		1D30AB110D05D00D00671497 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		1D6058910D05DD3D006BFB54 /* ASIHTTPRequest.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ASIHTTPRequest.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		1DF5F4DF0D08C38300B7A737 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
-		288765070DF74369002DB57D /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
-		B517914A1024BFFF00583567 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
 		B51791941024C3DA00583567 /* Authentication.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Authentication.xib; path = "iPhone Sample/XIBs/Authentication.xib"; sourceTree = "<group>"; };
 		B51791A11024C3E800583567 /* AuthenticationViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AuthenticationViewController.h; path = "iPhone Sample/AuthenticationViewController.h"; sourceTree = "<group>"; };
 		B51791A21024C3E800583567 /* AuthenticationViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AuthenticationViewController.m; path = "iPhone Sample/AuthenticationViewController.m"; sourceTree = "<group>"; };
@@ -127,7 +122,6 @@
 		B54043AF1151542C00D8BE63 /* NSException+GHTestFailureExceptions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSException+GHTestFailureExceptions.h"; path = "External/GHUnit/Project-IPhone/build/Debug-iphonesimulator/NSException+GHTestFailureExceptions.h"; sourceTree = SOURCE_ROOT; };
 		B54043B01151542C00D8BE63 /* NSValue+GHValueFormatter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSValue+GHValueFormatter.h"; path = "External/GHUnit/Project-IPhone/build/Debug-iphonesimulator/NSValue+GHValueFormatter.h"; sourceTree = SOURCE_ROOT; };
 		B54043BA1151546F00D8BE63 /* libGHUnitIPhone3_0.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libGHUnitIPhone3_0.a; path = "External/GHUnit/Project-IPhone/build/CombinedDebug3_0/libGHUnitIPhone3_0.a"; sourceTree = SOURCE_ROOT; };
-		B545F6A511577E1A003FA377 /* MobileCoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MobileCoreServices.framework; path = System/Library/Frameworks/MobileCoreServices.framework; sourceTree = SDKROOT; };
 		B551DB4610D6938500EC1CBF /* ASIHTTPRequestConfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIHTTPRequestConfig.h; sourceTree = "<group>"; };
 		B551DCAD10D6A11200EC1CBF /* Reachability.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Reachability.h; sourceTree = "<group>"; };
 		B551DCAE10D6A11200EC1CBF /* Reachability.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Reachability.m; sourceTree = "<group>"; };
@@ -161,8 +155,6 @@
 		B55B60880F765AD90064029C /* UploadProgress.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = UploadProgress.xib; path = "iPhone Sample/XIBs/UploadProgress.xib"; sourceTree = "<group>"; };
 		B55B60890F765AD90064029C /* Synchronous.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Synchronous.xib; path = "iPhone Sample/XIBs/Synchronous.xib"; sourceTree = "<group>"; };
 		B55B608A0F765AD90064029C /* MainWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = MainWindow.xib; path = "iPhone Sample/XIBs/MainWindow.xib"; sourceTree = "<group>"; };
-		B55B60920F765AF50064029C /* CFNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CFNetwork.framework; path = System/Library/Frameworks/CFNetwork.framework; sourceTree = SDKROOT; };
-		B55B60940F765AF80064029C /* libz.1.2.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.1.2.3.dylib; path = usr/lib/libz.1.2.3.dylib; sourceTree = SDKROOT; };
 		B55B60C70F765BB00064029C /* Tests.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Tests.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B55B60CB0F765BB10064029C /* Tests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "Tests-Info.plist"; path = "iPhone Sample/Tests-Info.plist"; sourceTree = "<group>"; };
 		B565291E101C8BD7000499CF /* ASITestCase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASITestCase.h; sourceTree = "<group>"; };
@@ -170,6 +162,19 @@
 		B56529A2101C8EDA000499CF /* iphone-tests-icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "iphone-tests-icon.png"; path = "iPhone Sample/iphone-tests-icon.png"; sourceTree = "<group>"; };
 		B5747F271174BB8300C9414E /* ASIHTTPRequestDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIHTTPRequestDelegate.h; sourceTree = "<group>"; };
 		B5747F281174BB8300C9414E /* ASIProgressDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIProgressDelegate.h; sourceTree = "<group>"; };
+		B576D4C011C7CC970059B815 /* CFNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CFNetwork.framework; path = System/Library/Frameworks/CFNetwork.framework; sourceTree = SDKROOT; };
+		B576D4C311C7CC9C0059B815 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
+		B576D4C611C7CC9F0059B815 /* MobileCoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MobileCoreServices.framework; path = System/Library/Frameworks/MobileCoreServices.framework; sourceTree = SDKROOT; };
+		B576D4C911C7CCA60059B815 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
+		B576D4D011C7CCBC0059B815 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
+		B576D51311C7CE6D0059B815 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		B576D51E11C7CEB20059B815 /* CFNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CFNetwork.framework; path = System/Library/Frameworks/CFNetwork.framework; sourceTree = SDKROOT; };
+		B576D52011C7CEB70059B815 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
+		B576D52211C7CEBC0059B815 /* MobileCoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MobileCoreServices.framework; path = System/Library/Frameworks/MobileCoreServices.framework; sourceTree = SDKROOT; };
+		B576D52411C7CEC00059B815 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
+		B576D52C11C7CEFA0059B815 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		B576D53411C7CF0A0059B815 /* libz.1.1.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.1.1.3.dylib; path = usr/lib/libz.1.1.3.dylib; sourceTree = SDKROOT; };
+		B576D53D11C7CF350059B815 /* libz.1.2.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.1.2.3.dylib; path = usr/lib/libz.1.2.3.dylib; sourceTree = SDKROOT; };
 		B5873FC110FF28CA001E145F /* ASIS3BucketObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIS3BucketObject.h; sourceTree = "<group>"; };
 		B5873FC210FF28CA001E145F /* ASIS3BucketObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIS3BucketObject.m; sourceTree = "<group>"; };
 		B5873FC510FF28CA001E145F /* ASIS3Request.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIS3Request.h; sourceTree = "<group>"; };
@@ -194,10 +199,8 @@
 		B59A87C1103EC6F200300252 /* ASIAuthenticationDialog.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIAuthenticationDialog.m; sourceTree = "<group>"; };
 		B5C6663C100A82D7004F3C96 /* ASIS3RequestTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIS3RequestTests.h; sourceTree = "<group>"; };
 		B5C6663D100A82D7004F3C96 /* ASIS3RequestTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIS3RequestTests.m; sourceTree = "<group>"; };
-		B5D145771029E7F3004379B8 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
 		B5EA45A8109B56D800E920CB /* StressTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StressTests.h; sourceTree = "<group>"; };
 		B5EA45A9109B56D800E920CB /* StressTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = StressTests.m; sourceTree = "<group>"; };
-		B5FE289B1152417A002EA2B7 /* MobileCoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MobileCoreServices.framework; path = System/Library/Frameworks/MobileCoreServices.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -205,13 +208,12 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1D60589F0D05DD5A006BFB54 /* Foundation.framework in Frameworks */,
-				1DF5F4E00D08C38300B7A737 /* UIKit.framework in Frameworks */,
-				288765080DF74369002DB57D /* CoreGraphics.framework in Frameworks */,
-				B55B60930F765AF50064029C /* CFNetwork.framework in Frameworks */,
-				B517900B1024AD1B00583567 /* libz.1.2.3.dylib in Frameworks */,
-				B5D1458C1029ED68004379B8 /* SystemConfiguration.framework in Frameworks */,
-				B545F6A611577E1A003FA377 /* MobileCoreServices.framework in Frameworks */,
+				B576D51F11C7CEB20059B815 /* CFNetwork.framework in Frameworks */,
+				B576D52111C7CEB70059B815 /* SystemConfiguration.framework in Frameworks */,
+				B576D52311C7CEBC0059B815 /* MobileCoreServices.framework in Frameworks */,
+				B576D52511C7CEC00059B815 /* UIKit.framework in Frameworks */,
+				B576D52D11C7CEFA0059B815 /* Foundation.framework in Frameworks */,
+				B576D53511C7CF0A0059B815 /* libz.1.1.3.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -219,14 +221,14 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B55B61360F765C130064029C /* CFNetwork.framework in Frameworks */,
-				B55B61370F765C170064029C /* libz.1.2.3.dylib in Frameworks */,
-				B55B613C0F765C240064029C /* CoreGraphics.framework in Frameworks */,
-				B55B615B0F765C720064029C /* UIKit.framework in Frameworks */,
-				B55B616A0F765CA40064029C /* Foundation.framework in Frameworks */,
-				B5D145781029E7F3004379B8 /* SystemConfiguration.framework in Frameworks */,
 				B54043BB1151546F00D8BE63 /* libGHUnitIPhone3_0.a in Frameworks */,
-				B5FE289C1152417A002EA2B7 /* MobileCoreServices.framework in Frameworks */,
+				B576D4C111C7CC970059B815 /* CFNetwork.framework in Frameworks */,
+				B576D4C411C7CC9C0059B815 /* UIKit.framework in Frameworks */,
+				B576D4C711C7CC9F0059B815 /* MobileCoreServices.framework in Frameworks */,
+				B576D4CA11C7CCA60059B815 /* SystemConfiguration.framework in Frameworks */,
+				B576D4D111C7CCBC0059B815 /* CoreGraphics.framework in Frameworks */,
+				B576D51411C7CE6D0059B815 /* Foundation.framework in Frameworks */,
+				B576D53E11C7CF350059B815 /* libz.1.2.3.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -276,13 +278,20 @@
 				29B97317FDCFA39411CA2CEA /* Resources */,
 				29B97323FDCFA39411CA2CEA /* Frameworks */,
 				19C28FACFE9D520D11CA2CBB /* Products */,
-				B55B60920F765AF50064029C /* CFNetwork.framework */,
-				B55B60940F765AF80064029C /* libz.1.2.3.dylib */,
-				B517914A1024BFFF00583567 /* Security.framework */,
-				B5D145771029E7F3004379B8 /* SystemConfiguration.framework */,
 				B54043751151538A00D8BE63 /* libGHUnitIPhone3_0.a */,
-				B5FE289B1152417A002EA2B7 /* MobileCoreServices.framework */,
-				B545F6A511577E1A003FA377 /* MobileCoreServices.framework */,
+				B576D4C011C7CC970059B815 /* CFNetwork.framework */,
+				B576D4C311C7CC9C0059B815 /* UIKit.framework */,
+				B576D4C611C7CC9F0059B815 /* MobileCoreServices.framework */,
+				B576D4C911C7CCA60059B815 /* SystemConfiguration.framework */,
+				B576D4D011C7CCBC0059B815 /* CoreGraphics.framework */,
+				B576D51311C7CE6D0059B815 /* Foundation.framework */,
+				B576D51E11C7CEB20059B815 /* CFNetwork.framework */,
+				B576D52011C7CEB70059B815 /* SystemConfiguration.framework */,
+				B576D52211C7CEBC0059B815 /* MobileCoreServices.framework */,
+				B576D52411C7CEC00059B815 /* UIKit.framework */,
+				B576D52C11C7CEFA0059B815 /* Foundation.framework */,
+				B576D53411C7CF0A0059B815 /* libz.1.1.3.dylib */,
+				B576D53D11C7CF350059B815 /* libz.1.2.3.dylib */,
 			);
 			name = iPhone;
 			sourceTree = "<group>";
@@ -325,9 +334,6 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				1DF5F4DF0D08C38300B7A737 /* UIKit.framework */,
-				1D30AB110D05D00D00671497 /* Foundation.framework */,
-				288765070DF74369002DB57D /* CoreGraphics.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -620,11 +626,12 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "iPhone Sample/iPhone_Prefix.pch";
+				GCC_VERSION = com.apple.compilers.llvmgcc42;
 				INFOPLIST_FILE = "iPhone Sample/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 2.2.1;
 				PRODUCT_NAME = ASIHTTPRequest;
 				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
-				SDKROOT = iphoneos3.1.3;
+				SDKROOT = iphonesimulator4.0;
 			};
 			name = Debug;
 		};
@@ -636,11 +643,12 @@
 				COPY_PHASE_STRIP = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "iPhone Sample/iPhone_Prefix.pch";
+				GCC_VERSION = com.apple.compilers.llvmgcc42;
 				INFOPLIST_FILE = "iPhone Sample/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 2.2.1;
 				PRODUCT_NAME = ASIHTTPRequest;
 				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
-				SDKROOT = iphoneos3.1.3;
+				SDKROOT = iphonesimulator4.0;
 			};
 			name = Release;
 		};
@@ -672,7 +680,7 @@
 				);
 				PRODUCT_NAME = Tests;
 				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
-				SDKROOT = iphonesimulator3.1.3;
+				SDKROOT = iphoneos4.0;
 				WARNING_CFLAGS = "";
 			};
 			name = Debug;
@@ -706,7 +714,7 @@
 				PREBINDING = NO;
 				PRODUCT_NAME = Tests;
 				PROVISIONING_PROFILE = "";
-				SDKROOT = iphoneos3.0;
+				SDKROOT = iphoneos4.0;
 				SKIP_INSTALL = YES;
 			};
 			name = Release;

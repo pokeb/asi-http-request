@@ -21,10 +21,19 @@
 
 extern NSString *ASIHTTPRequestVersion;
 
-// Make targeting 2.2.1 more reliable
+// Make targeting different platforms more reliable
 // See: http://www.blumtnwerx.com/blog/2009/06/cross-sdk-code-hygiene-in-xcode/
 #ifndef __IPHONE_3_0
 	#define __IPHONE_3_0 30000
+#endif
+#ifndef __IPHONE_4_0
+	#define __IPHONE_4_0 40000
+#endif
+#ifndef __MAC_10_5
+	#define __MAC_10_5 1050
+#endif
+#ifndef __MAC_10_6
+	#define __MAC_10_6 1060
 #endif
 
 typedef enum _ASIAuthenticationState {

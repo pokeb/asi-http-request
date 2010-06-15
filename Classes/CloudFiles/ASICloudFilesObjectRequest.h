@@ -10,7 +10,7 @@
 
 
 // Prevent warning about missing NSXMLParserDelegate on Leopard and iPhone
-#if !TARGET_OS_IPHONE && MAC_OS_X_VERSION_10_5 < MAC_OS_X_VERSION_MAX_ALLOWED
+#if (!TARGET_OS_IPHONE && MAC_OS_X_VERSION_MIN_REQUIRED >= __MAC_10_6) || (TARGET_OS_IPHONE && __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_4_0)
 @interface ASICloudFilesObjectRequest : ASICloudFilesRequest <NSXMLParserDelegate> {
 #else
 @interface ASICloudFilesObjectRequest : ASICloudFilesRequest {
