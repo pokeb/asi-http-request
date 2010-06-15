@@ -13,9 +13,17 @@ ASIAuthenticationDialog *sharedDialog = nil;
 NSLock *dialogLock = nil;
 BOOL isDismissing = NO;
 
+static const NSUInteger kUsernameRow = 0;
+static const NSUInteger kUsernameSection = 0;
+static const NSUInteger kPasswordRow = 1;
+static const NSUInteger kPasswordSection = 0;
+static const NSUInteger kDomainRow = 0;
+static const NSUInteger kDomainSection = 1;
+
 @interface ASIAuthenticationDialog ()
 - (void)show;
 @property (retain) UITableView *tableView;
+@property (retain) UIBarButtonItem *loginButton;
 @end
 
 @implementation ASIAuthenticationDialog
@@ -71,6 +79,7 @@ BOOL isDismissing = NO;
 
 	[request release];
 	[tableView release];
+	[loginButton release];
 	[presentingController.view removeFromSuperview];
 	[presentingController release];
 	[super dealloc];
@@ -110,6 +119,21 @@ BOOL isDismissing = NO;
 	return [[[[[self tableView] cellForRowAtIndexPath:
 			   [NSIndexPath indexPathForRow:row inSection:section]]
 			  contentView] subviews] objectAtIndex:0];
+}
+
+- (UITextField *)usernameField
+{
+	return [self textFieldInRow:kUsernameRow section:kUsernameSection];
+}
+
+- (UITextField *)passwordField
+{
+	return [self textFieldInRow:kPasswordRow section:kPasswordSection];
+}
+
+- (UITextField *)domainField
+{
+	return [self textFieldInRow:kDomainRow section:kDomainSection];
 }
 
 #pragma mark show / dismiss
@@ -161,8 +185,10 @@ BOOL isDismissing = NO;
 		[navItem setTitle:[[[self request] url] host]];
 	}
 
+	[self setLoginButton:[[UIBarButtonItem alloc] initWithTitle:@"Login" style:UIBarButtonItemStyleDone target:self action:@selector(loginWithCredentialsFromDialog:)]];
 	[navItem setLeftBarButtonItem:[[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self action:@selector(cancelAuthenticationFromDialog:)] autorelease]];
-	[navItem setRightBarButtonItem:[[[UIBarButtonItem alloc] initWithTitle:@"Login" style:UIBarButtonItemStyleDone target:self action:@selector(loginWithCredentialsFromDialog:)] autorelease]];
+	[navItem setRightBarButtonItem:loginButton];
+	loginButton.enabled = NO;
 
 	// We show the login form in a table view, similar to Safari's authentication dialog
 	[bar sizeToFit];
@@ -192,8 +218,8 @@ BOOL isDismissing = NO;
 
 - (void)loginWithCredentialsFromDialog:(id)sender
 {
-	NSString *username = [[self textFieldInRow:0 section:0] text];
-	NSString *password = [[self textFieldInRow:1 section:0] text];
+	NSString *username = [[self usernameField] text];
+	NSString *password = [[self passwordField] text];
 
 	if ([self type] == ASIProxyAuthenticationType) {
 		[[self request] setProxyUsername:username];
@@ -206,7 +232,7 @@ BOOL isDismissing = NO;
 	// Handle NTLM domains
 	NSString *scheme = ([self type] == ASIStandardAuthenticationType) ? [[self request] authenticationScheme] : [[self request] proxyAuthenticationScheme];
 	if ([scheme isEqualToString:(NSString *)kCFHTTPAuthenticationSchemeNTLM]) {
-		NSString *domain = [[self textFieldInRow:0 section:2] text];
+		NSString *domain = [[self domainField] text];
 		if ([self type] == ASIProxyAuthenticationType) {
 			[[self request] setProxyDomain:domain];
 		} else {
@@ -267,16 +293,17 @@ BOOL isDismissing = NO;
 	[textField setAutoresizingMask:UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight];
 	[textField setAutocapitalizationType:UITextAutocapitalizationTypeNone];
 	[textField setAutocorrectionType:UITextAutocorrectionTypeNo];
+	[textField setDelegate:self];
 
 	NSUInteger s = [indexPath section];
 	NSUInteger r = [indexPath row];
 
-	if (s == 0 && r == 0) {
+	if (s == kUsernameSection && r == kUsernameRow) {
 		[textField setPlaceholder:@"User"];
-	} else if (s == 0 && r == 1) {
+	} else if (s == kPasswordSection && r == kPasswordRow) {
 		[textField setPlaceholder:@"Password"];
 		[textField setSecureTextEntry:YES];
-	} else if (s == 1) {
+	} else if (s == kDomainSection && r == kDomainRow) {
 		[textField setPlaceholder:@"Domain"];
 	}
 	[cell.contentView addSubview:textField];
@@ -307,9 +334,40 @@ BOOL isDismissing = NO;
 	return nil;
 }
 
+#pragma mark text field delegates
+
+- (BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string
+{
+	NSString *newString = [[textField text] stringByReplacingCharactersInRange:range withString:string];
+	NSArray *fields = [NSArray arrayWithObjects:
+					   [self usernameField],
+					   [self passwordField],
+					   [self domainField], // ends the array early if not set
+					   nil];
+	BOOL allFilled = YES;
+
+	for (UITextField *field in fields) {
+		NSString *text = nil;
+		if (field == textField) {
+			text = newString;
+		} else {
+			text = [field text];
+		}
+
+		if ([text length] == 0) {
+			allFilled = NO;
+			break;
+		}
+	}
+
+	loginButton.enabled = allFilled;
+	return YES;
+}
+
 #pragma mark -
 
 @synthesize request;
 @synthesize type;
 @synthesize tableView;
+@synthesize loginButton;
 @end

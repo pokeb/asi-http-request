@@ -14,12 +14,12 @@ typedef enum _ASIAuthenticationType {
     ASIProxyAuthenticationType = 1
 } ASIAuthenticationType;
 	
-@interface ASIAuthenticationDialog : UIViewController <UIActionSheetDelegate, UITableViewDelegate, UITableViewDataSource> {
+@interface ASIAuthenticationDialog : UIViewController <UIActionSheetDelegate, UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate> {
 	ASIHTTPRequest *request;
 	ASIAuthenticationType type;
 	UITableView *tableView;
 	UIViewController *presentingController;
-	CGFloat keyboardHeight;
+	UIBarButtonItem *loginButton;
 }
 + (void)presentAuthenticationDialogForRequest:(ASIHTTPRequest *)request;
 + (void)presentProxyAuthenticationDialogForRequest:(ASIHTTPRequest *)request;
