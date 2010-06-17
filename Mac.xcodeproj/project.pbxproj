@@ -163,6 +163,7 @@
 		B587400610FF2913001E145F /* ASICloudFilesRequestTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASICloudFilesRequestTests.m; sourceTree = "<group>"; };
 		B587400710FF2913001E145F /* ASICloudFilesRequestTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASICloudFilesRequestTests.h; sourceTree = "<group>"; };
 		B5B513850FBEE515002C74D0 /* GHUnitTestMain.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GHUnitTestMain.m; sourceTree = "<group>"; };
+		B5BD2BE611CA5EBC00D7C426 /* ASINSXMLParserCompat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ASINSXMLParserCompat.h; path = Classes/S3/ASINSXMLParserCompat.h; sourceTree = SOURCE_ROOT; };
 		B5C664BA100A6220004F3C96 /* ASIS3RequestTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIS3RequestTests.h; sourceTree = "<group>"; };
 		B5C664BB100A6220004F3C96 /* ASIS3RequestTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIS3RequestTests.m; sourceTree = "<group>"; };
 		B5DB4976115624BF0062DB57 /* GHUnit.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = GHUnit.xcodeproj; path = External/GHUnit/Project/GHUnit.xcodeproj; sourceTree = "<group>"; };
@@ -339,6 +340,7 @@
 		B5873F8F10FF2890001E145F /* CloudFiles */ = {
 			isa = PBXGroup;
 			children = (
+				B5BD2BE611CA5EBC00D7C426 /* ASINSXMLParserCompat.h */,
 				B5873F9010FF2890001E145F /* ASICloudFilesCDNRequest.h */,
 				B5873F9110FF2890001E145F /* ASICloudFilesCDNRequest.m */,
 				B5873F9210FF2890001E145F /* ASICloudFilesContainer.h */,
@@ -594,6 +596,7 @@
 				INFOPLIST_FILE = "Mac Sample/Tests-Info.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
 				LD_RUNPATH_SEARCH_PATHS = "@loader_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				OTHER_LDFLAGS = (
 					"-framework",
 					Foundation,
@@ -602,7 +605,7 @@
 				);
 				PREBINDING = NO;
 				PRODUCT_NAME = "Unit Tests (GHUnit)";
-				SDKROOT = macosx10.5;
+				SDKROOT = macosx10.6;
 			};
 			name = Debug;
 		};
@@ -621,6 +624,7 @@
 				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/AppKit.framework/Headers/AppKit.h";
 				INFOPLIST_FILE = "Mac Sample/Tests-Info.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				OTHER_LDFLAGS = (
 					"-framework",
 					Foundation,
@@ -629,6 +633,7 @@
 				);
 				PREBINDING = NO;
 				PRODUCT_NAME = "Unit Tests (GHUnit)";
+				SDKROOT = macosx10.6;
 				ZERO_LINK = NO;
 			};
 			name = Release;
@@ -679,9 +684,10 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
 				ONLY_ACTIVE_ARCH = YES;
 				PREBINDING = NO;
-				SDKROOT = macosx10.5;
+				SDKROOT = macosx10.6;
 			};
 			name = Debug;
 		};
@@ -692,8 +698,9 @@
 				GCC_C_LANGUAGE_STANDARD = "compiler-default";
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
 				PREBINDING = NO;
-				SDKROOT = macosx10.5;
+				SDKROOT = macosx10.6;
 			};
 			name = Release;
 		};

@@ -197,6 +197,7 @@
 		B5873FF410FF2904001E145F /* ASICloudFilesRequestTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASICloudFilesRequestTests.h; sourceTree = "<group>"; };
 		B59A87C0103EC6F200300252 /* ASIAuthenticationDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIAuthenticationDialog.h; sourceTree = "<group>"; };
 		B59A87C1103EC6F200300252 /* ASIAuthenticationDialog.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIAuthenticationDialog.m; sourceTree = "<group>"; };
+		B5BD2B7111CA5C2700D7C426 /* ASINSXMLParserCompat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASINSXMLParserCompat.h; sourceTree = "<group>"; };
 		B5C6663C100A82D7004F3C96 /* ASIS3RequestTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIS3RequestTests.h; sourceTree = "<group>"; };
 		B5C6663D100A82D7004F3C96 /* ASIS3RequestTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIS3RequestTests.m; sourceTree = "<group>"; };
 		B5EA45A8109B56D800E920CB /* StressTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StressTests.h; sourceTree = "<group>"; };
@@ -397,6 +398,7 @@
 		B5873FC010FF28CA001E145F /* S3 */ = {
 			isa = PBXGroup;
 			children = (
+				B5BD2B7111CA5C2700D7C426 /* ASINSXMLParserCompat.h */,
 				B5403FFF115114BA00D8BE63 /* ASIS3Bucket.h */,
 				B5404000115114BA00D8BE63 /* ASIS3Bucket.m */,
 				B5404001115114BA00D8BE63 /* ASIS3BucketRequest.h */,
@@ -729,7 +731,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				PREBINDING = NO;
-				SDKROOT = iphoneos2.2.1;
+				SDKROOT = iphoneos3.2;
 			};
 			name = Debug;
 		};
@@ -742,7 +744,7 @@
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				PREBINDING = NO;
-				SDKROOT = iphoneos3.0;
+				SDKROOT = iphoneos3.2;
 			};
 			name = Release;
 		};
