@@ -13,8 +13,11 @@ typedef enum _ASIAuthenticationType {
 	ASIStandardAuthenticationType = 0,
     ASIProxyAuthenticationType = 1
 } ASIAuthenticationType;
-	
-@interface ASIAuthenticationDialog : UIViewController <UIActionSheetDelegate, UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate> {
+
+@interface ASIAutorotatingViewController : UIViewController
+@end
+
+@interface ASIAuthenticationDialog : ASIAutorotatingViewController <UIActionSheetDelegate, UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate> {
 	ASIHTTPRequest *request;
 	ASIAuthenticationType type;
 	UITableView *tableView;

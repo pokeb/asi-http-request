@@ -20,6 +20,22 @@ static const NSUInteger kPasswordSection = 0;
 static const NSUInteger kDomainRow = 0;
 static const NSUInteger kDomainSection = 1;
 
+
+@implementation ASIAutorotatingViewController
+
+- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation
+{
+#if __IPHONE_3_2 && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_3_2
+	if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
+		return YES;
+	}
+#endif
+	return (toInterfaceOrientation == UIInterfaceOrientationPortrait);
+}
+
+@end
+
+
 @interface ASIAuthenticationDialog ()
 - (void)show;
 @property (retain) UITableView *tableView;
@@ -108,7 +124,7 @@ static const NSUInteger kDomainSection = 1;
 - (UIViewController *)presentingController
 {
 	if (!presentingController) {
-		presentingController = [[UIViewController alloc] initWithNibName:nil bundle:nil];
+		presentingController = [[ASIAutorotatingViewController alloc] initWithNibName:nil bundle:nil];
 
 		// Attach to the window, but don't interfere.
 		UIWindow *window = [[[UIApplication sharedApplication] windows] objectAtIndex:0];
