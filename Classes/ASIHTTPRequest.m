@@ -1501,6 +1501,9 @@ static BOOL isiPhoneOS2;
 #if DEBUG_REQUEST_STATUS || DEBUG_THROTTLING
 	NSLog(@"Request finished: %@",self);
 #endif
+	if ([self shouldPresentAuthenticationDialog] || [self shouldPresentProxyAuthenticationDialog]) {
+		[self performSelectorOnMainThread:@selector(dismissAuthenticationDialog) withObject:nil waitUntilDone:[NSThread isMainThread]];
+	}
 	if ([self error] || [self mainRequest]) {
 		return;
 	}
@@ -2178,6 +2181,11 @@ static BOOL isiPhoneOS2;
 #else
 	return NO;
 #endif
+}
+
+- (void)dismissAuthenticationDialog
+{
+	[ASIAuthenticationDialog dismiss];
 }
 
 - (BOOL)askDelegateForCredentials
