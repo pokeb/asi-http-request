@@ -166,10 +166,12 @@ static const NSUInteger kDomainSection = 1;
 
 	// Setup toolbar
 	UINavigationBar *bar = [[[UINavigationBar alloc] init] autorelease];
-	[[self view] addSubview:bar];
+	[bar setAutoresizingMask:UIViewAutoresizingFlexibleWidth];
 
 	UINavigationItem *navItem = [[[UINavigationItem alloc] init] autorelease];
 	bar.items = [NSArray arrayWithObject:navItem];
+
+	[[self view] addSubview:bar];
 
 	// Setup the title
 	if ([self type] == ASIProxyAuthenticationType) {
@@ -199,11 +201,18 @@ static const NSUInteger kDomainSection = 1;
 	[self setTableView:[[[UITableView alloc] initWithFrame:f style:UITableViewStyleGrouped] autorelease]];
 	[[self tableView] setDelegate:self];
 	[[self tableView] setDataSource:self];
+	[[self tableView] setAutoresizingMask:UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight];
 	[[self view] addSubview:[self tableView]];
 
 	// Force reload the table content, and focus the first field to show the keyboard
 	[[self tableView] reloadData];
 	[[[[[self tableView] cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]].contentView subviews] objectAtIndex:0] becomeFirstResponder];
+
+#if __IPHONE_3_2 && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_3_2
+	if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
+		[self setModalPresentationStyle:UIModalPresentationFormSheet];
+	}
+#endif
 
 	[[self presentingController] presentModalViewController:self animated:YES];
 }
