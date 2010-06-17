@@ -39,7 +39,6 @@ static const NSUInteger kDomainSection = 1;
 @interface ASIAuthenticationDialog ()
 - (void)show;
 @property (retain) UITableView *tableView;
-@property (retain) UIBarButtonItem *loginButton;
 @end
 
 @implementation ASIAuthenticationDialog
@@ -95,7 +94,6 @@ static const NSUInteger kDomainSection = 1;
 
 	[request release];
 	[tableView release];
-	[loginButton release];
 	[presentingController.view removeFromSuperview];
 	[presentingController release];
 	[super dealloc];
@@ -209,10 +207,8 @@ static const NSUInteger kDomainSection = 1;
 		[navItem setTitle:[[[self request] url] host]];
 	}
 
-	[self setLoginButton:[[UIBarButtonItem alloc] initWithTitle:@"Login" style:UIBarButtonItemStyleDone target:self action:@selector(loginWithCredentialsFromDialog:)]];
 	[navItem setLeftBarButtonItem:[[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self action:@selector(cancelAuthenticationFromDialog:)] autorelease]];
-	[navItem setRightBarButtonItem:loginButton];
-	loginButton.enabled = NO;
+	[navItem setRightBarButtonItem:[[[UIBarButtonItem alloc] initWithTitle:@"Login" style:UIBarButtonItemStyleDone target:self action:@selector(loginWithCredentialsFromDialog:)] autorelease]];
 
 	// We show the login form in a table view, similar to Safari's authentication dialog
 	[bar sizeToFit];
@@ -251,6 +247,9 @@ static const NSUInteger kDomainSection = 1;
 {
 	NSString *username = [[self usernameField] text];
 	NSString *password = [[self passwordField] text];
+
+	if (username == nil) { username = @""; }
+	if (password == nil) { password = @""; }
 
 	if ([self type] == ASIProxyAuthenticationType) {
 		[[self request] setProxyUsername:username];
@@ -329,7 +328,6 @@ static const NSUInteger kDomainSection = 1;
 	[textField setAutoresizingMask:UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight];
 	[textField setAutocapitalizationType:UITextAutocapitalizationTypeNone];
 	[textField setAutocorrectionType:UITextAutocorrectionTypeNo];
-	[textField setDelegate:self];
 
 	NSUInteger s = [indexPath section];
 	NSUInteger r = [indexPath row];
@@ -370,40 +368,9 @@ static const NSUInteger kDomainSection = 1;
 	return nil;
 }
 
-#pragma mark text field delegates
-
-- (BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string
-{
-	NSString *newString = [[textField text] stringByReplacingCharactersInRange:range withString:string];
-	NSArray *fields = [NSArray arrayWithObjects:
-					   [self usernameField],
-					   [self passwordField],
-					   [self domainField], // ends the array early if not set
-					   nil];
-	BOOL allFilled = YES;
-
-	for (UITextField *field in fields) {
-		NSString *text = nil;
-		if (field == textField) {
-			text = newString;
-		} else {
-			text = [field text];
-		}
-
-		if ([text length] == 0) {
-			allFilled = NO;
-			break;
-		}
-	}
-
-	loginButton.enabled = allFilled;
-	return YES;
-}
-
 #pragma mark -
 
 @synthesize request;
 @synthesize type;
 @synthesize tableView;
-@synthesize loginButton;
 @end

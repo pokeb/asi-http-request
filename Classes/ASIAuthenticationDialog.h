@@ -17,12 +17,11 @@ typedef enum _ASIAuthenticationType {
 @interface ASIAutorotatingViewController : UIViewController
 @end
 
-@interface ASIAuthenticationDialog : ASIAutorotatingViewController <UIActionSheetDelegate, UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate> {
+@interface ASIAuthenticationDialog : ASIAutorotatingViewController <UIActionSheetDelegate, UITableViewDelegate, UITableViewDataSource> {
 	ASIHTTPRequest *request;
 	ASIAuthenticationType type;
 	UITableView *tableView;
 	UIViewController *presentingController;
-	UIBarButtonItem *loginButton;
 }
 + (void)presentAuthenticationDialogForRequest:(ASIHTTPRequest *)request;
 + (void)presentProxyAuthenticationDialogForRequest:(ASIHTTPRequest *)request;
