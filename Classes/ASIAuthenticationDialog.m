@@ -89,12 +89,18 @@ static const NSUInteger kDomainSection = 1;
 
 - (void)keyboardWillShow:(NSNotification *)notification
 {
-	NSValue *keyboardBoundsValue = [[notification userInfo] objectForKey:UIKeyboardBoundsUserInfoKey];
-	CGRect keyboardBounds;
-	[keyboardBoundsValue getValue:&keyboardBounds];
-	UIEdgeInsets e = UIEdgeInsetsMake(0, 0, keyboardBounds.size.height, 0);
-	[[self tableView] setScrollIndicatorInsets:e];
-	[[self tableView] setContentInset:e];
+#if __IPHONE_3_2 && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_3_2
+	if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone) {
+#endif
+		NSValue *keyboardBoundsValue = [[notification userInfo] objectForKey:UIKeyboardBoundsUserInfoKey];
+		CGRect keyboardBounds;
+		[keyboardBoundsValue getValue:&keyboardBounds];
+		UIEdgeInsets e = UIEdgeInsetsMake(0, 0, keyboardBounds.size.height, 0);
+		[[self tableView] setScrollIndicatorInsets:e];
+		[[self tableView] setContentInset:e];
+#if __IPHONE_3_2 && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_3_2
+	}
+#endif
 }
 
 #pragma mark utilities
