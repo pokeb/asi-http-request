@@ -1560,12 +1560,12 @@
 	[self setResponseData:[NSMutableData dataWithLength:0]];
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_great_american_novel_%28young_readers_edition%29.txt"]];
 	[request setDelegate:self];
-	[request setDidReceiveDataSelector:@selector(testRequest:didReceiveData:)];
-	[request setDidFinishSelector:@selector(testRequestFinished:)];
+	[request setDidReceiveDataSelector:@selector(theTestRequest:didReceiveData:)];
+	[request setDidFinishSelector:@selector(theTestRequestFinished:)];
 	[request startAsynchronous];
 }
 
-- (void)testRequestFinished:(ASIHTTPRequest *)request
+- (void)theTestRequestFinished:(ASIHTTPRequest *)request
 {
 	ASIHTTPRequest *request2 = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_great_american_novel_%28young_readers_edition%29.txt"]];
 	[request2 startSynchronous];
@@ -1574,7 +1574,7 @@
 	GHAssertTrue(success,@"Failed to correctly download and store the response using a delegate");
 }
 
-- (void)testRequest:(ASIHTTPRequest *)request didReceiveData:(NSData *)data
+- (void)theTestRequest:(ASIHTTPRequest *)request didReceiveData:(NSData *)data
 {
 	[[self responseData] appendData:data];
 }
@@ -1602,6 +1602,7 @@
 	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com:80/ASIHTTPRequest/tests/basic-authentication"]];
 	[request startSynchronous];
 }
+
 
 @synthesize responseData;
 @end
