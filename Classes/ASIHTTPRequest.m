@@ -23,7 +23,7 @@
 
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.6.2-20 2010-06-17";
+NSString *ASIHTTPRequestVersion = @"v1.6.2-21 2010-06-17";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -1736,7 +1736,14 @@ static BOOL isiPhoneOS2;
 				[self setRequestMethod:@"GET"];
 				[self setPostBody:nil];
 				[self setPostLength:0];
-				[self setRequestHeaders:nil];
+
+				// Perhaps there are other headers we should be preserving, but it's hard to know what we need to keep and what to throw away.
+				NSString *userAgent = [[self requestHeaders] objectForKey:@"User-Agent"];
+				if (userAgent) {
+					[self setRequestHeaders:[NSMutableDictionary dictionaryWithObject:userAgent forKey:@"User-Agent"]];
+				} else {
+					[self setRequestHeaders:nil];
+				}
 				[self setHaveBuiltRequestHeaders:NO];
 			} else {
 			

@@ -447,6 +447,13 @@
 	
 	success = ([[[request originalURL] absoluteString] isEqualToString:@"http://allseeing-i.com/ASIHTTPRequest/tests/redirect/301"]);
 	GHAssertTrue(success,@"Failed to preserve original url");	
+
+	// Ensure user agent is preserved
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/redirect/301"]];
+	[request addRequestHeader:@"User-Agent" value:@"test"];
+	[request startSynchronous];
+	success = ([[[request requestHeaders] objectForKey:@"User-Agent"] isEqualToString:@"test"]);
+	GHAssertTrue(success,@"Failed to preserve original user agent on redirect");
 }
 
 // Using a persistent connection for HTTP 305-307 would cause crashes on the redirect, not really sure why
@@ -1602,6 +1609,7 @@
 	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com:80/ASIHTTPRequest/tests/basic-authentication"]];
 	[request startSynchronous];
 }
+
 
 
 @synthesize responseData;
