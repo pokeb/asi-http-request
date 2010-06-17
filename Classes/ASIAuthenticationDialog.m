@@ -271,9 +271,14 @@ static const NSUInteger kDomainSection = 1;
 	return 0;
 }
 
-- (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section
+- (CGFloat)tableView:(UITableView *)aTableView heightForHeaderInSection:(NSInteger)section
 {
 	if (section == 0) {
+#if __IPHONE_3_2 && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_3_2
+		if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
+			return 54;
+		}
+#endif
 		return 30;
 	}
 	return 0;
