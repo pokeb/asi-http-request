@@ -10,18 +10,9 @@
 		B51791A31024C3E800583567 /* AuthenticationViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B51791A21024C3E800583567 /* AuthenticationViewController.m */; };
 		B522DACE1030B2AB009A2D22 /* ASIInputStream.m in Sources */ = {isa = PBXBuildFile; fileRef = B522DACD1030B2AB009A2D22 /* ASIInputStream.m */; };
 		B522DACF1030B2AB009A2D22 /* ASIInputStream.m in Sources */ = {isa = PBXBuildFile; fileRef = B522DACD1030B2AB009A2D22 /* ASIInputStream.m */; };
-		B5231FAA11C9148B006C6E5A /* DetailCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B5231FA911C9148B006C6E5A /* DetailCell.m */; };
-		B523200F11C9191C006C6E5A /* DetailCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B5231FA911C9148B006C6E5A /* DetailCell.m */; };
-		B52322C411C94702006C6E5A /* RootViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B52322C311C94702006C6E5A /* RootViewController.m */; };
-		B52324F811C9FF9D006C6E5A /* SampleViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B52324F711C9FF9D006C6E5A /* SampleViewController.m */; };
-		B52324F911C9FF9D006C6E5A /* SampleViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B52324F711C9FF9D006C6E5A /* SampleViewController.m */; };
 		B523254211CA01F1006C6E5A /* Sample.xib in Resources */ = {isa = PBXBuildFile; fileRef = B523254111CA01F1006C6E5A /* Sample.xib */; };
 		B523254311CA01F1006C6E5A /* Sample.xib in Resources */ = {isa = PBXBuildFile; fileRef = B523254111CA01F1006C6E5A /* Sample.xib */; };
 		B52325AD11CA05A8006C6E5A /* info.png in Resources */ = {isa = PBXBuildFile; fileRef = B52325AC11CA05A8006C6E5A /* info.png */; };
-		B52325B311CA05B0006C6E5A /* InfoCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B52325B211CA05B0006C6E5A /* InfoCell.m */; };
-		B52325B411CA05B0006C6E5A /* InfoCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B52325B211CA05B0006C6E5A /* InfoCell.m */; };
-		B523264711CA0DEC006C6E5A /* ToggleCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B523264611CA0DEC006C6E5A /* ToggleCell.m */; };
-		B523264811CA0DEC006C6E5A /* ToggleCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B523264611CA0DEC006C6E5A /* ToggleCell.m */; };
 		B5254FF91025F9BF00CF7BC4 /* ProxyTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B5254FF71025F9BF00CF7BC4 /* ProxyTests.m */; };
 		B52D4A2F10DA4ED5008E8365 /* PerformanceTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B52D4A2E10DA4ED5008E8365 /* PerformanceTests.m */; };
 		B540400B115114BA00D8BE63 /* ASIS3Bucket.m in Sources */ = {isa = PBXBuildFile; fileRef = B5404000115114BA00D8BE63 /* ASIS3Bucket.m */; };
@@ -83,7 +74,6 @@
 		B576D71B11C7F34D0059B815 /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D52211C7CEBC0059B815 /* MobileCoreServices.framework */; };
 		B576D71C11C7F34D0059B815 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D52411C7CEC00059B815 /* UIKit.framework */; };
 		B576D71D11C7F34D0059B815 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D52C11C7CEFA0059B815 /* Foundation.framework */; };
-		B576D74A11C7F3E40059B815 /* iPadSampleAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = B576D74911C7F3E40059B815 /* iPadSampleAppDelegate.m */; };
 		B576D76611C7F4D90059B815 /* iPhoneMainWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = B576D76511C7F4D90059B815 /* iPhoneMainWindow.xib */; };
 		B576D77611C7F5810059B815 /* libz.1.2.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D53D11C7CF350059B815 /* libz.1.2.3.dylib */; };
 		B576D77711C7F5810059B815 /* libz.1.2.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D53D11C7CF350059B815 /* libz.1.2.3.dylib */; };
@@ -99,6 +89,16 @@
 		B5873FF510FF2904001E145F /* ASICloudFilesRequestTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B5873FF310FF2904001E145F /* ASICloudFilesRequestTests.m */; };
 		B59A87C2103EC6F200300252 /* ASIAuthenticationDialog.m in Sources */ = {isa = PBXBuildFile; fileRef = B59A87C1103EC6F200300252 /* ASIAuthenticationDialog.m */; };
 		B59A87C3103EC6F200300252 /* ASIAuthenticationDialog.m in Sources */ = {isa = PBXBuildFile; fileRef = B59A87C1103EC6F200300252 /* ASIAuthenticationDialog.m */; };
+		B5BD2AFA11CA541100D7C426 /* iPadSampleAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = B5BD2AF911CA541100D7C426 /* iPadSampleAppDelegate.m */; };
+		B5BD2B0111CA542000D7C426 /* DetailCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B5BD2AFC11CA542000D7C426 /* DetailCell.m */; };
+		B5BD2B0211CA542000D7C426 /* InfoCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B5BD2AFE11CA542000D7C426 /* InfoCell.m */; };
+		B5BD2B0311CA542000D7C426 /* ToggleCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B5BD2B0011CA542000D7C426 /* ToggleCell.m */; };
+		B5BD2B0411CA542000D7C426 /* DetailCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B5BD2AFC11CA542000D7C426 /* DetailCell.m */; };
+		B5BD2B0511CA542000D7C426 /* InfoCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B5BD2AFE11CA542000D7C426 /* InfoCell.m */; };
+		B5BD2B0611CA542000D7C426 /* ToggleCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B5BD2B0011CA542000D7C426 /* ToggleCell.m */; };
+		B5BD2B0B11CA542700D7C426 /* RootViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B5BD2B0811CA542700D7C426 /* RootViewController.m */; };
+		B5BD2B0C11CA542700D7C426 /* SampleViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B5BD2B0A11CA542700D7C426 /* SampleViewController.m */; };
+		B5BD2B0E11CA542700D7C426 /* SampleViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B5BD2B0A11CA542700D7C426 /* SampleViewController.m */; };
 		B5C6663E100A82D7004F3C96 /* ASIS3RequestTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B5C6663D100A82D7004F3C96 /* ASIS3RequestTests.m */; };
 		B5EA45AA109B56D800E920CB /* StressTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B5EA45A9109B56D800E920CB /* StressTests.m */; };
 		B5F95171115237C800EDED69 /* libGHUnitIPhone3_0.a in CopyFiles */ = {isa = PBXBuildFile; fileRef = B54043751151538A00D8BE63 /* libGHUnitIPhone3_0.a */; };
@@ -123,18 +123,8 @@
 		B51791A21024C3E800583567 /* AuthenticationViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AuthenticationViewController.m; path = "iPhone Sample/AuthenticationViewController.m"; sourceTree = "<group>"; };
 		B522DACC1030B2AB009A2D22 /* ASIInputStream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIInputStream.h; sourceTree = "<group>"; };
 		B522DACD1030B2AB009A2D22 /* ASIInputStream.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIInputStream.m; sourceTree = "<group>"; };
-		B5231FA811C9148B006C6E5A /* DetailCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DetailCell.h; sourceTree = "<group>"; };
-		B5231FA911C9148B006C6E5A /* DetailCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DetailCell.m; sourceTree = "<group>"; };
-		B52322C211C94702006C6E5A /* RootViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RootViewController.h; sourceTree = "<group>"; };
-		B52322C311C94702006C6E5A /* RootViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RootViewController.m; sourceTree = "<group>"; };
-		B52324F611C9FF9D006C6E5A /* SampleViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SampleViewController.h; sourceTree = "<group>"; };
-		B52324F711C9FF9D006C6E5A /* SampleViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SampleViewController.m; sourceTree = "<group>"; };
 		B523254111CA01F1006C6E5A /* Sample.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Sample.xib; path = "iPhone Sample/Resources/Sample.xib"; sourceTree = "<group>"; };
 		B52325AC11CA05A8006C6E5A /* info.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = info.png; path = "iPhone Sample/Resources/info.png"; sourceTree = "<group>"; };
-		B52325B111CA05B0006C6E5A /* InfoCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InfoCell.h; sourceTree = "<group>"; };
-		B52325B211CA05B0006C6E5A /* InfoCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = InfoCell.m; sourceTree = "<group>"; };
-		B523264511CA0DEC006C6E5A /* ToggleCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ToggleCell.h; sourceTree = "<group>"; };
-		B523264611CA0DEC006C6E5A /* ToggleCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ToggleCell.m; sourceTree = "<group>"; };
 		B5254FF71025F9BF00CF7BC4 /* ProxyTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ProxyTests.m; sourceTree = "<group>"; };
 		B5254FF81025F9BF00CF7BC4 /* ProxyTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ProxyTests.h; sourceTree = "<group>"; };
 		B52D4A2D10DA4ED5008E8365 /* PerformanceTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PerformanceTests.h; sourceTree = "<group>"; };
@@ -213,8 +203,6 @@
 		B576D52C11C7CEFA0059B815 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		B576D53D11C7CF350059B815 /* libz.1.2.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.1.2.3.dylib; path = usr/lib/libz.1.2.3.dylib; sourceTree = SDKROOT; };
 		B576D72311C7F34D0059B815 /* ASIHTTPRequest iPad.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "ASIHTTPRequest iPad.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		B576D74811C7F3E40059B815 /* iPadSampleAppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iPadSampleAppDelegate.h; sourceTree = "<group>"; };
-		B576D74911C7F3E40059B815 /* iPadSampleAppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iPadSampleAppDelegate.m; sourceTree = "<group>"; };
 		B576D76311C7F4D40059B815 /* iPadMainWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = iPadMainWindow.xib; path = "iPhone Sample/Resources/iPadMainWindow.xib"; sourceTree = "<group>"; };
 		B576D76511C7F4D90059B815 /* iPhoneMainWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = iPhoneMainWindow.xib; path = "iPhone Sample/Resources/iPhoneMainWindow.xib"; sourceTree = "<group>"; };
 		B5873FC110FF28CA001E145F /* ASIS3BucketObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIS3BucketObject.h; sourceTree = "<group>"; };
@@ -239,6 +227,18 @@
 		B5873FF410FF2904001E145F /* ASICloudFilesRequestTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASICloudFilesRequestTests.h; sourceTree = "<group>"; };
 		B59A87C0103EC6F200300252 /* ASIAuthenticationDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIAuthenticationDialog.h; sourceTree = "<group>"; };
 		B59A87C1103EC6F200300252 /* ASIAuthenticationDialog.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIAuthenticationDialog.m; sourceTree = "<group>"; };
+		B5BD2AF811CA541100D7C426 /* iPadSampleAppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = iPadSampleAppDelegate.h; path = "iPhone Sample/iPadSampleAppDelegate.h"; sourceTree = "<group>"; };
+		B5BD2AF911CA541100D7C426 /* iPadSampleAppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = iPadSampleAppDelegate.m; path = "iPhone Sample/iPadSampleAppDelegate.m"; sourceTree = "<group>"; };
+		B5BD2AFB11CA542000D7C426 /* DetailCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DetailCell.h; path = "iPhone Sample/DetailCell.h"; sourceTree = "<group>"; };
+		B5BD2AFC11CA542000D7C426 /* DetailCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DetailCell.m; path = "iPhone Sample/DetailCell.m"; sourceTree = "<group>"; };
+		B5BD2AFD11CA542000D7C426 /* InfoCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = InfoCell.h; path = "iPhone Sample/InfoCell.h"; sourceTree = "<group>"; };
+		B5BD2AFE11CA542000D7C426 /* InfoCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = InfoCell.m; path = "iPhone Sample/InfoCell.m"; sourceTree = "<group>"; };
+		B5BD2AFF11CA542000D7C426 /* ToggleCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ToggleCell.h; path = "iPhone Sample/ToggleCell.h"; sourceTree = "<group>"; };
+		B5BD2B0011CA542000D7C426 /* ToggleCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ToggleCell.m; path = "iPhone Sample/ToggleCell.m"; sourceTree = "<group>"; };
+		B5BD2B0711CA542700D7C426 /* RootViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RootViewController.h; path = "iPhone Sample/RootViewController.h"; sourceTree = "<group>"; };
+		B5BD2B0811CA542700D7C426 /* RootViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = RootViewController.m; path = "iPhone Sample/RootViewController.m"; sourceTree = "<group>"; };
+		B5BD2B0911CA542700D7C426 /* SampleViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SampleViewController.h; path = "iPhone Sample/SampleViewController.h"; sourceTree = "<group>"; };
+		B5BD2B0A11CA542700D7C426 /* SampleViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SampleViewController.m; path = "iPhone Sample/SampleViewController.m"; sourceTree = "<group>"; };
 		B5C6663C100A82D7004F3C96 /* ASIS3RequestTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIS3RequestTests.h; sourceTree = "<group>"; };
 		B5C6663D100A82D7004F3C96 /* ASIS3RequestTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIS3RequestTests.m; sourceTree = "<group>"; };
 		B5EA45A8109B56D800E920CB /* StressTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StressTests.h; sourceTree = "<group>"; };
@@ -364,8 +364,8 @@
 				B55B60670F765A930064029C /* QueueViewController.m */,
 				B55B606E0F765A930064029C /* iPhoneSampleAppDelegate.h */,
 				B55B606B0F765A930064029C /* iPhoneSampleAppDelegate.m */,
-				B576D74811C7F3E40059B815 /* iPadSampleAppDelegate.h */,
-				B576D74911C7F3E40059B815 /* iPadSampleAppDelegate.m */,
+				B5BD2AF811CA541100D7C426 /* iPadSampleAppDelegate.h */,
+				B5BD2AF911CA541100D7C426 /* iPadSampleAppDelegate.m */,
 				B55B605F0F765A750064029C /* iPhone_Prefix.pch */,
 				B55B60600F765A750064029C /* main.m */,
 				B52329A911CA3380006C6E5A /* UI helpers */,
@@ -399,16 +399,16 @@
 		B52329A911CA3380006C6E5A /* UI helpers */ = {
 			isa = PBXGroup;
 			children = (
-				B52324F611C9FF9D006C6E5A /* SampleViewController.h */,
-				B52324F711C9FF9D006C6E5A /* SampleViewController.m */,
-				B52322C211C94702006C6E5A /* RootViewController.h */,
-				B52322C311C94702006C6E5A /* RootViewController.m */,
-				B5231FA811C9148B006C6E5A /* DetailCell.h */,
-				B5231FA911C9148B006C6E5A /* DetailCell.m */,
-				B523264511CA0DEC006C6E5A /* ToggleCell.h */,
-				B523264611CA0DEC006C6E5A /* ToggleCell.m */,
-				B52325B111CA05B0006C6E5A /* InfoCell.h */,
-				B52325B211CA05B0006C6E5A /* InfoCell.m */,
+				B5BD2AFB11CA542000D7C426 /* DetailCell.h */,
+				B5BD2AFC11CA542000D7C426 /* DetailCell.m */,
+				B5BD2AFD11CA542000D7C426 /* InfoCell.h */,
+				B5BD2AFE11CA542000D7C426 /* InfoCell.m */,
+				B5BD2AFF11CA542000D7C426 /* ToggleCell.h */,
+				B5BD2B0011CA542000D7C426 /* ToggleCell.m */,
+				B5BD2B0711CA542700D7C426 /* RootViewController.h */,
+				B5BD2B0811CA542700D7C426 /* RootViewController.m */,
+				B5BD2B0911CA542700D7C426 /* SampleViewController.h */,
+				B5BD2B0A11CA542700D7C426 /* SampleViewController.m */,
 			);
 			name = "UI helpers";
 			sourceTree = "<group>";
@@ -687,10 +687,10 @@
 				B522DACF1030B2AB009A2D22 /* ASIInputStream.m in Sources */,
 				B59A87C3103EC6F200300252 /* ASIAuthenticationDialog.m in Sources */,
 				B551DCAF10D6A11200EC1CBF /* Reachability.m in Sources */,
-				B523200F11C9191C006C6E5A /* DetailCell.m in Sources */,
-				B52324F911C9FF9D006C6E5A /* SampleViewController.m in Sources */,
-				B52325B411CA05B0006C6E5A /* InfoCell.m in Sources */,
-				B523264811CA0DEC006C6E5A /* ToggleCell.m in Sources */,
+				B5BD2B0411CA542000D7C426 /* DetailCell.m in Sources */,
+				B5BD2B0511CA542000D7C426 /* InfoCell.m in Sources */,
+				B5BD2B0611CA542000D7C426 /* ToggleCell.m in Sources */,
+				B5BD2B0E11CA542700D7C426 /* SampleViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -748,12 +748,12 @@
 				B576D71511C7F34D0059B815 /* ASIInputStream.m in Sources */,
 				B576D71611C7F34D0059B815 /* ASIAuthenticationDialog.m in Sources */,
 				B576D71711C7F34D0059B815 /* Reachability.m in Sources */,
-				B576D74A11C7F3E40059B815 /* iPadSampleAppDelegate.m in Sources */,
-				B5231FAA11C9148B006C6E5A /* DetailCell.m in Sources */,
-				B52322C411C94702006C6E5A /* RootViewController.m in Sources */,
-				B52324F811C9FF9D006C6E5A /* SampleViewController.m in Sources */,
-				B52325B311CA05B0006C6E5A /* InfoCell.m in Sources */,
-				B523264711CA0DEC006C6E5A /* ToggleCell.m in Sources */,
+				B5BD2AFA11CA541100D7C426 /* iPadSampleAppDelegate.m in Sources */,
+				B5BD2B0111CA542000D7C426 /* DetailCell.m in Sources */,
+				B5BD2B0211CA542000D7C426 /* InfoCell.m in Sources */,
+				B5BD2B0311CA542000D7C426 /* ToggleCell.m in Sources */,
+				B5BD2B0B11CA542700D7C426 /* RootViewController.m in Sources */,
+				B5BD2B0C11CA542700D7C426 /* SampleViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
