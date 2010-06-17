@@ -536,7 +536,7 @@
 	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request startSynchronous];
 	
-	BOOL success = ([request contentLength] == 18443);
+	BOOL success = ([request contentLength] == 27872);
 	GHAssertTrue(success,@"Got wrong content length");
 }
 
