@@ -1,6 +1,6 @@
 //
 //  main.m
-//  iPhone
+//  Part of the ASIHTTPRequest sample project - see http://allseeing-i.com/ASIHTTPRequest for details
 //
 //  Created by Ben Copsey on 22/03/2009.
 //  Copyright All-Seeing Interactive 2009. All rights reserved.

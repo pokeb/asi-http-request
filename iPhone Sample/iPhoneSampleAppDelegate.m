@@ -1,6 +1,6 @@
 //
 //  iPhoneSampleAppDelegate.m
-//  asi-http-request
+//  Part of the ASIHTTPRequest sample project - see http://allseeing-i.com/ASIHTTPRequest for details
 //
 //  Created by Ben Copsey on 07/11/2008.
 //  Copyright All-Seeing Interactive 2008. All rights reserved.
@@ -12,12 +12,8 @@
 
 @implementation iPhoneSampleAppDelegate
 
-@synthesize window;
-@synthesize tabBarController;
-
-
-
-- (void)dealloc {
+- (void)dealloc
+{
     [tabBarController release];
     [window release];
     [super dealloc];
@@ -26,7 +22,7 @@
 - (void)applicationDidFinishLaunching:(UIApplication *)application {
     // Add the tab bar controller's current view as a subview of the window
     [window addSubview:[tabBarController view]];
-	[[tabBarController view] setFrame:CGRectMake(0,47,320,433)];
+	[[tabBarController view] setFrame:CGRectMake(0,42,320,438)];
 	[NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(updateStatus:) userInfo:nil repeats:YES];
 }
 
@@ -46,6 +42,9 @@
 	[statusMessage setText:[NSString stringWithFormat:@"%@ / %luKB per second / %@",connectionType, [ASIHTTPRequest averageBandwidthUsedPerSecond]/1024,throttling]];
 }
 
+
+@synthesize window;
+@synthesize tabBarController;
 
 @end
 
