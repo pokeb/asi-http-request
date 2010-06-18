@@ -23,7 +23,7 @@
 
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.6.2-18 2010-06-17";
+NSString *ASIHTTPRequestVersion = @"v1.6.2-21 2010-06-17";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -1262,6 +1262,34 @@ static BOOL isiPhoneOS2;
 - (ASIHTTPRequest *)HEADRequest
 {
 	ASIHTTPRequest *headRequest = [[self class] requestWithURL:[self url]];
+	
+	// Copy the properties that make sense for a HEAD request
+	[headRequest setRequestHeaders:[[[self requestHeaders] copy] autorelease]];
+	[headRequest setRequestCookies:[[[self requestCookies] copy] autorelease]];
+	[headRequest setUseCookiePersistence:[self useCookiePersistence]];
+	[headRequest setUseKeychainPersistence:[self useKeychainPersistence]];
+	[headRequest setUseSessionPersistence:[self useSessionPersistence]];
+	[headRequest setAllowCompressedResponse:[self allowCompressedResponse]];
+	[headRequest setUsername:[self username]];
+	[headRequest setPassword:[self password]];
+	[headRequest setDomain:[self domain]];
+	[headRequest setProxyUsername:[self proxyUsername]];
+	[headRequest setProxyPassword:[self proxyPassword]];
+	[headRequest setProxyDomain:[self proxyDomain]];
+	[headRequest setProxyHost:[self proxyHost]];
+	[headRequest setProxyPort:[self proxyPort]];
+	[headRequest setShouldPresentAuthenticationDialog:[self shouldPresentAuthenticationDialog]];
+	[headRequest setShouldPresentProxyAuthenticationDialog:[self shouldPresentProxyAuthenticationDialog]];
+	[headRequest setTimeOutSeconds:[self timeOutSeconds]];
+	[headRequest setUseHTTPVersionOne:[self useHTTPVersionOne]];
+	[headRequest setValidatesSecureCertificate:[self validatesSecureCertificate]];
+	[headRequest setPACurl:[self PACurl]];
+	[headRequest setShouldPresentCredentialsBeforeChallenge:[self shouldPresentCredentialsBeforeChallenge]];
+	[headRequest setNumberOfTimesToRetryOnTimeout:[self numberOfTimesToRetryOnTimeout]];
+	[headRequest setShouldUseRFC2616RedirectBehaviour:[self shouldUseRFC2616RedirectBehaviour]];
+	[headRequest setShouldAttemptPersistentConnection:[self shouldAttemptPersistentConnection]];
+	[headRequest setPersistentConnectionTimeoutSeconds:[self persistentConnectionTimeoutSeconds]];
+	
 	[headRequest setMainRequest:self];
 	[headRequest setRequestMethod:@"HEAD"];
 	return headRequest;
@@ -1708,7 +1736,14 @@ static BOOL isiPhoneOS2;
 				[self setRequestMethod:@"GET"];
 				[self setPostBody:nil];
 				[self setPostLength:0];
-				[self setRequestHeaders:nil];
+
+				// Perhaps there are other headers we should be preserving, but it's hard to know what we need to keep and what to throw away.
+				NSString *userAgent = [[self requestHeaders] objectForKey:@"User-Agent"];
+				if (userAgent) {
+					[self setRequestHeaders:[NSMutableDictionary dictionaryWithObject:userAgent forKey:@"User-Agent"]];
+				} else {
+					[self setRequestHeaders:nil];
+				}
 				[self setHaveBuiltRequestHeaders:NO];
 			} else {
 			

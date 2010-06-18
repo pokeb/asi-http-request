@@ -11,6 +11,10 @@
 #import <Foundation/Foundation.h>
 #import "ASIHTTPRequest.h"
 
+#if (!TARGET_OS_IPHONE && MAC_OS_X_VERSION_MAX_ALLOWED < __MAC_10_6) || (TARGET_OS_IPHONE && __IPHONE_OS_VERSION_MAX_ALLOWED < __IPHONE_4_0)
+#import "ASINSXMLParserCompat.h"
+#endif
+
 // See http://docs.amazonwebservices.com/AmazonS3/2006-03-01/index.html?RESTAccessPolicy.html for what these mean
 extern NSString *const ASIS3AccessPolicyPrivate; // This is the default in S3 when no access policy header is provided
 extern NSString *const ASIS3AccessPolicyPublicRead;
@@ -23,11 +27,9 @@ typedef enum _ASIS3ErrorType {
 	
 } ASIS3ErrorType;
 
-#if (!TARGET_OS_IPHONE && MAC_OS_X_VERSION_MIN_REQUIRED >= __MAC_10_6) || (TARGET_OS_IPHONE && __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_4_0)
+
 @interface ASIS3Request : ASIHTTPRequest <NSCopying, NSXMLParserDelegate> {
-#else
-@interface ASIS3Request : ASIHTTPRequest <NSCopying> {
-#endif
+	
 	// Your S3 access key. Set it on the request, or set it globally using [ASIS3Request setSharedAccessKey:]
 	NSString *accessKey;
 	
@@ -79,6 +81,7 @@ typedef enum _ASIS3ErrorType {
 // URL-encodes an S3 key so it can be used in a url
 // You shouldn't normally need to use this yourself
 + (NSString *)stringByURLEncodingForS3Path:(NSString *)key;
+
 
 
 @property (retain) NSString *dateString;

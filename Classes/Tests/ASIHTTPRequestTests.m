@@ -447,6 +447,13 @@
 	
 	success = ([[[request originalURL] absoluteString] isEqualToString:@"http://allseeing-i.com/ASIHTTPRequest/tests/redirect/301"]);
 	GHAssertTrue(success,@"Failed to preserve original url");	
+
+	// Ensure user agent is preserved
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/redirect/301"]];
+	[request addRequestHeader:@"User-Agent" value:@"test"];
+	[request startSynchronous];
+	success = ([[[request requestHeaders] objectForKey:@"User-Agent"] isEqualToString:@"test"]);
+	GHAssertTrue(success,@"Failed to preserve original user agent on redirect");
 }
 
 // Using a persistent connection for HTTP 305-307 would cause crashes on the redirect, not really sure why
@@ -536,7 +543,7 @@
 	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request startSynchronous];
 	
-	BOOL success = ([request contentLength] == 18443);
+	BOOL success = ([request contentLength] == 27872);
 	GHAssertTrue(success,@"Got wrong content length");
 }
 
@@ -1560,12 +1567,12 @@
 	[self setResponseData:[NSMutableData dataWithLength:0]];
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_great_american_novel_%28young_readers_edition%29.txt"]];
 	[request setDelegate:self];
-	[request setDidReceiveDataSelector:@selector(testRequest:didReceiveData:)];
-	[request setDidFinishSelector:@selector(testRequestFinished:)];
+	[request setDidReceiveDataSelector:@selector(theTestRequest:didReceiveData:)];
+	[request setDidFinishSelector:@selector(theTestRequestFinished:)];
 	[request startAsynchronous];
 }
 
-- (void)testRequestFinished:(ASIHTTPRequest *)request
+- (void)theTestRequestFinished:(ASIHTTPRequest *)request
 {
 	ASIHTTPRequest *request2 = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_great_american_novel_%28young_readers_edition%29.txt"]];
 	[request2 startSynchronous];
@@ -1574,7 +1581,7 @@
 	GHAssertTrue(success,@"Failed to correctly download and store the response using a delegate");
 }
 
-- (void)testRequest:(ASIHTTPRequest *)request didReceiveData:(NSData *)data
+- (void)theTestRequest:(ASIHTTPRequest *)request didReceiveData:(NSData *)data
 {
 	[[self responseData] appendData:data];
 }
@@ -1602,6 +1609,8 @@
 	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com:80/ASIHTTPRequest/tests/basic-authentication"]];
 	[request startSynchronous];
 }
+
+
 
 @synthesize responseData;
 @end
