@@ -23,7 +23,7 @@
 
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.6.2-21 2010-06-17";
+NSString *ASIHTTPRequestVersion = @"v1.6.2-22 2010-06-19";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -1264,8 +1264,8 @@ static BOOL isiPhoneOS2;
 	ASIHTTPRequest *headRequest = [[self class] requestWithURL:[self url]];
 	
 	// Copy the properties that make sense for a HEAD request
-	[headRequest setRequestHeaders:[[[self requestHeaders] copy] autorelease]];
-	[headRequest setRequestCookies:[[[self requestCookies] copy] autorelease]];
+	[headRequest setRequestHeaders:[[[self requestHeaders] mutableCopy] autorelease]];
+	[headRequest setRequestCookies:[[[self requestCookies] mutableCopy] autorelease]];
 	[headRequest setUseCookiePersistence:[self useCookiePersistence]];
 	[headRequest setUseKeychainPersistence:[self useKeychainPersistence]];
 	[headRequest setUseSessionPersistence:[self useSessionPersistence]];
@@ -2775,8 +2775,8 @@ static BOOL isiPhoneOS2;
 	[newRequest setPostBody:[self postBody]];
 	[newRequest setShouldStreamPostDataFromDisk:[self shouldStreamPostDataFromDisk]];
 	[newRequest setPostBodyFilePath:[self postBodyFilePath]];
-	[newRequest setRequestHeaders:[[[self requestHeaders] copyWithZone:zone] autorelease]];
-	[newRequest setRequestCookies:[[[self requestCookies] copyWithZone:zone] autorelease]];
+	[newRequest setRequestHeaders:[[[self requestHeaders] mutableCopyWithZone:zone] autorelease]];
+	[newRequest setRequestCookies:[[[self requestCookies] mutableCopyWithZone:zone] autorelease]];
 	[newRequest setUseCookiePersistence:[self useCookiePersistence]];
 	[newRequest setUseKeychainPersistence:[self useKeychainPersistence]];
 	[newRequest setUseSessionPersistence:[self useSessionPersistence]];
