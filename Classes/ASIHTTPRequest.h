@@ -342,9 +342,6 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	// Default is YES
 	BOOL shouldPresentCredentialsBeforeChallenge;
 	
-	// YES when the request is run with runSynchronous, NO otherwise. READ-ONLY
-	BOOL isSynchronous;
-	
 	// YES when the request hasn't finished yet. Will still be YES even if the request isn't doing anything (eg it's waiting for delegate authentication). READ-ONLY
 	BOOL inProgress;
 	
@@ -382,9 +379,6 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	// * A reference to the stream that is currently using the connection. This is necessary because we need to keep the old stream open until we've opened a new one.
 	//   The stream will be closed + released either when another request comes to use the connection, or when the timer fires to tell the connection to expire
 	NSMutableDictionary *connectionInfo;
-	
-	// This timer checks up on the request every 0.25 seconds, and updates progress
-	NSTimer *statusTimer;
 	
 	// When set to YES, 301 and 302 automatic redirects will use the original method and and body, according to the HTTP 1.1 standard
 	// Default is NO (to follow the behaviour of most browsers)
@@ -689,6 +683,10 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 // And also by ASIS3Request
 + (NSString *)base64forData:(NSData *)theData;
 
+#pragma mark request threading behaviour
+
++ (NSThread *)threadForRequest:(ASIHTTPRequest *)request;
+
 #pragma mark ===
 
 @property (retain) NSString *username;
@@ -766,7 +764,6 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 @property (assign, readonly) int proxyAuthenticationRetryCount;
 @property (assign) BOOL haveBuiltRequestHeaders;
 @property (assign, nonatomic) BOOL haveBuiltPostBody;
-@property (assign, readonly) BOOL isSynchronous;
 @property (assign, readonly) BOOL inProgress;
 @property (assign) int numberOfTimesToRetryOnTimeout;
 @property (assign, readonly) int retryCount;
