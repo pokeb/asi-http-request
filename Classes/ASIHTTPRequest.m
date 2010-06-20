@@ -23,7 +23,7 @@
 
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.6.2-23 2010-06-20";
+NSString *ASIHTTPRequestVersion = @"v1.6.2-24 2010-06-20";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -2637,7 +2637,7 @@ static BOOL isiPhoneOS2;
 {
 	[[self retain] autorelease];
 	
-	// release won't be called when running with GC, so we'll clean these up now
+	// dealloc won't be called when running with GC, so we'll clean these up now
 	if (request) {
 		CFMakeCollectable(request);
 	}
