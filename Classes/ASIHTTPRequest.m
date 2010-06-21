@@ -23,7 +23,7 @@
 
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.6.2-25 2010-06-20";
+NSString *ASIHTTPRequestVersion = @"v1.6.2-26 2010-06-21";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -127,26 +127,8 @@ static BOOL isiPhoneOS2;
 // Hangs around forever, but will be blocked unless there are requests underway
 static NSThread *networkThread = nil;
 
-// This lock is used to block the request thread to wait for more requests, and when waitUntilAllRequestsAreFinished is called
-static NSConditionLock *queueStateLock;
-
-// Updates the status of all running requests every 1/4 second
-static NSTimer *statusTimer = nil;
-
-// We store a reference to each queue when it is started, and remove it when it finishes
-// This makes using auto-released queues possible
-static NSMutableArray *runningRequests = nil;
-
-// Mediates accesss
-static NSLock *modifyRunningRequestsLock = nil;
-
 static NSOperationQueue *sharedQueue = nil;
 
-enum _ASIRequestQueueState {
-    NoRequestsQueuedState = 0,
-    RequestsQueuedState = 1,
-    RequestsInProgressState = 2
-};
 
 // Private stuff
 @interface ASIHTTPRequest ()
@@ -162,7 +144,8 @@ enum _ASIRequestQueueState {
 + (void)measureBandwidthUsage;
 + (void)recordBandwidthUsage;
 - (void)startRequest;
-- (void)updateStatus;
+- (void)updateStatus:(NSTimer *)timer;
+- (void)checkRequestStatus;
 
 - (void)markAsFinished;
 - (void)performRedirect;
@@ -215,84 +198,11 @@ enum _ASIRequestQueueState {
 @property (assign, nonatomic) BOOL downloadComplete;
 @property (retain) NSNumber *requestID;
 @property (assign, nonatomic) NSString *runLoopMode;
+@property (retain, nonatomic) NSTimer *statusTimer;
 @end
 
 
 @implementation ASIHTTPRequest
-
-// In the default implementation, all requests run in a single background thread that blocks until it has something to do
-// Advanced users only: Override this method in a subclass for a different threading behaviour
-// Eg: return [NSThread mainThread] to run all requests in the main thread
-// Or create your own thread (don't forget you need to run the thread's runloop or nothing will happen!)
-+ (NSThread *)threadForRequest:(ASIHTTPRequest *)request
-{
-	if (!networkThread) {
-		networkThread = [[NSThread alloc] initWithTarget:self selector:@selector(runRequests) object:nil];
-		[networkThread start];	
-	}
-	return networkThread;
-}
-
-// This is the main loop for the thread the requests run in
-// Basically, it runs the runloop while there are requests in progress
-// then blocks to wait for more requests to be added to the queue
-+ (void)runRequests
-{
-	while (1) {
-		NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-		
-		// Block until there's something for us to do
-		[queueStateLock lockWhenCondition:RequestsQueuedState];
-		[queueStateLock unlock];
-		
-		// We have queued requests, let's start them off
-		CFRunLoopRun();
-		
-		// We'll only get here when there are no more requests to run
-		NSLog(@"Nothing to do");
-		[pool release];
-	}
-}
-
-// Called to start off the timer that monitors the status of the running requests
-+ (void)startStatusTimer
-{
-	if (!statusTimer) {
-		NSLog(@"start timer");
-		statusTimer = [[NSTimer scheduledTimerWithTimeInterval:0.25 target:self selector:@selector(updateRequestStatus:) userInfo:nil repeats:YES] retain];
-	}
-}
-
-// Called to stop the timer that monitors the status of the running requests when there are no more requests to monitor
-+ (void)stopStatusTimer
-{
-	NSLog(@"stop timer");
-	[statusTimer invalidate];
-	[statusTimer release];
-	statusTimer = nil;
-}
-
-// Called every 0.25 seconds when there are requests running
-// The call to a request's updateStatus method will ensure requests update progress, and timeout if nescessary
-+ (void)updateRequestStatus:(NSTimer *)timer
-{
-	[modifyRunningRequestsLock lock];
-	NSLog(@"Update timer");
-	NSUInteger i;
-	// updateStatus may remove the request from this list
-	for (i=0; i<[runningRequests count]; i++) {
-		[[runningRequests objectAtIndex:i] updateStatus];
-	}
-	if (![runningRequests count]) {
-		[queueStateLock lock];
-		[queueStateLock unlockWithCondition:NoRequestsQueuedState];	
-		[self stopStatusTimer];
-		CFRunLoopStop(CFRunLoopGetCurrent());
-
-	}
-	[modifyRunningRequestsLock unlock];
-}
-
 
 #pragma mark init / dealloc
 
@@ -318,9 +228,8 @@ enum _ASIRequestQueueState {
 #else
 		isiPhoneOS2 = NO;
 #endif
-		queueStateLock = [[NSConditionLock alloc] init];
 		sharedQueue = [[NSOperationQueue alloc] init];
-		runningRequests = [[NSMutableArray array] retain];
+		[sharedQueue setMaxConcurrentOperationCount:4];
 
 	}
 }
@@ -365,7 +274,6 @@ enum _ASIRequestQueueState {
 
 - (void)dealloc
 {
-	NSLog(@"Dealloc");
 	[self setAuthenticationNeeded:ASINoAuthenticationNeededYet];
 	if (requestAuthentication) {
 		CFRelease(requestAuthentication);
@@ -621,11 +529,6 @@ enum _ASIRequestQueueState {
 - (void)start
 {
 	[self setInProgress:YES];
-	[modifyRunningRequestsLock lock];
-	[runningRequests addObject:self];
-	[modifyRunningRequestsLock unlock];
-	[queueStateLock lock];
-	[queueStateLock unlockWithCondition:RequestsQueuedState];
 	[self performSelector:@selector(main) onThread:[[self class] threadForRequest:self] withObject:nil waitUntilDone:NO];
 }
 
@@ -659,10 +562,6 @@ enum _ASIRequestQueueState {
 - (void)main
 {
 	@try {
-		
-		[queueStateLock lock];
-		[queueStateLock unlockWithCondition:RequestsInProgressState];
-		
 		
 		[self setComplete:NO];
 		
@@ -1131,8 +1030,30 @@ enum _ASIRequestQueueState {
 	
 	// Record when the request started, so we can timeout if nothing happens
 	[self setLastActivityTime:[NSDate date]];
-	[ASIHTTPRequest startStatusTimer];
+	[self setStatusTimer:[NSTimer timerWithTimeInterval:0.25 target:self selector:@selector(updateStatus:) userInfo:nil repeats:YES]];
+	[[NSRunLoop currentRunLoop] addTimer:[self statusTimer] forMode:[self runLoopMode]];
+}
 
+- (void)setStatusTimer:(NSTimer *)timer
+{
+	[self retain];
+	// We must invalidate the old timer here, not before we've created and scheduled a new timer
+	// This is because the timer may be the only thing retaining an asynchronous request
+	if (statusTimer && timer != statusTimer) {
+		[statusTimer invalidate];
+		[statusTimer release];
+	}
+	statusTimer = [timer retain];
+	[self release];
+}
+
+// This gets fired every 1/4 of a second to update the progress and work out if we need to timeout
+- (void)updateStatus:(NSTimer*)timer
+{
+	[self checkRequestStatus];
+	if (![self inProgress]) {
+		[self setStatusTimer:nil];
+	}
 }
 
 - (void)performRedirect
@@ -1176,7 +1097,7 @@ enum _ASIRequestQueueState {
 	return NO;
 }
 
-- (void)updateStatus
+- (void)checkRequestStatus
 {
 	// We won't let the request cancel while we're updating progress / checking for a timeout
 	[[self cancelledLock] lock];
@@ -2472,11 +2393,9 @@ enum _ASIRequestQueueState {
 	[[self cancelledLock] unlock];
 	
 	if ([self downloadComplete] && [self needsRedirect]) {
-//		CFRunLoopStop(CFRunLoopGetCurrent());
 		[self performRedirect];
 		return;
 	} else if ([self downloadComplete] && [self authenticationNeeded]) {
-//		CFRunLoopStop(CFRunLoopGetCurrent());
 		[self attemptToApplyCredentialsAndResume];
 		return;
 	}
@@ -2679,9 +2598,8 @@ enum _ASIRequestQueueState {
 		
 	// If request has asked delegate or ASIAuthenticationDialog for credentials
 	} else if ([self authenticationNeeded]) {
-		[modifyRunningRequestsLock lock];
-		[runningRequests removeObject:self];
-		[modifyRunningRequestsLock unlock];
+		[self setStatusTimer:nil];
+		CFRunLoopStop(CFRunLoopGetCurrent());
 	}
 }
 
@@ -2690,10 +2608,6 @@ enum _ASIRequestQueueState {
 	// Autoreleased requests may well be dealloced here otherwise
 	// We use manual retain release rather than [[self retain] autorelease] because the pool is only released when all requests are finished
 	[self retain];
-	
-	[modifyRunningRequestsLock lock];
-	[runningRequests removeObject:self];
-	[modifyRunningRequestsLock unlock];
 
 	// dealloc won't be called when running with GC, so we'll clean these up now
 	if (request) {
@@ -2707,7 +2621,12 @@ enum _ASIRequestQueueState {
 	}
 	[self willChangeValueForKey:@"isFinished"];
 	[self setInProgress:NO];
+
+	[self setStatusTimer:nil];
+
 	[self didChangeValueForKey:@"isFinished"];
+
+	CFRunLoopStop(CFRunLoopGetCurrent());
 
 	[self release];
 }
@@ -2767,7 +2686,7 @@ enum _ASIRequestQueueState {
 		
 		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIConnectionFailureErrorType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:reason,NSLocalizedDescriptionKey,underlyingError,NSUnderlyingErrorKey,nil]]];
 	}
-	[self updateStatus];
+	[self checkRequestStatus];
 }
 
 #pragma mark managing the read stream
@@ -3721,6 +3640,43 @@ enum _ASIRequestQueueState {
 }
 #endif
 
+#pragma mark threading behaviour
+
+// In the default implementation, all requests run in a single background thread
+// Advanced users only: Override this method in a subclass for a different threading behaviour
+// Eg: return [NSThread mainThread] to run all requests in the main thread
+// Alternatively, you can create a thread on demand, or manage a pool of threads
+// Threads returned by this method will need to run the runloop in default mode (eg CFRunLoopRun())
+// Requests will stop the runloop when they complete
+// If you have multiple requests sharing the thread or you want to re-use the thread, you'll need to restart the runloop
++ (NSThread *)threadForRequest:(ASIHTTPRequest *)request
+{
+	if (!networkThread) {
+		networkThread = [[NSThread alloc] initWithTarget:self selector:@selector(runRequests) object:nil];
+		[networkThread start];
+	}
+	return networkThread;
+}
+
++ (void)runRequests
+{
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+
+	// Create a timer that fires extremely infrequently and runs forever to keep the runloop from exiting
+	NSTimer *timer = [NSTimer scheduledTimerWithTimeInterval:DBL_MAX target:self selector:@selector(doNothing:) userInfo:nil repeats:YES];
+	timer = nil;
+
+	while (1) {
+		CFRunLoopRun();
+	}
+
+	[pool release];
+}
+
++ (void)doNothing:(NSTimer *)timer
+{
+}
+
 
 #pragma mark miscellany 
 
@@ -3864,4 +3820,5 @@ enum _ASIRequestQueueState {
 @synthesize downloadComplete;
 @synthesize requestID;
 @synthesize runLoopMode;
+@synthesize statusTimer;
 @end

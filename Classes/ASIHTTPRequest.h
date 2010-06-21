@@ -392,6 +392,9 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	
 	// Will be ASIHTTPRequestRunLoopMode for synchronous requests, NSDefaultRunLoopMode for all other requests
 	NSString *runLoopMode;
+
+	// This timer checks up on the request every 0.25 seconds, and updates progress
+	NSTimer *statusTimer;
 }
 
 #pragma mark init / dealloc
@@ -683,8 +686,15 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 // And also by ASIS3Request
 + (NSString *)base64forData:(NSData *)theData;
 
-#pragma mark request threading behaviour
+#pragma mark threading behaviour
 
+// In the default implementation, all requests run in a single background thread
+// Advanced users only: Override this method in a subclass for a different threading behaviour
+// Eg: return [NSThread mainThread] to run all requests in the main thread
+// Alternatively, you can create a thread on demand, or manage a pool of threads
+// Threads returned by this method will need to run the runloop in default mode (eg CFRunLoopRun())
+// Requests will stop the runloop when they complete
+// If you have multiple requests sharing the thread you'll need to restart the runloop when this happens
 + (NSThread *)threadForRequest:(ASIHTTPRequest *)request;
 
 #pragma mark ===
