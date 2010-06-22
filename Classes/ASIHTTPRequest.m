@@ -23,7 +23,7 @@
 
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.6.2-25 2010-06-22";
+NSString *ASIHTTPRequestVersion = @"v1.6.2-26 2010-06-22";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -3569,11 +3569,7 @@ static BOOL isiPhoneOS2;
 			// Yes, put this request to sleep until a second is up, with extra added punishment sleeping time for being very naughty (we have used more bandwidth than we were allowed)
 			double extraSleepyTime = (-bytesRemaining/(maxBandwidthPerSecond*1.0));
 			[throttleWakeUpTime release];
-			#if (!TARGET_OS_IPHONE && MAC_OS_X_VERSION_MIN_REQUIRED >= __MAC_10_6) || (TARGET_OS_IPHONE && __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_4_0)
-			throttleWakeUpTime = [[bandwidthMeasurementDate dateByAddingTimeInterval:extraSleepyTime] retain];
-			#else
-			throttleWakeUpTime = [[bandwidthMeasurementDate addTimeInterval:extraSleepyTime] retain];
-			#endif
+			throttleWakeUpTime = [[NSDate alloc] initWithTimeInterval:extraSleepyTime sinceDate:bandwidthMeasurementDate];
 		}
 	}
 	[bandwidthThrottlingLock unlock];
