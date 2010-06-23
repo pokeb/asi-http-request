@@ -23,19 +23,10 @@
 	[request setDidFinishSelector:@selector(topSecretFetchComplete:)];
 	[request setDidFailSelector:@selector(topSecretFetchFailed:)];
 	[request startAsynchronous];
-
-	[self setRequest:[ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/digest_authentication"]]];
-	[request setUseKeychainPersistence:[useKeychain isOn]];
-	[request setDelegate:self];
-	[request setShouldPresentAuthenticationDialog:[useBuiltInDialog isOn]];
-	[request setDidFinishSelector:@selector(topSecretFetchComplete:)];
-	[request setDidFailSelector:@selector(topSecretFetchFailed:)];
-	[request startAsynchronous];
 }
 
 - (IBAction)topSecretFetchFailed:(ASIHTTPRequest *)theRequest
 {
-	NSLog(@"%@",theRequest);
 	[responseField setText:[[request error] localizedDescription]];
 	[responseField setFont:[UIFont boldSystemFontOfSize:12]];
 }
