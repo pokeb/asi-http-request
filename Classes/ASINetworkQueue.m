@@ -42,22 +42,9 @@
 	[super dealloc];
 }
 
-- (BOOL)isNetworkActive
-{
-	return ([self requestsCount] > 0 && ![self isSuspended]);
-}
-
-- (void)updateNetworkActivityIndicator
-{
-#if TARGET_OS_IPHONE
-	[[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:[self isNetworkActive]];
-#endif
-}
-
 - (void)setSuspended:(BOOL)suspend
 {
 	[super setSuspended:suspend];
-	[self updateNetworkActivityIndicator];
 }
 
 - (void)reset
@@ -87,7 +74,6 @@
 	[self setBytesDownloadedSoFar:0];
 	[self setTotalBytesToDownload:0];
 	[super cancelAllOperations];
-	[self updateNetworkActivityIndicator];
 }
 
 - (void)setUploadProgressDelegate:(id)newDelegate
@@ -190,7 +176,6 @@
 	
 	[request setQueue:self];
 	[super addOperation:request];
-	[self updateNetworkActivityIndicator];
 
 }
 
@@ -212,7 +197,6 @@
 - (void)requestFinished:(ASIHTTPRequest *)request
 {
 	[self setRequestsCount:[self requestsCount]-1];
-	[self updateNetworkActivityIndicator];
 	if ([self requestDidFinishSelector]) {
 		[[self delegate] performSelector:[self requestDidFinishSelector] withObject:request];
 	}
@@ -226,7 +210,6 @@
 - (void)requestFailed:(ASIHTTPRequest *)request
 {
 	[self setRequestsCount:[self requestsCount]-1];
-	[self updateNetworkActivityIndicator];
 	if ([self requestDidFailSelector]) {
 		[[self delegate] performSelector:[self requestDidFailSelector] withObject:request];
 	}

@@ -24,7 +24,7 @@
 
 // Automatically set on build
 
-NSString *ASIHTTPRequestVersion = @"v1.6.2-58 2010-06-23";
+NSString *ASIHTTPRequestVersion = @"v1.6.2-61 2010-06-23";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -123,6 +123,15 @@ static NSDate *throttleWakeUpTime = nil;
 static BOOL isiPhoneOS2;
 
 static id <ASICacheDelegate> defaultCache = nil;
+
+
+// Used for tracking when requests are using the network
+static unsigned int runningRequestCount = 0;
+
+#if TARGET_OS_IPHONE
+// Use [ASIHTTPRequest setShouldUpdateNetworkActivityIndicator:NO] if you want to manage it yourself
+static BOOL shouldUpdateNetworkActivityIndicator = YES;
+#endif
 
 //**Queue stuff**/
 
@@ -2825,12 +2834,22 @@ static NSOperationQueue *sharedQueue = nil;
 {
     if ([self readStream]) {
 		CFReadStreamSetClient((CFReadStreamRef)[self readStream], kCFStreamEventNone, NULL, NULL);
-		[connectionsLock lock];		
+		[connectionsLock lock];
+
+		if (shouldUpdateNetworkActivityIndicator && [self readStreamIsScheduled]) {
+			runningRequestCount--;
+			#if TARGET_OS_IPHONE
+			if (runningRequestCount == 0) {
+				[[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
+			}
+			#endif
+		}
+
+		[self setReadStreamIsScheduled:NO];
 
 		if (![self connectionCanBeReused]) {
 			[[self readStream] removeFromRunLoop:[NSRunLoop currentRunLoop] forMode:[self runLoopMode]];
 			[[self readStream] close];
-			[self setReadStreamIsScheduled:NO];
 		}
 		[self setReadStream:nil];
 		[connectionsLock unlock];
@@ -2840,6 +2859,16 @@ static NSOperationQueue *sharedQueue = nil;
 - (void)scheduleReadStream
 {
 	if ([self readStream] && ![self readStreamIsScheduled]) {
+
+		[connectionsLock lock];
+		runningRequestCount++;
+		#if TARGET_OS_IPHONE
+		if (shouldUpdateNetworkActivityIndicator) {
+			[[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:YES];
+		}
+		#endif
+		[connectionsLock unlock];
+
 		// Reset the timeout
 		[self setLastActivityTime:[NSDate date]];
 		[[self readStream] scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:[self runLoopMode]];
@@ -2850,6 +2879,16 @@ static NSOperationQueue *sharedQueue = nil;
 - (void)unscheduleReadStream
 {
 	if ([self readStream] && [self readStreamIsScheduled]) {
+
+		[connectionsLock lock];
+		runningRequestCount--;
+		#if TARGET_OS_IPHONE
+		if (shouldUpdateNetworkActivityIndicator && runningRequestCount == 0) {
+			[[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
+		}
+		#endif
+		[connectionsLock unlock];
+
 		[[self readStream] removeFromRunLoop:[NSRunLoop currentRunLoop] forMode:[self runLoopMode]];
 		[self setReadStreamIsScheduled:NO];
 	}
@@ -3756,6 +3795,25 @@ static NSOperationQueue *sharedQueue = nil;
 	[bandwidthThrottlingLock unlock];
 }
 #endif
+
+#pragma mark network activity
+
++ (BOOL)isNetworkInUse
+{
+	[connectionsLock lock];
+	BOOL inUse = (runningRequestCount > 0);
+	[connectionsLock unlock];
+	return inUse;
+}
+#if TARGET_OS_IPHONE
++ (void)setShouldUpdateNetworkActivityIndicator:(BOOL)shouldUpdate
+{
+	[connectionsLock lock];
+	shouldUpdateNetworkActivityIndicator = shouldUpdate;
+	[connectionsLock unlock];
+}
+#endif
+
 
 #pragma mark threading behaviour
 

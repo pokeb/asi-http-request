@@ -46,7 +46,6 @@ Most of the code below here relates to the table view, and isn't that interestin
 
 }
 
-
 - (void)dealloc
 {
 	[request cancel];

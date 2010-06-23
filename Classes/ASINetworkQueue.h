@@ -80,14 +80,6 @@
 // This method will start the queue
 - (void)go;
 
-// Used on iPhone platform to show / hide the network activity indicator (in the status bar)
-// On mac, you could subclass to do something else
-- (void)updateNetworkActivityIndicator;
-
-// Returns YES if the queue is in progress
-- (BOOL)isNetworkActive;
-
-
 @property (assign,setter=setUploadProgressDelegate:) id uploadProgressDelegate;
 @property (assign,setter=setDownloadProgressDelegate:) id downloadProgressDelegate;
 

@@ -702,6 +702,13 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 // Returns the maximum amount of data we can read as part of the current measurement period, and sleeps this thread if our allowance is used up
 + (unsigned long)maxUploadReadLength;
 
+#pragma mark network activity
+
++ (BOOL)isNetworkInUse;
+#if TARGET_OS_IPHONE
++ (void)setShouldUpdateNetworkActivityIndicator:(BOOL)shouldUpdate;
+#endif
+
 #pragma mark miscellany 
 
 // Determines whether we're on iPhone OS 2.0 at runtime, currently used to determine whether we should apply a workaround for an issue with converting longs to doubles on iPhone OS 2
