@@ -343,9 +343,6 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	// Default is YES
 	BOOL shouldPresentCredentialsBeforeChallenge;
 	
-	// YES when the request is run with runSynchronous, NO otherwise. READ-ONLY
-	BOOL isSynchronous;
-	
 	// YES when the request hasn't finished yet. Will still be YES even if the request isn't doing anything (eg it's waiting for delegate authentication). READ-ONLY
 	BOOL inProgress;
 	
@@ -384,9 +381,6 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	//   The stream will be closed + released either when another request comes to use the connection, or when the timer fires to tell the connection to expire
 	NSMutableDictionary *connectionInfo;
 	
-	// This timer checks up on the request every 0.25 seconds, and updates progress
-	NSTimer *statusTimer;
-	
 	// When set to YES, 301 and 302 automatic redirects will use the original method and and body, according to the HTTP 1.1 standard
 	// Default is NO (to follow the behaviour of most browsers)
 	BOOL shouldUseRFC2616RedirectBehaviour;
@@ -399,6 +393,10 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	
 	// Will be ASIHTTPRequestRunLoopMode for synchronous requests, NSDefaultRunLoopMode for all other requests
 	NSString *runLoopMode;
+	
+	// This timer checks up on the request every 0.25 seconds, and updates progress
+	NSTimer *statusTimer;
+
 	
 	// The download cache that will be used for this request (use [ASIHTTPRequest setDefaultCache:cache] to configure a default cache
 	id <ASICacheDelegate> downloadCache;
@@ -414,7 +412,6 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 
 	// Set secondsToCache to use a custom time interval for expiring the response when it is stored in a cache
 	NSTimeInterval secondsToCache;
-
 }
 
 #pragma mark init / dealloc
@@ -717,6 +714,18 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 // Returns a date from a string in RFC1123 format
 + (NSDate *)dateFromRFC1123String:(NSString *)string;
 
+#pragma mark threading behaviour
+
+// In the default implementation, all requests run in a single background thread
+// Advanced users only: Override this method in a subclass for a different threading behaviour
+// Eg: return [NSThread mainThread] to run all requests in the main thread
+// Alternatively, you can create a thread on demand, or manage a pool of threads
+// Threads returned by this method will need to run the runloop in default mode (eg CFRunLoopRun())
+// Requests will stop the runloop when they complete
+// If you have multiple requests sharing the thread you'll need to restart the runloop when this happens
++ (NSThread *)threadForRequest:(ASIHTTPRequest *)request;
+
+
 #pragma mark ===
 
 @property (retain) NSString *username;
@@ -794,7 +803,6 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 @property (assign, readonly) int proxyAuthenticationRetryCount;
 @property (assign) BOOL haveBuiltRequestHeaders;
 @property (assign, nonatomic) BOOL haveBuiltPostBody;
-@property (assign, readonly) BOOL isSynchronous;
 @property (assign, readonly) BOOL inProgress;
 @property (assign) int numberOfTimesToRetryOnTimeout;
 @property (assign, readonly) int retryCount;

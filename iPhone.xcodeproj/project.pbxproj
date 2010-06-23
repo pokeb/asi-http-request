@@ -23,6 +23,9 @@
 		B54043BB1151546F00D8BE63 /* libGHUnitIPhone3_0.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B54043BA1151546F00D8BE63 /* libGHUnitIPhone3_0.a */; };
 		B552511411D20FC200F9B170 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B552511311D20FC200F9B170 /* CoreGraphics.framework */; };
 		B55251A111D2174C00F9B170 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B55251A011D2174C00F9B170 /* CoreGraphics.framework */; };
+		B55252B411D22E2200F9B170 /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = B55252B311D22E2200F9B170 /* Reachability.m */; };
+		B55252B511D22E2200F9B170 /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = B55252B311D22E2200F9B170 /* Reachability.m */; };
+		B55252B611D22E2200F9B170 /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = B55252B311D22E2200F9B170 /* Reachability.m */; };
 		B558B5EB11C7F9C8009B4627 /* iPadMainWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = B576D76311C7F4D40059B815 /* iPadMainWindow.xib */; };
 		B55B604D0F765A320064029C /* ASIFormDataRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B60460F765A320064029C /* ASIFormDataRequest.m */; };
 		B55B604E0F765A320064029C /* ASIHTTPRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B60480F765A320064029C /* ASIHTTPRequest.m */; };
@@ -155,6 +158,8 @@
 		B551DB4610D6938500EC1CBF /* ASIHTTPRequestConfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIHTTPRequestConfig.h; sourceTree = "<group>"; };
 		B552511311D20FC200F9B170 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		B55251A011D2174C00F9B170 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
+		B55252B211D22E2200F9B170 /* Reachability.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Reachability.h; sourceTree = "<group>"; };
+		B55252B311D22E2200F9B170 /* Reachability.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Reachability.m; sourceTree = "<group>"; };
 		B558B58911C7F637009B4627 /* iPhoneInfo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = iPhoneInfo.plist; path = "iPhone Sample/iPhoneInfo.plist"; sourceTree = "<group>"; };
 		B558B58B11C7F63E009B4627 /* iPadInfo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = iPadInfo.plist; path = "iPhone Sample/iPadInfo.plist"; sourceTree = "<group>"; };
 		B55B60450F765A320064029C /* ASIFormDataRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIFormDataRequest.h; sourceTree = "<group>"; };
@@ -416,6 +421,15 @@
 			name = "UI helpers";
 			sourceTree = "<group>";
 		};
+		B55252B111D22E2200F9B170 /* Reachability */ = {
+			isa = PBXGroup;
+			children = (
+				B55252B211D22E2200F9B170 /* Reachability.h */,
+				B55252B311D22E2200F9B170 /* Reachability.m */,
+			);
+			path = Reachability;
+			sourceTree = "<group>";
+		};
 		B55B60510F765A3C0064029C /* Tests */ = {
 			isa = PBXGroup;
 			children = (
@@ -506,6 +520,7 @@
 		B5D1454E1029E20D004379B8 /* External */ = {
 			isa = PBXGroup;
 			children = (
+				B55252B111D22E2200F9B170 /* Reachability */,
 				B5728DC110AED63D004F4CE6 /* GHUnit */,
 			);
 			path = External;
@@ -683,6 +698,7 @@
 				B5BD2B0511CA542000D7C426 /* InfoCell.m in Sources */,
 				B5BD2B0611CA542000D7C426 /* ToggleCell.m in Sources */,
 				B5BD2B0E11CA542700D7C426 /* SampleViewController.m in Sources */,
+				B55252B511D22E2200F9B170 /* Reachability.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -719,6 +735,7 @@
 				B540400D115114BA00D8BE63 /* ASIS3ObjectRequest.m in Sources */,
 				B540400E115114BA00D8BE63 /* ASIS3ServiceRequest.m in Sources */,
 				B54043B11151542C00D8BE63 /* GHUnitIPhoneTestMain.m in Sources */,
+				B55252B411D22E2200F9B170 /* Reachability.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -744,6 +761,7 @@
 				B5BD2B0311CA542000D7C426 /* ToggleCell.m in Sources */,
 				B5BD2B0B11CA542700D7C426 /* RootViewController.m in Sources */,
 				B5BD2B0C11CA542700D7C426 /* SampleViewController.m in Sources */,
+				B55252B611D22E2200F9B170 /* Reachability.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

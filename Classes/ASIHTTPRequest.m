@@ -24,7 +24,7 @@
 
 // Automatically set on build
 
-NSString *ASIHTTPRequestVersion = @"v1.6.2-37 2010-06-23";
+NSString *ASIHTTPRequestVersion = @"v1.6.2-58 2010-06-23";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -124,10 +124,17 @@ static BOOL isiPhoneOS2;
 
 static id <ASICacheDelegate> defaultCache = nil;
 
+//**Queue stuff**/
+
+// The thread all requests will run on
+// Hangs around forever, but will be blocked unless there are requests underway
+static NSThread *networkThread = nil;
+
+static NSOperationQueue *sharedQueue = nil;
+
 // Private stuff
 @interface ASIHTTPRequest ()
 
-- (void)checkRequestStatus;
 - (void)cancelLoad;
 
 - (void)destroyReadStream;
@@ -139,12 +146,13 @@ static id <ASICacheDelegate> defaultCache = nil;
 + (void)measureBandwidthUsage;
 + (void)recordBandwidthUsage;
 - (void)startRequest;
+- (void)updateStatus:(NSTimer *)timer;
+- (void)checkRequestStatus;
 
 - (void)markAsFinished;
 - (void)performRedirect;
 - (BOOL)shouldTimeOut;
 
-- (void)updateStatus:(NSTimer*)timer;
 
 - (BOOL)useDataFromCache;
 
@@ -153,6 +161,7 @@ static id <ASICacheDelegate> defaultCache = nil;
 + (void)unsubscribeFromNetworkReachabilityNotifications;
 // Called when the status of the network changes
 + (void)reachabilityChanged:(NSNotification *)note;
+
 #endif
 
 @property (assign) BOOL complete;
@@ -181,7 +190,6 @@ static id <ASICacheDelegate> defaultCache = nil;
 @property (retain) NSString *authenticationRealm;
 @property (retain) NSString *proxyAuthenticationRealm;
 @property (retain) NSString *responseStatusMessage;
-@property (assign) BOOL isSynchronous;
 @property (assign) BOOL inProgress;
 @property (assign) int retryCount;
 @property (assign) BOOL connectionCanBeReused;
@@ -189,10 +197,10 @@ static id <ASICacheDelegate> defaultCache = nil;
 @property (retain, nonatomic) NSInputStream *readStream;
 @property (assign) ASIAuthenticationState authenticationNeeded;
 @property (assign, nonatomic) BOOL readStreamIsScheduled;
-@property (retain, nonatomic) NSTimer *statusTimer;
 @property (assign, nonatomic) BOOL downloadComplete;
 @property (retain) NSNumber *requestID;
 @property (assign, nonatomic) NSString *runLoopMode;
+@property (retain, nonatomic) NSTimer *statusTimer;
 @property (assign) BOOL didUseCachedResponse;
 @end
 
@@ -223,6 +231,9 @@ static id <ASICacheDelegate> defaultCache = nil;
 #else
 		isiPhoneOS2 = NO;
 #endif
+		sharedQueue = [[NSOperationQueue alloc] init];
+		[sharedQueue setMaxConcurrentOperationCount:4];
+
 	}
 }
 
@@ -280,8 +291,6 @@ static id <ASICacheDelegate> defaultCache = nil;
 
 - (void)dealloc
 {
-	[statusTimer invalidate];
-	[statusTimer release];
 	[self setAuthenticationNeeded:ASINoAuthenticationNeededYet];
 	if (requestAuthentication) {
 		CFRelease(requestAuthentication);
@@ -523,39 +532,21 @@ static id <ASICacheDelegate> defaultCache = nil;
 #endif
 	[self setRunLoopMode:ASIHTTPRequestRunLoopMode];
 	[self setInProgress:YES];
-	@try {	
-		if (![self isCancelled] && ![self complete]) {
-			[self setIsSynchronous:YES];
-			[self main];
+
+	if (![self isCancelled] && ![self complete]) {
+		[self main];
+		while (!complete) {
+			[[NSRunLoop currentRunLoop] runMode:[self runLoopMode] beforeDate:[NSDate distantFuture]];
 		}
-		
-	} @catch (NSException *exception) {
-		NSError *underlyingError = [NSError errorWithDomain:NetworkRequestErrorDomain code:ASIUnhandledExceptionError userInfo:[exception userInfo]];
-		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIUnhandledExceptionError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[exception name],NSLocalizedDescriptionKey,[exception reason],NSLocalizedFailureReasonErrorKey,underlyingError,NSUnderlyingErrorKey,nil]]];
 	}
+
 	[self setInProgress:NO];
 }
 
 - (void)start
 {
-#if TARGET_OS_IPHONE
-	[self performSelectorInBackground:@selector(startAsynchronous) withObject:nil];
-#else
-
-    SInt32 versionMajor;
-	OSErr err = Gestalt(gestaltSystemVersionMajor, &versionMajor);
-	if (err != noErr) {
-		[NSException raise:@"FailedToDetectOSVersion" format:@"Unable to determine OS version, must give up"];
-	}
-	// GCD will run the operation in its thread pool on Snow Leopard
-	if (versionMajor >= 6) {
-		[self startAsynchronous];
-		
-	// On Leopard, we'll create the thread ourselves
-	} else {
-		[self performSelectorInBackground:@selector(startAsynchronous) withObject:nil];	
-	}
-#endif
+	[self setInProgress:YES];
+	[self performSelector:@selector(main) onThread:[[self class] threadForRequest:self] withObject:nil waitUntilDone:NO];
 }
 
 - (void)startAsynchronous
@@ -563,27 +554,7 @@ static id <ASICacheDelegate> defaultCache = nil;
 #if DEBUG_REQUEST_STATUS || DEBUG_THROTTLING
 	NSLog(@"Starting asynchronous request %@",self);
 #endif
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-
-	[self setInProgress:YES];	
-	@try {	
-		if ([self isCancelled] || [self complete])
-		{
-			[self willChangeValueForKey:@"isFinished"];
-			[self didChangeValueForKey:@"isFinished"];
-		} else {
-			[self willChangeValueForKey:@"isExecuting"];
-			[self didChangeValueForKey:@"isExecuting"];
-
-			[self main];
-
-		}
-		
-	} @catch (NSException *exception) {
-		NSError *underlyingError = [NSError errorWithDomain:NetworkRequestErrorDomain code:ASIUnhandledExceptionError userInfo:[exception userInfo]];
-		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIUnhandledExceptionError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[exception name],NSLocalizedDescriptionKey,[exception reason],NSLocalizedFailureReasonErrorKey,underlyingError,NSUnderlyingErrorKey,nil]]];
-	}	
-	[pool release];
+	[sharedQueue addOperation:self];
 }
 
 #pragma mark concurrency
@@ -607,85 +578,92 @@ static id <ASICacheDelegate> defaultCache = nil;
 // Create the request
 - (void)main
 {
-	[self setComplete:NO];
-	
-	// A HEAD request generated by an ASINetworkQueue may have set the error already. If so, we should not proceed.
-	if ([self error]) {
-		[self failWithError:nil];
-		return;		
-	}
-	
-	if (![self url]) {
-		[self failWithError:ASIUnableToCreateRequestError];
-		return;		
-	}
-	
-	// Must call before we create the request so that the request method can be set if needs be
-	if (![self mainRequest]) {
-		[self buildPostBody];
-	}
-	
-	if (![[self requestMethod] isEqualToString:@"GET"]) {
-		[self setDownloadCache:nil];
-	}
-	
-	// If we're redirecting, we'll already have a CFHTTPMessageRef
-	if (request) {
-		CFRelease(request);
-	}
-
-	// Create a new HTTP request.
-	request = CFHTTPMessageCreateRequest(kCFAllocatorDefault, (CFStringRef)[self requestMethod], (CFURLRef)[self url], [self useHTTPVersionOne] ? kCFHTTPVersion1_0 : kCFHTTPVersion1_1);
-	if (!request) {
-		[self failWithError:ASIUnableToCreateRequestError];
-		return;
-	}
-
-	//If this is a HEAD request generated by an ASINetworkQueue, we need to let the main request generate its headers first so we can use them
-	if ([self mainRequest]) {
-		[[self mainRequest] buildRequestHeaders];
-	}
-	
-	// Even if this is a HEAD request with a mainRequest, we still need to call to give subclasses a chance to add their own to HEAD requests (ASIS3Request does this)
-	[self buildRequestHeaders];
-	
-	if ([self downloadCache]) {
-		if ([self cachePolicy] == ASIDefaultCachePolicy) {
-			[self setCachePolicy:[[self downloadCache] defaultCachePolicy]];
+	@try {
+		
+		[self setComplete:NO];
+		
+		// A HEAD request generated by an ASINetworkQueue may have set the error already. If so, we should not proceed.
+		if ([self error]) {
+			[self failWithError:nil];
+			return;		
+		}
+		
+		if (![self url]) {
+			[self failWithError:ASIUnableToCreateRequestError];
+			return;		
+		}
+		
+		// Must call before we create the request so that the request method can be set if needs be
+		if (![self mainRequest]) {
+			[self buildPostBody];
+		}
+		
+		if (![[self requestMethod] isEqualToString:@"GET"]) {
+			[self setDownloadCache:nil];
+		}
+		
+		
+		// If we're redirecting, we'll already have a CFHTTPMessageRef
+		if (request) {
+			CFRelease(request);
 		}
 
-		// See if we should pull from the cache rather than fetching the data
-		if ([self cachePolicy] == ASIOnlyLoadIfNotCachedCachePolicy) {
-			if ([self useDataFromCache]) {
-				return;
-			}
-		} else if ([self cachePolicy] == ASIReloadIfDifferentCachePolicy) {
+		// Create a new HTTP request.
+		request = CFHTTPMessageCreateRequest(kCFAllocatorDefault, (CFStringRef)[self requestMethod], (CFURLRef)[self url], [self useHTTPVersionOne] ? kCFHTTPVersion1_0 : kCFHTTPVersion1_1);
+		if (!request) {
+			[self failWithError:ASIUnableToCreateRequestError];
+			return;
+		}
 
-			// Force a conditional GET if we have a cached version of this content already
-			NSDictionary *cachedHeaders = [[self downloadCache] cachedHeadersForRequest:self];
-			if (cachedHeaders) {
-				NSString *etag = [cachedHeaders objectForKey:@"Etag"];
-				if (etag) {
-					[[self requestHeaders] setObject:etag forKey:@"If-None-Match"];
+		//If this is a HEAD request generated by an ASINetworkQueue, we need to let the main request generate its headers first so we can use them
+		if ([self mainRequest]) {
+			[[self mainRequest] buildRequestHeaders];
+		}
+		
+		// Even if this is a HEAD request with a mainRequest, we still need to call to give subclasses a chance to add their own to HEAD requests (ASIS3Request does this)
+		[self buildRequestHeaders];
+		
+		if ([self downloadCache]) {
+			if ([self cachePolicy] == ASIDefaultCachePolicy) {
+				[self setCachePolicy:[[self downloadCache] defaultCachePolicy]];
+			}
+
+			// See if we should pull from the cache rather than fetching the data
+			if ([self cachePolicy] == ASIOnlyLoadIfNotCachedCachePolicy) {
+				if ([self useDataFromCache]) {
+					return;
 				}
-				NSString *lastModified = [cachedHeaders objectForKey:@"Last-Modified"];
-				if (lastModified) {
-					[[self requestHeaders] setObject:lastModified forKey:@"If-Modified-Since"];
+			} else if ([self cachePolicy] == ASIReloadIfDifferentCachePolicy) {
+
+				// Force a conditional GET if we have a cached version of this content already
+				NSDictionary *cachedHeaders = [[self downloadCache] cachedHeadersForRequest:self];
+				if (cachedHeaders) {
+					NSString *etag = [cachedHeaders objectForKey:@"Etag"];
+					if (etag) {
+						[[self requestHeaders] setObject:etag forKey:@"If-None-Match"];
+					}
+					NSString *lastModified = [cachedHeaders objectForKey:@"Last-Modified"];
+					if (lastModified) {
+						[[self requestHeaders] setObject:lastModified forKey:@"If-Modified-Since"];
+					}
 				}
 			}
 		}
-	}
 
-	[self applyAuthorizationHeader];
-	
-	
-	NSString *header;
-	for (header in [self requestHeaders]) {
-		CFHTTPMessageSetHeaderFieldValue(request, (CFStringRef)header, (CFStringRef)[[self requestHeaders] objectForKey:header]);
+		[self applyAuthorizationHeader];
+		
+		
+		NSString *header;
+		for (header in [self requestHeaders]) {
+			CFHTTPMessageSetHeaderFieldValue(request, (CFStringRef)header, (CFStringRef)[[self requestHeaders] objectForKey:header]);
+		}
+			
+		[self startRequest];
+		
+	} @catch (NSException *exception) {
+		NSError *underlyingError = [NSError errorWithDomain:NetworkRequestErrorDomain code:ASIUnhandledExceptionError userInfo:[exception userInfo]];
+		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIUnhandledExceptionError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[exception name],NSLocalizedDescriptionKey,[exception reason],NSLocalizedFailureReasonErrorKey,underlyingError,NSUnderlyingErrorKey,nil]]];
 	}
-	
-	[self startRequest];
-
 }
 
 - (void)applyAuthorizationHeader
@@ -1099,18 +1077,9 @@ static id <ASICacheDelegate> defaultCache = nil;
 	
 	
 	// Record when the request started, so we can timeout if nothing happens
-	[self setLastActivityTime:[NSDate date]];	
-	
-
+	[self setLastActivityTime:[NSDate date]];
 	[self setStatusTimer:[NSTimer timerWithTimeInterval:0.25 target:self selector:@selector(updateStatus:) userInfo:nil repeats:YES]];
 	[[NSRunLoop currentRunLoop] addTimer:[self statusTimer] forMode:[self runLoopMode]];
-	
-	// If we're running asynchronously on the main thread, the runloop will already be running and we can return control
-	if (![NSThread isMainThread] || [self isSynchronous] || ![[self runLoopMode] isEqualToString:NSDefaultRunLoopMode]) {
-		while (!complete) {
-			[[NSRunLoop currentRunLoop] runMode:[self runLoopMode] beforeDate:[NSDate distantFuture]];
-		}
-	}
 }
 
 - (void)setStatusTimer:(NSTimer *)timer
@@ -1119,13 +1088,20 @@ static id <ASICacheDelegate> defaultCache = nil;
 	// We must invalidate the old timer here, not before we've created and scheduled a new timer
 	// This is because the timer may be the only thing retaining an asynchronous request
 	if (statusTimer && timer != statusTimer) {
-		
 		[statusTimer invalidate];
 		[statusTimer release];
-		
 	}
 	statusTimer = [timer retain];
 	[self release];
+}
+
+// This gets fired every 1/4 of a second to update the progress and work out if we need to timeout
+- (void)updateStatus:(NSTimer*)timer
+{
+	[self checkRequestStatus];
+	if (![self inProgress]) {
+		[self setStatusTimer:nil];
+	}
 }
 
 - (void)performRedirect
@@ -1146,16 +1122,6 @@ static id <ASICacheDelegate> defaultCache = nil;
 		
 		// Go all the way back to the beginning and build the request again, so that we can apply any new cookies
 		[self main];
-	}
-}
-
-// This gets fired every 1/4 of a second to update the progress and work out if we need to timeout
-- (void)updateStatus:(NSTimer*)timer
-{	
-	[self checkRequestStatus];
-	if (![self inProgress]) {
-		[self setStatusTimer:nil];
-		CFRunLoopStop(CFRunLoopGetCurrent());
 	}
 }
 
@@ -1650,10 +1616,13 @@ static id <ASICacheDelegate> defaultCache = nil;
 		[[failedRequest queue] performSelectorOnMainThread:@selector(requestFailed:) withObject:failedRequest waitUntilDone:[NSThread isMainThread]];		
 	}
 	
+	// markAsFinished may well cause this object to be dealloced
+	[self retain];
 	[self markAsFinished];
 	if ([self mainRequest]) {
 		[[self mainRequest] markAsFinished];
-	}	
+	}
+	[self release];
 }
 
 #pragma mark parsing HTTP response headers
@@ -2495,15 +2464,11 @@ static id <ASICacheDelegate> defaultCache = nil;
 	[[self cancelledLock] unlock];
 	
 	if ([self downloadComplete] && [self needsRedirect]) {
-		CFRunLoopStop(CFRunLoopGetCurrent());
 		[self performRedirect];
 		return;
 	} else if ([self downloadComplete] && [self authenticationNeeded]) {
-		CFRunLoopStop(CFRunLoopGetCurrent());
 		[self attemptToApplyCredentialsAndResume];
 		return;
-	} else if (![self inProgress]) {
-		[self setStatusTimer:nil];
 	}
 	
 }
@@ -2712,13 +2677,20 @@ static id <ASICacheDelegate> defaultCache = nil;
 		}
 
 		[self markAsFinished];
+		
+	// If request has asked delegate or ASIAuthenticationDialog for credentials
+	} else if ([self authenticationNeeded]) {
+		[self setStatusTimer:nil];
+		CFRunLoopStop(CFRunLoopGetCurrent());
 	}
 }
 
 - (void)markAsFinished
 {
-	[[self retain] autorelease];
-	
+	// Autoreleased requests may well be dealloced here otherwise
+	// We use manual retain release rather than [[self retain] autorelease] because the pool is only released when all requests are finished
+	[self retain];
+
 	// dealloc won't be called when running with GC, so we'll clean these up now
 	if (request) {
 		CFMakeCollectable(request);
@@ -2731,8 +2703,14 @@ static id <ASICacheDelegate> defaultCache = nil;
 	}
 	[self willChangeValueForKey:@"isFinished"];
 	[self setInProgress:NO];
+
+	[self setStatusTimer:nil];
+
 	[self didChangeValueForKey:@"isFinished"];
+
 	CFRunLoopStop(CFRunLoopGetCurrent());
+
+	[self release];
 }
 
 - (BOOL)useDataFromCache
@@ -3779,6 +3757,43 @@ static id <ASICacheDelegate> defaultCache = nil;
 }
 #endif
 
+#pragma mark threading behaviour
+
+// In the default implementation, all requests run in a single background thread
+// Advanced users only: Override this method in a subclass for a different threading behaviour
+// Eg: return [NSThread mainThread] to run all requests in the main thread
+// Alternatively, you can create a thread on demand, or manage a pool of threads
+// Threads returned by this method will need to run the runloop in default mode (eg CFRunLoopRun())
+// Requests will stop the runloop when they complete
+// If you have multiple requests sharing the thread or you want to re-use the thread, you'll need to restart the runloop
++ (NSThread *)threadForRequest:(ASIHTTPRequest *)request
+{
+	if (!networkThread) {
+		networkThread = [[NSThread alloc] initWithTarget:self selector:@selector(runRequests) object:nil];
+		[networkThread start];
+	}
+	return networkThread;
+}
+
++ (void)runRequests
+{
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+
+	// Create a timer that fires extremely infrequently and runs forever to keep the runloop from exiting
+	NSTimer *timer = [NSTimer scheduledTimerWithTimeInterval:DBL_MAX target:self selector:@selector(doNothing:) userInfo:nil repeats:YES];
+	timer = nil;
+
+	while (1) {
+		CFRunLoopRun();
+	}
+
+	[pool release];
+}
+
++ (void)doNothing:(NSTimer *)timer
+{
+}
+
 
 + (void)setDefaultCache:(id <ASICacheDelegate>)cache
 {
@@ -3940,7 +3955,6 @@ static id <ASICacheDelegate> defaultCache = nil;
 @synthesize responseStatusMessage;
 @synthesize shouldPresentCredentialsBeforeChallenge;
 @synthesize haveBuiltRequestHeaders;
-@synthesize isSynchronous;
 @synthesize inProgress;
 @synthesize numberOfTimesToRetryOnTimeout;
 @synthesize retryCount;
@@ -3950,11 +3964,11 @@ static id <ASICacheDelegate> defaultCache = nil;
 @synthesize connectionInfo;
 @synthesize readStream;
 @synthesize readStreamIsScheduled;
-@synthesize statusTimer;
 @synthesize shouldUseRFC2616RedirectBehaviour;
 @synthesize downloadComplete;
 @synthesize requestID;
 @synthesize runLoopMode;
+@synthesize statusTimer;
 @synthesize downloadCache;
 @synthesize cachePolicy;
 @synthesize cacheStoragePolicy;
