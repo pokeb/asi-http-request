@@ -21,8 +21,6 @@
 		B540400E115114BA00D8BE63 /* ASIS3ServiceRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5404006115114BA00D8BE63 /* ASIS3ServiceRequest.m */; };
 		B54043B11151542C00D8BE63 /* GHUnitIPhoneTestMain.m in Sources */ = {isa = PBXBuildFile; fileRef = B54043AB1151542C00D8BE63 /* GHUnitIPhoneTestMain.m */; };
 		B54043BB1151546F00D8BE63 /* libGHUnitIPhone3_0.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B54043BA1151546F00D8BE63 /* libGHUnitIPhone3_0.a */; };
-		B551DCAF10D6A11200EC1CBF /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = B551DCAE10D6A11200EC1CBF /* Reachability.m */; };
-		B551DCF610D6A8A900EC1CBF /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = B551DCAE10D6A11200EC1CBF /* Reachability.m */; };
 		B552511411D20FC200F9B170 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B552511311D20FC200F9B170 /* CoreGraphics.framework */; };
 		B55251A111D2174C00F9B170 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B55251A011D2174C00F9B170 /* CoreGraphics.framework */; };
 		B558B5EB11C7F9C8009B4627 /* iPadMainWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = B576D76311C7F4D40059B815 /* iPadMainWindow.xib */; };
@@ -70,7 +68,6 @@
 		B576D71411C7F34D0059B815 /* AuthenticationViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B51791A21024C3E800583567 /* AuthenticationViewController.m */; };
 		B576D71511C7F34D0059B815 /* ASIInputStream.m in Sources */ = {isa = PBXBuildFile; fileRef = B522DACD1030B2AB009A2D22 /* ASIInputStream.m */; };
 		B576D71611C7F34D0059B815 /* ASIAuthenticationDialog.m in Sources */ = {isa = PBXBuildFile; fileRef = B59A87C1103EC6F200300252 /* ASIAuthenticationDialog.m */; };
-		B576D71711C7F34D0059B815 /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = B551DCAE10D6A11200EC1CBF /* Reachability.m */; };
 		B576D71911C7F34D0059B815 /* CFNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D51E11C7CEB20059B815 /* CFNetwork.framework */; };
 		B576D71A11C7F34D0059B815 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D52011C7CEB70059B815 /* SystemConfiguration.framework */; };
 		B576D71B11C7F34D0059B815 /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D52211C7CEBC0059B815 /* MobileCoreServices.framework */; };
@@ -156,8 +153,6 @@
 		B54043B01151542C00D8BE63 /* NSValue+GHValueFormatter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSValue+GHValueFormatter.h"; path = "External/GHUnit/Project-IPhone/build/Debug-iphonesimulator/NSValue+GHValueFormatter.h"; sourceTree = SOURCE_ROOT; };
 		B54043BA1151546F00D8BE63 /* libGHUnitIPhone3_0.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libGHUnitIPhone3_0.a; path = "External/GHUnit/Project-IPhone/build/CombinedDebug3_0/libGHUnitIPhone3_0.a"; sourceTree = SOURCE_ROOT; };
 		B551DB4610D6938500EC1CBF /* ASIHTTPRequestConfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIHTTPRequestConfig.h; sourceTree = "<group>"; };
-		B551DCAD10D6A11200EC1CBF /* Reachability.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Reachability.h; sourceTree = "<group>"; };
-		B551DCAE10D6A11200EC1CBF /* Reachability.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Reachability.m; sourceTree = "<group>"; };
 		B552511311D20FC200F9B170 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		B55251A011D2174C00F9B170 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		B558B58911C7F637009B4627 /* iPhoneInfo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = iPhoneInfo.plist; path = "iPhone Sample/iPhoneInfo.plist"; sourceTree = "<group>"; };
@@ -421,15 +416,6 @@
 			name = "UI helpers";
 			sourceTree = "<group>";
 		};
-		B551DCAC10D6A11200EC1CBF /* Reachability1.5 */ = {
-			isa = PBXGroup;
-			children = (
-				B551DCAD10D6A11200EC1CBF /* Reachability.h */,
-				B551DCAE10D6A11200EC1CBF /* Reachability.m */,
-			);
-			path = Reachability1.5;
-			sourceTree = "<group>";
-		};
 		B55B60510F765A3C0064029C /* Tests */ = {
 			isa = PBXGroup;
 			children = (
@@ -520,7 +506,6 @@
 		B5D1454E1029E20D004379B8 /* External */ = {
 			isa = PBXGroup;
 			children = (
-				B551DCAC10D6A11200EC1CBF /* Reachability1.5 */,
 				B5728DC110AED63D004F4CE6 /* GHUnit */,
 			);
 			path = External;
@@ -694,7 +679,6 @@
 				B51791A31024C3E800583567 /* AuthenticationViewController.m in Sources */,
 				B522DACF1030B2AB009A2D22 /* ASIInputStream.m in Sources */,
 				B59A87C3103EC6F200300252 /* ASIAuthenticationDialog.m in Sources */,
-				B551DCAF10D6A11200EC1CBF /* Reachability.m in Sources */,
 				B5BD2B0411CA542000D7C426 /* DetailCell.m in Sources */,
 				B5BD2B0511CA542000D7C426 /* InfoCell.m in Sources */,
 				B5BD2B0611CA542000D7C426 /* ToggleCell.m in Sources */,
@@ -719,7 +703,6 @@
 				B522DACE1030B2AB009A2D22 /* ASIInputStream.m in Sources */,
 				B59A87C2103EC6F200300252 /* ASIAuthenticationDialog.m in Sources */,
 				B5EA45AA109B56D800E920CB /* StressTests.m in Sources */,
-				B551DCF610D6A8A900EC1CBF /* Reachability.m in Sources */,
 				B52D4A2F10DA4ED5008E8365 /* PerformanceTests.m in Sources */,
 				B5873FD610FF28CA001E145F /* ASIS3BucketObject.m in Sources */,
 				B5873FD810FF28CA001E145F /* ASIS3Request.m in Sources */,
@@ -755,7 +738,6 @@
 				B576D71411C7F34D0059B815 /* AuthenticationViewController.m in Sources */,
 				B576D71511C7F34D0059B815 /* ASIInputStream.m in Sources */,
 				B576D71611C7F34D0059B815 /* ASIAuthenticationDialog.m in Sources */,
-				B576D71711C7F34D0059B815 /* Reachability.m in Sources */,
 				B5BD2AFA11CA541100D7C426 /* iPadSampleAppDelegate.m in Sources */,
 				B5BD2B0111CA542000D7C426 /* DetailCell.m in Sources */,
 				B5BD2B0211CA542000D7C426 /* InfoCell.m in Sources */,

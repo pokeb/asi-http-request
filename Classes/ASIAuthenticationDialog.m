@@ -400,7 +400,7 @@ static const NSUInteger kDomainSection = 1;
 #if __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_3_0
 	UITableViewCell *cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:nil] autorelease];
 #else
-	UITableViewCell *cell = [[[UITableViewCell alloc] initWithFrame:CGRectZero reuseIdentifier:nil] autorelease];
+	UITableViewCell *cell = [[[UITableViewCell alloc] initWithFrame:CGRectMake(0,0,0,0) reuseIdentifier:nil] autorelease];
 #endif
 
 	[cell setSelectionStyle:UITableViewCellSelectionStyleNone];

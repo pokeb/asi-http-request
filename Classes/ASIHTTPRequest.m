@@ -3635,11 +3635,7 @@ static BOOL isiPhoneOS2;
 
 + (void)registerForNetworkReachabilityNotifications
 {
-#if REACHABILITY_20_API
-	[[Reachability reachabilityForInternetConnection] startNotifer];
-#else
-	[[Reachability sharedReachability] setNetworkStatusNotificationsEnabled:YES];
-#endif
+	[[Reachability reachabilityForInternetConnection] startNotifier];
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reachabilityChanged:) name:@"kNetworkReachabilityChangedNotification" object:nil];
 }
 
@@ -3651,11 +3647,7 @@ static BOOL isiPhoneOS2;
 
 + (BOOL)isNetworkReachableViaWWAN
 {
-#if REACHABILITY_20_API
 	return ([[Reachability reachabilityForInternetConnection] currentReachabilityStatus] == ReachableViaWWAN);	
-#else
-	return ([[Reachability sharedReachability] internetConnectionStatus] == ReachableViaCarrierDataNetwork);
-#endif
 }
 
 + (void)reachabilityChanged:(NSNotification *)note
