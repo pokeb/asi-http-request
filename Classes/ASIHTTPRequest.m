@@ -23,7 +23,7 @@
 
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.6.2-21 2010-06-17";
+NSString *ASIHTTPRequestVersion = @"v1.6.2-25 2010-06-23";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -1529,6 +1529,9 @@ static BOOL isiPhoneOS2;
 #if DEBUG_REQUEST_STATUS || DEBUG_THROTTLING
 	NSLog(@"Request finished: %@",self);
 #endif
+	if ([self shouldPresentAuthenticationDialog] || [self shouldPresentProxyAuthenticationDialog]) {
+		[self performSelectorOnMainThread:@selector(dismissAuthenticationDialog) withObject:nil waitUntilDone:[NSThread isMainThread]];
+	}
 	if ([self error] || [self mainRequest]) {
 		return;
 	}
@@ -2213,6 +2216,11 @@ static BOOL isiPhoneOS2;
 #else
 	return NO;
 #endif
+}
+
+- (void)dismissAuthenticationDialog
+{
+	[ASIAuthenticationDialog dismiss];
 }
 
 - (BOOL)askDelegateForCredentials

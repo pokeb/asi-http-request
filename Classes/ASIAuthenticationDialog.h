@@ -13,16 +13,24 @@ typedef enum _ASIAuthenticationType {
 	ASIStandardAuthenticationType = 0,
     ASIProxyAuthenticationType = 1
 } ASIAuthenticationType;
-	
-@interface ASIAuthenticationDialog : NSObject <UIActionSheetDelegate, UITableViewDelegate, UITableViewDataSource> {
+
+@interface ASIAutorotatingViewController : UIViewController
+@end
+
+@interface ASIAuthenticationDialog : ASIAutorotatingViewController <UIActionSheetDelegate, UITableViewDelegate, UITableViewDataSource> {
 	ASIHTTPRequest *request;
-	UIActionSheet *loginDialog;
 	ASIAuthenticationType type;
+	UITableView *tableView;
+	UIViewController *presentingController;
+	BOOL didEnableRotationNotifications;
 }
 + (void)presentAuthenticationDialogForRequest:(ASIHTTPRequest *)request;
 + (void)presentProxyAuthenticationDialogForRequest:(ASIHTTPRequest *)request;
 
++ (void)dismiss;
+
 @property (retain) ASIHTTPRequest *request;
-@property (retain) UIActionSheet *loginDialog;
 @property (assign) ASIAuthenticationType type;
+@property (assign) BOOL didEnableRotationNotifications;
+@property (retain) UIViewController *presentingController;
 @end
