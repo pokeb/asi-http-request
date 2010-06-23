@@ -19,8 +19,8 @@
 		B540400E115114BA00D8BE63 /* ASIS3ServiceRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5404006115114BA00D8BE63 /* ASIS3ServiceRequest.m */; };
 		B54043B11151542C00D8BE63 /* GHUnitIPhoneTestMain.m in Sources */ = {isa = PBXBuildFile; fileRef = B54043AB1151542C00D8BE63 /* GHUnitIPhoneTestMain.m */; };
 		B54043BB1151546F00D8BE63 /* libGHUnitIPhone3_0.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B54043BA1151546F00D8BE63 /* libGHUnitIPhone3_0.a */; };
-		B551DCAF10D6A11200EC1CBF /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = B551DCAE10D6A11200EC1CBF /* Reachability.m */; };
-		B551DCF610D6A8A900EC1CBF /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = B551DCAE10D6A11200EC1CBF /* Reachability.m */; };
+		B552508711D2079300F9B170 /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = B552508611D2079300F9B170 /* Reachability.m */; };
+		B552508811D2079300F9B170 /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = B552508611D2079300F9B170 /* Reachability.m */; };
 		B55B604D0F765A320064029C /* ASIFormDataRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B60460F765A320064029C /* ASIFormDataRequest.m */; };
 		B55B604E0F765A320064029C /* ASIHTTPRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B60480F765A320064029C /* ASIHTTPRequest.m */; };
 		B55B604F0F765A320064029C /* ASINetworkQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B604A0F765A320064029C /* ASINetworkQueue.m */; };
@@ -123,8 +123,8 @@
 		B54043B01151542C00D8BE63 /* NSValue+GHValueFormatter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSValue+GHValueFormatter.h"; path = "External/GHUnit/Project-IPhone/build/Debug-iphonesimulator/NSValue+GHValueFormatter.h"; sourceTree = SOURCE_ROOT; };
 		B54043BA1151546F00D8BE63 /* libGHUnitIPhone3_0.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libGHUnitIPhone3_0.a; path = "External/GHUnit/Project-IPhone/build/CombinedDebug3_0/libGHUnitIPhone3_0.a"; sourceTree = SOURCE_ROOT; };
 		B551DB4610D6938500EC1CBF /* ASIHTTPRequestConfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIHTTPRequestConfig.h; sourceTree = "<group>"; };
-		B551DCAD10D6A11200EC1CBF /* Reachability.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Reachability.h; sourceTree = "<group>"; };
-		B551DCAE10D6A11200EC1CBF /* Reachability.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Reachability.m; sourceTree = "<group>"; };
+		B552508511D2079300F9B170 /* Reachability.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Reachability.h; sourceTree = "<group>"; };
+		B552508611D2079300F9B170 /* Reachability.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Reachability.m; sourceTree = "<group>"; };
 		B55B60450F765A320064029C /* ASIFormDataRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIFormDataRequest.h; sourceTree = "<group>"; };
 		B55B60460F765A320064029C /* ASIFormDataRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIFormDataRequest.m; sourceTree = "<group>"; };
 		B55B60470F765A320064029C /* ASIHTTPRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIHTTPRequest.h; sourceTree = "<group>"; };
@@ -339,13 +339,13 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		B551DCAC10D6A11200EC1CBF /* Reachability1.5 */ = {
+		B552508411D2079300F9B170 /* Reachability */ = {
 			isa = PBXGroup;
 			children = (
-				B551DCAD10D6A11200EC1CBF /* Reachability.h */,
-				B551DCAE10D6A11200EC1CBF /* Reachability.m */,
+				B552508511D2079300F9B170 /* Reachability.h */,
+				B552508611D2079300F9B170 /* Reachability.m */,
 			);
-			path = Reachability1.5;
+			path = Reachability;
 			sourceTree = "<group>";
 		};
 		B55B60510F765A3C0064029C /* Tests */ = {
@@ -439,7 +439,7 @@
 		B5D1454E1029E20D004379B8 /* External */ = {
 			isa = PBXGroup;
 			children = (
-				B551DCAC10D6A11200EC1CBF /* Reachability1.5 */,
+				B552508411D2079300F9B170 /* Reachability */,
 				B5728DC110AED63D004F4CE6 /* GHUnit */,
 			);
 			path = External;
@@ -573,7 +573,7 @@
 				B51791A31024C3E800583567 /* AuthenticationViewController.m in Sources */,
 				B522DACF1030B2AB009A2D22 /* ASIInputStream.m in Sources */,
 				B59A87C3103EC6F200300252 /* ASIAuthenticationDialog.m in Sources */,
-				B551DCAF10D6A11200EC1CBF /* Reachability.m in Sources */,
+				B552508811D2079300F9B170 /* Reachability.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -594,7 +594,6 @@
 				B522DACE1030B2AB009A2D22 /* ASIInputStream.m in Sources */,
 				B59A87C2103EC6F200300252 /* ASIAuthenticationDialog.m in Sources */,
 				B5EA45AA109B56D800E920CB /* StressTests.m in Sources */,
-				B551DCF610D6A8A900EC1CBF /* Reachability.m in Sources */,
 				B52D4A2F10DA4ED5008E8365 /* PerformanceTests.m in Sources */,
 				B5873FD610FF28CA001E145F /* ASIS3BucketObject.m in Sources */,
 				B5873FD810FF28CA001E145F /* ASIS3Request.m in Sources */,
@@ -611,6 +610,7 @@
 				B540400D115114BA00D8BE63 /* ASIS3ObjectRequest.m in Sources */,
 				B540400E115114BA00D8BE63 /* ASIS3ServiceRequest.m in Sources */,
 				B54043B11151542C00D8BE63 /* GHUnitIPhoneTestMain.m in Sources */,
+				B552508711D2079300F9B170 /* Reachability.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -630,10 +630,10 @@
 				GCC_PREFIX_HEADER = "iPhone Sample/iPhone_Prefix.pch";
 				GCC_VERSION = com.apple.compilers.llvmgcc42;
 				INFOPLIST_FILE = "iPhone Sample/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 2.2.1;
 				PRODUCT_NAME = ASIHTTPRequest;
 				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
-				SDKROOT = iphonesimulator4.0;
+				SDKROOT = iphoneos4.0;
 			};
 			name = Debug;
 		};
@@ -647,10 +647,10 @@
 				GCC_PREFIX_HEADER = "iPhone Sample/iPhone_Prefix.pch";
 				GCC_VERSION = com.apple.compilers.llvmgcc42;
 				INFOPLIST_FILE = "iPhone Sample/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 2.2.1;
 				PRODUCT_NAME = ASIHTTPRequest;
 				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
-				SDKROOT = iphonesimulator4.0;
+				SDKROOT = iphoneos4.0;
 			};
 			name = Release;
 		};
