@@ -871,13 +871,13 @@ static BOOL isiPhoneOS2;
 			// Can't detect proxies in 2.2.1 Simulator
 			NSDictionary *proxySettings = [NSMutableDictionary dictionary];	
 #else
-			NSDictionary *proxySettings = [(NSDictionary *)CFNetworkCopySystemProxySettings() autorelease];
+			NSDictionary *proxySettings = NSMakeCollectable([(NSDictionary *)CFNetworkCopySystemProxySettings() autorelease]);
 #endif
 #else
-			NSDictionary *proxySettings = [(NSDictionary *)SCDynamicStoreCopyProxies(NULL) autorelease];
+			NSDictionary *proxySettings = NSMakeCollectable([(NSDictionary *)SCDynamicStoreCopyProxies(NULL) autorelease]);
 #endif
 			
-			proxies = [(NSArray *)CFNetworkCopyProxiesForURL((CFURLRef)[self url], (CFDictionaryRef)proxySettings) autorelease];
+			proxies = NSMakeCollectable([(NSArray *)CFNetworkCopyProxiesForURL((CFURLRef)[self url], (CFDictionaryRef)proxySettings) autorelease]);
 			
 			// Now check to see if the proxy settings contained a PAC url, we need to run the script to get the real list of proxies if so
 			NSDictionary *settings = [proxies objectAtIndex:0];
@@ -1169,7 +1169,7 @@ static BOOL isiPhoneOS2;
 			[self setLastBytesSent:totalBytesSent];	
 			
 			// Find out how much data we've uploaded so far
-			[self setTotalBytesSent:[[(NSNumber *)CFReadStreamCopyProperty((CFReadStreamRef)[self readStream], kCFStreamPropertyHTTPRequestBytesWrittenCount) autorelease] unsignedLongLongValue]];
+			[self setTotalBytesSent:[NSMakeCollectable([(NSNumber *)CFReadStreamCopyProperty((CFReadStreamRef)[self readStream], kCFStreamPropertyHTTPRequestBytesWrittenCount) autorelease]) unsignedLongLongValue]];
 			if (totalBytesSent > lastBytesSent) {
 				
 				// We've uploaded more data,  reset the timeout
@@ -1264,8 +1264,8 @@ static BOOL isiPhoneOS2;
 	ASIHTTPRequest *headRequest = [[self class] requestWithURL:[self url]];
 	
 	// Copy the properties that make sense for a HEAD request
-	[headRequest setRequestHeaders:[[[self requestHeaders] copy] autorelease]];
-	[headRequest setRequestCookies:[[[self requestCookies] copy] autorelease]];
+	[headRequest setRequestHeaders:[[[self requestHeaders] mutableCopy] autorelease]];
+	[headRequest setRequestCookies:[[[self requestCookies] mutableCopy] autorelease]];
 	[headRequest setUseCookiePersistence:[self useCookiePersistence]];
 	[headRequest setUseKeychainPersistence:[self useKeychainPersistence]];
 	[headRequest setUseSessionPersistence:[self useSessionPersistence]];
@@ -1775,7 +1775,7 @@ static BOOL isiPhoneOS2;
 	if ([self shouldAttemptPersistentConnection]) {
 		
 		NSString *connectionHeader = [[[self responseHeaders] objectForKey:@"Connection"] lowercaseString];
-		NSString *httpVersion = [(NSString *)CFHTTPMessageCopyVersion(message) autorelease];
+		NSString *httpVersion = NSMakeCollectable([(NSString *)CFHTTPMessageCopyVersion(message) autorelease]);
 		
 		// Don't re-use the connection if the server is HTTP 1.0 and didn't send Connection: Keep-Alive
 		if (![httpVersion isEqualToString:(NSString *)kCFHTTPVersion1_0] || [connectionHeader isEqualToString:@"keep-alive"]) {
@@ -2136,7 +2136,7 @@ static BOOL isiPhoneOS2;
 	if (proxyCredentials) {
 		
 		// We use startRequest rather than starting all over again in load request because NTLM requires we reuse the request
-		if ((([self proxyAuthenticationScheme] != (NSString *)kCFHTTPAuthenticationSchemeNTLM) || [self proxyAuthenticationRetryCount] < 2) && [self applyCredentials:proxyCredentials]) {
+		if ((([self proxyAuthenticationScheme] != (NSString *)kCFHTTPAuthenticationSchemeNTLM) || [self proxyAuthenticationRetryCount] < 2) && [self applyProxyCredentials:proxyCredentials]) {
 			[self startRequest];
 			
 		// We've failed NTLM authentication twice, we should assume our credentials are wrong
@@ -2559,7 +2559,7 @@ static BOOL isiPhoneOS2;
 	[progressLock lock];	
 	// Find out how much data we've uploaded so far
 	[self setLastBytesSent:totalBytesSent];	
-	[self setTotalBytesSent:[[(NSNumber *)CFReadStreamCopyProperty((CFReadStreamRef)[self readStream], kCFStreamPropertyHTTPRequestBytesWrittenCount) autorelease] unsignedLongLongValue]];
+	[self setTotalBytesSent:[NSMakeCollectable([(NSNumber *)CFReadStreamCopyProperty((CFReadStreamRef)[self readStream], kCFStreamPropertyHTTPRequestBytesWrittenCount) autorelease]) unsignedLongLongValue]];
 	[self setComplete:YES];
 	[self updateProgressIndicators];
 
@@ -2644,6 +2644,17 @@ static BOOL isiPhoneOS2;
 - (void)markAsFinished
 {
 	[[self retain] autorelease];
+	
+	// dealloc won't be called when running with GC, so we'll clean these up now
+	if (request) {
+		CFMakeCollectable(request);
+	}
+	if (requestAuthentication) {
+		CFMakeCollectable(requestAuthentication);
+	}
+	if (proxyAuthentication) {
+		CFMakeCollectable(proxyAuthentication);
+	}
 	[self willChangeValueForKey:@"isFinished"];
 	[self setInProgress:NO];
 	[self didChangeValueForKey:@"isFinished"];
@@ -2674,7 +2685,7 @@ static BOOL isiPhoneOS2;
 - (void)handleStreamError
 
 {
-	NSError *underlyingError = [(NSError *)CFReadStreamCopyError((CFReadStreamRef)[self readStream]) autorelease];
+	NSError *underlyingError = NSMakeCollectable([(NSError *)CFReadStreamCopyError((CFReadStreamRef)[self readStream]) autorelease]);
 	
 	[self cancelLoad];
 	
@@ -2783,8 +2794,8 @@ static BOOL isiPhoneOS2;
 	[newRequest setPostBody:[self postBody]];
 	[newRequest setShouldStreamPostDataFromDisk:[self shouldStreamPostDataFromDisk]];
 	[newRequest setPostBodyFilePath:[self postBodyFilePath]];
-	[newRequest setRequestHeaders:[[[self requestHeaders] copyWithZone:zone] autorelease]];
-	[newRequest setRequestCookies:[[[self requestCookies] copyWithZone:zone] autorelease]];
+	[newRequest setRequestHeaders:[[[self requestHeaders] mutableCopyWithZone:zone] autorelease]];
+	[newRequest setRequestCookies:[[[self requestCookies] mutableCopyWithZone:zone] autorelease]];
 	[newRequest setUseCookiePersistence:[self useCookiePersistence]];
 	[newRequest setUseKeychainPersistence:[self useKeychainPersistence]];
 	[newRequest setUseSessionPersistence:[self useSessionPersistence]];
@@ -3401,10 +3412,10 @@ static BOOL isiPhoneOS2;
 	}
 	// Obtain the list of proxies by running the autoconfiguration script
 #if TARGET_IPHONE_SIMULATOR && __IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_3_0
-	NSArray *proxies = [(NSArray *)CFNetworkCopyProxiesForAutoConfigurationScript((CFStringRef)script,(CFURLRef)theURL) autorelease];
+	NSArray *proxies = NSMakeCollectable([(NSArray *)CFNetworkCopyProxiesForAutoConfigurationScript((CFStringRef)script,(CFURLRef)theURL) autorelease]);
 #else
 	CFErrorRef err2 = NULL;
-	NSArray *proxies = [(NSArray *)CFNetworkCopyProxiesForAutoConfigurationScript((CFStringRef)script,(CFURLRef)theURL, &err2) autorelease];
+	NSArray *proxies = NSMakeCollectable([(NSArray *)CFNetworkCopyProxiesForAutoConfigurationScript((CFStringRef)script,(CFURLRef)theURL, &err2) autorelease]);
 	if (err2) {
 		return nil;
 	}
@@ -3428,7 +3439,7 @@ static BOOL isiPhoneOS2;
 	if (!MIMEType) {
 		return @"application/octet-stream";
 	}
-    return [(NSString *)MIMEType autorelease];
+    return NSMakeCollectable([(NSString *)MIMEType autorelease]);
 }
 
 #pragma mark bandwidth measurement / throttling
@@ -3566,11 +3577,7 @@ static BOOL isiPhoneOS2;
 			// Yes, put this request to sleep until a second is up, with extra added punishment sleeping time for being very naughty (we have used more bandwidth than we were allowed)
 			double extraSleepyTime = (-bytesRemaining/(maxBandwidthPerSecond*1.0));
 			[throttleWakeUpTime release];
-			#if (!TARGET_OS_IPHONE && MAC_OS_X_VERSION_MIN_REQUIRED >= __MAC_10_6) || (TARGET_OS_IPHONE && __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_4_0)
-			throttleWakeUpTime = [[bandwidthMeasurementDate dateByAddingTimeInterval:extraSleepyTime] retain];
-			#else
-			throttleWakeUpTime = [[bandwidthMeasurementDate addTimeInterval:extraSleepyTime] retain];
-			#endif
+			throttleWakeUpTime = [[NSDate alloc] initWithTimeInterval:extraSleepyTime sinceDate:bandwidthMeasurementDate];
 		}
 	}
 	[bandwidthThrottlingLock unlock];
