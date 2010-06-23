@@ -24,7 +24,7 @@
 
 // Automatically set on build
 
-NSString *ASIHTTPRequestVersion = @"v1.6.2-61 2010-06-23";
+NSString *ASIHTTPRequestVersion = @"v1.6.2-62 2010-06-23";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -74,7 +74,7 @@ static unsigned int nextConnectionNumberToCreate = 0;
 static NSMutableArray *persistentConnectionsPool = nil;
 
 // Mediates access to the persistent connections pool
-static NSLock *connectionsLock = nil;
+static NSRecursiveLock *connectionsLock = nil;
 
 // Each request gets a new id, we store this rather than a ref to the request itself in the connectionInfo dictionary.
 // We do this so we don't have to keep the request around while we wait for the connection to expire
@@ -222,7 +222,7 @@ static NSOperationQueue *sharedQueue = nil;
 {
 	if (self == [ASIHTTPRequest class]) {
 		persistentConnectionsPool = [[NSMutableArray alloc] init];
-		connectionsLock = [[NSLock alloc] init];
+		connectionsLock = [[NSRecursiveLock alloc] init];
 		progressLock = [[NSRecursiveLock alloc] init];
 		bandwidthThrottlingLock = [[NSLock alloc] init];
 		sessionCookiesLock = [[NSRecursiveLock alloc] init];
@@ -1552,9 +1552,6 @@ static NSOperationQueue *sharedQueue = nil;
 #if DEBUG_REQUEST_STATUS || DEBUG_THROTTLING
 	NSLog(@"Request finished: %@",self);
 #endif
-	if ([self shouldPresentAuthenticationDialog] || [self shouldPresentProxyAuthenticationDialog]) {
-		[self performSelectorOnMainThread:@selector(dismissAuthenticationDialog) withObject:nil waitUntilDone:[NSThread isMainThread]];
-	}
 	if ([self error] || [self mainRequest]) {
 		return;
 	}
@@ -2257,11 +2254,6 @@ static NSOperationQueue *sharedQueue = nil;
 #else
 	return NO;
 #endif
-}
-
-- (void)dismissAuthenticationDialog
-{
-	[ASIAuthenticationDialog dismiss];
 }
 
 - (BOOL)askDelegateForCredentials
