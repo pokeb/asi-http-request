@@ -11,8 +11,8 @@
 #import <CoreGraphics/CoreGraphics.h>
 
 ASIAuthenticationDialog *sharedDialog = nil;
-NSLock *dialogLock = nil;
 BOOL isDismissing = NO;
+static NSMutableArray *requestsNeedingAuthentication = nil;
 
 static const NSUInteger kUsernameRow = 0;
 static const NSUInteger kUsernameSection = 0;
@@ -35,6 +35,8 @@ static const NSUInteger kDomainSection = 1;
 @interface ASIAuthenticationDialog ()
 - (void)showTitle;
 - (void)show;
+- (NSArray *)requestsRequiringTheseCredentials;
+- (void)presentNextDialog;
 @property (retain) UITableView *tableView;
 @end
 
@@ -45,31 +47,25 @@ static const NSUInteger kDomainSection = 1;
 + (void)initialize
 {
 	if (self == [ASIAuthenticationDialog class]) {
-		dialogLock = [[NSLock alloc] init];
+		requestsNeedingAuthentication = [[NSMutableArray array] retain];
 	}
-}
-
-+ (void)presentProxyAuthenticationDialogForRequest:(ASIHTTPRequest *)request
-{
-	[dialogLock lock];
-	if (!sharedDialog) {
-		sharedDialog = [[self alloc] init];
-	}
-	[sharedDialog setRequest:request];
-	[sharedDialog setType:ASIProxyAuthenticationType];
-	[sharedDialog show];
-	[dialogLock unlock];
 }
 
 + (void)presentAuthenticationDialogForRequest:(ASIHTTPRequest *)request
 {
-	[dialogLock lock];
+	// No need for a lock here, this will always be called on the main thread
 	if (!sharedDialog) {
 		sharedDialog = [[self alloc] init];
+		[sharedDialog setRequest:request];
+		if ([request authenticationNeeded] == ASIProxyAuthenticationNeeded) {
+			[sharedDialog setType:ASIProxyAuthenticationType];
+		} else {
+			[sharedDialog setType:ASIStandardAuthenticationType];
+		}
+		[sharedDialog show];
+	} else {
+		[requestsNeedingAuthentication addObject:request];
 	}
-	[sharedDialog setRequest:request];
-	[sharedDialog show];
-	[dialogLock unlock];
 }
 
 - (id)init
@@ -199,11 +195,9 @@ static const NSUInteger kDomainSection = 1;
 
 + (void)dismiss
 {
-	[dialogLock lock];
 	[[sharedDialog parentViewController] dismissModalViewControllerAnimated:YES];
 	[sharedDialog release];
 	sharedDialog = nil;
-	[dialogLock unlock];
 }
 
 - (void)dismiss
@@ -294,38 +288,71 @@ static const NSUInteger kDomainSection = 1;
 
 - (void)cancelAuthenticationFromDialog:(id)sender
 {
-	[[self request] cancelAuthentication];
+	for (ASIHTTPRequest *theRequest in [self requestsRequiringTheseCredentials]) {
+		[theRequest cancelAuthentication];
+		[requestsNeedingAuthentication removeObject:theRequest];
+	}
 	[self dismiss];
+	[self performSelector:@selector(presentNextDialog) withObject:nil afterDelay:1];
 }
+
+- (NSArray *)requestsRequiringTheseCredentials
+{
+	NSMutableArray *requestsRequiringTheseCredentials = [NSMutableArray array];
+	NSURL *requestURL = [[self request] url];
+	for (ASIHTTPRequest *otherRequest in requestsNeedingAuthentication) {
+		NSURL *theURL = [otherRequest url];
+		if (([otherRequest authenticationNeeded] == [[self request] authenticationNeeded]) && [[theURL host] isEqualToString:[requestURL host]] && ([theURL port] == [requestURL port] || ([requestURL port] && [[theURL port] isEqualToNumber:[requestURL port]])) && [[theURL scheme] isEqualToString:[requestURL scheme]] && ((![otherRequest authenticationRealm] && ![[self request] authenticationRealm]) || ([otherRequest authenticationRealm] && [[self request] authenticationRealm] && [[[self request] authenticationRealm] isEqualToString:[otherRequest authenticationRealm]]))) {
+			[requestsRequiringTheseCredentials addObject:otherRequest];
+		}
+	}
+	[requestsRequiringTheseCredentials addObject:[self request]];
+	return requestsRequiringTheseCredentials;
+}
+
+- (void)presentNextDialog
+{
+	if ([requestsNeedingAuthentication count]) {
+		ASIHTTPRequest *nextRequest = [requestsNeedingAuthentication objectAtIndex:0];
+		[requestsNeedingAuthentication removeObjectAtIndex:0];
+		[[self class] presentAuthenticationDialogForRequest:nextRequest];
+	}
+}
+
 
 - (void)loginWithCredentialsFromDialog:(id)sender
 {
-	NSString *username = [[self usernameField] text];
-	NSString *password = [[self passwordField] text];
+	for (ASIHTTPRequest *theRequest in [self requestsRequiringTheseCredentials]) {
 
-	if (username == nil) { username = @""; }
-	if (password == nil) { password = @""; }
+		NSString *username = [[self usernameField] text];
+		NSString *password = [[self passwordField] text];
 
-	if ([self type] == ASIProxyAuthenticationType) {
-		[[self request] setProxyUsername:username];
-		[[self request] setProxyPassword:password];
-	} else {
-		[[self request] setUsername:username];
-		[[self request] setPassword:password];
-	}
+		if (username == nil) { username = @""; }
+		if (password == nil) { password = @""; }
 
-	// Handle NTLM domains
-	NSString *scheme = ([self type] == ASIStandardAuthenticationType) ? [[self request] authenticationScheme] : [[self request] proxyAuthenticationScheme];
-	if ([scheme isEqualToString:(NSString *)kCFHTTPAuthenticationSchemeNTLM]) {
-		NSString *domain = [[self domainField] text];
 		if ([self type] == ASIProxyAuthenticationType) {
-			[[self request] setProxyDomain:domain];
+			[theRequest setProxyUsername:username];
+			[theRequest setProxyPassword:password];
 		} else {
-			[[self request] setDomain:domain];
+			[theRequest setUsername:username];
+			[theRequest setPassword:password];
 		}
-	}
 
-	[[self request] retryUsingSuppliedCredentials];
+		// Handle NTLM domains
+		NSString *scheme = ([self type] == ASIStandardAuthenticationType) ? [[self request] authenticationScheme] : [[self request] proxyAuthenticationScheme];
+		if ([scheme isEqualToString:(NSString *)kCFHTTPAuthenticationSchemeNTLM]) {
+			NSString *domain = [[self domainField] text];
+			if ([self type] == ASIProxyAuthenticationType) {
+				[theRequest setProxyDomain:domain];
+			} else {
+				[theRequest setDomain:domain];
+			}
+		}
+
+		[theRequest retryUsingSuppliedCredentials];
+		[requestsNeedingAuthentication removeObject:theRequest];
+	}
+	[self performSelector:@selector(presentNextDialog) withObject:nil afterDelay:1];
 }
 
 #pragma mark table view data source

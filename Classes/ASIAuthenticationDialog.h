@@ -25,8 +25,6 @@ typedef enum _ASIAuthenticationType {
 	BOOL didEnableRotationNotifications;
 }
 + (void)presentAuthenticationDialogForRequest:(ASIHTTPRequest *)request;
-+ (void)presentProxyAuthenticationDialogForRequest:(ASIHTTPRequest *)request;
-
 + (void)dismiss;
 
 @property (retain) ASIHTTPRequest *request;
