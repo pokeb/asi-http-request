@@ -19,6 +19,8 @@
 		B5403FEF1151149E00D8BE63 /* ASIS3BucketRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5403FE91151149E00D8BE63 /* ASIS3BucketRequest.m */; };
 		B5403FF01151149E00D8BE63 /* ASIS3ObjectRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5403FEB1151149E00D8BE63 /* ASIS3ObjectRequest.m */; };
 		B5403FF11151149E00D8BE63 /* ASIS3ServiceRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5403FED1151149E00D8BE63 /* ASIS3ServiceRequest.m */; };
+		B552535D11D23EBB00F9B170 /* ASIDownloadCache.m in Sources */ = {isa = PBXBuildFile; fileRef = B552535A11D23EBB00F9B170 /* ASIDownloadCache.m */; };
+		B552536111D23ECD00F9B170 /* ASIDownloadCache.m in Sources */ = {isa = PBXBuildFile; fileRef = B552535A11D23EBB00F9B170 /* ASIDownloadCache.m */; };
 		B55B5D200F76568E0064029C /* ASIFormDataRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B5D120F76568E0064029C /* ASIFormDataRequest.m */; };
 		B55B5D210F76568E0064029C /* ASIHTTPRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B5D140F76568E0064029C /* ASIHTTPRequest.m */; };
 		B55B5D220F76568E0064029C /* ASINetworkQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B5D160F76568E0064029C /* ASINetworkQueue.m */; };
@@ -113,6 +115,9 @@
 		B5403FEC1151149E00D8BE63 /* ASIS3ServiceRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ASIS3ServiceRequest.h; path = S3/ASIS3ServiceRequest.h; sourceTree = "<group>"; };
 		B5403FED1151149E00D8BE63 /* ASIS3ServiceRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ASIS3ServiceRequest.m; path = S3/ASIS3ServiceRequest.m; sourceTree = "<group>"; };
 		B551DD3310D6AB6B00EC1CBF /* ASIHTTPRequestConfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIHTTPRequestConfig.h; sourceTree = "<group>"; };
+		B552535A11D23EBB00F9B170 /* ASIDownloadCache.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIDownloadCache.m; sourceTree = "<group>"; };
+		B552535B11D23EBB00F9B170 /* ASIDownloadCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIDownloadCache.h; sourceTree = "<group>"; };
+		B552535C11D23EBB00F9B170 /* ASICacheDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASICacheDelegate.h; sourceTree = "<group>"; };
 		B55B5D110F76568E0064029C /* ASIFormDataRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIFormDataRequest.h; sourceTree = "<group>"; };
 		B55B5D120F76568E0064029C /* ASIFormDataRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIFormDataRequest.m; sourceTree = "<group>"; };
 		B55B5D130F76568E0064029C /* ASIHTTPRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIHTTPRequest.h; sourceTree = "<group>"; };
@@ -304,6 +309,9 @@
 				B55B5D160F76568E0064029C /* ASINetworkQueue.m */,
 				B564D0510FEE677F00A2098A /* ASINSStringAdditions.h */,
 				B564D0500FEE677F00A2098A /* ASINSStringAdditions.m */,
+				B552535C11D23EBB00F9B170 /* ASICacheDelegate.h */,
+				B552535B11D23EBB00F9B170 /* ASIDownloadCache.h */,
+				B552535A11D23EBB00F9B170 /* ASIDownloadCache.m */,
 				B5873F8F10FF2890001E145F /* CloudFiles */,
 				B51E61A2100BA84C004A300D /* S3 */,
 				B55B5D190F76568E0064029C /* Tests */,
@@ -510,6 +518,7 @@
 				B55B5E700F7656A40064029C /* main.m in Sources */,
 				B564D0530FEE678C00A2098A /* ASINSStringAdditions.m in Sources */,
 				B522D720103074AC009A2D22 /* ASIInputStream.m in Sources */,
+				B552536111D23ECD00F9B170 /* ASIDownloadCache.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -545,6 +554,7 @@
 				B5403FEF1151149E00D8BE63 /* ASIS3BucketRequest.m in Sources */,
 				B5403FF01151149E00D8BE63 /* ASIS3ObjectRequest.m in Sources */,
 				B5403FF11151149E00D8BE63 /* ASIS3ServiceRequest.m in Sources */,
+				B552535D11D23EBB00F9B170 /* ASIDownloadCache.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

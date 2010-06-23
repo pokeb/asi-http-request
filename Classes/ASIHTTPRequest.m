@@ -24,7 +24,7 @@
 
 // Automatically set on build
 
-NSString *ASIHTTPRequestVersion = @"v1.6.2-62 2010-06-23";
+NSString *ASIHTTPRequestVersion = @"v1.6.2-63 2010-06-23";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -2828,10 +2828,10 @@ static NSOperationQueue *sharedQueue = nil;
 		CFReadStreamSetClient((CFReadStreamRef)[self readStream], kCFStreamEventNone, NULL, NULL);
 		[connectionsLock lock];
 
-		if (shouldUpdateNetworkActivityIndicator && [self readStreamIsScheduled]) {
+		if ([self readStreamIsScheduled]) {
 			runningRequestCount--;
 			#if TARGET_OS_IPHONE
-			if (runningRequestCount == 0) {
+			if (shouldUpdateNetworkActivityIndicator && runningRequestCount == 0) {
 				[[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
 			}
 			#endif
