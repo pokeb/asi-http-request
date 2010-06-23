@@ -1586,6 +1586,7 @@
 	[[self responseData] appendData:data];
 }
 
+
 - (void)testNilPortCredentialsMatching
 {
 	// Test for http://github.com/pokeb/asi-http-request/issues#issue/39
@@ -1611,6 +1612,27 @@
 }
 
 
+
+
+- (void)testRFC1123DateParsing
+{
+	unsigned dateUnits = NSYearCalendarUnit | NSMonthCalendarUnit |  NSDayCalendarUnit | NSHourCalendarUnit | NSMinuteCalendarUnit | NSSecondCalendarUnit | NSWeekdayCalendarUnit;
+	NSCalendar *calendar = [[[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar] autorelease];
+	[calendar setTimeZone:[NSTimeZone timeZoneWithAbbreviation:@"GMT"]];
+	NSString *dateString = @"Thu, 19 Nov 1981 08:52:01 GMT";
+	NSDate *date = [ASIHTTPRequest dateFromRFC1123String:dateString];
+	NSDateComponents *components = [calendar components:dateUnits fromDate:date];
+	NSLog(@"%i",[components weekday]);
+	BOOL success = ([components year] == 1981 && [components month] == 11 && [components day] == 19 && [components weekday] == 5 && [components hour] == 8 && [components minute] == 52 && [components second] == 1);
+	GHAssertTrue(success,@"Failed to parse an RFC1123 date correctly");
+
+	dateString = @"4 May 2010 00:59 CET";
+	date = [ASIHTTPRequest dateFromRFC1123String:dateString];
+	components = [calendar components:dateUnits fromDate:date];
+	success = ([components year] == 2010 && [components month] == 5 && [components day] == 3 && [components hour] == 23 && [components minute] == 59);
+	GHAssertTrue(success,@"Failed to parse an RFC1123 date correctly");
+
+}
 
 @synthesize responseData;
 @end
