@@ -573,6 +573,8 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 - (void)handleStreamComplete;
 - (void)handleStreamError;
 
+#pragma mark persistent connections
+
 // Get the ID of the connection this request used (only really useful in tests and debugging)
 - (NSNumber *)connectionID;
 
@@ -597,7 +599,6 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 
 - (NSDictionary *)findSessionProxyAuthenticationCredentials;
 - (NSDictionary *)findSessionAuthenticationCredentials;
-
 
 #pragma mark keychain storage
 
@@ -687,8 +688,8 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 // Turns on throttling automatically when WWAN is connected using a custom limit, and turns it off automatically when it isn't
 + (void)throttleBandwidthForWWANUsingLimit:(unsigned long)limit;
 
-
 #pragma mark reachability
+
 // Returns YES when an iPhone OS device is connected via WWAN, false when connected via WIFI or not connected
 + (BOOL)isNetworkReachableViaWWAN;
 

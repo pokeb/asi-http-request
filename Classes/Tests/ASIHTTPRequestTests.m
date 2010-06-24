@@ -8,7 +8,6 @@
 
 #import "ASIHTTPRequestTests.h"
 #import "ASIHTTPRequest.h"
-#import "ASINSStringAdditions.h"
 #import "ASINetworkQueue.h"
 #import "ASIFormDataRequest.h"
 #import <SystemConfiguration/SystemConfiguration.h>
@@ -712,7 +711,7 @@
 	for (cookie in cookies) {
 		if ([[cookie name] isEqualToString:@"ASIHTTPRequestTestCookie"]) {
 			foundCookie = YES;
-			success = [[[cookie value] decodedCookieValue] isEqualToString:@"This is the value"];
+			success = [[cookie value] isEqualToString:@"This+is+the+value"];
 			GHAssertTrue(success,@"Failed to store the correct value for a cookie");
 			success = [[cookie domain] isEqualToString:@"allseeing-i.com"];
 			GHAssertTrue(success,@"Failed to store the correct domain for a cookie");
@@ -765,7 +764,7 @@
 	NSDictionary *cookieProperties = [[[NSMutableDictionary alloc] init] autorelease];
 	
 	// We'll add a line break to our cookie value to test it gets correctly encoded
-	[cookieProperties setValue:[@"Test\r\nValue" encodedCookieValue] forKey:NSHTTPCookieValue];
+	[cookieProperties setValue:@"Test%0D%0AValue" forKey:NSHTTPCookieValue];
 	[cookieProperties setValue:@"ASIHTTPRequestTestCookie" forKey:NSHTTPCookieName];
 	[cookieProperties setValue:@"allseeing-i.com" forKey:NSHTTPCookieDomain];
 	[cookieProperties setValue:[NSDate dateWithTimeIntervalSinceNow:60*60*4] forKey:NSHTTPCookieExpires];

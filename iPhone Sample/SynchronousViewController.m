@@ -101,7 +101,7 @@ static NSString *intro = @"Demonstrates fetching a web page synchronously, the H
 	
 	switch ([indexPath section]) {
 		case 1:
-			urlField = [[[UITextField alloc] initWithFrame:CGRectMake(10,12,tableWidth-tablePadding-40,20)] autorelease];
+			urlField = [[[UITextField alloc] initWithFrame:CGRectMake(10,12,tableWidth-tablePadding-50,20)] autorelease];
 			if ([self request]) {
 				[urlField setText:[[[self request] url] absoluteString]];
 			} else {
