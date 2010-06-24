@@ -24,7 +24,7 @@
 
 // Automatically set on build
 
-NSString *ASIHTTPRequestVersion = @"v1.6.2-66 2010-06-24";
+NSString *ASIHTTPRequestVersion = @"v1.6.2-67 2010-06-24";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -597,7 +597,6 @@ static NSOperationQueue *sharedQueue = nil;
 		if ([self error]) {
 			[self setComplete:YES];
 			[self markAsFinished];
-			[[self cancelledLock] unlock];
 			return;		
 		}
 
@@ -605,7 +604,6 @@ static NSOperationQueue *sharedQueue = nil;
 		
 		if (![self url]) {
 			[self failWithError:ASIUnableToCreateRequestError];
-			[[self cancelledLock] unlock];
 			return;		
 		}
 		
@@ -628,7 +626,6 @@ static NSOperationQueue *sharedQueue = nil;
 		request = CFHTTPMessageCreateRequest(kCFAllocatorDefault, (CFStringRef)[self requestMethod], (CFURLRef)[self url], [self useHTTPVersionOne] ? kCFHTTPVersion1_0 : kCFHTTPVersion1_1);
 		if (!request) {
 			[self failWithError:ASIUnableToCreateRequestError];
-			[[self cancelledLock] unlock];
 			return;
 		}
 
@@ -648,7 +645,6 @@ static NSOperationQueue *sharedQueue = nil;
 			// See if we should pull from the cache rather than fetching the data
 			if ([self cachePolicy] == ASIOnlyLoadIfNotCachedCachePolicy) {
 				if ([self useDataFromCache]) {
-					[[self cancelledLock] unlock];
 					return;
 				}
 			} else if ([self cachePolicy] == ASIReloadIfDifferentCachePolicy) {
@@ -1501,7 +1497,6 @@ static NSOperationQueue *sharedQueue = nil;
 	}
 	
 	[progressLock lock];
-
 	[ASIHTTPRequest performSelector:selector onTarget:indicator withObject:nil amount:&progressAmount];
 	[progressLock unlock];
 }
