@@ -14,23 +14,12 @@ static ASIDownloadCache *sharedCache = nil;
 
 static NSString *sessionCacheFolder = @"SessionStore";
 static NSString *permanentCacheFolder = @"PermanentStore";
-static NSDateFormatter *rfc1123DateFormatter = nil;
 
 @interface ASIDownloadCache ()
 + (NSString *)keyForRequest:(ASIHTTPRequest *)request;
 @end
 
 @implementation ASIDownloadCache
-
-+ (void)initialize
-{
-	if (self == [ASIDownloadCache class]) {
-		rfc1123DateFormatter = [[NSDateFormatter alloc] init];
-		[rfc1123DateFormatter setLocale:[[[NSLocale alloc] initWithLocaleIdentifier:@"en_US_POSIX"] autorelease]];
-		[rfc1123DateFormatter setTimeZone:[NSTimeZone timeZoneWithAbbreviation:@"GMT"]];
-		[rfc1123DateFormatter setDateFormat:@"EEE, dd MMM yyyy HH:mm:ss 'GMT'"];
-	}
-}
 
 - (id)init
 {
@@ -126,7 +115,7 @@ static NSDateFormatter *rfc1123DateFormatter = nil;
 		[responseHeaders setObject:[NSString stringWithFormat:@"max-age=%i",(int)maxAge] forKey:@"Cache-Control"];
 	}
 	// We use this special key to help expire the request when we get a max-age header
-	[responseHeaders setObject:[rfc1123DateFormatter stringFromDate:[NSDate date]] forKey:@"X-ASIHTTPRequest-Fetch-date"];
+	[responseHeaders setObject:[[[self class] rfc1123DateFormatter] stringFromDate:[NSDate date]] forKey:@"X-ASIHTTPRequest-Fetch-date"];
 	[responseHeaders writeToFile:metadataPath atomically:NO];
 	
 	if ([request responseData]) {
@@ -361,6 +350,20 @@ static NSDateFormatter *rfc1123DateFormatter = nil;
 	unsigned char result[16];
 	CC_MD5(cStr, (CC_LONG)strlen(cStr), result);
 	return [NSString stringWithFormat:@"%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X",result[0], result[1], result[2], result[3], result[4], result[5], result[6], result[7],result[8], result[9], result[10], result[11],result[12], result[13], result[14], result[15]]; 	
+}
+
++ (NSDateFormatter *)rfc1123DateFormatter
+{
+	NSMutableDictionary *threadDict = [[NSThread currentThread] threadDictionary];
+	NSDateFormatter *dateFormatter = [threadDict objectForKey:@"ASIDownloadCacheDateFormatter"];
+	if (dateFormatter == nil) {
+		dateFormatter = [[[NSDateFormatter alloc] init] autorelease];
+		[dateFormatter setLocale:[[[NSLocale alloc] initWithLocaleIdentifier:@"en_US_POSIX"] autorelease]];
+		[dateFormatter setTimeZone:[NSTimeZone timeZoneForSecondsFromGMT:0]];
+		[dateFormatter setDateFormat:@"EEE, dd MMM yyyy HH:mm:ss 'GMT'"];
+		[threadDict setObject:dateFormatter forKey:@"ASIDownloadCacheDateFormatter"];
+	}
+	return dateFormatter;
 }
 
 

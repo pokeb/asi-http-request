@@ -27,6 +27,9 @@ extern NSString *ASIHTTPRequestVersion;
 #ifndef __IPHONE_3_0
 	#define __IPHONE_3_0 30000
 #endif
+#ifndef __IPHONE_3_2
+	#define __IPHONE_3_2 30200
+#endif
 #ifndef __IPHONE_4_0
 	#define __IPHONE_4_0 40000
 #endif

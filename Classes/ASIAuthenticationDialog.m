@@ -73,7 +73,7 @@ static const NSUInteger kDomainSection = 1;
 	if ((self = [self initWithNibName:nil bundle:nil])) {
 		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillShow:) name:UIKeyboardWillShowNotification object:nil];
 
-#if __IPHONE_3_2 && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_3_2
+#if __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_3_2
 		if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone) {
 #endif
 			if (![UIDevice currentDevice].generatesDeviceOrientationNotifications) {
@@ -81,7 +81,7 @@ static const NSUInteger kDomainSection = 1;
 				[self setDidEnableRotationNotifications:YES];
 			}
 			[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(orientationChanged:) name:UIDeviceOrientationDidChangeNotification object:nil];
-#if __IPHONE_3_2 && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_3_2
+#if __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_3_2
 		}
 #endif
 	}
@@ -106,16 +106,20 @@ static const NSUInteger kDomainSection = 1;
 
 - (void)keyboardWillShow:(NSNotification *)notification
 {
-#if __IPHONE_3_2 && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_3_2
+#if __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_3_2
 	if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone) {
 #endif
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_3_2
+		NSValue *keyboardBoundsValue = [[notification userInfo] objectForKey:UIKeyboardFrameEndUserInfoKey];
+#else
 		NSValue *keyboardBoundsValue = [[notification userInfo] objectForKey:UIKeyboardBoundsUserInfoKey];
+#endif
 		CGRect keyboardBounds;
 		[keyboardBoundsValue getValue:&keyboardBounds];
 		UIEdgeInsets e = UIEdgeInsetsMake(0, 0, keyboardBounds.size.height, 0);
 		[[self tableView] setScrollIndicatorInsets:e];
 		[[self tableView] setContentInset:e];
-#if __IPHONE_3_2 && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_3_2
+#if __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_3_2
 	}
 #endif
 }
@@ -275,7 +279,7 @@ static const NSUInteger kDomainSection = 1;
 	[[self tableView] reloadData];
 	[[[[[self tableView] cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]].contentView subviews] objectAtIndex:0] becomeFirstResponder];
 
-#if __IPHONE_3_2 && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_3_2
+#if __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_3_2
 	if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
 		[self setModalPresentationStyle:UIModalPresentationFormSheet];
 	}
@@ -377,7 +381,7 @@ static const NSUInteger kDomainSection = 1;
 - (CGFloat)tableView:(UITableView *)aTableView heightForHeaderInSection:(NSInteger)section
 {
 	if (section == 0) {
-#if __IPHONE_3_2 && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_3_2
+#if __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_3_2
 		if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
 			return 54;
 		}

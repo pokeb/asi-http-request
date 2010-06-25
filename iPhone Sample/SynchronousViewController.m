@@ -57,7 +57,11 @@ Most of the code below here relates to the table view, and isn't that interestin
 
 - (void)keyboardWillShow:(NSNotification *)notification
 {
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_3_2
+	NSValue *keyboardBoundsValue = [[notification userInfo] objectForKey:UIKeyboardFrameEndUserInfoKey];
+#else
 	NSValue *keyboardBoundsValue = [[notification userInfo] objectForKey:UIKeyboardBoundsUserInfoKey];
+#endif
 	CGRect keyboardBounds;
 	[keyboardBoundsValue getValue:&keyboardBounds];
 	UIEdgeInsets e = UIEdgeInsetsMake(0, 0, keyboardBounds.size.height-42, 0);

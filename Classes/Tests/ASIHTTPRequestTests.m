@@ -1611,13 +1611,11 @@
 }
 
 
-
-
 - (void)testRFC1123DateParsing
 {
 	unsigned dateUnits = NSYearCalendarUnit | NSMonthCalendarUnit |  NSDayCalendarUnit | NSHourCalendarUnit | NSMinuteCalendarUnit | NSSecondCalendarUnit | NSWeekdayCalendarUnit;
 	NSCalendar *calendar = [[[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar] autorelease];
-	[calendar setTimeZone:[NSTimeZone timeZoneWithAbbreviation:@"GMT"]];
+	[calendar setTimeZone:[NSTimeZone timeZoneForSecondsFromGMT:0]];
 	NSString *dateString = @"Thu, 19 Nov 1981 08:52:01 GMT";
 	NSDate *date = [ASIHTTPRequest dateFromRFC1123String:dateString];
 	NSDateComponents *components = [calendar components:dateUnits fromDate:date];
