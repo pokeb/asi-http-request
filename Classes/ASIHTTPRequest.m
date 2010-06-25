@@ -261,9 +261,9 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 		if ([self shouldCompressRequestBody]) {
 			[self setCompressedPostBodyFilePath:[NSTemporaryDirectory() stringByAppendingPathComponent:[[NSProcessInfo processInfo] globallyUniqueString]]];
 			[ASIHTTPRequest compressDataFromFile:[self postBodyFilePath] toFile:[self compressedPostBodyFilePath]];
-			[self setPostLength:[[[NSFileManager defaultManager] fileAttributesAtPath:[self compressedPostBodyFilePath] traverseLink:NO] fileSize]];
+            [self setPostLength:[[[NSFileManager defaultManager] attributesOfItemAtPath:[self compressedPostBodyFilePath] error:nil] fileSize]];
 		} else {
-			[self setPostLength:[[[NSFileManager defaultManager] fileAttributesAtPath:[self postBodyFilePath] traverseLink:NO] fileSize]];
+            [self setPostLength:[[[NSFileManager defaultManager] attributesOfItemAtPath:[self compressedPostBodyFilePath] error:nil] fileSize]];
 		}
 		
 	// Otherwise, we have an in-memory request body
@@ -482,7 +482,7 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 	
 	// Should this request resume an existing download?
 	if ([self allowResumeForFileDownloads] && [self downloadDestinationPath] && [self temporaryFileDownloadPath] && [[NSFileManager defaultManager] fileExistsAtPath:[self temporaryFileDownloadPath]]) {
-		[self setPartialDownloadSize:[[[NSFileManager defaultManager] fileAttributesAtPath:[self temporaryFileDownloadPath] traverseLink:NO] fileSize]];
+        [self setPostLength:[[[NSFileManager defaultManager] attributesOfItemAtPath:[self temporaryFileDownloadPath] error:nil] fileSize]];
 		[self addRequestHeader:@"Range" value:[NSString stringWithFormat:@"bytes=%llu-",[self partialDownloadSize]]];
 	}
 	
