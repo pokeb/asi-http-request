@@ -357,6 +357,7 @@ static const NSUInteger kDomainSection = 1;
 		[requestsNeedingAuthentication removeObject:theRequest];
 	}
 	[self performSelector:@selector(presentNextDialog) withObject:nil afterDelay:1];
+	[self dismiss];
 }
 
 #pragma mark table view data source

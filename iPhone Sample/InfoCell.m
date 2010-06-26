@@ -11,7 +11,7 @@
 
 @implementation InfoCell
 
-+ (id)cellWithDescription:(NSString *)description
++ (id)cell
 {
 	InfoCell *cell = [[[InfoCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"InfoCell"] autorelease];
 	if ([[UIScreen mainScreen] bounds].size.width > 480) { // iPad
@@ -21,8 +21,6 @@
 	}
 	[[cell textLabel] setLineBreakMode:UILineBreakModeWordWrap];
 	[[cell textLabel] setNumberOfLines:0];
-	[[cell textLabel] setText:description];
-	[[cell textLabel] sizeToFit];
 	
 	if ([[UIScreen mainScreen] bounds].size.width > 480) { // iPad
 		UIImageView *imageView = [[[UIImageView alloc] initWithFrame:CGRectMake(10,10,48,48)] autorelease];

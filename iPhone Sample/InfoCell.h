@@ -12,6 +12,6 @@
 @interface InfoCell : UITableViewCell {
 
 }
-+ (id)cellWithDescription:(NSString *)description;
++ (id)cell;
 + (NSUInteger)neededHeightForDescription:(NSString *)description withTableWidth:(NSUInteger)tableWidth;
 @end

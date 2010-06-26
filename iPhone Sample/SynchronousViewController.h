@@ -14,6 +14,7 @@
 	ASIHTTPRequest *request;
 	UITextField *urlField;
 	UITextView *responseField;
+	UIButton *goButton;
 
 }
 - (IBAction)simpleURLFetch:(id)sender;

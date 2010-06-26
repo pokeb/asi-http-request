@@ -59,6 +59,7 @@
 {
 	[request cancel];
 	[request release];
+	[progressIndicator release];
     [super dealloc];
 }
 
@@ -91,7 +92,11 @@ static NSString *intro = @"Demonstrates POSTing content to a URL, showing upload
 		[goButton addTarget:self action:@selector(performLargeUpload:) forControlEvents:UIControlEventTouchUpInside];
 		[view addSubview:goButton];
 		
-		progressIndicator = [[[UIProgressView alloc] initWithFrame:CGRectMake((tablePadding/2)-10,20,200,10)] autorelease];
+		if (!progressIndicator) {
+			progressIndicator = [[UIProgressView alloc] initWithFrame:CGRectMake((tablePadding/2)-10,20,200,10)];
+		} else {
+			[progressIndicator setFrame:CGRectMake((tablePadding/2)-10,20,200,10)];
+		}
 		[view addSubview:progressIndicator];
 		
 		return view;
@@ -101,32 +106,37 @@ static NSString *intro = @"Demonstrates POSTing content to a URL, showing upload
 
 - (UITableViewCell *)tableView:(UITableView *)theTableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-	UITableViewCell *cell;
-	if ([indexPath section] == 0) {
-		cell = [InfoCell cellWithDescription:intro];
-	} else {
-		cell = [tableView dequeueReusableCellWithIdentifier:@"MyCell"];
-		if (!cell) {
-			cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"MyCell"] autorelease];
-		}	
-	}
-	[cell setSelectionStyle:UITableViewCellSelectionStyleNone];
-	
 	int tablePadding = 40;
 	int tableWidth = [tableView frame].size.width;
 	if (tableWidth > 480) { // iPad
 		tablePadding = 110;
 	}
 	
-	switch ([indexPath section]) {
-
-		case 2:
+	UITableViewCell *cell;
+	if ([indexPath section] == 0) {
+		cell = [tableView dequeueReusableCellWithIdentifier:@"InfoCell"];
+		if (!cell) {
+			cell = [InfoCell cell];	
+		}
+		[[cell textLabel] setText:intro];
+		[cell layoutSubviews];
+		
+		
+	} else if ([indexPath section] == 1) {
+		return nil;
+	} else if ([indexPath section] == 2) {
+		cell = [tableView dequeueReusableCellWithIdentifier:@"Response"];
+		if (!cell) {
+			cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"Response"] autorelease];
 			
-			resultView = [[[UITextView alloc] initWithFrame:CGRectMake(5,5,tableWidth-tablePadding,60)] autorelease];
+			resultView = [[[UITextView alloc] initWithFrame:CGRectZero] autorelease];
 			[resultView setBackgroundColor:[UIColor clearColor]];
 			[[cell contentView] addSubview:resultView];
-			break;
+		}	
+		[resultView setFrame:CGRectMake(5,5,tableWidth-tablePadding,60)];
 	}
+	[cell setSelectionStyle:UITableViewCellSelectionStyleNone];
+
 	return cell;
 }
 

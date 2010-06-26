@@ -80,6 +80,7 @@
 }
 
 - (void)dealloc {
+	[progressIndicator release];
 	[networkQueue reset];
 	[networkQueue release];
     [super dealloc];
@@ -115,7 +116,11 @@ static NSString *intro = @"Demonstrates a fetching 3 items at once, using an ASI
 		[goButton addTarget:self action:@selector(fetchThreeImages:) forControlEvents:UIControlEventTouchUpInside];
 		[view addSubview:goButton];
 		
-		progressIndicator = [[[UIProgressView alloc] initWithFrame:CGRectMake((tablePadding/2)-10,20,200,10)] autorelease];
+		if (!progressIndicator) {
+			progressIndicator = [[UIProgressView alloc] initWithFrame:CGRectMake((tablePadding/2)-10,20,200,10)];
+		} else {
+			[progressIndicator setFrame:CGRectMake((tablePadding/2)-10,20,200,10)];
+		}
 		[view addSubview:progressIndicator];
 		
 		return view;
@@ -125,88 +130,110 @@ static NSString *intro = @"Demonstrates a fetching 3 items at once, using an ASI
 
 - (UITableViewCell *)tableView:(UITableView *)theTableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-	UITableViewCell *cell;
-	if ([indexPath section] == 0) {
-		cell = [InfoCell cellWithDescription:intro];
-	} else if ([indexPath section] == 1) {
-		cell = [tableView dequeueReusableCellWithIdentifier:@"ToggleCell"];
-		if (!cell) {
-			cell = [ToggleCell cell];
-		}	
-	} else {
-		cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"MyCell"] autorelease];
-	}
-	[cell setSelectionStyle:UITableViewCellSelectionStyleNone];
-	
 	int tablePadding = 40;
 	int tableWidth = [tableView frame].size.width;
 	if (tableWidth > 480) { // iPad
 		tablePadding = 110;
 	}
 	
-	if ([indexPath section] == 1) {
+	UITableViewCell *cell;
+	if ([indexPath section] == 0) {
+		cell = [tableView dequeueReusableCellWithIdentifier:@"InfoCell"];
+		if (!cell) {
+			cell = [InfoCell cell];
+		}
+		[[cell textLabel] setText:intro];
+		[cell layoutSubviews];
+	
+	} else if ([indexPath section] == 1) {
+		cell = [tableView dequeueReusableCellWithIdentifier:@"ToggleCell"];
+		if (!cell) {
+			cell = [ToggleCell cell];
+		}	
 		[[cell textLabel] setText:@"Show Accurate Progress"];
 		accurateProgress = [(ToggleCell *)cell toggle];
-	} else if ([indexPath section] == 2) {
 		
+	} else {
+		
+		cell = [tableView dequeueReusableCellWithIdentifier:@"ImagesCell"];
+		
+		
+		if (!cell) {
+			
+			cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"ImagesCell"] autorelease];
+
+			imageView1 = [[[UIImageView alloc] initWithFrame:CGRectZero] autorelease];
+			[imageView1 setBackgroundColor:[UIColor grayColor]];
+			[cell addSubview:imageView1];
+			
+			imageProgressIndicator1 = [[[UIProgressView alloc] initWithFrame:CGRectZero] autorelease];
+			[cell addSubview:imageProgressIndicator1];
+			
+			imageLabel1 = [[[UILabel alloc] initWithFrame:CGRectZero] autorelease];
+			if (tableWidth > 480) {
+				[imageLabel1 setText:@"This image is 15KB in size"];
+			} else {
+				[imageLabel1 setText:@"Img size: 15KB"];
+			}
+			[imageLabel1 setTextAlignment:UITextAlignmentCenter];
+			[imageLabel1 setFont:[UIFont systemFontOfSize:11]];
+			[imageLabel1 setBackgroundColor:[UIColor clearColor]];
+			[cell addSubview:imageLabel1];
+			
+			imageView2 = [[[UIImageView alloc] initWithFrame:CGRectZero] autorelease];
+			[imageView2 setBackgroundColor:[UIColor grayColor]];
+			[cell addSubview:imageView2];
+			
+			imageProgressIndicator2 = [[[UIProgressView alloc] initWithFrame:CGRectZero] autorelease];
+			[cell addSubview:imageProgressIndicator2];
+			
+			imageLabel2 = [[[UILabel alloc] initWithFrame:CGRectZero] autorelease];
+			if (tableWidth > 480) {
+				[imageLabel2 setText:@"This image is 176KB in size"];
+			} else {
+				[imageLabel2 setText:@"Img size: 176KB"];
+			}
+			[imageLabel2 setTextAlignment:UITextAlignmentCenter];
+			[imageLabel2 setFont:[UIFont systemFontOfSize:11]];
+			[imageLabel2 setBackgroundColor:[UIColor clearColor]];
+			[cell addSubview:imageLabel2];
+			
+			imageView3 = [[[UIImageView alloc] initWithFrame:CGRectZero] autorelease];
+			[imageView3 setBackgroundColor:[UIColor grayColor]];
+			[cell addSubview:imageView3];
+			
+			imageProgressIndicator3 = [[[UIProgressView alloc] initWithFrame:CGRectZero] autorelease];
+			[cell addSubview:imageProgressIndicator3];
+			
+			imageLabel3 = [[[UILabel alloc] initWithFrame:CGRectZero] autorelease];
+			if (tableWidth > 480) {
+				[imageLabel3 setText:@"This image is 1.4MB in size"];
+			} else {
+				[imageLabel3 setText:@"Img size: 1.4MB"];
+			}
+			[imageLabel3 setTextAlignment:UITextAlignmentCenter];
+			[imageLabel3 setFont:[UIFont systemFontOfSize:11]];
+			[imageLabel3 setBackgroundColor:[UIColor clearColor]];
+			[cell addSubview:imageLabel3];
+			
+		}
 		NSUInteger imageWidth = (tableWidth-tablePadding-20)/3;
 		NSUInteger imageHeight = imageWidth*0.66;
 		
-		imageView1 = [[[UIImageView alloc] initWithFrame:CGRectMake(tablePadding/2,10,imageWidth,imageHeight)] autorelease];
-		[imageView1 setBackgroundColor:[UIColor grayColor]];
-		[cell addSubview:imageView1];
 		
-		imageProgressIndicator1 = [[[UIProgressView alloc] initWithFrame:CGRectMake(tablePadding/2,15+imageHeight,imageWidth,20)] autorelease];
-		[cell addSubview:imageProgressIndicator1];
+		[imageView1 setFrame:CGRectMake(tablePadding/2,10,imageWidth,imageHeight)];
+		[imageProgressIndicator1 setFrame:CGRectMake(tablePadding/2,15+imageHeight,imageWidth,20)];
+		[imageLabel1 setFrame:CGRectMake(tablePadding/2,25+imageHeight,imageWidth,20)];
 		
-		UILabel *label = [[[UILabel alloc] initWithFrame:CGRectMake(tablePadding/2,25+imageHeight,imageWidth,20)] autorelease];
-		if (tableWidth > 480) {
-			[label setText:@"This image is 15KB in size"];
-		} else {
-			[label setText:@"Img size: 15KB"];
-		}
-		[label setTextAlignment:UITextAlignmentCenter];
-		[label setFont:[UIFont systemFontOfSize:11]];
-		[label setBackgroundColor:[UIColor clearColor]];
-		[cell addSubview:label];
+		[imageView2 setFrame:CGRectMake((tablePadding/2)+imageWidth+10,10,imageWidth,imageHeight)];
+		[imageProgressIndicator2 setFrame:CGRectMake((tablePadding/2)+imageWidth+10,15+imageHeight,imageWidth,20)];
+		[imageLabel2 setFrame:CGRectMake(tablePadding/2+imageWidth+10,25+imageHeight,imageWidth,20)];
 		
-		imageView2 = [[[UIImageView alloc] initWithFrame:CGRectMake((tablePadding/2)+imageWidth+10,10,imageWidth,imageHeight)] autorelease];
-		[imageView2 setBackgroundColor:[UIColor grayColor]];
-		[cell addSubview:imageView2];
-		
-		imageProgressIndicator2 = [[[UIProgressView alloc] initWithFrame:CGRectMake((tablePadding/2)+imageWidth+10,15+imageHeight,imageWidth,20)] autorelease];
-		[cell addSubview:imageProgressIndicator2];
-		
-		label = [[[UILabel alloc] initWithFrame:CGRectMake(tablePadding/2+imageWidth+10,25+imageHeight,imageWidth,20)] autorelease];
-		if (tableWidth > 480) {
-			[label setText:@"This image is 176KB in size"];
-		} else {
-			[label setText:@"Img size: 176KB"];
-		}
-		[label setTextAlignment:UITextAlignmentCenter];
-		[label setFont:[UIFont systemFontOfSize:11]];
-		[label setBackgroundColor:[UIColor clearColor]];
-		[cell addSubview:label];
-		
-		imageView3 = [[[UIImageView alloc] initWithFrame:CGRectMake((tablePadding/2)+(imageWidth*2)+20,10,imageWidth,imageHeight)] autorelease];
-		[imageView3 setBackgroundColor:[UIColor grayColor]];
-		[cell addSubview:imageView3];
-		
-		imageProgressIndicator3 = [[[UIProgressView alloc] initWithFrame:CGRectMake((tablePadding/2)+(imageWidth*2)+20,15+imageHeight,imageWidth,20)] autorelease];
-		[cell addSubview:imageProgressIndicator3];
-		
-		label = [[[UILabel alloc] initWithFrame:CGRectMake(tablePadding/2+(imageWidth*2)+20,25+imageHeight,imageWidth,20)] autorelease];
-		if (tableWidth > 480) {
-			[label setText:@"This image is 1.4MB in size"];
-		} else {
-			[label setText:@"Img size: 1.4MB"];
-		}
-		[label setTextAlignment:UITextAlignmentCenter];
-		[label setFont:[UIFont systemFontOfSize:11]];
-		[label setBackgroundColor:[UIColor clearColor]];
-		[cell addSubview:label];
-
+		[imageView3 setFrame:CGRectMake((tablePadding/2)+(imageWidth*2)+20,10,imageWidth,imageHeight)];
+		[imageProgressIndicator3 setFrame:CGRectMake((tablePadding/2)+(imageWidth*2)+20,15+imageHeight,imageWidth,20)];
+		[imageLabel3 setFrame:CGRectMake(tablePadding/2+(imageWidth*2)+20,25+imageHeight,imageWidth,20)];
 	}
+	[cell setSelectionStyle:UITableViewCellSelectionStyleNone];
 	return cell;
 }
 

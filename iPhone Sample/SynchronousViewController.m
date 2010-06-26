@@ -80,64 +80,69 @@ static NSString *intro = @"Demonstrates fetching a web page synchronously, the H
 
 - (UITableViewCell *)tableView:(UITableView *)theTableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-	UITableViewCell *cell;
-	if ([indexPath section] == 0) {
-		cell = [InfoCell cellWithDescription:intro];
-	} else if ([indexPath section] == 3) {
-		cell = [tableView dequeueReusableCellWithIdentifier:@"HeaderCell"];
-		if (!cell) {
-			cell = [DetailCell cell];
-		}
-	} else {
-		cell = [tableView dequeueReusableCellWithIdentifier:@"MyCell"];
-		if (!cell) {
-			cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"MyCell"] autorelease];
-		}	
-	}
-	[cell setSelectionStyle:UITableViewCellSelectionStyleNone];
-	NSString *key;
-
 	int tablePadding = 40;
 	int tableWidth = [tableView frame].size.width;
 	if (tableWidth > 480) { // iPad
 		tablePadding = 110;
 	}
 	
-	switch ([indexPath section]) {
-		case 1:
-			urlField = [[[UITextField alloc] initWithFrame:CGRectMake(10,12,tableWidth-tablePadding-50,20)] autorelease];
-			if ([self request]) {
-				[urlField setText:[[[self request] url] absoluteString]];
-			} else {
-				[urlField setText:@"http://allseeing-i.com"];
-			}
-			UIButton *goButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-			[goButton setFrame:CGRectMake(tableWidth-tablePadding-38,7,20,20)];
+	UITableViewCell *cell;
+	if ([indexPath section] == 0) {
+		cell = [tableView dequeueReusableCellWithIdentifier:@"InfoCell"];
+		if (!cell) {
+			cell = [InfoCell cell];	
+		}
+		[[cell textLabel] setText:intro];
+		[cell layoutSubviews];
+		
+	} else if ([indexPath section] == 1) {
+		cell = [tableView dequeueReusableCellWithIdentifier:@"URLCell"];
+		if (!cell) {
+			cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"URLCell"] autorelease];
+			urlField = [[[UITextField alloc] initWithFrame:CGRectZero] autorelease];
+			[[cell contentView] addSubview:urlField];	
+			goButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
 			[goButton setTitle:@"Go!" forState:UIControlStateNormal];
-			[goButton sizeToFit];
 			[goButton addTarget:self action:@selector(simpleURLFetch:) forControlEvents:UIControlEventTouchUpInside];
 			[[cell contentView] addSubview:goButton];
-			[[cell contentView] addSubview:urlField];
-			break;
-		case 2:
-
-			responseField = [[[UITextView alloc] initWithFrame:CGRectMake(5,5,tableWidth-tablePadding,150)] autorelease];
+		}
+		[goButton setFrame:CGRectMake(tableWidth-tablePadding-38,7,20,20)];
+		[goButton sizeToFit];
+		[urlField setFrame:CGRectMake(10,12,tableWidth-tablePadding-50,20)];
+		if ([self request]) {
+			[urlField setText:[[[self request] url] absoluteString]];
+		} else {
+			[urlField setText:@"http://allseeing-i.com"];
+		}
+		
+		
+	} else if ([indexPath section] == 2) {
+		cell = [tableView dequeueReusableCellWithIdentifier:@"ResponseCell"];
+		if (!cell) {
+			cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"ResponseCell"] autorelease];
+			responseField = [[[UITextView alloc] initWithFrame:CGRectZero] autorelease];
 			[responseField setBackgroundColor:[UIColor clearColor]];
 			[[cell contentView] addSubview:responseField];
-			if (request) {
-				if ([request error]) {
-					[responseField setText:[[request error] localizedDescription]];
-				} else if ([request responseString]) {
-					[responseField setText:[request responseString]];
-				}
+		}
+		[responseField setFrame:CGRectMake(5,5,tableWidth-tablePadding,150)];
+		if (request) {
+			if ([request error]) {
+				[responseField setText:[[request error] localizedDescription]];
+			} else if ([request responseString]) {
+				[responseField setText:[request responseString]];
 			}
-			break;
-		case 3:
-			key = [[[request responseHeaders] allKeys] objectAtIndex:[indexPath row]];
-			[[cell textLabel] setText:key];
-			[[cell detailTextLabel] setText:[[request responseHeaders] objectForKey:key]];
-			break;
+		}
+		
+	} else if ([indexPath section] == 3) {
+		cell = [tableView dequeueReusableCellWithIdentifier:@"HeaderCell"];
+		if (!cell) {
+			cell = [DetailCell cell];
+		}
+		NSString *key = [[[request responseHeaders] allKeys] objectAtIndex:[indexPath row]];
+		[[cell textLabel] setText:key];
+		[[cell detailTextLabel] setText:[[request responseHeaders] objectForKey:key]];
 	}
+	[cell setSelectionStyle:UITableViewCellSelectionStyleNone];
 	return cell;
 }
 

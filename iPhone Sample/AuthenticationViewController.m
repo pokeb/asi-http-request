@@ -135,48 +135,54 @@ static NSString *intro = @"Demonstrates fetching content from an area that requi
 
 - (UITableViewCell *)tableView:(UITableView *)theTableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-	UITableViewCell *cell;
-	if ([indexPath section] == 0) {
-		cell = [InfoCell cellWithDescription:intro];
-	} else if ([indexPath section] == 1) {
-		cell = [tableView dequeueReusableCellWithIdentifier:@"ToggleCell"];
-		if (!cell) {
-			cell = [ToggleCell cell];
-		}		
-	} else {
-		cell = [tableView dequeueReusableCellWithIdentifier:@"MyCell"];
-		if (!cell) {
-			cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"MyCell"] autorelease];
-		}	
-	}
-	[cell setSelectionStyle:UITableViewCellSelectionStyleNone];
-	
 	int tablePadding = 40;
 	int tableWidth = [tableView frame].size.width;
 	if (tableWidth > 480) { // iPad
 		tablePadding = 110;
 	}
 	
-	switch ([indexPath section]) {
-		case 1:
-			switch ([indexPath row]) {
-				case 0:
-					[[cell textLabel] setText:@"Use Keychain"];
-					useKeychain = [(ToggleCell *)cell toggle];
-					break;
-				case 1:
-					[[cell textLabel] setText:@"Use Built-In Dialog"];
-					useBuiltInDialog = [(ToggleCell *)cell toggle];
-					break;
+	
+	UITableViewCell *cell;
+	if ([indexPath section] == 0) {
+		
+		cell = [tableView dequeueReusableCellWithIdentifier:@"InfoCell"];
+		if (!cell) {
+			cell = [InfoCell cell];	
+		}
+		[[cell textLabel] setText:intro];
+		[cell layoutSubviews];
+		
+	} else if ([indexPath section] == 1) {
+		cell = [tableView dequeueReusableCellWithIdentifier:@"ToggleCell"];
+		if (!cell) {
+			cell = [ToggleCell cell];
+			if ([indexPath row] == 0) {
+				[[cell textLabel] setText:@"Use Keychain"];
+				useKeychain = [(ToggleCell *)cell toggle];
+			} else {
+				[[cell textLabel] setText:@"Use Built-In Dialog"];
+				useBuiltInDialog = [(ToggleCell *)cell toggle];
 			}
-			break;
-		case 2:
-			responseField = [[[UITextView alloc] initWithFrame:CGRectMake(5,5,tableWidth-tablePadding,150)] autorelease];
+		}
+
+	} else if ([indexPath section] == 2) {
+		
+		cell = [tableView dequeueReusableCellWithIdentifier:@"Response"];
+		if (!cell) {
+			cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"Response"] autorelease];
+			
+			responseField = [[[UITextView alloc] initWithFrame:CGRectZero] autorelease];
 			[responseField setBackgroundColor:[UIColor clearColor]];
 			[responseField setText:@"Secret information will appear here if authentication succeeds"];
 			[[cell contentView] addSubview:responseField];
-			break;
+		}	
+		[responseField setFrame:CGRectMake(5,5,tableWidth-tablePadding,150)];
+		
+
 	}
+	[cell setSelectionStyle:UITableViewCellSelectionStyleNone];
+	
+
 	return cell;
 }
 

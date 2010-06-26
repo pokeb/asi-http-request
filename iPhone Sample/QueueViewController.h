@@ -22,6 +22,9 @@
 	UIProgressView *imageProgressIndicator1;
 	UIProgressView *imageProgressIndicator2;
 	UIProgressView *imageProgressIndicator3;
+	UILabel *imageLabel1;
+	UILabel *imageLabel2;
+	UILabel *imageLabel3;
 	BOOL failed;
 	
 }
