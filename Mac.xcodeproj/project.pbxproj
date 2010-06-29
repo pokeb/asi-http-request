@@ -9,6 +9,11 @@
 /* Begin PBXBuildFile section */
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
 		B502441B1025D36B002B13E1 /* ProxyTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B502441A1025D36B002B13E1 /* ProxyTests.m */; };
+		B50481F711DA25B100818640 /* libtidy.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B50481F611DA25B100818640 /* libtidy.dylib */; };
+		B50481FF11DA264900818640 /* ASIWebPageRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B50481FE11DA264900818640 /* ASIWebPageRequest.m */; };
+		B504820011DA264900818640 /* ASIWebPageRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B50481FE11DA264900818640 /* ASIWebPageRequest.m */; };
+		B504826411DA2F2400818640 /* libtidy.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B504826311DA2F2400818640 /* libtidy.dylib */; };
+		B50483A411DA48F100818640 /* libxml2.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B50483A311DA48F100818640 /* libxml2.2.dylib */; };
 		B50FDEAA115A325E00BBC736 /* GHUnit.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = B5DB497C115624BF0062DB57 /* GHUnit.framework */; };
 		B522D71F103074AC009A2D22 /* ASIInputStream.m in Sources */ = {isa = PBXBuildFile; fileRef = B522D71E103074AC009A2D22 /* ASIInputStream.m */; };
 		B522D720103074AC009A2D22 /* ASIInputStream.m in Sources */ = {isa = PBXBuildFile; fileRef = B522D71E103074AC009A2D22 /* ASIInputStream.m */; };
@@ -97,6 +102,13 @@
 		8D1107320486CEB800E47090 /* Mac.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Mac.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B50244191025D36B002B13E1 /* ProxyTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ProxyTests.h; sourceTree = "<group>"; };
 		B502441A1025D36B002B13E1 /* ProxyTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ProxyTests.m; sourceTree = "<group>"; };
+		B50481F611DA25B100818640 /* libtidy.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libtidy.dylib; path = usr/lib/libtidy.dylib; sourceTree = SDKROOT; };
+		B50481FD11DA264900818640 /* ASIWebPageRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIWebPageRequest.h; sourceTree = "<group>"; };
+		B50481FE11DA264900818640 /* ASIWebPageRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIWebPageRequest.m; sourceTree = "<group>"; };
+		B504826311DA2F2400818640 /* libtidy.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libtidy.dylib; path = usr/lib/libtidy.dylib; sourceTree = SDKROOT; };
+		B504836B11DA465000818640 /* libxml2.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxml2.2.dylib; path = usr/lib/libxml2.2.dylib; sourceTree = SDKROOT; };
+		B504838E11DA484600818640 /* libxml2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxml2.dylib; path = usr/lib/libxml2.dylib; sourceTree = SDKROOT; };
+		B50483A311DA48F100818640 /* libxml2.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxml2.2.dylib; path = usr/lib/libxml2.2.dylib; sourceTree = SDKROOT; };
 		B515507810BD56E800608267 /* strict.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = strict.xcconfig; sourceTree = "<group>"; };
 		B51791281024BF0F00583567 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
 		B522D71D103074AC009A2D22 /* ASIInputStream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIInputStream.h; sourceTree = "<group>"; };
@@ -179,6 +191,8 @@
 				8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */,
 				B55B5EB80F7658200064029C /* libz.1.2.3.dylib in Frameworks */,
 				B522DE821031BD5E009A2D22 /* SystemConfiguration.framework in Frameworks */,
+				B504826411DA2F2400818640 /* libtidy.dylib in Frameworks */,
+				B50483A411DA48F100818640 /* libxml2.2.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -189,6 +203,7 @@
 				B5DB49CA115627300062DB57 /* GHUnit.framework in Frameworks */,
 				B55B60140F7659A30064029C /* libz.1.2.3.dylib in Frameworks */,
 				B522DE601031BB03009A2D22 /* SystemConfiguration.framework in Frameworks */,
+				B50481F711DA25B100818640 /* libtidy.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -234,6 +249,11 @@
 				B55B5EB70F7658200064029C /* libz.1.2.3.dylib */,
 				B53FADE70FF38B2A002E2DE6 /* SystemConfiguration.framework */,
 				B51791281024BF0F00583567 /* Security.framework */,
+				B50481F611DA25B100818640 /* libtidy.dylib */,
+				B504826311DA2F2400818640 /* libtidy.dylib */,
+				B504836B11DA465000818640 /* libxml2.2.dylib */,
+				B504838E11DA484600818640 /* libxml2.dylib */,
+				B50483A311DA48F100818640 /* libxml2.2.dylib */,
 			);
 			name = Mac;
 			sourceTree = "<group>";
@@ -292,6 +312,8 @@
 		B55B5D100F76568E0064029C /* Classes */ = {
 			isa = PBXGroup;
 			children = (
+				B50481FD11DA264900818640 /* ASIWebPageRequest.h */,
+				B50481FE11DA264900818640 /* ASIWebPageRequest.m */,
 				B551DD3310D6AB6B00EC1CBF /* ASIHTTPRequestConfig.h */,
 				B5747B3A11746CF500C9414E /* ASIProgressDelegate.h */,
 				B5747EA91174B1C100C9414E /* ASIHTTPRequestDelegate.h */,
@@ -512,6 +534,7 @@
 				B55B5E700F7656A40064029C /* main.m in Sources */,
 				B522D720103074AC009A2D22 /* ASIInputStream.m in Sources */,
 				B552536111D23ECD00F9B170 /* ASIDownloadCache.m in Sources */,
+				B504820011DA264900818640 /* ASIWebPageRequest.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -547,6 +570,7 @@
 				B5403FF01151149E00D8BE63 /* ASIS3ObjectRequest.m in Sources */,
 				B5403FF11151149E00D8BE63 /* ASIS3ServiceRequest.m in Sources */,
 				B552535D11D23EBB00F9B170 /* ASIDownloadCache.m in Sources */,
+				B50481FF11DA264900818640 /* ASIWebPageRequest.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -657,6 +681,8 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Mac Sample/Mac_Prefix.pch";
 				GCC_PREPROCESSOR_DEFINITIONS = "";
+				GCC_VERSION = com.apple.compilers.llvmgcc42;
+				HEADER_SEARCH_PATHS = "/Developer/SDKs/MacOSX10.5.sdk/usr/include/libxml2//**";
 				INFOPLIST_FILE = "Mac Sample/Info.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
 				MACOSX_DEPLOYMENT_TARGET = 10.5;
@@ -676,6 +702,8 @@
 				GCC_MODEL_TUNING = G5;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = Mac_Prefix.pch;
+				GCC_VERSION = com.apple.compilers.llvmgcc42;
+				HEADER_SEARCH_PATHS = "/Developer/SDKs/MacOSX10.5.sdk/usr/include/libxml2//**";
 				INFOPLIST_FILE = "Mac Sample/Info.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
 				MACOSX_DEPLOYMENT_TARGET = 10.5;
