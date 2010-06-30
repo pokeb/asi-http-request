@@ -24,7 +24,7 @@
 
 // Automatically set on build
 
-NSString *ASIHTTPRequestVersion = @"v1.7-4 2010-06-30";
+NSString *ASIHTTPRequestVersion = @"v1.7-5 2010-06-30";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -936,17 +936,35 @@ static NSOperationQueue *sharedQueue = nil;
 			NSDictionary *settings = [proxies objectAtIndex:0];
 			[self setProxyHost:[settings objectForKey:(NSString *)kCFProxyHostNameKey]];
 			[self setProxyPort:[[settings objectForKey:(NSString *)kCFProxyPortNumberKey] intValue]];
+			[self setProxyType:[settings objectForKey:(NSString *)kCFProxyTypeKey]];
 		}
 	}
 	if ([self proxyHost] && [self proxyPort]) {
-		NSString *hostKey = (NSString *)kCFStreamPropertyHTTPProxyHost;
-		NSString *portKey = (NSString *)kCFStreamPropertyHTTPProxyPort;
-		if ([[[[self url] scheme] lowercaseString] isEqualToString:@"https"]) {
-			hostKey = (NSString *)kCFStreamPropertyHTTPSProxyHost;
-			portKey = (NSString *)kCFStreamPropertyHTTPSProxyPort;
+		NSString *hostKey;
+		NSString *portKey;
+
+		if (![self proxyType]) {
+			[self setProxyType:(NSString *)kCFProxyTypeHTTP];
+		}
+
+		if ([[self proxyType] isEqualToString:(NSString *)kCFProxyTypeSOCKS]) {
+			hostKey = (NSString *)kCFStreamPropertySOCKSProxyHost;
+			portKey = (NSString *)kCFStreamPropertySOCKSProxyPort;
+		} else {
+			hostKey = (NSString *)kCFStreamPropertyHTTPProxyHost;
+			portKey = (NSString *)kCFStreamPropertyHTTPProxyPort;
+			if ([[[[self url] scheme] lowercaseString] isEqualToString:@"https"]) {
+				hostKey = (NSString *)kCFStreamPropertyHTTPSProxyHost;
+				portKey = (NSString *)kCFStreamPropertyHTTPSProxyPort;
+			}
 		}
 		NSMutableDictionary *proxyToUse = [NSMutableDictionary dictionaryWithObjectsAndKeys:[self proxyHost],hostKey,[NSNumber numberWithInt:[self proxyPort]],portKey,nil];
-		CFReadStreamSetProperty((CFReadStreamRef)[self readStream], kCFStreamPropertyHTTPProxy, proxyToUse);
+
+		if ([[self proxyType] isEqualToString:(NSString *)kCFProxyTypeSOCKS]) {
+			CFReadStreamSetProperty((CFReadStreamRef)[self readStream], kCFStreamPropertySOCKSProxy, proxyToUse);
+		} else {
+			CFReadStreamSetProperty((CFReadStreamRef)[self readStream], kCFStreamPropertyHTTPProxy, proxyToUse);
+		}
 	}
 
 	//
@@ -3996,6 +4014,7 @@ static NSOperationQueue *sharedQueue = nil;
 @synthesize proxyCredentials;
 @synthesize proxyHost;
 @synthesize proxyPort;
+@synthesize proxyType;
 @synthesize PACurl;
 @synthesize authenticationScheme;
 @synthesize proxyAuthenticationScheme;

@@ -333,6 +333,10 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	NSString *proxyHost;
 	int proxyPort;
 	
+	// ASIHTTPRequest will assume kCFProxyTypeHTTP if the proxy type could not be automatically determined
+	// Set to kCFProxyTypeSOCKS if you are manually configuring a SOCKS proxy
+	NSString *proxyType;
+
 	// URL for a PAC (Proxy Auto Configuration) file. If you want to set this yourself, it's probably best if you use a local file
 	NSURL *PACurl;
 	
@@ -749,6 +753,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 
 @property (retain) NSString *proxyHost;
 @property (assign) int proxyPort;
+@property (retain) NSString *proxyType;
 
 @property (retain,setter=setURL:) NSURL *url;
 @property (retain) NSURL *originalURL;
