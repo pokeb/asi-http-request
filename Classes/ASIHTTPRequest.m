@@ -24,7 +24,7 @@
 
 // Automatically set on build
 
-NSString *ASIHTTPRequestVersion = @"v1.7-5 2010-06-30";
+NSString *ASIHTTPRequestVersion = @"v1.7-6 2010-06-30";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -327,6 +327,7 @@ static NSOperationQueue *sharedQueue = nil;
 	[authenticationScheme release];
 	[requestCredentials release];
 	[proxyHost release];
+	[proxyType release];
 	[proxyUsername release];
 	[proxyPassword release];
 	[proxyDomain release];
@@ -1313,6 +1314,7 @@ static NSOperationQueue *sharedQueue = nil;
 	[headRequest setProxyDomain:[self proxyDomain]];
 	[headRequest setProxyHost:[self proxyHost]];
 	[headRequest setProxyPort:[self proxyPort]];
+	[headRequest setProxyType:[self proxyType]];
 	[headRequest setShouldPresentAuthenticationDialog:[self shouldPresentAuthenticationDialog]];
 	[headRequest setShouldPresentProxyAuthenticationDialog:[self shouldPresentProxyAuthenticationDialog]];
 	[headRequest setTimeOutSeconds:[self timeOutSeconds]];
@@ -2955,6 +2957,7 @@ static NSOperationQueue *sharedQueue = nil;
 	[newRequest setProxyDomain:[self proxyDomain]];
 	[newRequest setProxyHost:[self proxyHost]];
 	[newRequest setProxyPort:[self proxyPort]];
+	[newRequest setProxyType:[self proxyType]];
 	[newRequest setUploadProgressDelegate:[self uploadProgressDelegate]];
 	[newRequest setDownloadProgressDelegate:[self downloadProgressDelegate]];
 	[newRequest setShouldPresentAuthenticationDialog:[self shouldPresentAuthenticationDialog]];
