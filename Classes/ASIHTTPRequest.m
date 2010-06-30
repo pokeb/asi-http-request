@@ -24,7 +24,7 @@
 
 // Automatically set on build
 
-NSString *ASIHTTPRequestVersion = @"v1.6.2-69 2010-06-26";
+NSString *ASIHTTPRequestVersion = @"v1.7-1 2010-06-30";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
