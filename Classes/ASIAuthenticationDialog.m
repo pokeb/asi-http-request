@@ -10,7 +10,7 @@
 #import "ASIHTTPRequest.h"
 #import <CoreGraphics/CoreGraphics.h>
 
-ASIAuthenticationDialog *sharedDialog = nil;
+static ASIAuthenticationDialog *sharedDialog = nil;
 BOOL isDismissing = NO;
 static NSMutableArray *requestsNeedingAuthentication = nil;
 
@@ -200,8 +200,15 @@ static const NSUInteger kDomainSection = 1;
 + (void)dismiss
 {
 	[[sharedDialog parentViewController] dismissModalViewControllerAnimated:YES];
+}
+
+- (void)viewDidDisappear:(BOOL)animated
+{
+	[self retain];
 	[sharedDialog release];
 	sharedDialog = nil;
+	[self presentNextDialog];
+	[self release];
 }
 
 - (void)dismiss
@@ -297,7 +304,6 @@ static const NSUInteger kDomainSection = 1;
 		[requestsNeedingAuthentication removeObject:theRequest];
 	}
 	[self dismiss];
-	[self performSelector:@selector(presentNextDialog) withObject:nil afterDelay:1];
 }
 
 - (NSArray *)requestsRequiringTheseCredentials
@@ -356,7 +362,6 @@ static const NSUInteger kDomainSection = 1;
 		[theRequest retryUsingSuppliedCredentials];
 		[requestsNeedingAuthentication removeObject:theRequest];
 	}
-	[self performSelector:@selector(presentNextDialog) withObject:nil afterDelay:1];
 	[self dismiss];
 }
 
