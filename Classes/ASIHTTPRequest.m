@@ -24,7 +24,7 @@
 
 // Automatically set on build
 
-NSString *ASIHTTPRequestVersion = @"v1.7-1 2010-06-30";
+NSString *ASIHTTPRequestVersion = @"v1.7-2 2010-06-30";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -1684,33 +1684,6 @@ static NSOperationQueue *sharedQueue = nil;
 			[[self class] storeAuthenticationCredentialsInSessionStore:sessionCredentials];
 		}
 	}
-	
-	// See if we got a Content-length header
-	NSString *cLength = [responseHeaders valueForKey:@"Content-Length"];
-	ASIHTTPRequest *theRequest = self;
-	if ([self mainRequest]) {
-		theRequest = [self mainRequest];
-	}
-	
-	if (cLength) {
-		SInt32 length = CFStringGetIntValue((CFStringRef)cLength);
-		
-		// Workaround for Apache HEAD requests for dynamically generated content returning the wrong Content-Length when using gzip
-		if ([self mainRequest] && [self allowCompressedResponse] && length == 20 && [self showAccurateProgress] && [self shouldResetDownloadProgress]) {
-			[[self mainRequest] setShowAccurateProgress:NO];
-			[[self mainRequest] incrementDownloadSizeBy:1];
-			
-		} else {
-			[theRequest setContentLength:length];
-			if ([self showAccurateProgress] && [self shouldResetDownloadProgress]) {
-				[theRequest incrementDownloadSizeBy:[theRequest contentLength]+[theRequest partialDownloadSize]];
-			}
-		}
-		
-	} else if ([self showAccurateProgress] && [self shouldResetDownloadProgress]) {
-		[theRequest setShowAccurateProgress:NO];
-		[theRequest incrementDownloadSizeBy:1];			
-	}
 
 	// Handle response text encoding
 	// If the Content-Type header specified an encoding, we'll use that, otherwise we use defaultStringEncoding (which defaults to NSISOLatin1StringEncoding)
@@ -1738,13 +1711,13 @@ static NSOperationQueue *sharedQueue = nil;
 	[self setResponseEncoding:encoding];
 
 	// Handle cookies
-	NSArray *newCookies = [NSHTTPCookie cookiesWithResponseHeaderFields:responseHeaders forURL:url];
+	NSArray *newCookies = [NSHTTPCookie cookiesWithResponseHeaderFields:[self responseHeaders] forURL:[self url]];
 	[self setResponseCookies:newCookies];
 	
 	if ([self useCookiePersistence]) {
 		
 		// Store cookies in global persistent store
-		[[NSHTTPCookieStorage sharedHTTPCookieStorage] setCookies:newCookies forURL:url mainDocumentURL:nil];
+		[[NSHTTPCookieStorage sharedHTTPCookieStorage] setCookies:newCookies forURL:[self url] mainDocumentURL:nil];
 		
 		// We also keep any cookies in the sessionCookies array, so that we have a reference to them if we need to remove them later
 		NSHTTPCookie *cookie;
@@ -1799,6 +1772,36 @@ static NSOperationQueue *sharedQueue = nil;
 			
 		}
 	}
+
+	if (![self needsRedirect]) {
+		// See if we got a Content-length header
+		NSString *cLength = [responseHeaders valueForKey:@"Content-Length"];
+		ASIHTTPRequest *theRequest = self;
+		if ([self mainRequest]) {
+			theRequest = [self mainRequest];
+		}
+
+		if (cLength) {
+			SInt32 length = CFStringGetIntValue((CFStringRef)cLength);
+
+			// Workaround for Apache HEAD requests for dynamically generated content returning the wrong Content-Length when using gzip
+			if ([self mainRequest] && [self allowCompressedResponse] && length == 20 && [self showAccurateProgress] && [self shouldResetDownloadProgress]) {
+				[[self mainRequest] setShowAccurateProgress:NO];
+				[[self mainRequest] incrementDownloadSizeBy:1];
+
+			} else {
+				[theRequest setContentLength:length];
+				if ([self showAccurateProgress] && [self shouldResetDownloadProgress]) {
+					[theRequest incrementDownloadSizeBy:[theRequest contentLength]+[theRequest partialDownloadSize]];
+				}
+			}
+
+		} else if ([self showAccurateProgress] && [self shouldResetDownloadProgress]) {
+			[theRequest setShowAccurateProgress:NO];
+			[theRequest incrementDownloadSizeBy:1];
+		}
+	}
+
 	// Handle connection persistence
 	if ([self shouldAttemptPersistentConnection]) {
 		
@@ -3783,6 +3786,20 @@ static NSOperationQueue *sharedQueue = nil;
 }
 #endif
 
+#pragma mark cache
+
++ (void)setDefaultCache:(id <ASICacheDelegate>)cache
+{
+	[defaultCache release];
+	defaultCache = [cache retain];
+}
+
++ (id <ASICacheDelegate>)defaultCache
+{
+	return defaultCache;
+}
+
+
 #pragma mark network activity
 
 + (BOOL)isNetworkInUse
@@ -3838,16 +3855,6 @@ static NSOperationQueue *sharedQueue = nil;
 	CFRelease(source);
 }
 
-+ (void)setDefaultCache:(id <ASICacheDelegate>)cache
-{
-	[defaultCache release];
-	defaultCache = [cache retain];
-}
-
-+ (id <ASICacheDelegate>)defaultCache
-{
-	return defaultCache;
-}
 
 
 #pragma mark miscellany 

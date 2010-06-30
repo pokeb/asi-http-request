@@ -1631,5 +1631,21 @@
 
 }
 
+- (void)testAccurateProgressFallback
+{
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
+	[request setAllowCompressedResponse:NO]; // A bit hacky - my server will send a chunked response (without content length) when we don't specify that we accept gzip
+	[request startSynchronous];
+
+	BOOL success = ([request showAccurateProgress] == NO);
+	GHAssertTrue(success,@"Request failed to fall back to simple progress");
+
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/redirect_resume"]];
+	[request startSynchronous];
+
+	success = ([request showAccurateProgress] == YES);
+	GHAssertTrue(success,@"Request fell back to simple progress when redirecting");
+}
+
 @synthesize responseData;
 @end
