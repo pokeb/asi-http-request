@@ -24,9 +24,6 @@ extern NSString *ASIHTTPRequestVersion;
 
 // Make targeting different platforms more reliable
 // See: http://www.blumtnwerx.com/blog/2009/06/cross-sdk-code-hygiene-in-xcode/
-#ifndef __IPHONE_3_0
-	#define __IPHONE_3_0 30000
-#endif
 #ifndef __IPHONE_3_2
 	#define __IPHONE_3_2 30200
 #endif
@@ -717,10 +714,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 + (void)setShouldUpdateNetworkActivityIndicator:(BOOL)shouldUpdate;
 #endif
 
-#pragma mark miscellany 
-
-// Determines whether we're on iPhone OS 2.0 at runtime, currently used to determine whether we should apply a workaround for an issue with converting longs to doubles on iPhone OS 2
-+ (BOOL)isiPhoneOS2;
+#pragma mark miscellany
 
 // Used for generating Authorization header when using basic authentication when shouldPresentCredentialsBeforeChallenge is true
 // And also by ASIS3Request

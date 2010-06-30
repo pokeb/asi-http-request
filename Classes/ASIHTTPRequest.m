@@ -24,7 +24,7 @@
 
 // Automatically set on build
 
-NSString *ASIHTTPRequestVersion = @"v1.7-6 2010-06-30";
+NSString *ASIHTTPRequestVersion = @"v1.7-8 2010-06-30";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -118,9 +118,6 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 
 // When throttling bandwidth, Set to a date in future that we will allow all requests to wake up and reschedule their streams
 static NSDate *throttleWakeUpTime = nil;
-
-// Run once in initalize to record at runtime whether we're on iPhone OS 2. When YES, a workaround for a type conversion bug in iPhone OS 2.2.x is applied in some places
-static BOOL isiPhoneOS2;
 
 static id <ASICacheDelegate> defaultCache = nil;
 
@@ -235,11 +232,6 @@ static NSOperationQueue *sharedQueue = nil;
 		ASIUnableToCreateRequestError = [[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIUnableToCreateRequestErrorType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Unable to create request (bad url?)",NSLocalizedDescriptionKey,nil]] retain];
 		ASITooMuchRedirectionError = [[NSError errorWithDomain:NetworkRequestErrorDomain code:ASITooMuchRedirectionErrorType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"The request failed because it redirected too many times",NSLocalizedDescriptionKey,nil]] retain];	
 
-#if TARGET_OS_IPHONE
-		isiPhoneOS2 = ((floorf([[[UIDevice currentDevice] systemVersion] floatValue]) == 2.0) ? YES : NO);
-#else
-		isiPhoneOS2 = NO;
-#endif
 		sharedQueue = [[NSOperationQueue alloc] init];
 		[sharedQueue setMaxConcurrentOperationCount:4];
 
@@ -907,12 +899,7 @@ static NSOperationQueue *sharedQueue = nil;
 		} else {
 			
 #if TARGET_OS_IPHONE
-#if TARGET_IPHONE_SIMULATOR && __IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_3_0
-			// Can't detect proxies in 2.2.1 Simulator
-			NSDictionary *proxySettings = [NSMutableDictionary dictionary];	
-#else
 			NSDictionary *proxySettings = NSMakeCollectable([(NSDictionary *)CFNetworkCopySystemProxySettings() autorelease]);
-#endif
 #else
 			NSDictionary *proxySettings = NSMakeCollectable([(NSDictionary *)SCDynamicStoreCopyProxies(NULL) autorelease]);
 #endif
@@ -1497,14 +1484,8 @@ static NSOperationQueue *sharedQueue = nil;
 {
 	#if TARGET_OS_IPHONE
 		// Cocoa Touch: UIProgressView
-		float progressAmount;
 		SEL selector = @selector(setProgress:);
-		//Workaround for an issue with converting a long to a double on iPhone OS 2.2.1 with a base SDK >= 3.0
-		if ([ASIHTTPRequest isiPhoneOS2]) {
-			progressAmount = [[NSNumber numberWithUnsignedLongLong:progress] floatValue]/[[NSNumber numberWithUnsignedLongLong:total] floatValue]; 
-		} else {
-			progressAmount = (progress*1.0f)/(total*1.0f);
-		}
+		float progressAmount = (progress*1.0f)/(total*1.0f);
 		
 	#else
 		// Cocoa: NSProgressIndicator
@@ -3560,15 +3541,11 @@ static NSOperationQueue *sharedQueue = nil;
 		return [NSArray array];
 	}
 	// Obtain the list of proxies by running the autoconfiguration script
-#if TARGET_IPHONE_SIMULATOR && __IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_3_0
-	NSArray *proxies = NSMakeCollectable([(NSArray *)CFNetworkCopyProxiesForAutoConfigurationScript((CFStringRef)script,(CFURLRef)theURL) autorelease]);
-#else
 	CFErrorRef err2 = NULL;
 	NSArray *proxies = NSMakeCollectable([(NSArray *)CFNetworkCopyProxiesForAutoConfigurationScript((CFStringRef)script,(CFURLRef)theURL, &err2) autorelease]);
 	if (err2) {
 		return nil;
 	}
-#endif
 	return proxies;
 }
 
@@ -3578,8 +3555,6 @@ static NSOperationQueue *sharedQueue = nil;
 {
 	if (![[NSFileManager defaultManager] fileExistsAtPath:path]) {
 		return nil;
-	} else if ([ASIHTTPRequest isiPhoneOS2]) {
-		return @"application/octet-stream";
 	}
 	// Borrowed from http://stackoverflow.com/questions/2439020/wheres-the-iphone-mime-type-database
 	CFStringRef UTI = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, (CFStringRef)[path pathExtension], NULL);
@@ -3879,12 +3854,6 @@ static NSOperationQueue *sharedQueue = nil;
 
 
 #pragma mark miscellany 
-
-+ (BOOL)isiPhoneOS2
-{
-	// Value is set in +initialize
-	return isiPhoneOS2;
-}
 
 // From: http://www.cocoadev.com/index.pl?BaseSixtyFour
 
