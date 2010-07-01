@@ -101,6 +101,9 @@
 		B5C6663E100A82D7004F3C96 /* ASIS3RequestTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B5C6663D100A82D7004F3C96 /* ASIS3RequestTests.m */; };
 		B5EA45AA109B56D800E920CB /* StressTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B5EA45A9109B56D800E920CB /* StressTests.m */; };
 		B5F95171115237C800EDED69 /* libGHUnitIPhone3_0.a in CopyFiles */ = {isa = PBXBuildFile; fileRef = B54043751151538A00D8BE63 /* libGHUnitIPhone3_0.a */; };
+		B5FE752711DBBA6400F898C8 /* ASIDownloadCache.m in Sources */ = {isa = PBXBuildFile; fileRef = B5FE752511DBBA6400F898C8 /* ASIDownloadCache.m */; };
+		B5FE752811DBBA6400F898C8 /* ASIDownloadCache.m in Sources */ = {isa = PBXBuildFile; fileRef = B5FE752511DBBA6400F898C8 /* ASIDownloadCache.m */; };
+		B5FE752911DBBA6400F898C8 /* ASIDownloadCache.m in Sources */ = {isa = PBXBuildFile; fileRef = B5FE752511DBBA6400F898C8 /* ASIDownloadCache.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -242,6 +245,9 @@
 		B5C6663D100A82D7004F3C96 /* ASIS3RequestTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIS3RequestTests.m; sourceTree = "<group>"; };
 		B5EA45A8109B56D800E920CB /* StressTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StressTests.h; sourceTree = "<group>"; };
 		B5EA45A9109B56D800E920CB /* StressTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = StressTests.m; sourceTree = "<group>"; };
+		B5FE752511DBBA6400F898C8 /* ASIDownloadCache.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIDownloadCache.m; sourceTree = "<group>"; };
+		B5FE752611DBBA6400F898C8 /* ASIDownloadCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIDownloadCache.h; sourceTree = "<group>"; };
+		B5FE752A11DBBA6A00F898C8 /* ASICacheDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASICacheDelegate.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -295,6 +301,7 @@
 			isa = PBXGroup;
 			children = (
 				B551DB4610D6938500EC1CBF /* ASIHTTPRequestConfig.h */,
+				B5FE752A11DBBA6A00F898C8 /* ASICacheDelegate.h */,
 				B5747F271174BB8300C9414E /* ASIHTTPRequestDelegate.h */,
 				B5747F281174BB8300C9414E /* ASIProgressDelegate.h */,
 				B59A87C0103EC6F200300252 /* ASIAuthenticationDialog.h */,
@@ -307,6 +314,8 @@
 				B55B60480F765A320064029C /* ASIHTTPRequest.m */,
 				B55B60490F765A320064029C /* ASINetworkQueue.h */,
 				B55B604A0F765A320064029C /* ASINetworkQueue.m */,
+				B5FE752611DBBA6400F898C8 /* ASIDownloadCache.h */,
+				B5FE752511DBBA6400F898C8 /* ASIDownloadCache.m */,
 				B5873FC010FF28CA001E145F /* S3 */,
 				B5873FC710FF28CA001E145F /* CloudFiles */,
 				B55B60510F765A3C0064029C /* Tests */,
@@ -691,6 +700,7 @@
 				B5BD2B0611CA542000D7C426 /* ToggleCell.m in Sources */,
 				B5BD2B0E11CA542700D7C426 /* SampleViewController.m in Sources */,
 				B55252B511D22E2200F9B170 /* Reachability.m in Sources */,
+				B5FE752811DBBA6400F898C8 /* ASIDownloadCache.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -727,6 +737,7 @@
 				B540400E115114BA00D8BE63 /* ASIS3ServiceRequest.m in Sources */,
 				B54043B11151542C00D8BE63 /* GHUnitIPhoneTestMain.m in Sources */,
 				B55252B411D22E2200F9B170 /* Reachability.m in Sources */,
+				B5FE752711DBBA6400F898C8 /* ASIDownloadCache.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -752,6 +763,7 @@
 				B5BD2B0B11CA542700D7C426 /* RootViewController.m in Sources */,
 				B5BD2B0C11CA542700D7C426 /* SampleViewController.m in Sources */,
 				B55252B611D22E2200F9B170 /* Reachability.m in Sources */,
+				B5FE752911DBBA6400F898C8 /* ASIDownloadCache.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
