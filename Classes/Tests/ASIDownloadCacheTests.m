@@ -192,6 +192,7 @@
 {
 	[[ASIDownloadCache sharedCache] clearCachedResponsesForStoragePolicy:ASICacheForSessionDurationCacheStoragePolicy];
 	[[ASIDownloadCache sharedCache] setDefaultCachePolicy:ASIReloadIfDifferentCachePolicy];
+	[[ASIDownloadCache sharedCache] setShouldRespectCacheControlHeaders:YES];
 
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/cache-away"]];
 	[request setDownloadCache:[ASIDownloadCache sharedCache]];
@@ -238,6 +239,56 @@
 
 	success = ([[request responseData] length]);
 	GHAssertTrue(success,@"Response was empty");
+}
+
+- (void)testStringEncoding
+{
+	[ASIHTTPRequest setDefaultCache:[ASIDownloadCache sharedCache]];
+	[[ASIDownloadCache sharedCache] setShouldRespectCacheControlHeaders:NO];
+	[[ASIDownloadCache sharedCache] clearCachedResponsesForStoragePolicy:ASICacheForSessionDurationCacheStoragePolicy];
+	[[ASIDownloadCache sharedCache] setDefaultCachePolicy:ASIOnlyLoadIfNotCachedCachePolicy];
+
+	NSURL *url = [NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/Character-Encoding/UTF-16"];
+	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request startSynchronous];
+	BOOL success = ([request responseEncoding] == NSUnicodeStringEncoding);
+	GHAssertTrue(success,@"Got the wrong encoding back, cannot proceed with test");
+
+	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request startSynchronous];
+	success = [request responseEncoding] == NSUnicodeStringEncoding;
+	GHAssertTrue(success,@"Failed to set the correct encoding on the cached response");
+
+	[ASIHTTPRequest setDefaultCache:nil];
+}
+
+- (void)testCookies
+{
+	[ASIHTTPRequest setDefaultCache:[ASIDownloadCache sharedCache]];
+	[[ASIDownloadCache sharedCache] setShouldRespectCacheControlHeaders:NO];
+	[[ASIDownloadCache sharedCache] clearCachedResponsesForStoragePolicy:ASICacheForSessionDurationCacheStoragePolicy];
+	[[ASIDownloadCache sharedCache] setDefaultCachePolicy:ASIOnlyLoadIfNotCachedCachePolicy];
+
+	NSURL *url = [NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/set_cookie"];
+	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request startSynchronous];
+	NSArray *cookies = [request responseCookies];
+
+	BOOL success = ([cookies count]);
+	GHAssertTrue(success,@"Got no cookies back, cannot proceed with test");
+
+	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request startSynchronous];
+
+	NSUInteger i;
+	for (i=0; i<[cookies count]; i++) {
+		if (![[[cookies objectAtIndex:i] name] isEqualToString:[[[request responseCookies] objectAtIndex:i] name]]) {
+			GHAssertTrue(success,@"Failed to set response cookies correctly");
+			return;
+		}
+	}
+
+	[ASIHTTPRequest setDefaultCache:nil];
 }
 
 @end

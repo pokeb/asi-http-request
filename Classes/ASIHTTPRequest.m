@@ -24,7 +24,7 @@
 
 // Automatically set on build
 
-NSString *ASIHTTPRequestVersion = @"v1.7-11 2010-07-02";
+NSString *ASIHTTPRequestVersion = @"v1.7-12 2010-07-02";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -1719,29 +1719,7 @@ static NSOperationQueue *sharedQueue = nil;
 	}
 
 	// Handle response text encoding
-	// If the Content-Type header specified an encoding, we'll use that, otherwise we use defaultStringEncoding (which defaults to NSISOLatin1StringEncoding)
-	NSString *contentType = [[self responseHeaders] objectForKey:@"Content-Type"];
-	NSStringEncoding encoding = [self defaultResponseEncoding];
-	if (contentType) {
-
-		NSString *charsetSeparator = @"charset=";
-		NSScanner *charsetScanner = [NSScanner scannerWithString: contentType];
-		NSString *IANAEncoding = nil;
-
-		if ([charsetScanner scanUpToString: charsetSeparator intoString: NULL] && [charsetScanner scanLocation] < [contentType length])
-		{
-			[charsetScanner setScanLocation: [charsetScanner scanLocation] + [charsetSeparator length]];
-			[charsetScanner scanUpToString: @";" intoString: &IANAEncoding];
-		}
-
-		if (IANAEncoding) {
-			CFStringEncoding cfEncoding = CFStringConvertIANACharSetNameToEncoding((CFStringRef)IANAEncoding);
-			if (cfEncoding != kCFStringEncodingInvalidId) {
-				encoding = CFStringConvertEncodingToNSStringEncoding(cfEncoding);
-			}
-		}
-	}
-	[self setResponseEncoding:encoding];
+	[self parseStringEncodingFromHeaders];
 
 	// Handle cookies
 	NSArray *newCookies = [NSHTTPCookie cookiesWithResponseHeaderFields:[self responseHeaders] forURL:[self url]];
@@ -1880,6 +1858,33 @@ static NSOperationQueue *sharedQueue = nil;
 
 	CFRelease(message);
 	[self requestReceivedResponseHeaders];
+}
+
+// Handle response text encoding
+// If the Content-Type header specified an encoding, we'll use that, otherwise we use defaultStringEncoding (which defaults to NSISOLatin1StringEncoding)
+- (void)parseStringEncodingFromHeaders
+{
+	NSString *contentType = [[self responseHeaders] objectForKey:@"Content-Type"];
+	NSStringEncoding encoding = [self defaultResponseEncoding];
+	if (contentType) {
+
+		NSString *charsetSeparator = @"charset=";
+		NSScanner *charsetScanner = [NSScanner scannerWithString: contentType];
+		NSString *IANAEncoding = nil;
+
+		if ([charsetScanner scanUpToString: charsetSeparator intoString: NULL] && [charsetScanner scanLocation] < [contentType length]) {
+			[charsetScanner setScanLocation: [charsetScanner scanLocation] + [charsetSeparator length]];
+			[charsetScanner scanUpToString: @";" intoString: &IANAEncoding];
+		}
+
+		if (IANAEncoding) {
+			CFStringEncoding cfEncoding = CFStringConvertIANACharSetNameToEncoding((CFStringRef)IANAEncoding);
+			if (cfEncoding != kCFStringEncodingInvalidId) {
+				encoding = CFStringConvertEncodingToNSStringEncoding(cfEncoding);
+			}
+		}
+	}
+	[self setResponseEncoding:encoding];
 }
 
 #pragma mark http authentication
@@ -2775,8 +2780,11 @@ static NSOperationQueue *sharedQueue = nil;
 	}
 	[theRequest setContentLength:[[[self responseHeaders] objectForKey:@"Content-Length"] longLongValue]];
 	[theRequest setTotalBytesRead:[self contentLength]];
-	
-	
+
+	[theRequest parseStringEncodingFromHeaders];
+
+	[theRequest setResponseCookies:[NSHTTPCookie cookiesWithResponseHeaderFields:headers forURL:[self url]]];
+
 	[theRequest setComplete:YES];
 	[theRequest setDownloadComplete:YES];
 	

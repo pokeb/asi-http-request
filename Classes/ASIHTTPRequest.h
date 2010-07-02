@@ -539,6 +539,9 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 // And works out if HTTP auth is required
 - (void)readResponseHeaders;
 
+// Attempts to set the correct encoding by looking at the Content-Type header, if this is one
+- (void)parseStringEncodingFromHeaders;
+
 #pragma mark http authentication stuff
 
 // Apply credentials to this request
