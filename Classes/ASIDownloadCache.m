@@ -47,6 +47,15 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 	[super dealloc];
 }
 
+- (NSString *)storagePath
+{
+	[[self accessLock] lock];
+	NSString *p = [[storagePath retain] autorelease];
+	[[self accessLock] unlock];
+	return p;
+}
+
+
 - (void)setStoragePath:(NSString *)path
 {
 	[[self accessLock] lock];
@@ -274,6 +283,14 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 	}
 	[[self accessLock] unlock];
 	return YES;
+}
+
+- (ASICachePolicy)defaultCachePolicy
+{
+	[[self accessLock] lock];
+	ASICachePolicy cp = defaultCachePolicy;
+	[[self accessLock] unlock];
+	return cp;
 }
 
 

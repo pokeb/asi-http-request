@@ -24,7 +24,7 @@
 
 // Automatically set on build
 
-NSString *ASIHTTPRequestVersion = @"v1.7-10 2010-07-02";
+NSString *ASIHTTPRequestVersion = @"v1.7-11 2010-07-02";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -461,12 +461,29 @@ static NSOperationQueue *sharedQueue = nil;
 	[stream close];
 }
 
+- (id)delegate
+{
+	[[self cancelledLock] lock];
+	id d = [[delegate retain] autorelease];
+	[[self cancelledLock] unlock];
+	return d;
+}
+
 - (void)setDelegate:(id)newDelegate
 {
 	[[self cancelledLock] lock];
 	delegate = newDelegate;
 	[[self cancelledLock] unlock];
 }
+
+- (id)queue
+{
+	[[self cancelledLock] lock];
+	id q = [[queue retain] autorelease];
+	[[self cancelledLock] unlock];
+	return q;
+}
+
 
 - (void)setQueue:(id)newQueue
 {
@@ -1334,6 +1351,13 @@ static NSOperationQueue *sharedQueue = nil;
 	}
 }
 
+- (id)uploadProgressDelegate
+{
+	[[self cancelledLock] lock];
+	id d = [[uploadProgressDelegate retain] autorelease];
+	[[self cancelledLock] unlock];
+	return d;
+}
 
 - (void)setUploadProgressDelegate:(id)newDelegate
 {
@@ -1346,6 +1370,14 @@ static NSOperationQueue *sharedQueue = nil;
 	[ASIHTTPRequest performSelector:@selector(setMaxValue:) onTarget:[self uploadProgressDelegate] withObject:nil amount:&max];
 	#endif
 	[[self cancelledLock] unlock];
+}
+
+- (id)downloadProgressDelegate
+{
+	[[self cancelledLock] lock];
+	id d = [[downloadProgressDelegate retain] autorelease];
+	[[self cancelledLock] unlock];
+	return d;
 }
 
 - (void)setDownloadProgressDelegate:(id)newDelegate
