@@ -263,7 +263,7 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 			[ASIHTTPRequest compressDataFromFile:[self postBodyFilePath] toFile:[self compressedPostBodyFilePath]];
             [self setPostLength:[[[NSFileManager defaultManager] attributesOfItemAtPath:[self compressedPostBodyFilePath] error:nil] fileSize]];
 		} else {
-            [self setPostLength:[[[NSFileManager defaultManager] attributesOfItemAtPath:[self compressedPostBodyFilePath] error:nil] fileSize]];
+            [self setPostLength:[[[NSFileManager defaultManager] attributesOfItemAtPath:[self postBodyFilePath] error:nil] fileSize]];
 		}
 		
 	// Otherwise, we have an in-memory request body
