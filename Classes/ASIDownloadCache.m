@@ -61,7 +61,7 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 			[[self accessLock] unlock];
 			[NSException raise:@"FileExistsAtCachePath" format:@"Cannot create a directory for the cache at '%@', because a file already exists",directory];
 		} else if (!exists) {
-			[[NSFileManager defaultManager] createDirectoryAtPath:directory attributes:nil];
+			[[NSFileManager defaultManager] createDirectoryAtPath:directory withIntermediateDirectories:NO attributes:nil error:nil];
 			if (![[NSFileManager defaultManager] fileExistsAtPath:directory]) {
 				[[self accessLock] unlock];
 				[NSException raise:@"FailedToCreateCacheDirectory" format:@"Failed to create a directory for the cache at '%@'",directory];
@@ -296,10 +296,10 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 		return;
 	}
 	NSString *path;
-	if (storagePolicy == ASICacheForSessionDurationCacheStoragePolicy) {
-		path = [[self storagePath] stringByAppendingPathComponent:sessionCacheFolder];
-	} else if (storagePolicy == ASICachePermanentlyCacheStoragePolicy) {
+	if (storagePolicy == ASICachePermanentlyCacheStoragePolicy) {
 		path = [[self storagePath] stringByAppendingPathComponent:permanentCacheFolder];
+	} else {
+		path = [[self storagePath] stringByAppendingPathComponent:sessionCacheFolder];
 	}
 	BOOL isDirectory = NO;
 	BOOL exists = [[NSFileManager defaultManager] fileExistsAtPath:path isDirectory:&isDirectory];

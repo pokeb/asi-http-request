@@ -8,7 +8,7 @@
 
 #import "ASIAuthenticationDialog.h"
 #import "ASIHTTPRequest.h"
-#import <CoreGraphics/CoreGraphics.h>
+#import <QuartzCore/QuartzCore.h>
 
 static ASIAuthenticationDialog *sharedDialog = nil;
 BOOL isDismissing = NO;
@@ -127,33 +127,46 @@ static const NSUInteger kDomainSection = 1;
 // Manually handles orientation changes on iPhone
 - (void)orientationChanged:(NSNotification *)notification
 {
-	[[self view] setTransform:CGAffineTransformIdentity];
 	[self showTitle];
-	CGRect frame = [[self view] frame];
-	[[self view] setCenter:CGPointMake(frame.size.height/2,frame.size.width/2)];
-	float targetRotation = 0;
-
-	frame = [[UIScreen mainScreen] bounds];
-	switch ([[UIDevice currentDevice] orientation]) {
-		case UIDeviceOrientationPortraitUpsideDown:
-			targetRotation = 180;
-			frame = CGRectMake(0, 0, frame.size.width, frame.size.height-20);
-			break;
-		case UIDeviceOrientationLandscapeLeft:
-			targetRotation = 90;
-			frame = CGRectMake(0, 0, frame.size.width-20, frame.size.height);
-			break;
-		case UIDeviceOrientationLandscapeRight:
-			frame = CGRectMake(20, 0, frame.size.width-20, frame.size.height);
-			targetRotation = 270;
-			break;
-		case UIDeviceOrientationPortrait:
-			frame = CGRectMake(0, 20, frame.size.width, frame.size.height-20);
-			break;
+	
+	UIDeviceOrientation o = [[UIApplication sharedApplication] statusBarOrientation];
+	CGFloat angle = 0;
+	switch (o) {
+		case UIDeviceOrientationLandscapeLeft: angle = 90; break;
+		case UIDeviceOrientationLandscapeRight: angle = -90; break;
+		case UIDeviceOrientationPortraitUpsideDown: angle = 180; break;
+		default: break;
 	}
 
-	[[self view] setTransform:CGAffineTransformMakeRotation(targetRotation / 180.0 * M_PI)];
-	[[self view] setFrame:frame];
+	CGRect f = [[UIScreen mainScreen] applicationFrame];
+
+	// Swap the frame height and width if necessary
+ 	if (UIDeviceOrientationIsLandscape(o)) {
+		CGFloat t;
+		t = f.size.width;
+		f.size.width = f.size.height;
+		f.size.height = t;
+	}
+
+	CGAffineTransform previousTransform = self.view.layer.affineTransform;
+	CGAffineTransform newTransform = CGAffineTransformMakeRotation(angle * M_PI / 180.0);
+
+	// Reset the transform so we can set the size
+	self.view.layer.affineTransform = CGAffineTransformIdentity;
+	self.view.frame = (CGRect){0,0,f.size};
+
+	// Revert to the previous transform for correct animation
+	self.view.layer.affineTransform = previousTransform;
+
+	[UIView beginAnimations:nil context:NULL];
+	[UIView setAnimationDuration:0.3];
+
+	// Set the new transform
+	self.view.layer.affineTransform = newTransform;
+
+	// Fix the view origin
+	self.view.frame = (CGRect){f.origin.x,f.origin.y,self.view.frame.size};
+    [UIView commitAnimations];
 }
 		 
 #pragma mark utilities
@@ -165,7 +178,7 @@ static const NSUInteger kDomainSection = 1;
 
 		// Attach to the window, but don't interfere.
 		UIWindow *window = [[[UIApplication sharedApplication] windows] objectAtIndex:0];
-		[window addSubview:presentingController.view];
+		[window addSubview:[presentingController view]];
 		[[presentingController view] setFrame:CGRectZero];
 		[[presentingController view] setUserInteractionEnabled:NO];
 	}

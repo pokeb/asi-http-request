@@ -74,6 +74,8 @@
 	resultView = [[UITextView alloc] initWithFrame:CGRectZero];
 	[resultView setBackgroundColor:[UIColor clearColor]];
 	progressIndicator = [[UIProgressView alloc] initWithFrame:CGRectZero];
+	[[self view] setAutoresizingMask:UIViewAutoresizingFlexibleHeight|UIViewAutoresizingFlexibleWidth];
+
 }
 
 static NSString *intro = @"Demonstrates POSTing content to a URL, showing upload progress.\nYou'll only see accurate progress for uploads when the request body is larger than 128KB (in 2.2.1 SDK), or when the request body is larger than 32KB (in 3.0 SDK)";
