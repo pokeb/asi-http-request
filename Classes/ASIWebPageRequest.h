@@ -5,7 +5,8 @@
 //  Created by Ben Copsey on 29/06/2010.
 //  Copyright 2010 All-Seeing Interactive. All rights reserved.
 //
-//  EXPERIMENTAL PROOF OF CONCEPT - DO NOT USE
+//  This is an EXPERIMENTAL class - use at your own risk!
+//  Known issue: You cannot use startSychronous with an ASIWebPageRequest
 
 #import "ASIHTTPRequest.h"
 #import <tidy/tidy.h>
@@ -17,11 +18,11 @@
 
 @class ASINetworkQueue;
 
+
 @interface ASIWebPageRequest : ASIHTTPRequest {
 	ASINetworkQueue *externalResourceQueue;
 	NSMutableDictionary *resourceList;
 	xmlDocPtr doc;
-
 }
 
 + (NSString *)XHTMLForString:(NSString *)inputHTML error:(NSError **)error;

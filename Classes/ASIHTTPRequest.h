@@ -793,7 +793,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 @property (assign,readonly) unsigned long long totalBytesRead;
 @property (assign,readonly) unsigned long long totalBytesSent;
 @property (assign) NSStringEncoding defaultResponseEncoding;
-@property (assign,readonly) NSStringEncoding responseEncoding;
+@property (assign) NSStringEncoding responseEncoding;
 @property (assign) BOOL allowCompressedResponse;
 @property (assign) BOOL allowResumeForFileDownloads;
 @property (retain) NSDictionary *userInfo;

@@ -5,23 +5,30 @@
 //  Created by Ben Copsey on 29/06/2010.
 //  Copyright 2010 All-Seeing Interactive. All rights reserved.
 //
-//  EXPERIMENTAL PROOF OF CONCEPT - DO NOT USE
+//  This is an EXPERIMENTAL class - use at your own risk!
 
 #import "ASIWebPageRequest.h"
 #import "ASINetworkQueue.h"
 
-
+static NSLock *xmlParsingLock = nil;
 static xmlChar *xpathExpr = (xmlChar *)"//link[@rel = \"stylesheet\"]/@href|//script/@src|//img/@src";
 
 @interface ASIWebPageRequest ()
 - (void)readResourceURLs;
-- (void)updateResourceURLs;
-- (void)cleanUp;
+- (void)parseAsHTML;
+- (void)parseAsCSS;
 @property (retain, nonatomic) ASINetworkQueue *externalResourceQueue;
 @property (retain, nonatomic) NSMutableDictionary *resourceList;
 @end
 
 @implementation ASIWebPageRequest
+
++ (void)initialize
+{
+	if (self == [ASIWebPageRequest class]) {
+		xmlParsingLock = [[NSLock alloc] init];
+	}
+}
 
 - (void)markAsFinished
 {
@@ -29,13 +36,88 @@ static xmlChar *xpathExpr = (xmlChar *)"//link[@rel = \"stylesheet\"]/@href|//sc
 
 - (void)requestFinished
 {
+	NSString *contentType = [[[self responseHeaders] objectForKey:@"Content-Type"] lowercaseString];
+	contentType = [[contentType componentsSeparatedByString:@";"] objectAtIndex:0];
+	if ([contentType isEqualToString:@"text/html"] || [contentType isEqualToString:@"text/xhtml"] || [contentType isEqualToString:@"text/xhtml+xml"] || [contentType isEqualToString:@"application/xhtml+xml"]) {
+		[self parseAsHTML];
+		return;
+	} else if ([contentType isEqualToString:@"text/css"]) {
+		[self parseAsCSS];
+		return;
+	}
+	[super requestFinished];
+	[(id)super markAsFinished];
+}
+
+- (void)parseAsCSS
+{
+	NSString *responseCSS = [self responseString];
+	if (!responseCSS) {
+		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:100 userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Unable to read HTML string from response",NSLocalizedDescriptionKey,nil]]];
+		return;
+	}
+	NSMutableArray *urls = [NSMutableArray array];
+	NSScanner *scanner = [NSScanner scannerWithString:responseCSS];
+	[scanner setCaseSensitive:NO];
+	while (1) {
+		NSString *theURL = nil;
+		[scanner scanUpToString:@"url(" intoString:NULL];
+		[scanner scanString:@"url(" intoString:NULL];
+		[scanner scanUpToString:@")" intoString:&theURL];
+		if (!theURL) {
+			break;
+		}
+		[urls addObject:theURL];
+	}
+
+	[self setResourceList:[NSMutableDictionary dictionary]];
+
+	for (NSString *theURL in urls) {
+		if (([[theURL substringToIndex:1] isEqualToString:@"'"] && [[theURL substringFromIndex:[theURL length]-1] isEqualToString:@"'"]) ||([[theURL substringToIndex:1] isEqualToString:@"\""] && [[theURL substringFromIndex:[theURL length]-1] isEqualToString:@"\""])) {
+			theURL = [theURL substringWithRange:NSMakeRange(1,[theURL length]-2)];
+		}
+		NSURL *newURL = [NSURL URLWithString:theURL relativeToURL:[self url]];
+		if (newURL) {
+			[[self resourceList] setObject:[NSMutableDictionary dictionary] forKey:theURL];
+		}
+	}
+
+	if (![[self resourceList] count]) {
+		[super requestFinished];
+		[(id)super markAsFinished];
+		return;
+	}
+
+	// Create a new request for every item in the queue
+	[[self externalResourceQueue] cancelAllOperations];
+	[self setExternalResourceQueue:[ASINetworkQueue queue]];
+	[[self externalResourceQueue] setDelegate:self];
+	[[self externalResourceQueue] setQueueDidFinishSelector:@selector(finishedFetchingExternalResources:)];
+	[[self externalResourceQueue] setRequestDidFinishSelector:@selector(externalResourceFetchSucceeded:)];
+	[[self externalResourceQueue] setRequestDidFailSelector:@selector(externalResourceFetchFailed:)];
+	[[self externalResourceQueue] setDownloadProgressDelegate:[self downloadProgressDelegate]];
+	for (NSString *theURL in [[self resourceList] keyEnumerator]) {
+		ASIWebPageRequest *externalResourceRequest = [ASIWebPageRequest requestWithURL:[NSURL URLWithString:theURL relativeToURL:[self url]]];
+		[externalResourceRequest setRequestHeaders:[self requestHeaders]];
+		[externalResourceRequest setDownloadCache:[self downloadCache]];
+		[externalResourceRequest setUserInfo:[NSDictionary dictionaryWithObject:theURL forKey:@"Path"]];
+		[[self externalResourceQueue] addOperation:externalResourceRequest];
+	}
+
+	[[self externalResourceQueue] go];
+
+}
+
+- (void)parseAsHTML
+{
 	NSString *responseHTML = [self responseString];
 	if (!responseHTML) {
 		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:100 userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Unable to read HTML string from response",NSLocalizedDescriptionKey,nil]]];
 		return;
 	}
+
 	NSError *err = nil;
-	responseHTML = [ASIWebPageRequest XHTMLForString:[self responseString] error:&err];
+	responseHTML = [ASIWebPageRequest XHTMLForString:responseHTML error:&err];
 	if (err) {
 		[self failWithError:err];
 		return;
@@ -43,16 +125,16 @@ static xmlChar *xpathExpr = (xmlChar *)"//link[@rel = \"stylesheet\"]/@href|//sc
 		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:101 userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Unable to convert response string to XHTML",NSLocalizedDescriptionKey,nil]]];
 		return;	
 	}
-	
+
+	// Only allow parsing of a single document at a time
+	[xmlParsingLock lock];
 	xmlInitParser();
-	
 
 	// Strip the namespace, because it makes the xpath query a pain
 	responseHTML = [responseHTML stringByReplacingOccurrencesOfString:@" xmlns=\"http://www.w3.org/1999/xhtml\"" withString:@""];
-	
+
 	NSData *data = [responseHTML dataUsingEncoding:NSUTF8StringEncoding];
-	
-	
+
     /* Load XML document */
     doc = xmlParseMemory([data bytes], [data length]);
     if (doc == NULL) {
@@ -66,6 +148,17 @@ static xmlChar *xpathExpr = (xmlChar *)"//link[@rel = \"stylesheet\"]/@href|//sc
     // Populate the list of URLS to download
     [self readResourceURLs];
 
+	xmlFreeDoc(doc);
+	doc = nil;
+	xmlCleanupParser();
+
+	[xmlParsingLock unlock];
+
+	if (![[self resourceList] count]) {
+		[super requestFinished];
+		[(id)super markAsFinished];
+		return;
+	}
 	
 	// Create a new request for every item in the queue
 	[[self externalResourceQueue] cancelAllOperations];
@@ -75,26 +168,28 @@ static xmlChar *xpathExpr = (xmlChar *)"//link[@rel = \"stylesheet\"]/@href|//sc
 	[[self externalResourceQueue] setRequestDidFinishSelector:@selector(externalResourceFetchSucceeded:)];
 	[[self externalResourceQueue] setRequestDidFailSelector:@selector(externalResourceFetchFailed:)];
 	[[self externalResourceQueue] setDownloadProgressDelegate:[self downloadProgressDelegate]];
-	[[self externalResourceQueue] setUploadProgressDelegate:[self uploadProgressDelegate]];
 	for (NSString *theURL in [[self resourceList] keyEnumerator]) {
-		ASIHTTPRequest *externalResourceRequest = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:theURL]];
+		ASIWebPageRequest *externalResourceRequest = [ASIWebPageRequest requestWithURL:[NSURL URLWithString:theURL relativeToURL:[self url]]];
 		[externalResourceRequest setRequestHeaders:[self requestHeaders]];
+		[externalResourceRequest setDownloadCache:[self downloadCache]];
+		[externalResourceRequest setUserInfo:[NSDictionary dictionaryWithObject:theURL forKey:@"Path"]];
 		[[self externalResourceQueue] addOperation:externalResourceRequest];
 	}
-	
+
 	[[self externalResourceQueue] go];
 }
 
+
 - (void)externalResourceFetchSucceeded:(ASIHTTPRequest *)externalResourceRequest
 {
-	NSMutableDictionary *requestResponse = [NSMutableDictionary dictionary];
+	NSString *originalPath = [[externalResourceRequest userInfo] objectForKey:@"Path"];
+	NSMutableDictionary *requestResponse = [[self resourceList] objectForKey:originalPath];
 	NSString *contentType = [[externalResourceRequest responseHeaders] objectForKey:@"Content-Type"];
 	if (!contentType) {
 		contentType = @"application/octet-stream";
 	}
 	[requestResponse setObject:contentType forKey:@"ContentType"];
 	[requestResponse setObject:[externalResourceRequest responseData] forKey:@"Data"];
-	[[self resourceList] setObject:requestResponse forKey:[[externalResourceRequest originalURL] absoluteString]];
 }
 
 - (void)externalResourceFetchFailed:(ASIHTTPRequest *)externalResourceRequest
@@ -104,19 +199,30 @@ static xmlChar *xpathExpr = (xmlChar *)"//link[@rel = \"stylesheet\"]/@href|//sc
 
 - (void)finishedFetchingExternalResources:(ASINetworkQueue *)queue
 {
+	NSMutableString *parsedResponse = [[[self responseString] mutableCopy] autorelease];
 	if (![self error]) {
-		[self updateResourceURLs];
+		for (NSString *resource in [[self resourceList] keyEnumerator]) {
+			NSDictionary *resourceInfo = [[self resourceList] objectForKey:resource];
+			NSData *data = [resourceInfo objectForKey:@"Data"];
+			NSString *contentType = [resourceInfo objectForKey:@"ContentType"];
+			if (data && contentType) {
+				if (data && contentType) {
+					NSString *newData = [NSString stringWithFormat:@"data:%@;base64,",contentType];
+					newData = [newData stringByAppendingString:[ASIHTTPRequest base64forData:data]];
+					[parsedResponse replaceOccurrencesOfString:resource withString:newData options:0 range:NSMakeRange(0, [parsedResponse length])];
+				}
+			}
+		}
 	}
-	[self cleanUp];
+
+	[self setRawResponseData:(id)[parsedResponse dataUsingEncoding:NSUTF8StringEncoding]];
+	[self setResponseEncoding:NSUTF8StringEncoding];
+	NSMutableDictionary *newHeaders = [[[self responseHeaders] mutableCopy] autorelease];
+	[newHeaders removeObjectForKey:@"Content-Encoding"];
+	[self setResponseHeaders:newHeaders];
+
 	[super requestFinished];
 	[(id)super markAsFinished];
-}
-	
-- (void)cleanUp
-{
-	xmlDocDump(stdout, doc);
-    xmlFreeDoc(doc); 
-	xmlCleanupParser();
 }
 
 - (void)readResourceURLs
@@ -145,58 +251,14 @@ static xmlChar *xpathExpr = (xmlChar *)"//link[@rel = \"stylesheet\"]/@href|//sc
     for(i = size - 1; i >= 0; i--) {
 		assert(nodes->nodeTab[i]);
 		//NSLog(@"%s",xmlNodeGetContent(nodes->nodeTab[i]));
-		NSString *theURL = [[NSURL URLWithString:[NSString stringWithCString:(char *)xmlNodeGetContent(nodes->nodeTab[i]) encoding:NSUTF8StringEncoding] relativeToURL:[self url]] absoluteString];
+		NSString *theURL = [NSString stringWithCString:(char *)xmlNodeGetContent(nodes->nodeTab[i]) encoding:NSUTF8StringEncoding];
 		//NSLog(@"%@",theURL);
-		[resourceList setObject:@"" forKey:theURL];
+		[resourceList setObject:[NSMutableDictionary dictionary] forKey:theURL];
 		if (nodes->nodeTab[i]->type != XML_NAMESPACE_DECL) {
 			nodes->nodeTab[i] = NULL;
 		}
     }
 	
-	xmlXPathFreeObject(xpathObj);
-    xmlXPathFreeContext(xpathCtx); 
-}
-
-- (void)updateResourceURLs
-{
-	
-	/* Create xpath evaluation context */
-    xmlXPathContextPtr xpathCtx = xmlXPathNewContext(doc);
-    if(xpathCtx == NULL) {
-		xmlFreeDoc(doc);
-		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:101 userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Error: unable to create new XPath context",NSLocalizedDescriptionKey,nil]]];
-		return;
-    }
-    
-    /* Evaluate xpath expression */
-    xmlXPathObjectPtr xpathObj = xmlXPathEvalExpression(xpathExpr, xpathCtx);
-    if(xpathObj == NULL) {
-        xmlXPathFreeContext(xpathCtx); 
-        xmlFreeDoc(doc); 
-		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:101 userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Error: unable to evaluate XPath expression!",NSLocalizedDescriptionKey,nil]]];
-		return;
-    }
-	
-	xmlNodeSetPtr nodes = xpathObj->nodesetval;
-    
-    int size = (nodes) ? nodes->nodeNr : 0;
-	int i;
-    for(i = size - 1; i >= 0; i--) {
-		assert(nodes->nodeTab[i]);
-		
-		NSString *theURL = [[NSURL URLWithString:[NSString stringWithCString:(char *)xmlNodeGetContent(nodes->nodeTab[i]) encoding:NSUTF8StringEncoding] relativeToURL:[self url]] absoluteString];
-		
-		NSData *data = [[resourceList objectForKey:theURL] objectForKey:@"Data"];
-		NSString *contentType = [[resourceList objectForKey:theURL] objectForKey:@"ContentType"];
-		if (data && contentType) {
-			NSString *newData = [NSString stringWithFormat:@"data:%@;base64,",contentType];
-			newData = [newData stringByAppendingString:[ASIHTTPRequest base64forData:data]];
-			xmlNodeSetContent(nodes->nodeTab[i], (xmlChar *)[newData cStringUsingEncoding:NSUTF8StringEncoding]);
-		}
-		if (nodes->nodeTab[i]->type != XML_NAMESPACE_DECL) {
-			nodes->nodeTab[i] = NULL;
-		}
-    }
 	xmlXPathFreeObject(xpathObj);
     xmlXPathFreeContext(xpathCtx); 
 }

@@ -10,6 +10,7 @@
 #import "ASIFormDataRequest.h"
 #import "ASINetworkQueue.h"
 #import "ASIDownloadCache.h"
+#import "ASIWebPageRequest.h"
 
 @interface AppDelegate ()
 - (void)updateBandwidthUsageIndicator;
@@ -44,7 +45,7 @@
 
 - (IBAction)simpleURLFetch:(id)sender
 {
-	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_great_american_novel_%28abridged%29.txt"]] autorelease];
+	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]] autorelease];
 	
 	//Customise our user agent, for no real reason
 	[request addRequestHeader:@"User-Agent" value:@"ASIHTTPRequest"];
@@ -57,10 +58,6 @@
 	}
 }
 
-- (void)requestFinished:(ASIHTTPRequest *)request
-{
-	[htmlSource setString:[request responseString]];
-}
 
 
 - (IBAction)URLFetchWithProgress:(id)sender
@@ -378,6 +375,30 @@
 - (IBAction)clearCache:(id)sender
 {
 	[[ASIDownloadCache sharedCache] clearCachedResponsesForStoragePolicy:ASICacheForSessionDurationCacheStoragePolicy];
+}
+
+- (IBAction)fetchWebPage:(id)sender
+{
+	ASIWebPageRequest *request = [[[ASIWebPageRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/Who-is-using-it"]] autorelease];
+	[request setDidFailSelector:@selector(webPageFetchFailed:)];
+	[request setDidFinishSelector:@selector(webPageFetchSucceeded:)];
+	[request setDelegate:self];
+	[request setDownloadCache:[ASIDownloadCache sharedCache]];
+	[[ASIDownloadCache sharedCache] setDefaultCachePolicy:ASIOnlyLoadIfNotCachedCachePolicy];
+	[[ASIDownloadCache sharedCache] setShouldRespectCacheControlHeaders:NO];
+	[request startAsynchronous];
+}
+
+- (void)webPageFetchFailed:(ASIHTTPRequest *)request
+{
+	[[NSAlert alertWithError:[request error]] runModal];
+}
+
+
+- (void)webPageFetchSucceeded:(ASIHTTPRequest *)request
+{
+	[webPageSource setString:[request responseString]];
+	[[webView mainFrame] loadHTMLString:[request responseString] baseURL:[request url]];
 }
 
 
