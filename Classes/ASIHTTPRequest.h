@@ -24,9 +24,6 @@ extern NSString *ASIHTTPRequestVersion;
 
 // Make targeting different platforms more reliable
 // See: http://www.blumtnwerx.com/blog/2009/06/cross-sdk-code-hygiene-in-xcode/
-#ifndef __IPHONE_3_0
-	#define __IPHONE_3_0 30000
-#endif
 #ifndef __IPHONE_3_2
 	#define __IPHONE_3_2 30200
 #endif
@@ -333,6 +330,10 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	NSString *proxyHost;
 	int proxyPort;
 	
+	// ASIHTTPRequest will assume kCFProxyTypeHTTP if the proxy type could not be automatically determined
+	// Set to kCFProxyTypeSOCKS if you are manually configuring a SOCKS proxy
+	NSString *proxyType;
+
 	// URL for a PAC (Proxy Auto Configuration) file. If you want to set this yourself, it's probably best if you use a local file
 	NSURL *PACurl;
 	
@@ -538,6 +539,9 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 // And works out if HTTP auth is required
 - (void)readResponseHeaders;
 
+// Attempts to set the correct encoding by looking at the Content-Type header, if this is one
+- (void)parseStringEncodingFromHeaders;
+
 #pragma mark http authentication stuff
 
 // Apply credentials to this request
@@ -713,10 +717,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 + (void)setShouldUpdateNetworkActivityIndicator:(BOOL)shouldUpdate;
 #endif
 
-#pragma mark miscellany 
-
-// Determines whether we're on iPhone OS 2.0 at runtime, currently used to determine whether we should apply a workaround for an issue with converting longs to doubles on iPhone OS 2
-+ (BOOL)isiPhoneOS2;
+#pragma mark miscellany
 
 // Used for generating Authorization header when using basic authentication when shouldPresentCredentialsBeforeChallenge is true
 // And also by ASIS3Request
@@ -749,13 +750,14 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 
 @property (retain) NSString *proxyHost;
 @property (assign) int proxyPort;
+@property (retain) NSString *proxyType;
 
 @property (retain,setter=setURL:) NSURL *url;
 @property (retain) NSURL *originalURL;
-@property (assign) id delegate;
-@property (assign) id queue;
-@property (assign) id uploadProgressDelegate;
-@property (assign) id downloadProgressDelegate;
+@property (assign, nonatomic) id delegate;
+@property (assign, nonatomic) id queue;
+@property (assign, nonatomic) id uploadProgressDelegate;
+@property (assign, nonatomic) id downloadProgressDelegate;
 @property (assign) BOOL useKeychainPersistence;
 @property (assign) BOOL useSessionPersistence;
 @property (retain) NSString *downloadDestinationPath;

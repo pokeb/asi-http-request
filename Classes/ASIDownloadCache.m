@@ -47,6 +47,15 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 	[super dealloc];
 }
 
+- (NSString *)storagePath
+{
+	[[self accessLock] lock];
+	NSString *p = [[storagePath retain] autorelease];
+	[[self accessLock] unlock];
+	return p;
+}
+
+
 - (void)setStoragePath:(NSString *)path
 {
 	[[self accessLock] lock];
@@ -61,7 +70,7 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 			[[self accessLock] unlock];
 			[NSException raise:@"FileExistsAtCachePath" format:@"Cannot create a directory for the cache at '%@', because a file already exists",directory];
 		} else if (!exists) {
-			[[NSFileManager defaultManager] createDirectoryAtPath:directory attributes:nil];
+			[[NSFileManager defaultManager] createDirectoryAtPath:directory withIntermediateDirectories:NO attributes:nil error:nil];
 			if (![[NSFileManager defaultManager] fileExistsAtPath:directory]) {
 				[[self accessLock] unlock];
 				[NSException raise:@"FailedToCreateCacheDirectory" format:@"Failed to create a directory for the cache at '%@'",directory];
@@ -246,11 +255,7 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 				[scanner scanDouble:&maxAge];
 				NSDate *fetchDate = [ASIHTTPRequest dateFromRFC1123String:[cachedHeaders objectForKey:@"X-ASIHTTPRequest-Fetch-date"]];
 
-				#if (TARGET_OS_IPHONE && (!defined(__IPHONE_4_0) || __IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_4_0)) || !defined(MAC_OS_X_VERSION_10_6) || MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_6
-				NSDate *expiryDate = [fetchDate addTimeInterval:maxAge];
-				#else
-				NSDate *expiryDate = [fetchDate dateByAddingTimeInterval:maxAge];
-				#endif
+				NSDate *expiryDate = [[[NSDate alloc] initWithTimeInterval:maxAge sinceDate:fetchDate] autorelease];
 
 				if ([expiryDate timeIntervalSinceNow] < 0) {
 					[[self accessLock] unlock];
@@ -276,6 +281,14 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 	return YES;
 }
 
+- (ASICachePolicy)defaultCachePolicy
+{
+	[[self accessLock] lock];
+	ASICachePolicy cp = defaultCachePolicy;
+	[[self accessLock] unlock];
+	return cp;
+}
+
 
 - (void)setDefaultCachePolicy:(ASICachePolicy)cachePolicy
 {
@@ -296,10 +309,10 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 		return;
 	}
 	NSString *path;
-	if (storagePolicy == ASICacheForSessionDurationCacheStoragePolicy) {
-		path = [[self storagePath] stringByAppendingPathComponent:sessionCacheFolder];
-	} else if (storagePolicy == ASICachePermanentlyCacheStoragePolicy) {
+	if (storagePolicy == ASICachePermanentlyCacheStoragePolicy) {
 		path = [[self storagePath] stringByAppendingPathComponent:permanentCacheFolder];
+	} else {
+		path = [[self storagePath] stringByAppendingPathComponent:sessionCacheFolder];
 	}
 	BOOL isDirectory = NO;
 	BOOL exists = [[NSFileManager defaultManager] fileExistsAtPath:path isDirectory:&isDirectory];

@@ -9,13 +9,10 @@
 #import <UIKit/UIKit.h>
 
 @interface iPhoneSampleAppDelegate : NSObject <UIApplicationDelegate, UITabBarControllerDelegate> {
-    UIWindow *window;
-    UITabBarController *tabBarController;
-	IBOutlet UILabel *statusMessage;
-
+    IBOutlet UIWindow *window;
+    IBOutlet UITabBarController *tabBarController;
 }
 
-@property (nonatomic, retain) IBOutlet UIWindow *window;
-@property (nonatomic, retain) IBOutlet UITabBarController *tabBarController;
+@property (nonatomic, retain) UIWindow *window;
 
 @end

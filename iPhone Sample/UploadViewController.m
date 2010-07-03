@@ -60,6 +60,7 @@
 	[request cancel];
 	[request release];
 	[progressIndicator release];
+	[resultView release];
     [super dealloc];
 }
 
@@ -70,6 +71,11 @@
 - (void)viewDidLoad
 {
 	[[[self navigationBar] topItem] setTitle:@"Tracking Upload Progress"];
+	resultView = [[UITextView alloc] initWithFrame:CGRectZero];
+	[resultView setBackgroundColor:[UIColor clearColor]];
+	progressIndicator = [[UIProgressView alloc] initWithFrame:CGRectZero];
+	[[self view] setAutoresizingMask:UIViewAutoresizingFlexibleHeight|UIViewAutoresizingFlexibleWidth];
+
 }
 
 static NSString *intro = @"Demonstrates POSTing content to a URL, showing upload progress.\nYou'll only see accurate progress for uploads when the request body is larger than 128KB (in 2.2.1 SDK), or when the request body is larger than 32KB (in 3.0 SDK)";
@@ -91,12 +97,7 @@ static NSString *intro = @"Demonstrates POSTing content to a URL, showing upload
 		
 		[goButton addTarget:self action:@selector(performLargeUpload:) forControlEvents:UIControlEventTouchUpInside];
 		[view addSubview:goButton];
-		
-		if (!progressIndicator) {
-			progressIndicator = [[UIProgressView alloc] initWithFrame:CGRectMake((tablePadding/2)-10,20,200,10)];
-		} else {
-			[progressIndicator setFrame:CGRectMake((tablePadding/2)-10,20,200,10)];
-		}
+		[progressIndicator setFrame:CGRectMake((tablePadding/2)-10,20,200,10)];
 		[view addSubview:progressIndicator];
 		
 		return view;
@@ -128,9 +129,6 @@ static NSString *intro = @"Demonstrates POSTing content to a URL, showing upload
 		cell = [tableView dequeueReusableCellWithIdentifier:@"Response"];
 		if (!cell) {
 			cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"Response"] autorelease];
-			
-			resultView = [[[UITextView alloc] initWithFrame:CGRectZero] autorelease];
-			[resultView setBackgroundColor:[UIColor clearColor]];
 			[[cell contentView] addSubview:resultView];
 		}	
 		[resultView setFrame:CGRectMake(5,5,tableWidth-tablePadding,60)];

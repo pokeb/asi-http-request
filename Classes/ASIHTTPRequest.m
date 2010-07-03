@@ -23,8 +23,7 @@
 
 
 // Automatically set on build
-
-NSString *ASIHTTPRequestVersion = @" 2010-06-29";
+NSString *ASIHTTPRequestVersion = @"v1.7-13 2010-07-02";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -118,9 +117,6 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 
 // When throttling bandwidth, Set to a date in future that we will allow all requests to wake up and reschedule their streams
 static NSDate *throttleWakeUpTime = nil;
-
-// Run once in initalize to record at runtime whether we're on iPhone OS 2. When YES, a workaround for a type conversion bug in iPhone OS 2.2.x is applied in some places
-static BOOL isiPhoneOS2;
 
 static id <ASICacheDelegate> defaultCache = nil;
 
@@ -235,11 +231,6 @@ static NSOperationQueue *sharedQueue = nil;
 		ASIUnableToCreateRequestError = [[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIUnableToCreateRequestErrorType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Unable to create request (bad url?)",NSLocalizedDescriptionKey,nil]] retain];
 		ASITooMuchRedirectionError = [[NSError errorWithDomain:NetworkRequestErrorDomain code:ASITooMuchRedirectionErrorType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"The request failed because it redirected too many times",NSLocalizedDescriptionKey,nil]] retain];	
 
-#if TARGET_OS_IPHONE
-		isiPhoneOS2 = ((floorf([[[UIDevice currentDevice] systemVersion] floatValue]) == 2.0) ? YES : NO);
-#else
-		isiPhoneOS2 = NO;
-#endif
 		sharedQueue = [[NSOperationQueue alloc] init];
 		[sharedQueue setMaxConcurrentOperationCount:4];
 
@@ -327,6 +318,7 @@ static NSOperationQueue *sharedQueue = nil;
 	[authenticationScheme release];
 	[requestCredentials release];
 	[proxyHost release];
+	[proxyType release];
 	[proxyUsername release];
 	[proxyPassword release];
 	[proxyDomain release];
@@ -468,12 +460,29 @@ static NSOperationQueue *sharedQueue = nil;
 	[stream close];
 }
 
+- (id)delegate
+{
+	[[self cancelledLock] lock];
+	id d = [[delegate retain] autorelease];
+	[[self cancelledLock] unlock];
+	return d;
+}
+
 - (void)setDelegate:(id)newDelegate
 {
 	[[self cancelledLock] lock];
 	delegate = newDelegate;
 	[[self cancelledLock] unlock];
 }
+
+- (id)queue
+{
+	[[self cancelledLock] lock];
+	id q = [[queue retain] autorelease];
+	[[self cancelledLock] unlock];
+	return q;
+}
+
 
 - (void)setQueue:(id)newQueue
 {
@@ -906,12 +915,7 @@ static NSOperationQueue *sharedQueue = nil;
 		} else {
 			
 #if TARGET_OS_IPHONE
-#if TARGET_IPHONE_SIMULATOR && __IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_3_0
-			// Can't detect proxies in 2.2.1 Simulator
-			NSDictionary *proxySettings = [NSMutableDictionary dictionary];	
-#else
 			NSDictionary *proxySettings = NSMakeCollectable([(NSDictionary *)CFNetworkCopySystemProxySettings() autorelease]);
-#endif
 #else
 			NSDictionary *proxySettings = NSMakeCollectable([(NSDictionary *)SCDynamicStoreCopyProxies(NULL) autorelease]);
 #endif
@@ -936,17 +940,35 @@ static NSOperationQueue *sharedQueue = nil;
 			NSDictionary *settings = [proxies objectAtIndex:0];
 			[self setProxyHost:[settings objectForKey:(NSString *)kCFProxyHostNameKey]];
 			[self setProxyPort:[[settings objectForKey:(NSString *)kCFProxyPortNumberKey] intValue]];
+			[self setProxyType:[settings objectForKey:(NSString *)kCFProxyTypeKey]];
 		}
 	}
 	if ([self proxyHost] && [self proxyPort]) {
-		NSString *hostKey = (NSString *)kCFStreamPropertyHTTPProxyHost;
-		NSString *portKey = (NSString *)kCFStreamPropertyHTTPProxyPort;
-		if ([[[[self url] scheme] lowercaseString] isEqualToString:@"https"]) {
-			hostKey = (NSString *)kCFStreamPropertyHTTPSProxyHost;
-			portKey = (NSString *)kCFStreamPropertyHTTPSProxyPort;
+		NSString *hostKey;
+		NSString *portKey;
+
+		if (![self proxyType]) {
+			[self setProxyType:(NSString *)kCFProxyTypeHTTP];
+		}
+
+		if ([[self proxyType] isEqualToString:(NSString *)kCFProxyTypeSOCKS]) {
+			hostKey = (NSString *)kCFStreamPropertySOCKSProxyHost;
+			portKey = (NSString *)kCFStreamPropertySOCKSProxyPort;
+		} else {
+			hostKey = (NSString *)kCFStreamPropertyHTTPProxyHost;
+			portKey = (NSString *)kCFStreamPropertyHTTPProxyPort;
+			if ([[[[self url] scheme] lowercaseString] isEqualToString:@"https"]) {
+				hostKey = (NSString *)kCFStreamPropertyHTTPSProxyHost;
+				portKey = (NSString *)kCFStreamPropertyHTTPSProxyPort;
+			}
 		}
 		NSMutableDictionary *proxyToUse = [NSMutableDictionary dictionaryWithObjectsAndKeys:[self proxyHost],hostKey,[NSNumber numberWithInt:[self proxyPort]],portKey,nil];
-		CFReadStreamSetProperty((CFReadStreamRef)[self readStream], kCFStreamPropertyHTTPProxy, proxyToUse);
+
+		if ([[self proxyType] isEqualToString:(NSString *)kCFProxyTypeSOCKS]) {
+			CFReadStreamSetProperty((CFReadStreamRef)[self readStream], kCFStreamPropertySOCKSProxy, proxyToUse);
+		} else {
+			CFReadStreamSetProperty((CFReadStreamRef)[self readStream], kCFStreamPropertyHTTPProxy, proxyToUse);
+		}
 	}
 
 	//
@@ -1295,6 +1317,7 @@ static NSOperationQueue *sharedQueue = nil;
 	[headRequest setProxyDomain:[self proxyDomain]];
 	[headRequest setProxyHost:[self proxyHost]];
 	[headRequest setProxyPort:[self proxyPort]];
+	[headRequest setProxyType:[self proxyType]];
 	[headRequest setShouldPresentAuthenticationDialog:[self shouldPresentAuthenticationDialog]];
 	[headRequest setShouldPresentProxyAuthenticationDialog:[self shouldPresentProxyAuthenticationDialog]];
 	[headRequest setTimeOutSeconds:[self timeOutSeconds]];
@@ -1327,6 +1350,13 @@ static NSOperationQueue *sharedQueue = nil;
 	}
 }
 
+- (id)uploadProgressDelegate
+{
+	[[self cancelledLock] lock];
+	id d = [[uploadProgressDelegate retain] autorelease];
+	[[self cancelledLock] unlock];
+	return d;
+}
 
 - (void)setUploadProgressDelegate:(id)newDelegate
 {
@@ -1339,6 +1369,14 @@ static NSOperationQueue *sharedQueue = nil;
 	[ASIHTTPRequest performSelector:@selector(setMaxValue:) onTarget:[self uploadProgressDelegate] withObject:nil amount:&max];
 	#endif
 	[[self cancelledLock] unlock];
+}
+
+- (id)downloadProgressDelegate
+{
+	[[self cancelledLock] lock];
+	id d = [[downloadProgressDelegate retain] autorelease];
+	[[self cancelledLock] unlock];
+	return d;
 }
 
 - (void)setDownloadProgressDelegate:(id)newDelegate
@@ -1419,7 +1457,7 @@ static NSOperationQueue *sharedQueue = nil;
 	
 	[ASIHTTPRequest performSelector:@selector(request:didSendBytes:) onTarget:[self queue] withObject:self amount:&value];
 	[ASIHTTPRequest performSelector:@selector(request:didSendBytes:) onTarget:[self uploadProgressDelegate] withObject:self amount:&value];
-	[ASIHTTPRequest updateProgressIndicator:[self uploadProgressDelegate] withProgress:[self totalBytesSent]-[self uploadBufferSize] ofTotal:[self postLength]];
+	[ASIHTTPRequest updateProgressIndicator:[self uploadProgressDelegate] withProgress:[self totalBytesSent]-[self uploadBufferSize] ofTotal:[self postLength]-[self uploadBufferSize]];
 }
 
 
@@ -1477,14 +1515,8 @@ static NSOperationQueue *sharedQueue = nil;
 {
 	#if TARGET_OS_IPHONE
 		// Cocoa Touch: UIProgressView
-		float progressAmount;
 		SEL selector = @selector(setProgress:);
-		//Workaround for an issue with converting a long to a double on iPhone OS 2.2.1 with a base SDK >= 3.0
-		if ([ASIHTTPRequest isiPhoneOS2]) {
-			progressAmount = [[NSNumber numberWithUnsignedLongLong:progress] floatValue]/[[NSNumber numberWithUnsignedLongLong:total] floatValue]; 
-		} else {
-			progressAmount = (progress*1.0f)/(total*1.0f);
-		}
+		float progressAmount = (progress*1.0f)/(total*1.0f);
 		
 	#else
 		// Cocoa: NSProgressIndicator
@@ -1684,67 +1716,18 @@ static NSOperationQueue *sharedQueue = nil;
 			[[self class] storeAuthenticationCredentialsInSessionStore:sessionCredentials];
 		}
 	}
-	
-	// See if we got a Content-length header
-	NSString *cLength = [responseHeaders valueForKey:@"Content-Length"];
-	ASIHTTPRequest *theRequest = self;
-	if ([self mainRequest]) {
-		theRequest = [self mainRequest];
-	}
-	
-	if (cLength) {
-		SInt32 length = CFStringGetIntValue((CFStringRef)cLength);
-		
-		// Workaround for Apache HEAD requests for dynamically generated content returning the wrong Content-Length when using gzip
-		if ([self mainRequest] && [self allowCompressedResponse] && length == 20 && [self showAccurateProgress] && [self shouldResetDownloadProgress]) {
-			[[self mainRequest] setShowAccurateProgress:NO];
-			[[self mainRequest] incrementDownloadSizeBy:1];
-			
-		} else {
-			[theRequest setContentLength:length];
-			if ([self showAccurateProgress] && [self shouldResetDownloadProgress]) {
-				[theRequest incrementDownloadSizeBy:[theRequest contentLength]+[theRequest partialDownloadSize]];
-			}
-		}
-		
-	} else if ([self showAccurateProgress] && [self shouldResetDownloadProgress]) {
-		[theRequest setShowAccurateProgress:NO];
-		[theRequest incrementDownloadSizeBy:1];			
-	}
 
 	// Handle response text encoding
-	// If the Content-Type header specified an encoding, we'll use that, otherwise we use defaultStringEncoding (which defaults to NSISOLatin1StringEncoding)
-	NSString *contentType = [[self responseHeaders] objectForKey:@"Content-Type"];
-	NSStringEncoding encoding = [self defaultResponseEncoding];
-	if (contentType) {
-
-		NSString *charsetSeparator = @"charset=";
-		NSScanner *charsetScanner = [NSScanner scannerWithString: contentType];
-		NSString *IANAEncoding = nil;
-
-		if ([charsetScanner scanUpToString: charsetSeparator intoString: NULL] && [charsetScanner scanLocation] < [contentType length])
-		{
-			[charsetScanner setScanLocation: [charsetScanner scanLocation] + [charsetSeparator length]];
-			[charsetScanner scanUpToString: @";" intoString: &IANAEncoding];
-		}
-
-		if (IANAEncoding) {
-			CFStringEncoding cfEncoding = CFStringConvertIANACharSetNameToEncoding((CFStringRef)IANAEncoding);
-			if (cfEncoding != kCFStringEncodingInvalidId) {
-				encoding = CFStringConvertEncodingToNSStringEncoding(cfEncoding);
-			}
-		}
-	}
-	[self setResponseEncoding:encoding];
+	[self parseStringEncodingFromHeaders];
 
 	// Handle cookies
-	NSArray *newCookies = [NSHTTPCookie cookiesWithResponseHeaderFields:responseHeaders forURL:url];
+	NSArray *newCookies = [NSHTTPCookie cookiesWithResponseHeaderFields:[self responseHeaders] forURL:[self url]];
 	[self setResponseCookies:newCookies];
 	
 	if ([self useCookiePersistence]) {
 		
 		// Store cookies in global persistent store
-		[[NSHTTPCookieStorage sharedHTTPCookieStorage] setCookies:newCookies forURL:url mainDocumentURL:nil];
+		[[NSHTTPCookieStorage sharedHTTPCookieStorage] setCookies:newCookies forURL:[self url] mainDocumentURL:nil];
 		
 		// We also keep any cookies in the sessionCookies array, so that we have a reference to them if we need to remove them later
 		NSHTTPCookie *cookie;
@@ -1799,6 +1782,36 @@ static NSOperationQueue *sharedQueue = nil;
 			
 		}
 	}
+
+	if (![self needsRedirect]) {
+		// See if we got a Content-length header
+		NSString *cLength = [responseHeaders valueForKey:@"Content-Length"];
+		ASIHTTPRequest *theRequest = self;
+		if ([self mainRequest]) {
+			theRequest = [self mainRequest];
+		}
+
+		if (cLength) {
+			SInt32 length = CFStringGetIntValue((CFStringRef)cLength);
+
+			// Workaround for Apache HEAD requests for dynamically generated content returning the wrong Content-Length when using gzip
+			if ([self mainRequest] && [self allowCompressedResponse] && length == 20 && [self showAccurateProgress] && [self shouldResetDownloadProgress]) {
+				[[self mainRequest] setShowAccurateProgress:NO];
+				[[self mainRequest] incrementDownloadSizeBy:1];
+
+			} else {
+				[theRequest setContentLength:length];
+				if ([self showAccurateProgress] && [self shouldResetDownloadProgress]) {
+					[theRequest incrementDownloadSizeBy:[theRequest contentLength]+[theRequest partialDownloadSize]];
+				}
+			}
+
+		} else if ([self showAccurateProgress] && [self shouldResetDownloadProgress]) {
+			[theRequest setShowAccurateProgress:NO];
+			[theRequest incrementDownloadSizeBy:1];
+		}
+	}
+
 	// Handle connection persistence
 	if ([self shouldAttemptPersistentConnection]) {
 		
@@ -1844,6 +1857,33 @@ static NSOperationQueue *sharedQueue = nil;
 
 	CFRelease(message);
 	[self requestReceivedResponseHeaders];
+}
+
+// Handle response text encoding
+// If the Content-Type header specified an encoding, we'll use that, otherwise we use defaultStringEncoding (which defaults to NSISOLatin1StringEncoding)
+- (void)parseStringEncodingFromHeaders
+{
+	NSString *contentType = [[self responseHeaders] objectForKey:@"Content-Type"];
+	NSStringEncoding encoding = [self defaultResponseEncoding];
+	if (contentType) {
+
+		NSString *charsetSeparator = @"charset=";
+		NSScanner *charsetScanner = [NSScanner scannerWithString: contentType];
+		NSString *IANAEncoding = nil;
+
+		if ([charsetScanner scanUpToString: charsetSeparator intoString: NULL] && [charsetScanner scanLocation] < [contentType length]) {
+			[charsetScanner setScanLocation: [charsetScanner scanLocation] + [charsetSeparator length]];
+			[charsetScanner scanUpToString: @";" intoString: &IANAEncoding];
+		}
+
+		if (IANAEncoding) {
+			CFStringEncoding cfEncoding = CFStringConvertIANACharSetNameToEncoding((CFStringRef)IANAEncoding);
+			if (cfEncoding != kCFStringEncodingInvalidId) {
+				encoding = CFStringConvertEncodingToNSStringEncoding(cfEncoding);
+			}
+		}
+	}
+	[self setResponseEncoding:encoding];
 }
 
 #pragma mark http authentication
@@ -2739,8 +2779,11 @@ static NSOperationQueue *sharedQueue = nil;
 	}
 	[theRequest setContentLength:[[[self responseHeaders] objectForKey:@"Content-Length"] longLongValue]];
 	[theRequest setTotalBytesRead:[self contentLength]];
-	
-	
+
+	[theRequest parseStringEncodingFromHeaders];
+
+	[theRequest setResponseCookies:[NSHTTPCookie cookiesWithResponseHeaderFields:headers forURL:[self url]]];
+
 	[theRequest setComplete:YES];
 	[theRequest setDownloadComplete:YES];
 	
@@ -2934,6 +2977,7 @@ static NSOperationQueue *sharedQueue = nil;
 	[newRequest setProxyDomain:[self proxyDomain]];
 	[newRequest setProxyHost:[self proxyHost]];
 	[newRequest setProxyPort:[self proxyPort]];
+	[newRequest setProxyType:[self proxyType]];
 	[newRequest setUploadProgressDelegate:[self uploadProgressDelegate]];
 	[newRequest setDownloadProgressDelegate:[self downloadProgressDelegate]];
 	[newRequest setShouldPresentAuthenticationDialog:[self shouldPresentAuthenticationDialog]];
@@ -3536,15 +3580,11 @@ static NSOperationQueue *sharedQueue = nil;
 		return [NSArray array];
 	}
 	// Obtain the list of proxies by running the autoconfiguration script
-#if TARGET_IPHONE_SIMULATOR && __IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_3_0
-	NSArray *proxies = NSMakeCollectable([(NSArray *)CFNetworkCopyProxiesForAutoConfigurationScript((CFStringRef)script,(CFURLRef)theURL) autorelease]);
-#else
 	CFErrorRef err2 = NULL;
 	NSArray *proxies = NSMakeCollectable([(NSArray *)CFNetworkCopyProxiesForAutoConfigurationScript((CFStringRef)script,(CFURLRef)theURL, &err2) autorelease]);
 	if (err2) {
 		return nil;
 	}
-#endif
 	return proxies;
 }
 
@@ -3554,8 +3594,6 @@ static NSOperationQueue *sharedQueue = nil;
 {
 	if (![[NSFileManager defaultManager] fileExistsAtPath:path]) {
 		return nil;
-	} else if ([ASIHTTPRequest isiPhoneOS2]) {
-		return @"application/octet-stream";
 	}
 	// Borrowed from http://stackoverflow.com/questions/2439020/wheres-the-iphone-mime-type-database
 	CFStringRef UTI = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, (CFStringRef)[path pathExtension], NULL);
@@ -3783,6 +3821,20 @@ static NSOperationQueue *sharedQueue = nil;
 }
 #endif
 
+#pragma mark cache
+
++ (void)setDefaultCache:(id <ASICacheDelegate>)cache
+{
+	[defaultCache release];
+	defaultCache = [cache retain];
+}
+
++ (id <ASICacheDelegate>)defaultCache
+{
+	return defaultCache;
+}
+
+
 #pragma mark network activity
 
 + (BOOL)isNetworkInUse
@@ -3838,25 +3890,9 @@ static NSOperationQueue *sharedQueue = nil;
 	CFRelease(source);
 }
 
-+ (void)setDefaultCache:(id <ASICacheDelegate>)cache
-{
-	[defaultCache release];
-	defaultCache = [cache retain];
-}
-
-+ (id <ASICacheDelegate>)defaultCache
-{
-	return defaultCache;
-}
 
 
 #pragma mark miscellany 
-
-+ (BOOL)isiPhoneOS2
-{
-	// Value is set in +initialize
-	return isiPhoneOS2;
-}
 
 // From: http://www.cocoadev.com/index.pl?BaseSixtyFour
 
@@ -3989,6 +4025,7 @@ static NSOperationQueue *sharedQueue = nil;
 @synthesize proxyCredentials;
 @synthesize proxyHost;
 @synthesize proxyPort;
+@synthesize proxyType;
 @synthesize PACurl;
 @synthesize authenticationScheme;
 @synthesize proxyAuthenticationScheme;

@@ -41,6 +41,7 @@ Most of the code below here relates to the table view, and isn't that interestin
 - (void)viewDidLoad
 {
 	[[[self navigationBar] topItem] setTitle:@"Synchronous Requests"];
+	[[self view] setAutoresizingMask:UIViewAutoresizingFlexibleHeight|UIViewAutoresizingFlexibleWidth];
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillShow:) name:UIKeyboardWillShowNotification object:nil];
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillHide:) name:UIKeyboardWillHideNotification object:nil];
 

@@ -184,9 +184,6 @@
 	if ([self haveBuiltPostBody]) {
 		return;
 	}
-	if (![[self requestMethod] isEqualToString:@"PUT"]) {
-		[self setRequestMethod:@"POST"];
-	}
 	
 #if DEBUG_FORM_DATA_REQUEST
 	[self setDebugBodyString:@""];	
