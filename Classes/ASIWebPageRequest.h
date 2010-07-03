@@ -18,13 +18,20 @@
 
 @class ASINetworkQueue;
 
+typedef enum _ASIWebContentType {
+    ASINotParsedWebContentType = 0,
+    ASIHTMLWebContentType = 1,
+    ASICSSWebContentType = 2
+} ASIWebContentType;
 
 @interface ASIWebPageRequest : ASIHTTPRequest {
 	ASINetworkQueue *externalResourceQueue;
 	NSMutableDictionary *resourceList;
 	xmlDocPtr doc;
+	ASIWebContentType webContentType;
 }
 
 + (NSString *)XHTMLForString:(NSString *)inputHTML error:(NSError **)error;
+
 
 @end

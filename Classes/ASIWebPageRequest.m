@@ -10,11 +10,14 @@
 #import "ASIWebPageRequest.h"
 #import "ASINetworkQueue.h"
 
-static NSLock *xmlParsingLock = nil;
 static xmlChar *xpathExpr = (xmlChar *)"//link[@rel = \"stylesheet\"]/@href|//script/@src|//img/@src";
+
+static NSLock *xmlParsingLock = nil;
+static NSMutableArray *requestsUsingXMLParser = nil;
 
 @interface ASIWebPageRequest ()
 - (void)readResourceURLs;
+- (void)updateResourceURLs;
 - (void)parseAsHTML;
 - (void)parseAsCSS;
 @property (retain, nonatomic) ASINetworkQueue *externalResourceQueue;
@@ -27,6 +30,7 @@ static xmlChar *xpathExpr = (xmlChar *)"//link[@rel = \"stylesheet\"]/@href|//sc
 {
 	if (self == [ASIWebPageRequest class]) {
 		xmlParsingLock = [[NSLock alloc] init];
+		requestsUsingXMLParser = [[NSMutableArray alloc] init];
 	}
 }
 
@@ -36,6 +40,7 @@ static xmlChar *xpathExpr = (xmlChar *)"//link[@rel = \"stylesheet\"]/@href|//sc
 
 - (void)requestFinished
 {
+	webContentType = ASINotParsedWebContentType;
 	NSString *contentType = [[[self responseHeaders] objectForKey:@"Content-Type"] lowercaseString];
 	contentType = [[contentType componentsSeparatedByString:@";"] objectAtIndex:0];
 	if ([contentType isEqualToString:@"text/html"] || [contentType isEqualToString:@"text/xhtml"] || [contentType isEqualToString:@"text/xhtml+xml"] || [contentType isEqualToString:@"application/xhtml+xml"]) {
@@ -51,6 +56,7 @@ static xmlChar *xpathExpr = (xmlChar *)"//link[@rel = \"stylesheet\"]/@href|//sc
 
 - (void)parseAsCSS
 {
+	webContentType = ASICSSWebContentType;
 	NSString *responseCSS = [self responseString];
 	if (!responseCSS) {
 		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:100 userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Unable to read HTML string from response",NSLocalizedDescriptionKey,nil]]];
@@ -110,6 +116,7 @@ static xmlChar *xpathExpr = (xmlChar *)"//link[@rel = \"stylesheet\"]/@href|//sc
 
 - (void)parseAsHTML
 {
+	webContentType = ASIHTMLWebContentType;
 	NSString *responseHTML = [self responseString];
 	if (!responseHTML) {
 		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:100 userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Unable to read HTML string from response",NSLocalizedDescriptionKey,nil]]];
@@ -128,7 +135,11 @@ static xmlChar *xpathExpr = (xmlChar *)"//link[@rel = \"stylesheet\"]/@href|//sc
 
 	// Only allow parsing of a single document at a time
 	[xmlParsingLock lock];
-	xmlInitParser();
+
+	if (![requestsUsingXMLParser count]) {
+		xmlInitParser();
+	}
+	[requestsUsingXMLParser addObject:self];
 
 	// Strip the namespace, because it makes the xpath query a pain
 	responseHTML = [responseHTML stringByReplacingOccurrencesOfString:@" xmlns=\"http://www.w3.org/1999/xhtml\"" withString:@""];
@@ -147,10 +158,6 @@ static xmlChar *xpathExpr = (xmlChar *)"//link[@rel = \"stylesheet\"]/@href|//sc
 
     // Populate the list of URLS to download
     [self readResourceURLs];
-
-	xmlFreeDoc(doc);
-	doc = nil;
-	xmlCleanupParser();
 
 	[xmlParsingLock unlock];
 
@@ -199,23 +206,43 @@ static xmlChar *xpathExpr = (xmlChar *)"//link[@rel = \"stylesheet\"]/@href|//sc
 
 - (void)finishedFetchingExternalResources:(ASINetworkQueue *)queue
 {
-	NSMutableString *parsedResponse = [[[self responseString] mutableCopy] autorelease];
-	if (![self error]) {
-		for (NSString *resource in [[self resourceList] keyEnumerator]) {
-			NSDictionary *resourceInfo = [[self resourceList] objectForKey:resource];
-			NSData *data = [resourceInfo objectForKey:@"Data"];
-			NSString *contentType = [resourceInfo objectForKey:@"ContentType"];
-			if (data && contentType) {
+	if (webContentType == ASICSSWebContentType) {
+		NSMutableString *parsedResponse = [[[self responseString] mutableCopy] autorelease];
+		if (![self error]) {
+			for (NSString *resource in [[self resourceList] keyEnumerator]) {
+				NSDictionary *resourceInfo = [[self resourceList] objectForKey:resource];
+				NSData *data = [resourceInfo objectForKey:@"Data"];
+				NSString *contentType = [resourceInfo objectForKey:@"ContentType"];
 				if (data && contentType) {
-					NSString *newData = [NSString stringWithFormat:@"data:%@;base64,",contentType];
-					newData = [newData stringByAppendingString:[ASIHTTPRequest base64forData:data]];
-					[parsedResponse replaceOccurrencesOfString:resource withString:newData options:0 range:NSMakeRange(0, [parsedResponse length])];
+					if (data && contentType) {
+						NSString *newData = [NSString stringWithFormat:@"data:%@;base64,",contentType];
+						newData = [newData stringByAppendingString:[ASIHTTPRequest base64forData:data]];
+						[parsedResponse replaceOccurrencesOfString:resource withString:newData options:0 range:NSMakeRange(0, [parsedResponse length])];
+					}
 				}
 			}
 		}
+		[self setRawResponseData:(id)[parsedResponse dataUsingEncoding:NSUTF8StringEncoding]];
+
+	} else {
+		[xmlParsingLock lock];
+
+		[self updateResourceURLs];
+		xmlChar *bytes = nil;
+		int size = 0;
+		xmlDocDumpMemory(doc,&bytes,&size);
+		[self setRawResponseData:[[[NSMutableData alloc] initWithBytes:bytes length:size] autorelease]];
+
+		xmlFreeDoc(doc);
+		doc = nil;
+
+		[requestsUsingXMLParser removeObject:self];
+		if (![requestsUsingXMLParser count]) {
+			xmlCleanupParser();
+		}
+		[xmlParsingLock unlock];
 	}
 
-	[self setRawResponseData:(id)[parsedResponse dataUsingEncoding:NSUTF8StringEncoding]];
 	[self setResponseEncoding:NSUTF8StringEncoding];
 	NSMutableDictionary *newHeaders = [[[self responseHeaders] mutableCopy] autorelease];
 	[newHeaders removeObjectForKey:@"Content-Encoding"];
@@ -250,9 +277,7 @@ static xmlChar *xpathExpr = (xmlChar *)"//link[@rel = \"stylesheet\"]/@href|//sc
 	int i;
     for(i = size - 1; i >= 0; i--) {
 		assert(nodes->nodeTab[i]);
-		//NSLog(@"%s",xmlNodeGetContent(nodes->nodeTab[i]));
 		NSString *theURL = [NSString stringWithCString:(char *)xmlNodeGetContent(nodes->nodeTab[i]) encoding:NSUTF8StringEncoding];
-		//NSLog(@"%@",theURL);
 		[resourceList setObject:[NSMutableDictionary dictionary] forKey:theURL];
 		if (nodes->nodeTab[i]->type != XML_NAMESPACE_DECL) {
 			nodes->nodeTab[i] = NULL;
@@ -261,6 +286,47 @@ static xmlChar *xpathExpr = (xmlChar *)"//link[@rel = \"stylesheet\"]/@href|//sc
 	
 	xmlXPathFreeObject(xpathObj);
     xmlXPathFreeContext(xpathCtx); 
+}
+
+
+- (void)updateResourceURLs
+{
+	/* Create xpath evaluation context */
+	xmlXPathContextPtr xpathCtx = xmlXPathNewContext(doc);
+	if(xpathCtx == NULL) {
+		xmlFreeDoc(doc);
+		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:101 userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Error: unable to create new XPath context",NSLocalizedDescriptionKey,nil]]];
+		return;
+	}
+
+ 	/* Evaluate xpath expression */
+	xmlXPathObjectPtr xpathObj = xmlXPathEvalExpression(xpathExpr, xpathCtx);
+	if(xpathObj == NULL) {
+		xmlXPathFreeContext(xpathCtx);
+		xmlFreeDoc(doc);
+		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:101 userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Error: unable to evaluate XPath expression!",NSLocalizedDescriptionKey,nil]]];
+		return;
+	}
+
+	xmlNodeSetPtr nodes = xpathObj->nodesetval;
+	int size = (nodes) ? nodes->nodeNr : 0;
+	int i;
+	for(i = size - 1; i >= 0; i--) {
+		assert(nodes->nodeTab[i]);
+		NSString *theURL = [NSString stringWithCString:(char *)xmlNodeGetContent(nodes->nodeTab[i]) encoding:NSUTF8StringEncoding];
+		NSData *data = [[resourceList objectForKey:theURL] objectForKey:@"Data"];
+		NSString *contentType = [[resourceList objectForKey:theURL] objectForKey:@"ContentType"];
+		if (data && contentType) {
+			NSString *newData = [NSString stringWithFormat:@"data:%@;base64,",contentType];
+			newData = [newData stringByAppendingString:[ASIHTTPRequest base64forData:data]];
+			xmlNodeSetContent(nodes->nodeTab[i], (xmlChar *)[newData cStringUsingEncoding:NSUTF8StringEncoding]);
+		}
+		if (nodes->nodeTab[i]->type != XML_NAMESPACE_DECL) {
+			nodes->nodeTab[i] = NULL;
+		}
+	}
+	xmlXPathFreeObject(xpathObj);
+	xmlXPathFreeContext(xpathCtx);
 }
 
 + (NSString *)XHTMLForString:(NSString *)inputHTML error:(NSError **)error
@@ -281,6 +347,9 @@ static xmlChar *xpathExpr = (xmlChar *)"//link[@rel = \"stylesheet\"]/@href|//sc
 	if (rc >= 0) {
 		rc = (tidyOptSetBool(tdoc, TidyXmlDecl, yes) ? rc : -1 );
 		rc = (tidyOptSetValue(tdoc, TidyCharEncoding, "utf8") ? rc : -1 );
+		rc = (tidyOptSetValue(tdoc, TidyDoctype, "strict") ? rc : -1 );
+		// Stop tidy stripping HTML 5 tags
+		rc = (tidyOptSetValue(tdoc, TidyBlockTags, "header, section, nav, footer, article, audio, video") ? rc : -1);
 	}
 	
 	if (rc >= 0) {
