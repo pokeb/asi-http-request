@@ -11,7 +11,7 @@
 
 // Private stuff
 @interface ASINetworkQueue ()
-	- (void)resetProgressDelegate:(id)progressDelegate;
+	- (void)resetProgressDelegate:(id *)progressDelegate;
 	@property (assign) int requestsCount;
 @end
 
@@ -79,33 +79,33 @@
 - (void)setUploadProgressDelegate:(id)newDelegate
 {
 	uploadProgressDelegate = newDelegate;
-	[self resetProgressDelegate:newDelegate];
+	[self resetProgressDelegate:&uploadProgressDelegate];
 
 }
 
 - (void)setDownloadProgressDelegate:(id)newDelegate
 {
 	downloadProgressDelegate = newDelegate;
-	[self resetProgressDelegate:newDelegate];
+	[self resetProgressDelegate:&downloadProgressDelegate];
 }
 
-- (void)resetProgressDelegate:(id)progressDelegate
+- (void)resetProgressDelegate:(id *)progressDelegate
 {
 #if !TARGET_OS_IPHONE
 	// If the uploadProgressDelegate is an NSProgressIndicator, we set its MaxValue to 1.0 so we can treat it similarly to UIProgressViews
 	SEL selector = @selector(setMaxValue:);
-	if ([progressDelegate respondsToSelector:selector]) {
+	if ([*progressDelegate respondsToSelector:selector]) {
 		double max = 1.0;
 		[ASIHTTPRequest performSelector:selector onTarget:progressDelegate withObject:nil amount:&max];
 	}
 	selector = @selector(setDoubleValue:);
-	if ([progressDelegate respondsToSelector:selector]) {
+	if ([*progressDelegate respondsToSelector:selector]) {
 		double value = 0.0;
 		[ASIHTTPRequest performSelector:selector onTarget:progressDelegate withObject:nil amount:&value];
 	}
 #else
 	SEL selector = @selector(setProgress:);
-	if ([progressDelegate respondsToSelector:selector]) {
+	if ([*progressDelegate respondsToSelector:selector]) {
 		float value = 0.0f;
 		[ASIHTTPRequest performSelector:selector onTarget:progressDelegate withObject:nil amount:&value];
 	}
@@ -153,7 +153,7 @@
 				[self addHEADOperation:HEADRequest];
 				[request addDependency:HEADRequest];
 				if ([request shouldResetDownloadProgress]) {
-					[self resetProgressDelegate:[request downloadProgressDelegate]];
+					[self resetProgressDelegate:&downloadProgressDelegate];
 					[request setShouldResetDownloadProgress:NO];
 				}
 			}
@@ -168,7 +168,7 @@
 	}
 	// Tell the request not to increment the upload size when it starts, as we've already added its length
 	if ([request shouldResetUploadProgress]) {
-		[self resetProgressDelegate:[request uploadProgressDelegate]];
+		[self resetProgressDelegate:&uploadProgressDelegate];
 		[request setShouldResetUploadProgress:NO];
 	}
 	
@@ -229,7 +229,7 @@
 {
 	[self setBytesDownloadedSoFar:[self bytesDownloadedSoFar]+bytes];
 	if ([self downloadProgressDelegate]) {
-		[ASIHTTPRequest updateProgressIndicator:[self downloadProgressDelegate] withProgress:[self bytesDownloadedSoFar] ofTotal:[self totalBytesToDownload]];
+		[ASIHTTPRequest updateProgressIndicator:&downloadProgressDelegate withProgress:[self bytesDownloadedSoFar] ofTotal:[self totalBytesToDownload]];
 	}
 }
 
@@ -237,7 +237,7 @@
 {
 	[self setBytesUploadedSoFar:[self bytesUploadedSoFar]+bytes];
 	if ([self uploadProgressDelegate]) {
-		[ASIHTTPRequest updateProgressIndicator:[self uploadProgressDelegate] withProgress:[self bytesUploadedSoFar] ofTotal:[self totalBytesToUpload]];
+		[ASIHTTPRequest updateProgressIndicator:&uploadProgressDelegate withProgress:[self bytesUploadedSoFar] ofTotal:[self totalBytesToUpload]];
 	}
 }
 
