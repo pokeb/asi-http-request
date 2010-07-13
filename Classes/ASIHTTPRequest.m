@@ -2831,7 +2831,11 @@ static NSOperationQueue *sharedQueue = nil;
 			return NO;
 		}
 	}
-	
+        
+	// only 200 responses are stored in the cache, so let the client know
+	// this was a successful response
+	self.responseStatusCode = 200;
+        
 	[self setDidUseCachedResponse:YES];
 	
 	ASIHTTPRequest *theRequest = self;
