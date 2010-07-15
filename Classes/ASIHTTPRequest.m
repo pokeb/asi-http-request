@@ -1575,10 +1575,7 @@ static NSOperationQueue *sharedQueue = nil;
 	id target = *targetPtr;
 	SEL selector = *selectorPtr;
 	
-	if (!selector || !target)
-		return;
-	
-	if ([target respondsToSelector:selector])
+	if (selector && target && [target respondsToSelector:selector])
 	{
 		[target performSelector:selector withObject:self];
 	}
