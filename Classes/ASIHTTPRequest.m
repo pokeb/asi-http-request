@@ -466,7 +466,7 @@ static NSOperationQueue *sharedQueue = nil;
 - (id)delegate
 {
 	[[self cancelledLock] lock];
-	id d = [[delegate retain] autorelease];
+	id d = delegate;
 	[[self cancelledLock] unlock];
 	return d;
 }
@@ -481,7 +481,7 @@ static NSOperationQueue *sharedQueue = nil;
 - (id)queue
 {
 	[[self cancelledLock] lock];
-	id q = [[queue retain] autorelease];
+	id q = queue;
 	[[self cancelledLock] unlock];
 	return q;
 }
