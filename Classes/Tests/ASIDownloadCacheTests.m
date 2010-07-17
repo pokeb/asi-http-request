@@ -231,7 +231,7 @@
 	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/the_great_american_novel_(abridged).txt"]];
 	[request setDownloadCache:[ASIDownloadCache sharedCache]];
 	[request startSynchronous];
-	BOOL success = ([request responseStatusCode] == 304);
+	BOOL success = ([request responseStatusCode] == 200);
 	GHAssertTrue(success,@"Failed to perform a conditional get");
 
 	success = [request didUseCachedResponse];
