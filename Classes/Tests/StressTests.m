@@ -46,7 +46,6 @@ IMPORTANT
 		[queue addOperation:request];
 	}
 	[queue go];
-	[NSThread sleepUntilDate:[NSDate dateWithTimeIntervalSinceNow:2]];
 	[queue cancelAllOperations];
 	
 	// Run the test again with requests running on a background thread

@@ -1,23 +1,31 @@
 //
 //  QueueViewController.h
-//  asi-http-request
+//  Part of the ASIHTTPRequest sample project - see http://allseeing-i.com/ASIHTTPRequest for details
 //
 //  Created by Ben Copsey on 07/11/2008.
 //  Copyright 2008 All-Seeing Interactive. All rights reserved.
 //
 
 #import <UIKit/UIKit.h>
+#import "SampleViewController.h"
 
 @class ASINetworkQueue;
 
-@interface QueueViewController : UIViewController {
+@interface QueueViewController : SampleViewController {
 	ASINetworkQueue *networkQueue;
 	
-	IBOutlet UIImageView *imageView1;
-	IBOutlet UIImageView *imageView2;
-	IBOutlet UIImageView *imageView3;
-	IBOutlet UIProgressView *progressIndicator;
-	IBOutlet UISwitch *accurateProgress;
+	UIImageView *imageView1;
+	UIImageView *imageView2;
+	UIImageView *imageView3;
+	UIProgressView *progressIndicator;
+	UISwitch *accurateProgress;
+	UIProgressView *imageProgressIndicator1;
+	UIProgressView *imageProgressIndicator2;
+	UIProgressView *imageProgressIndicator3;
+	UILabel *imageLabel1;
+	UILabel *imageLabel2;
+	UILabel *imageLabel3;
+	BOOL failed;
 	
 }
 

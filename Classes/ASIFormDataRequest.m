@@ -30,7 +30,7 @@
 #pragma mark utilities
 - (NSString*)encodeURL:(NSString *)string
 {
-	NSString *newString = [(NSString *)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, (CFStringRef)string, NULL, CFSTR(":/?#[]@!$ &'()*+,;=\"<>%{}|\\^~`"), CFStringConvertNSStringEncodingToEncoding([self stringEncoding])) autorelease];
+	NSString *newString = NSMakeCollectable([(NSString *)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, (CFStringRef)string, NULL, CFSTR(":/?#[]@!$ &'()*+,;=\"<>%{}|\\^~`"), CFStringConvertNSStringEncodingToEncoding([self stringEncoding])) autorelease]);
 	if (newString) {
 		return newString;
 	}
@@ -183,9 +183,6 @@
 {
 	if ([self haveBuiltPostBody]) {
 		return;
-	}
-	if (![[self requestMethod] isEqualToString:@"PUT"]) {
-		[self setRequestMethod:@"POST"];
 	}
 	
 #if DEBUG_FORM_DATA_REQUEST
@@ -340,8 +337,8 @@
 - (id)copyWithZone:(NSZone *)zone
 {
 	ASIFormDataRequest *newRequest = [super copyWithZone:zone];
-	[newRequest setPostData:[[[self postData] copyWithZone:zone] autorelease]];
-	[newRequest setFileData:[[[self fileData] copyWithZone:zone] autorelease]];
+	[newRequest setPostData:[[[self postData] mutableCopyWithZone:zone] autorelease]];
+	[newRequest setFileData:[[[self fileData] mutableCopyWithZone:zone] autorelease]];
 	[newRequest setPostFormat:[self postFormat]];
 	[newRequest setStringEncoding:[self stringEncoding]];
 	[newRequest setRequestMethod:[self requestMethod]];

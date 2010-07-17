@@ -6,13 +6,13 @@
 
 #import "ASICloudFilesRequest.h"
 
+#if (!TARGET_OS_IPHONE && MAC_OS_X_VERSION_MAX_ALLOWED < __MAC_10_6) || (TARGET_OS_IPHONE && __IPHONE_OS_VERSION_MAX_ALLOWED < __IPHONE_4_0)
+#import "ASINSXMLParserCompat.h"
+#endif
+
 @class ASICloudFilesContainer;
 
-#if (!TARGET_OS_IPHONE && MAC_OS_X_VERSION_MIN_REQUIRED >= __MAC_10_6) || (TARGET_OS_IPHONE && __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_4_0)
 @interface ASICloudFilesContainerXMLParserDelegate : NSObject <NSXMLParserDelegate> {
-#else
-@interface ASICloudFilesContainerXMLParserDelegate : NSObject {
-#endif
 		
 	NSMutableArray *containerObjects;
 

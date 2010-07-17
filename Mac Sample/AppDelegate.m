@@ -9,6 +9,7 @@
 #import "ASIHTTPRequest.h"
 #import "ASIFormDataRequest.h"
 #import "ASINetworkQueue.h"
+#import "ASIDownloadCache.h"
 
 @interface AppDelegate ()
 - (void)updateBandwidthUsageIndicator;
@@ -24,6 +25,7 @@
 @end
 
 @implementation AppDelegate
+
 
 - (id)init
 {
@@ -94,7 +96,7 @@
 	// Stop any other requests
 	[networkQueue reset];
 	
-	[self setBigFetchRequest:[[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/redirect_resume"]] autorelease]];
+	[self setBigFetchRequest:[ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/redirect_resume"]]];
 	[[self bigFetchRequest] setDownloadDestinationPath:[[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"The Great American Novel.txt"]];
 	[[self bigFetchRequest] setTemporaryFileDownloadPath:[[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"The Great American Novel.txt.download"]];
 	[[self bigFetchRequest] setAllowResumeForFileDownloads:YES];
@@ -308,5 +310,78 @@
 }
 
 
+- (IBAction)reloadTableData:(id)sender
+{
+	[[self tableQueue] cancelAllOperations];
+	[self setRowData:[NSMutableArray array]];
+	[tableView reloadData];
+
+	[self setTableQueue:[ASINetworkQueue queue]];
+	
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/table-row-data.xml"]];
+	[request setDownloadCache:[ASIDownloadCache sharedCache]];
+	[[ASIDownloadCache sharedCache] setDefaultCachePolicy:ASIOnlyLoadIfNotCachedCachePolicy];
+	[request setDidFinishSelector:@selector(tableViewDataFetchFinished:)];
+	[request setDelegate:self];
+	[[self tableQueue] addOperation:request];
+	[[self tableQueue] go];
+}
+
+- (void)tableViewDataFetchFailed:(ASIHTTPRequest *)request
+{
+	if ([[request error] domain] != NetworkRequestErrorDomain || ![[request error] code] == ASIRequestCancelledErrorType) {
+		[tableLoadStatus setStringValue:@"Loading data failed"];
+	}
+}
+
+- (void)tableViewDataFetchFinished:(ASIHTTPRequest *)request
+{
+	NSXMLDocument *xml = [[[NSXMLDocument alloc] initWithData:[request responseData] options:NSXMLDocumentValidate error:nil] autorelease];
+	for (NSXMLElement *row in [[xml rootElement] elementsForName:@"row"]) {
+		NSMutableDictionary *rowInfo = [NSMutableDictionary dictionary];
+		NSString *description = [[[row elementsForName:@"description"] objectAtIndex:0] stringValue];
+		[rowInfo setValue:description forKey:@"description"];
+		NSString *imageURL = [[[row elementsForName:@"image"] objectAtIndex:0] stringValue];
+		ASIHTTPRequest *imageRequest = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:imageURL]];
+		[imageRequest setDownloadCache:[ASIDownloadCache sharedCache]];
+		[imageRequest setDidFinishSelector:@selector(rowImageDownloadFinished:)];
+		[imageRequest setDidFailSelector:@selector(tableViewDataFetchFailed:)];
+		[imageRequest setDelegate:self];
+		[imageRequest setUserInfo:rowInfo];
+		[[self tableQueue] addOperation:imageRequest];
+		[[self rowData] addObject:rowInfo];
+	}
+	[tableView reloadData];
+}
+
+- (NSInteger)numberOfRowsInTableView:(NSTableView *)aTableView
+{
+    return [[self rowData] count];
+}
+
+- (id)tableView:(NSTableView *)aTableView objectValueForTableColumn:(NSTableColumn *)aTableColumn row:(NSInteger)rowIndex
+{
+	if ([[aTableColumn identifier] isEqualToString:@"image"]) {
+		return [[[self rowData] objectAtIndex:rowIndex] objectForKey:@"image"];
+	} else {
+		return [[[self rowData] objectAtIndex:rowIndex] objectForKey:@"description"];
+	}
+}
+
+- (void)rowImageDownloadFinished:(ASIHTTPRequest *)request
+{
+	NSImage *image = [[[NSImage alloc] initWithData:[request responseData]] autorelease];
+	[(NSMutableDictionary *)[request userInfo] setObject:image forKey:@"image"];
+	[tableView reloadData]; // Not efficient, but I hate table view programming :)
+}
+
+- (IBAction)clearCache:(id)sender
+{
+	[[ASIDownloadCache sharedCache] clearCachedResponsesForStoragePolicy:ASICacheForSessionDurationCacheStoragePolicy];
+}
+
+
 @synthesize bigFetchRequest;
+@synthesize rowData;
+@synthesize tableQueue;
 @end
