@@ -1647,5 +1647,45 @@
 	GHAssertTrue(success,@"Request fell back to simple progress when redirecting");
 }
 
+// Because of they way I implemented the server part of this test, I'm afraid you won't be able to run it yourself
+
+- (void)testResumeWithAutomaticTimeoutRetry
+{
+	printf("\nSkipping testResumeWithAutomaticTimeoutRetry - ");
+	return;
+	// Get the first part of the response
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/resume-with-timeout"]];
+	[request setAllowCompressedResponse:NO];
+	[request startSynchronous];
+
+	NSString *partialPath = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:@"partial.txt"];
+	[[request responseString] writeToFile:partialPath atomically:NO encoding:NSUTF8StringEncoding error:NULL];
+
+	NSString *completePath = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:@"complete.txt"];
+
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/resume-with-timeout-finish"]];
+	[request setAllowCompressedResponse:NO];
+	[request setAllowResumeForFileDownloads:YES];
+	[request setTemporaryFileDownloadPath:partialPath];
+	[request setDownloadDestinationPath:completePath];
+	[request setNumberOfTimesToRetryOnTimeout:1];
+	[request startSynchronous];
+
+	NSString *expectedOutput = @"";
+
+	char i;
+	for (i=0; i<3; i++) {
+		char *s;
+		s = (char *)malloc(1024*128);
+		memset(s, i+49, 1024*128);
+		expectedOutput = [expectedOutput stringByAppendingString:[[[NSString alloc] initWithBytes:s length:1024*128 encoding:NSUTF8StringEncoding] autorelease]];
+		expectedOutput = [expectedOutput stringByAppendingString:@"\r\n"];
+		free(s);
+	}
+
+	BOOL success = [expectedOutput isEqualToString:[NSString stringWithContentsOfFile:completePath encoding:NSUTF8StringEncoding error:NULL]];
+	GHAssertTrue(success, @"Failed to send the correct Range headers to the server when resuming after a timeout");
+}
+
 @synthesize responseData;
 @end

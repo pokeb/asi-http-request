@@ -24,7 +24,7 @@
 
 // Automatically set on build
 
-NSString *ASIHTTPRequestVersion = @"v1.7-13 2010-07-02";
+NSString *ASIHTTPRequestVersion = @"v1.7-15 2010-07-17";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -161,6 +161,9 @@ static NSOperationQueue *sharedQueue = nil;
 
 
 - (BOOL)useDataFromCache;
+
+// Called to update the size of a partial download when starting a request, or retrying after a timeout
+- (void)updatePartialDownloadSize;
 
 #if TARGET_OS_IPHONE
 + (void)registerForNetworkReachabilityNotifications;
@@ -813,6 +816,14 @@ static NSOperationQueue *sharedQueue = nil;
 	}
 	
 	// Should this request resume an existing download?
+	[self updatePartialDownloadSize];
+	if ([self partialDownloadSize]) {
+		[self addRequestHeader:@"Range" value:[NSString stringWithFormat:@"bytes=%llu-",[self partialDownloadSize]]];
+	}
+}
+
+- (void)updatePartialDownloadSize
+{
 	if ([self allowResumeForFileDownloads] && [self downloadDestinationPath] && [self temporaryFileDownloadPath] && [[NSFileManager defaultManager] fileExistsAtPath:[self temporaryFileDownloadPath]]) {
 		NSError *err = nil;
 		[self setPartialDownloadSize:[[[NSFileManager defaultManager] attributesOfItemAtPath:[self temporaryFileDownloadPath] error:&err] fileSize]];
@@ -820,8 +831,7 @@ static NSOperationQueue *sharedQueue = nil;
 			[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIFileManagementError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Failed to get attributes for file at path '@%'",[self temporaryFileDownloadPath]],NSLocalizedDescriptionKey,error,NSUnderlyingErrorKey,nil]]];
 			return;
 		}
-		[self addRequestHeader:@"Range" value:[NSString stringWithFormat:@"bytes=%llu-",[self partialDownloadSize]]];
-	}	
+	}
 }
 
 - (void)startRequest
@@ -1187,6 +1197,12 @@ static NSOperationQueue *sharedQueue = nil;
 	if ([self shouldTimeOut]) {			
 		// Do we need to auto-retry this request?
 		if ([self numberOfTimesToRetryOnTimeout] > [self retryCount]) {
+
+			// If we are resuming a download, we may need to update the Range header to take account of data we've just downloaded
+			[self updatePartialDownloadSize];
+			if ([self partialDownloadSize]) {
+				CFHTTPMessageSetHeaderFieldValue(request, (CFStringRef)@"Range", (CFStringRef)[NSString stringWithFormat:@"bytes=%llu-",[self partialDownloadSize]]);
+			}
 			[self setRetryCount:[self retryCount]+1];
 			[self unscheduleReadStream];
 			[[self cancelledLock] unlock];
