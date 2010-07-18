@@ -66,7 +66,7 @@
 		}
 		totalTime += times[i];
 	}
-	NSLog(@"Ran %hi requests in %f seconds (average time: %f secs / best time: %f secs / worst time: %f secs)",runTimes,totalTime,totalTime/runTimes,bestTime,worstTime);
+	NSLog(@"Ran %i requests in %f seconds (average time: %f secs / best time: %f secs / worst time: %f secs)",runTimes,totalTime,totalTime/runTimes,bestTime,worstTime);
 }
 
 
@@ -106,7 +106,7 @@
 		}
 		totalTime += times[i];
 	}
-	NSLog(@"Ran %hi requests in %f seconds (average time: %f secs / best time: %f secs / worst time: %f secs)",runTimes,totalTime,totalTime/runTimes,bestTime,worstTime);
+	NSLog(@"Ran %i requests in %f seconds (average time: %f secs / best time: %f secs / worst time: %f secs)",runTimes,totalTime,totalTime/runTimes,bestTime,worstTime);
 }
 
 

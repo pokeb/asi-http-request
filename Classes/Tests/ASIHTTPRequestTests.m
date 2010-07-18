@@ -471,6 +471,72 @@
 	}
 }
 
+- (void)testResumeChecksContentRangeHeader
+{
+	NSURL *url = [NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/no_resume"];
+	NSString *temporaryPath = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:@"foo.temp"];
+
+	[@"" writeToFile:temporaryPath atomically:NO encoding:NSUTF8StringEncoding error:NULL];
+
+	NSString *downloadPath = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:@"foo.txt"];
+
+	// Download part of a large file that is returned after a redirect
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:url];
+	[request setTemporaryFileDownloadPath:temporaryPath];
+	[request setDownloadDestinationPath:downloadPath];
+	[request setAllowResumeForFileDownloads:YES];
+	[request setAllowCompressedResponse:NO];
+	[request setShouldAttemptPersistentConnection:NO];
+	[request startAsynchronous];
+
+	// Cancel the request as soon as it has downloaded 64KB
+	while (1) {
+		sleep(0.5);
+		if ([request totalBytesRead] > 32*1024) {
+			[request cancel];
+			break;
+		}
+	}
+	NSNumber *fileSize =  [[[NSFileManager defaultManager] attributesOfItemAtPath:temporaryPath error:NULL] objectForKey:NSFileSize];
+	unsigned long long partialFileSize = [fileSize unsignedLongLongValue];
+	BOOL success = (partialFileSize < 1036935);
+	GHAssertTrue(success,@"Downloaded whole file too quickly, cannot proceed with this test");
+
+
+	// Resume the download
+	request = [ASIHTTPRequest requestWithURL:url];
+	[request setTemporaryFileDownloadPath:temporaryPath];
+	[request setDownloadDestinationPath:downloadPath];
+	[request setAllowResumeForFileDownloads:YES];
+	[request setAllowCompressedResponse:NO];
+
+	[request buildRequestHeaders];
+	success = ([request partialDownloadSize] == partialFileSize);
+	GHAssertTrue(success,@"Failed to obtain correct partial dowload size");
+	[request startAsynchronous];
+
+	while (1) {
+		sleep(0.5);
+		if ([request isFinished]) {
+			break;
+		}
+	}
+
+	GHAssertNil([request error],@"Request failed, cannot proceed with this test");
+
+	success = (![[request responseHeaders] objectForKey:@"Content-Range"]);
+	GHAssertTrue(success,@"Got range header back, cannot proceed with this test");
+
+	NSDictionary *attributes = [[NSFileManager defaultManager] attributesOfItemAtPath:downloadPath error:NULL];
+	fileSize =  [attributes objectForKey:NSFileSize];
+	success = ([fileSize intValue] == 1036935);
+	GHAssertTrue(success,@"Downloaded file has wrong length");
+
+	success = ([request partialDownloadSize] == 0);
+	GHAssertTrue(success,@"Failed to reset download size");
+}
+
+
 - (void)testRedirectedResume
 {
 	[self performSelectorOnMainThread:@selector(runRedirectedResume) withObject:nil waitUntilDone:YES];
@@ -1396,15 +1462,16 @@
 - (void)asyncFail:(ASIHTTPRequest *)request
 {
 	int requestNumber = [[[request userInfo] objectForKey:@"RequestNumber"] intValue];
-	GHAssertEquals(requestNumber,4,@"Wrong request failed");	
+	BOOL success = (requestNumber == 4);
+	GHAssertTrue(success,@"Wrong request failed");
 }
 
 - (void)asyncSuccess:(ASIHTTPRequest *)request
 {
 	int requestNumber = [[[request userInfo] objectForKey:@"RequestNumber"] intValue];
-	GHAssertNotEquals(requestNumber,4,@"Request succeeded when it should have failed");
+	BOOL success = (requestNumber != 4);
+	GHAssertTrue(success,@"Request succeeded when it should have failed");
 	
-	BOOL success;
 	switch (requestNumber) {
 		case 1:
 			success = [[request responseString] isEqualToString:@"This is the expected content for the first string"];
@@ -1619,7 +1686,6 @@
 	NSString *dateString = @"Thu, 19 Nov 1981 08:52:01 GMT";
 	NSDate *date = [ASIHTTPRequest dateFromRFC1123String:dateString];
 	NSDateComponents *components = [calendar components:dateUnits fromDate:date];
-	NSLog(@"%i",[components weekday]);
 	BOOL success = ([components year] == 1981 && [components month] == 11 && [components day] == 19 && [components weekday] == 5 && [components hour] == 8 && [components minute] == 52 && [components second] == 1);
 	GHAssertTrue(success,@"Failed to parse an RFC1123 date correctly");
 

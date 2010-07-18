@@ -64,7 +64,7 @@
 @property (retain) NSString *key;
 @property (retain) NSString *sourceBucket;
 @property (retain) NSString *sourceKey;
-@property (retain) NSString *mimeType;
+@property (retain, nonatomic) NSString *mimeType;
 @property (retain) NSString *subResource;
 
 @end
