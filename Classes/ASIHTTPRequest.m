@@ -3902,6 +3902,14 @@ static NSOperationQueue *sharedQueue = nil;
 }
 #endif
 
+#pragma mark queue
+
+// Returns the shared queue
++ (NSOperationQueue *)sharedQueue
+{
+    return [[sharedQueue retain] autorelease];
+}
+
 #pragma mark cache
 
 + (void)setDefaultCache:(id <ASICacheDelegate>)cache

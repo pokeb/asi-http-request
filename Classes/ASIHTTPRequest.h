@@ -702,6 +702,11 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 
 #endif
 
+#pragma mark queue
+
+// Returns the shared queue
++ (NSOperationQueue *)sharedQueue;
+
 #pragma mark cache
 
 + (void)setDefaultCache:(id <ASICacheDelegate>)cache;
