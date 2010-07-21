@@ -604,7 +604,7 @@ static NSOperationQueue *sharedQueue = nil;
 
 - (BOOL)isFinished 
 {
-	return [self complete];
+	return finished;
 }
 
 - (BOOL)isExecuting {
@@ -2822,13 +2822,22 @@ static NSOperationQueue *sharedQueue = nil;
 		CFMakeCollectable(proxyAuthentication);
 	}
 
-	[self willChangeValueForKey:@"isFinished"];
-	[self willChangeValueForKey:@"isExecuting"];
+    BOOL wasInProgress = inProgress;
+    BOOL wasFinished = finished;
+
+    if (!wasFinished)
+        [self willChangeValueForKey:@"isFinished"];
+    if (wasInProgress)
+        [self willChangeValueForKey:@"isExecuting"];
+
 	[self setInProgress:NO];
 	[self setStatusTimer:nil];
+    finished = YES;
 
-	[self didChangeValueForKey:@"isExecuting"];
-	[self didChangeValueForKey:@"isFinished"];
+    if (wasInProgress)
+        [self didChangeValueForKey:@"isExecuting"];
+    if (!wasFinished)
+        [self didChangeValueForKey:@"isFinished"];
 
 	CFRunLoopStop(CFRunLoopGetCurrent());
 
