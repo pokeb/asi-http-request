@@ -23,7 +23,7 @@
 
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.7-24 2010-07-18";
+NSString *ASIHTTPRequestVersion = @"v1.7-25 2010-07-22";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -62,6 +62,12 @@ static NSError *ASITooMuchRedirectionError;
 
 static NSMutableArray *bandwidthUsageTracker = nil;
 static unsigned long averageBandwidthUsedPerSecond = 0;
+
+static SEL queueRequestStartedSelector = nil;
+static SEL queueRequestReceivedResponseHeadersSelector = nil;
+static SEL queueRequestFinishedSelector = nil;
+static SEL queueRequestFailedSelector = nil;
+
 
 // These are used for queuing persistent connections on the same connection
 
@@ -220,6 +226,10 @@ static NSOperationQueue *sharedQueue = nil;
 + (void)initialize
 {
 	if (self == [ASIHTTPRequest class]) {
+		queueRequestStartedSelector = @selector(requestStarted:);
+		queueRequestReceivedResponseHeadersSelector = @selector(requestReceivedResponseHeaders:);
+		queueRequestFinishedSelector = @selector(requestFinished:);
+		queueRequestFailedSelector = @selector(requestFailed:);
 		persistentConnectionsPool = [[NSMutableArray alloc] init];
 		connectionsLock = [[NSRecursiveLock alloc] init];
 		progressLock = [[NSRecursiveLock alloc] init];
@@ -1569,17 +1579,14 @@ static NSOperationQueue *sharedQueue = nil;
 
 #pragma mark handling request complete / failure
 
-
-- (void)callSelectorCallback:(SEL *)selectorPtr withTarget:(id *)targetPtr
+- (void)callSelectorCallback:(SEL *)selectorPtr withTarget:(id *)targetPtr request:(ASIHTTPRequest *)request
 {
 	id target = *targetPtr;
 	SEL selector = *selectorPtr;
-	
-	if (selector && target && [target respondsToSelector:selector])
-	{
+	NSLog(@"%@",NSStringFromSelector(selector));
+	if (selector && target && [target respondsToSelector:selector]) {
 		[target performSelector:selector withObject:self];
 	}
-    [self autorelease];
 }
 
 // Call a selector for a delegate on the main thread
@@ -1591,15 +1598,17 @@ static NSOperationQueue *sharedQueue = nil;
 	if (!*selector || !*target)
 		return;
 	
-	SEL callback = @selector(callSelectorCallback:withTarget:);
+	SEL callback = @selector(callSelectorCallback:withTarget:request:);
 	NSMethodSignature *signature = [ASIHTTPRequest instanceMethodSignatureForSelector:callback];
 	NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
 	[invocation setSelector:callback];
 	[invocation setTarget:self];
 	[invocation setArgument:&selector atIndex:2];
 	[invocation setArgument:&target atIndex:3];
+	[invocation setArgument:&self atIndex:4];
 	
-    [self retain]; // ensure we stay around for the duration of the callback
+	// Force the invocation to retain this request until after we have performed the callback
+    [invocation retainArguments];
 	[invocation performSelectorOnMainThread:@selector(invoke) withObject:nil waitUntilDone:[NSThread isMainThread]];
 }
 
@@ -1614,8 +1623,7 @@ static NSOperationQueue *sharedQueue = nil;
 	[self callSelectorOnMainThread:&didReceiveResponseHeadersSelector forDelegate:&delegate];
 	
 	// Let the queue know we have started
-	SEL sel = @selector(requestReceivedResponseHeaders:);
-	[self callSelectorOnMainThread:&sel forDelegate:&queue];
+	[self callSelectorOnMainThread:&queueRequestReceivedResponseHeadersSelector forDelegate:&queue];
 }
 
 - (void)requestStarted
@@ -1627,8 +1635,7 @@ static NSOperationQueue *sharedQueue = nil;
 	[self callSelectorOnMainThread:&didStartSelector forDelegate:&delegate];
 	
 	// Let the queue know we have started
-	SEL sel = @selector(requestStarted:);
-	[self callSelectorOnMainThread:&sel forDelegate:&queue];
+	[self callSelectorOnMainThread:&queueRequestStartedSelector forDelegate:&queue];
 }
 
 // Subclasses might override this method to process the result in the same thread
@@ -1645,8 +1652,7 @@ static NSOperationQueue *sharedQueue = nil;
 	[self callSelectorOnMainThread:&didFinishSelector forDelegate:&delegate];
 	
 	// Let the queue know we are done
-	SEL sel = @selector(requestFinished:);
-	[self callSelectorOnMainThread:&sel forDelegate:&queue];
+	[self callSelectorOnMainThread:&queueRequestFinishedSelector forDelegate:&queue];
 }
 
 
@@ -1656,8 +1662,7 @@ static NSOperationQueue *sharedQueue = nil;
 	[self callSelectorOnMainThread:&didFailSelector forDelegate:&delegate];
 	
 	// Let the queue know something went wrong
-	SEL sel = @selector(requestFailed:);
-	[self callSelectorOnMainThread:&sel forDelegate:&queue];
+	[self callSelectorOnMainThread:&queueRequestFailedSelector forDelegate:&queue];
 }
 
 // Subclasses might override this method to perform error handling in the same thread
