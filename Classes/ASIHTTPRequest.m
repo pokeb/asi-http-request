@@ -506,11 +506,14 @@ static NSOperationQueue *sharedQueue = nil;
 
 #pragma mark get information about this request
 
-- (void)cancel
+// cancel the request - this must be run on the same thread as the request is running on
+- (void)cancelOnRequestThread
 {
 	#if DEBUG_REQUEST_STATUS
 	NSLog(@"Request cancelled: %@",self);
 	#endif
+    
+    [self autorelease];
 
 	[[self cancelledLock] lock];
 
@@ -529,6 +532,14 @@ static NSOperationQueue *sharedQueue = nil;
 	[[self cancelledLock] unlock];
 }
 
+- (void)cancel
+{
+    [self retain];
+    [self performSelector:@selector(cancelOnRequestThread)
+                 onThread:[[self class] threadForRequest:self]
+               withObject:nil
+            waitUntilDone:NO];    
+}
 
 // Call this method to get the received data as an NSString. Don't use for binary data!
 - (NSString *)responseString
