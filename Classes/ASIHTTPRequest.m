@@ -515,16 +515,7 @@ static NSOperationQueue *sharedQueue = nil;
     
 	[[self cancelledLock] lock];
 
-    if (cancelled) {
-		[[self cancelledLock] unlock];
-		return;
-	}
-
-    [self willChangeValueForKey:@"isCancelled"];
-    cancelled = YES;
-    [self didChangeValueForKey:@"isCancelled"];
-    
-	if ([self complete]) {
+    if ([self isCancelled] || [self complete]) {
 		[[self cancelledLock] unlock];
 		return;
 	}
@@ -533,7 +524,10 @@ static NSOperationQueue *sharedQueue = nil;
 	[self cancelLoad];
 	
 	[[self retain] autorelease];
-
+    [self willChangeValueForKey:@"isCancelled"];
+    cancelled = YES;
+    [self didChangeValueForKey:@"isCancelled"];
+    
 	[[self cancelledLock] unlock];
 }
 
@@ -1712,7 +1706,7 @@ static NSOperationQueue *sharedQueue = nil;
 		[[self connectionInfo] setObject:[NSDate dateWithTimeIntervalSinceNow:[self persistentConnectionTimeoutSeconds]] forKey:@"expires"];
 	}
 	
-    if ([self error]) {
+    if ([self isCancelled] || [self error]) {
 		return;
 	}
 	
