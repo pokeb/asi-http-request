@@ -1711,6 +1711,12 @@ static NSOperationQueue *sharedQueue = nil;
 
     [failedRequest reportFailure];
 	
+    if (!inProgress)
+    {
+        // if we're not in progress, we can't notify the queue we've finished (doing so can cause a crash later on)
+        // "markAsFinished" will be at the start of main() when we are started
+        return;
+    }
 	// markAsFinished may well cause this object to be dealloced
 	[self retain];
 	[self markAsFinished];
