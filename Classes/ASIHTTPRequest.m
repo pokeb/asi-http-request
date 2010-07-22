@@ -1583,7 +1583,6 @@ static NSOperationQueue *sharedQueue = nil;
 {
 	id target = *targetPtr;
 	SEL selector = *selectorPtr;
-	NSLog(@"%@",NSStringFromSelector(selector));
 	if (selector && target && [target respondsToSelector:selector]) {
 		[target performSelector:selector withObject:self];
 	}
