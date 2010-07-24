@@ -325,6 +325,9 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	
 	// When NO, requests will not check the secure certificate is valid (use for self-signed certificates during development, DO NOT USE IN PRODUCTION) Default is YES
 	BOOL validatesSecureCertificate;
+    
+    // If not nil and the URL scheme is https, CFNetwork configured to supply a client certificate
+    SecIdentityRef clientCertificateIdentity;
 	
 	// Details on the proxy to use - you could set these yourself, but it's probably best to let ASIHTTPRequest detect the system proxy settings
 	NSString *proxyHost;
@@ -592,6 +595,10 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 
 + (NSTimeInterval)defaultTimeOutSeconds;
 + (void)setDefaultTimeOutSeconds:(NSTimeInterval)newTimeOutSeconds;
+
+#pragma mark client certificate
+
+- (void)setClientCertificateIdentity:(SecIdentityRef)anIdentity;
 
 #pragma mark session credentials
 

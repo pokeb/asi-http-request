@@ -354,6 +354,11 @@ static NSOperationQueue *sharedQueue = nil;
 	[responseStatusMessage release];
 	[connectionInfo release];
 	[requestID release];
+    
+    if (clientCertificateIdentity) {
+		CFRelease(clientCertificateIdentity);
+	}
+    
 	[super dealloc];
 }
 
@@ -910,10 +915,36 @@ static NSOperationQueue *sharedQueue = nil;
         return;
     }
 
-	// Tell CFNetwork not to validate SSL certificates
-	if (![self validatesSecureCertificate] && [[[[self url] scheme] lowercaseString] isEqualToString:@"https"]) {
-		CFReadStreamSetProperty((CFReadStreamRef)[self readStream], kCFStreamPropertySSLSettings, [NSMutableDictionary dictionaryWithObject:(NSString *)kCFBooleanFalse forKey:(NSString *)kCFStreamSSLValidatesCertificateChain]); 
-	}
+
+    
+    
+    //
+    // Handle SSL certificate settings
+    //
+    if([[[[self url] scheme] lowercaseString] isEqualToString:@"https"]) {
+        NSMutableDictionary *sslProperties = [[NSMutableDictionary alloc] initWithCapacity:1];
+        
+        // Tell CFNetwork not to validate SSL certificates
+        if (![self validatesSecureCertificate]) {
+            [sslProperties setObject:(NSString *)kCFBooleanFalse forKey:(NSString *)kCFStreamSSLValidatesCertificateChain];
+        }
+        
+        // Tell CFNetwork to use a client certificate
+        if (clientCertificateIdentity) {
+            CFArrayRef ca = CFArrayCreate(NULL, (const void **)&clientCertificateIdentity, 1, NULL);
+            
+            [sslProperties setObject:(NSArray *)ca forKey:(NSString *)kCFStreamSSLCertificates];
+            
+            CFRelease(ca);
+        }
+        
+        CFReadStreamSetProperty((CFReadStreamRef)[self readStream], kCFStreamPropertySSLSettings, sslProperties);
+        
+        [sslProperties release];
+    }
+    
+    
+    
 	
 	//
 	// Handle proxy settings
@@ -1349,6 +1380,7 @@ static NSOperationQueue *sharedQueue = nil;
 	[headRequest setTimeOutSeconds:[self timeOutSeconds]];
 	[headRequest setUseHTTPVersionOne:[self useHTTPVersionOne]];
 	[headRequest setValidatesSecureCertificate:[self validatesSecureCertificate]];
+    [headRequest setClientCertificateIdentity:clientCertificateIdentity];
 	[headRequest setPACurl:[self PACurl]];
 	[headRequest setShouldPresentCredentialsBeforeChallenge:[self shouldPresentCredentialsBeforeChallenge]];
 	[headRequest setNumberOfTimesToRetryOnTimeout:[self numberOfTimesToRetryOnTimeout]];
@@ -3078,6 +3110,7 @@ static NSOperationQueue *sharedQueue = nil;
 	[newRequest setUseHTTPVersionOne:[self useHTTPVersionOne]];
 	[newRequest setShouldRedirect:[self shouldRedirect]];
 	[newRequest setValidatesSecureCertificate:[self validatesSecureCertificate]];
+    [newRequest setClientCertificateIdentity:clientCertificateIdentity];
 	[newRequest setPACurl:[self PACurl]];
 	[newRequest setShouldPresentCredentialsBeforeChallenge:[self shouldPresentCredentialsBeforeChallenge]];
 	[newRequest setNumberOfTimesToRetryOnTimeout:[self numberOfTimesToRetryOnTimeout]];
@@ -3098,6 +3131,20 @@ static NSOperationQueue *sharedQueue = nil;
 {
 	defaultTimeOutSeconds = newTimeOutSeconds;
 }
+
+
+#pragma mark client certificate
+
+- (void)setClientCertificateIdentity:(SecIdentityRef)anIdentity {
+    if(clientCertificateIdentity) {
+        CFRelease(clientCertificateIdentity);
+    }
+    
+    clientCertificateIdentity = anIdentity;
+    
+    CFRetain(clientCertificateIdentity);
+}
+
 
 #pragma mark session credentials
 
