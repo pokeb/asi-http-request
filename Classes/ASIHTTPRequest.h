@@ -78,6 +78,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	
 	// Another delegate that is also notified of request status changes and progress updates
 	// Generally, you won't use this directly, but ASINetworkQueue sets itself as the queue so it can proxy updates to its own delegates
+	// NOTE: WILL BE RETAINED BY THE REQUEST
 	id <ASIHTTPRequestDelegate, ASIProgressDelegate> queue;
 	
 	// HTTP method to use (GET / POST / PUT / DELETE / HEAD). Defaults to GET
@@ -766,7 +767,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 @property (retain,setter=setURL:) NSURL *url;
 @property (retain) NSURL *originalURL;
 @property (assign, nonatomic) id delegate;
-@property (assign, nonatomic) id queue;
+@property (retain, nonatomic) id queue;
 @property (assign, nonatomic) id uploadProgressDelegate;
 @property (assign, nonatomic) id downloadProgressDelegate;
 @property (assign) BOOL useKeychainPersistence;

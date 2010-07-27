@@ -23,7 +23,7 @@
 
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.7-34 2010-07-27";
+NSString *ASIHTTPRequestVersion = @"v1.7-35 2010-07-27";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -317,6 +317,7 @@ static NSOperationQueue *sharedQueue = nil;
 		CFRelease(request);
 	}
 	[self cancelLoad];
+	[queue release];
 	[userInfo release];
 	[postBody release];
 	[compressedPostBody release];
@@ -502,7 +503,10 @@ static NSOperationQueue *sharedQueue = nil;
 - (void)setQueue:(id)newQueue
 {
 	[[self cancelledLock] lock];
-	queue = newQueue;
+	if (newQueue != queue) {
+		[queue release];
+		queue = [newQueue retain];
+	}
 	[[self cancelledLock] unlock];
 }
 
