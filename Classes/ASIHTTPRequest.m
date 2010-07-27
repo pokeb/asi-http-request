@@ -513,8 +513,6 @@ static NSOperationQueue *sharedQueue = nil;
 	NSLog(@"Request cancelled: %@",self);
 	#endif
     
-    [self autorelease];
-
 	[[self cancelledLock] lock];
 
 	if ([self isCancelled] || [self complete]) {
@@ -534,11 +532,7 @@ static NSOperationQueue *sharedQueue = nil;
 
 - (void)cancel
 {
-    [self retain];
-    [self performSelector:@selector(cancelOnRequestThread)
-                 onThread:[[self class] threadForRequest:self]
-               withObject:nil
-            waitUntilDone:NO];    
+    [self performSelector:@selector(cancelOnRequestThread) onThread:[[self class] threadForRequest:self] withObject:nil waitUntilDone:NO];    
 }
 
 // Call this method to get the received data as an NSString. Don't use for binary data!
