@@ -14,12 +14,14 @@
 #if TARGET_OS_IPHONE
 	#import <CFNetwork/CFNetwork.h>
 #endif
-#import <zlib.h>
+
 #import <stdio.h>
 #import "ASIHTTPRequestConfig.h"
 #import "ASIHTTPRequestDelegate.h"
 #import "ASIProgressDelegate.h"
 #import "ASICacheDelegate.h"
+
+@class ASIDataDecompressor;
 
 extern NSString *ASIHTTPRequestVersion;
 
@@ -54,7 +56,8 @@ typedef enum _ASINetworkErrorType {
     ASIInternalErrorWhileApplyingCredentialsType  = 7,
 	ASIFileManagementError = 8,
 	ASITooMuchRedirectionErrorType = 9,
-	ASIUnhandledExceptionError = 10
+	ASIUnhandledExceptionError = 10,
+	ASICompressionError = 11
 	
 } ASINetworkErrorType;
 
@@ -149,7 +152,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	// The location that files will be downloaded to. Once a download is complete, files will be decompressed (if necessary) and moved to downloadDestinationPath
 	NSString *temporaryFileDownloadPath;
 	
-	// If 
+	// If the response is gzipped and shouldWaitToInflateCompressedResponses is NO, a file will be created at this path containing the inflated response as it comes in
 	NSString *temporaryUncompressedDataDownloadPath;
 	
 	// Used for writing data to a file when downloadDestinationPath is set
@@ -430,12 +433,24 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	// Set secondsToCache to use a custom time interval for expiring the response when it is stored in a cache
 	NSTimeInterval secondsToCache;
 	
-	z_stream zStream;
-	NSMutableData *uncompressedResponseData;
-	int lastLen;
-
+	// When downloading a gzipped response, the request will use this helper object to inflate the response
+	ASIDataDecompressor *dataDecompressor;
+	
+	// Controls how responses with a gzipped encoding are inflated (decompressed)
+	// When set to YES (This is the default):
+	// * gzipped responses for requests without a downloadDestinationPath will be inflated only when [request responseData] / [request responseString] is called
+	// * gzipped responses for requests with a downloadDestinationPath set will be inflated only when the request completes
+	//
+	// When set to NO
+	// All requests will inflate the response as it comes in
+	// * If the request has no downloadDestinationPath set, the raw (compressed) response is disgarded and rawResponseData will contain the decompressed response
+	// * If the request has a downloadDestinationPath, the raw response will be stored in temporaryFileDownloadPath as normal, the inflated response will be stored in temporaryUncompressedDataDownloadPath
+	//   Once the request completes suceessfully, the contents of temporaryUncompressedDataDownloadPath are moved into downloadDestinationPath
+	//
+	// Setting this to NO may be especially useful for users using ASIHTTPRequest in conjunction with a streaming parser, as it will allow partial gzipped responses to be inflated and passed on to the parser while the request is still running
+	BOOL shouldWaitToInflateCompressedResponses;
+	
 }
-- (NSData *)uncompressBytes:(void *)bytes length:(NSInteger)length error:(NSError **)err;
 
 #pragma mark init / dealloc
 
@@ -664,24 +679,6 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 // Dump all session data (authentication and cookies)
 + (void)clearSession;
 
-#pragma mark gzip decompression
-
-// Uncompress gzipped data with zlib
-+ (NSData *)uncompressZippedData:(NSData*)compressedData error:(NSError **)err;
-
-// Uncompress gzipped data from a file into another file, used when downloading to a file
-+ (BOOL)uncompressZippedDataFromFile:(NSString *)sourcePath toFile:(NSString *)destinationPath error:(NSError **)err;
-+ (int)uncompressZippedDataFromSource:(FILE *)source toDestination:(FILE *)dest;
-
-#pragma mark gzip compression
-
-// Compress data with gzip using zlib
-+ (NSData *)compressData:(NSData*)uncompressedData error:(NSError **)err;
-
-// gzip compress data from a file, saving to another file, used for uploading when shouldCompressRequestBody is true
-+ (BOOL)compressDataFromFile:(NSString *)sourcePath toFile:(NSString *)destinationPath error:(NSError **)err;
-+ (int)compressDataFromSource:(FILE *)source toDestination:(FILE *)dest;
-
 #pragma mark get user agent
 
 // Will be used as a user agent if requests do not specify a custom user agent
@@ -865,4 +862,6 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 @property (assign) ASICacheStoragePolicy cacheStoragePolicy;
 @property (assign, readonly) BOOL didUseCachedResponse;
 @property (assign) NSTimeInterval secondsToCache;
+@property (retain) ASIDataDecompressor *dataDecompressor;
+@property (assign) BOOL shouldWaitToInflateCompressedResponses;
 @end

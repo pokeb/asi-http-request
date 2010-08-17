@@ -636,21 +636,30 @@
 - (void)testCompressedResponseDownloadToFile
 {
 	NSString *path = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:@"testfile"];
-	
+
 	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/first"] autorelease];
 	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setDownloadDestinationPath:path];
 	[request startSynchronous];
-	
+
 	NSString *tempPath = [request temporaryFileDownloadPath];
 	GHAssertNil(tempPath,@"Failed to clean up temporary download file");		
-	
-	//BOOL success = (![[NSFileManager defaultManager] fileExistsAtPath:tempPath]);
-	//GHAssertTrue(success,@"Failed to remove file from temporary location");	
-	
-	BOOL success = [[NSString stringWithContentsOfURL:[NSURL fileURLWithPath:path] encoding:NSUTF8StringEncoding error:NULL] isEqualToString:@"This is the expected content for the first string"];
+
+	BOOL success = [[NSString stringWithContentsOfFile:path encoding:NSUTF8StringEncoding error:NULL] isEqualToString:@"This is the expected content for the first string"];
 	GHAssertTrue(success,@"Failed to download data to a file");
-	
+
+	// Now test with inflating the response on the fly
+	[ASIHTTPRequest removeFileAtPath:path error:NULL];
+	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request setDownloadDestinationPath:path];
+	[request setShouldWaitToInflateCompressedResponses:NO];
+	[request startSynchronous];
+
+	tempPath = [request temporaryFileDownloadPath];
+	GHAssertNil(tempPath,@"Failed to clean up temporary download file");
+
+	success = [[NSString stringWithContentsOfFile:path encoding:NSUTF8StringEncoding error:NULL] isEqualToString:@"This is the expected content for the first string"];
+	GHAssertTrue(success,@"Failed to download data to a file");
 }
 
 
@@ -1171,18 +1180,25 @@
 	NSString *encoding = [[request responseHeaders] objectForKey:@"Content-Encoding"];
 	BOOL success = (!encoding || [encoding rangeOfString:@"gzip"].location != NSNotFound);
 	GHAssertTrue(success,@"Got incorrect request headers from server");
-	
+
 	success = ([request rawResponseData] == [request responseData]);
 	GHAssertTrue(success,@"Attempted to uncompress data that was not compressed");	
-	
+
 	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/first"] autorelease];
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request startSynchronous];
 	success = ([request rawResponseData] != [request responseData]);
 	GHAssertTrue(success,@"Uncompressed data is the same as compressed data");	
-	
+
 	success = [[request responseString] isEqualToString:@"This is the expected content for the first string"];
 	GHAssertTrue(success,@"Failed to decompress data correctly?");
+
+	url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/first"] autorelease];
+	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request setShouldWaitToInflateCompressedResponses:NO];
+	[request startSynchronous];
+	success = ([request rawResponseData] == [request responseData]);
+	GHAssertTrue(success,@"Failed to populate rawResponseData with the inflated data");
 }
 
 
@@ -1284,54 +1300,26 @@
 	GHAssertTrue(success,@"Failed to use GET on new URL");
 }
 
-- (void)testCompression
+- (void)testCompressedBody
 {
+	
 	NSString *content = @"This is the test content. This is the test content. This is the test content. This is the test content.";
 	
 	// Test in memory compression / decompression
 	NSData *data = [content dataUsingEncoding:NSUTF8StringEncoding];
-	NSData *compressedData = [ASIHTTPRequest compressData:data];
-	NSData *uncompressedData = [ASIHTTPRequest uncompressZippedData:compressedData];
-	NSString *newContent = [[[NSString alloc] initWithBytes:[uncompressedData bytes] length:[uncompressedData length] encoding:NSUTF8StringEncoding] autorelease];
+
 	
-	BOOL success = [newContent isEqualToString:content];
-	GHAssertTrue(success,@"Failed compress or decompress the correct data");	
-	
-	// Test file to file compression / decompression
-	
-	NSString *basePath = [self filePathForTemporaryTestFiles];
-	NSString *sourcePath = [basePath stringByAppendingPathComponent:@"text.txt"];
-	NSString *destPath = [basePath stringByAppendingPathComponent:@"text.txt.compressed"];
-	NSString *newPath = [basePath stringByAppendingPathComponent:@"text2.txt"];
-	
-	[content writeToFile:sourcePath atomically:NO encoding:NSUTF8StringEncoding error:NULL];
-	[ASIHTTPRequest compressDataFromFile:sourcePath toFile:destPath];
-	[ASIHTTPRequest uncompressZippedDataFromFile:destPath toFile:newPath];
-	success = [[NSString stringWithContentsOfFile:newPath encoding:NSUTF8StringEncoding error:NULL] isEqualToString:content];
-	GHAssertTrue(success,@"Failed compress or decompress the correct data");
-	
-	// Test compressed body
-	// Body is deflated by ASIHTTPRequest, sent, inflated by the server, printed, deflated by mod_deflate, response is inflated by ASIHTTPRequest
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/compressed_post_body"]];
-	[request setRequestMethod:@"PUT"];
-	[request setShouldCompressRequestBody:YES];
-	[request appendPostData:data];
-	[request startSynchronous];
-	
-	success = [[request responseString] isEqualToString:content];
-	GHAssertTrue(success,@"Failed to compress the body, or server failed to decompress it");	
-	
-	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/compressed_post_body"]];
 	[request setRequestMethod:@"PUT"];
 	[request setShouldCompressRequestBody:YES];
 	[request setShouldStreamPostDataFromDisk:YES];
 	[request setUploadProgressDelegate:self];
-	[request setPostBodyFilePath:sourcePath];
+	[request appendPostData:data];
 	[request startSynchronous];
 
-	success = [[request responseString] isEqualToString:content];
-	GHAssertTrue(success,@"Failed to compress the body, or server failed to decompress it");		
-	
+	BOOL success = ([[request responseString] isEqualToString:content]);
+	GHAssertTrue(success,@"Failed to compress the body, or server failed to decompress it");
+
 }
 
 

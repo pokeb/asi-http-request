@@ -47,7 +47,6 @@
 - (void)testTooMuchRedirection;
 - (void)testRedirectToNewDomain;
 - (void)test303Redirect;
-- (void)testCompression;
 - (void)testSubclass;
 - (void)testTimeOutWithoutDownloadDelegate;
 - (void)testThrottlingDownloadBandwidth;
