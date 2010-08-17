@@ -14,6 +14,7 @@
 #if TARGET_OS_IPHONE
 	#import <CFNetwork/CFNetwork.h>
 #endif
+#import <zlib.h>
 #import <stdio.h>
 #import "ASIHTTPRequestConfig.h"
 #import "ASIHTTPRequestDelegate.h"
@@ -145,11 +146,16 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	// If downloadDestinationPath is not set, download data will be stored in memory
 	NSString *downloadDestinationPath;
 	
-	//The location that files will be downloaded to. Once a download is complete, files will be decompressed (if necessary) and moved to downloadDestinationPath
+	// The location that files will be downloaded to. Once a download is complete, files will be decompressed (if necessary) and moved to downloadDestinationPath
 	NSString *temporaryFileDownloadPath;
+	
+	// If 
+	NSString *temporaryUncompressedDataDownloadPath;
 	
 	// Used for writing data to a file when downloadDestinationPath is set
 	NSOutputStream *fileDownloadOutputStream;
+	
+	NSOutputStream *inflatedFileDownloadOutputStream;
 	
 	// When the request fails or completes successfully, complete will be true
 	BOOL complete;
@@ -423,7 +429,13 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 
 	// Set secondsToCache to use a custom time interval for expiring the response when it is stored in a cache
 	NSTimeInterval secondsToCache;
+	
+	z_stream zStream;
+	NSMutableData *uncompressedResponseData;
+	int lastLen;
+
 }
+- (NSData *)uncompressBytes:(void *)bytes length:(NSInteger)length error:(NSError **)err;
 
 #pragma mark init / dealloc
 
@@ -478,15 +490,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 // Run request in the background
 - (void)startAsynchronous;
 
-#pragma mark request logic
 
-// Call to delete the temporary file used during a file download (if it exists)
-// No need to call this if the request succeeds - it is removed automatically
-- (void)removeTemporaryDownloadFile;
-
-// Call to remove the file used as the request body
-// No need to call this if the request succeeds and you didn't specify postBodyFilePath manually - it is removed automatically
-- (void)removePostDataFile;
 
 #pragma mark HEAD request
 
@@ -587,6 +591,25 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 - (void)handleStreamComplete;
 - (void)handleStreamError;
 
+#pragma mark cleanup
+
+// Cleans up temporary files. There's normally no reason to call these yourself, they are called automatically when a request completes or fails
+
+// Clean up the temporary file used to store the downloaded data when it comes in (if downloadDestinationPath is set)
+- (BOOL)removeTemporaryDownloadFile;
+
+// Clean up the temporary file used to store data that is inflated (decompressed) as it comes in
+- (BOOL)removeTemporaryUncompressedDownloadFile;
+
+// Clean up the temporary file used to store the request body (when shouldStreamPostDataFromDisk is YES)
+- (BOOL)removeTemporaryUploadFile;
+
+// Clean up the temporary file used to store a deflated (compressed) request body when shouldStreamPostDataFromDisk is YES
+- (BOOL)removeTemporaryCompressedUploadFile;
+
+// Remove a file on disk, returning NO and populating the passed error pointer if it fails
++ (BOOL)removeFileAtPath:(NSString *)path error:(NSError **)err;
+
 #pragma mark persistent connections
 
 // Get the ID of the connection this request used (only really useful in tests and debugging)
@@ -644,19 +667,19 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 #pragma mark gzip decompression
 
 // Uncompress gzipped data with zlib
-+ (NSData *)uncompressZippedData:(NSData*)compressedData;
++ (NSData *)uncompressZippedData:(NSData*)compressedData error:(NSError **)err;
 
 // Uncompress gzipped data from a file into another file, used when downloading to a file
-+ (int)uncompressZippedDataFromFile:(NSString *)sourcePath toFile:(NSString *)destinationPath;
++ (BOOL)uncompressZippedDataFromFile:(NSString *)sourcePath toFile:(NSString *)destinationPath error:(NSError **)err;
 + (int)uncompressZippedDataFromSource:(FILE *)source toDestination:(FILE *)dest;
 
 #pragma mark gzip compression
 
 // Compress data with gzip using zlib
-+ (NSData *)compressData:(NSData*)uncompressedData;
++ (NSData *)compressData:(NSData*)uncompressedData error:(NSError **)err;
 
 // gzip compress data from a file, saving to another file, used for uploading when shouldCompressRequestBody is true
-+ (int)compressDataFromFile:(NSString *)sourcePath toFile:(NSString *)destinationPath;
++ (BOOL)compressDataFromFile:(NSString *)sourcePath toFile:(NSString *)destinationPath error:(NSError **)err;
 + (int)compressDataFromSource:(FILE *)source toDestination:(FILE *)dest;
 
 #pragma mark get user agent
@@ -774,6 +797,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 @property (assign) BOOL useSessionPersistence;
 @property (retain) NSString *downloadDestinationPath;
 @property (retain) NSString *temporaryFileDownloadPath;
+@property (retain) NSString *temporaryUncompressedDataDownloadPath;
 @property (assign) SEL didStartSelector;
 @property (assign) SEL didReceiveResponseHeadersSelector;
 @property (assign) SEL didFinishSelector;
