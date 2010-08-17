@@ -24,7 +24,7 @@
 #import "ASIDataCompressor.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.7-42 2010-08-17";
+NSString *ASIHTTPRequestVersion = @"v1.7-43 2010-08-17";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -2786,6 +2786,8 @@ static NSOperationQueue *sharedQueue = nil;
 	[[self postBodyReadStream] close];
 	[self setPostBodyReadStream:nil];
 	
+	[self setDataDecompressor:nil];
+
 	NSError *fileError = nil;
 	
 	// Delete up the request body temporary file, if it exists
@@ -2802,7 +2804,7 @@ static NSOperationQueue *sharedQueue = nil;
 
 		[[self inflatedFileDownloadOutputStream] close];
 		[self setInflatedFileDownloadOutputStream:nil];
-		
+
 		// If we are going to redirect and we are resuming, let's ignore this download
 		if ([self shouldRedirect] && [self needsRedirect] && [self allowResumeForFileDownloads]) {
 		

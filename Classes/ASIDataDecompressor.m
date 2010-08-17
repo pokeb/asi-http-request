@@ -76,6 +76,7 @@
 	
 	zStream.next_in = bytes;
 	zStream.avail_in = length;
+	zStream.avail_out = 0;
 	NSError *theError = nil;
 	
 	NSInteger bytesProcessedAlready = zStream.total_out;
