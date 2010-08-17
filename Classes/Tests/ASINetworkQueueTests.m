@@ -686,14 +686,15 @@ IMPORTANT
 	[networkQueue addOperation:request];
 	[networkQueue go];
 	 
-	// Let the download run for a second, which hopefully won't be enough time to grab this file. If you have a super fast connection, this test may fail, serves you right for being so smug. :)
-	NSTimer *timeoutTimer = [NSTimer scheduledTimerWithTimeInterval:1 target:self selector:@selector(stopQueue:) userInfo:nil repeats:NO];
-	
-	while (!complete) {
-		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
+	// Run until we have received a bit of data
+	while (1) {
+		usleep(250000);
+		if ([request error] || [request contentLength]) {
+			break;
+		}
 	}
 	
-	// 1 second has passed, let's tell the queue to stop
+	// Ok, let's tell the queue to stop
 	[networkQueue reset];
 	[networkQueue setDownloadProgressDelegate:self];
 	[networkQueue setShowAccurateProgress:YES];
@@ -719,9 +720,7 @@ IMPORTANT
 
 	[networkQueue go];
 
-	while (!complete) {
-		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
-	}
+	[networkQueue waitUntilAllOperationsAreFinished];
 	
 	unsigned long long amountDownloaded = [[[NSFileManager defaultManager] attributesOfItemAtPath:downloadPath error:&err] fileSize];
 	GHAssertNil(err,@"Got an error obtaining attributes on the file, this shouldn't happen");
@@ -750,10 +749,12 @@ IMPORTANT
 	[networkQueue addOperation:request];
 	[networkQueue go];
 	
-	// Let the download run for 3 seconds
-	timeoutTimer = [NSTimer scheduledTimerWithTimeInterval:3 target:self selector:@selector(stopQueue:) userInfo:nil repeats:NO];
-	while (!complete) {
-		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
+	// Run until we have received a bit of data
+	while (1) {
+		usleep(1000000);
+		if ([request error] || [request contentLength]) {
+			break;
+		}
 	}
 	[networkQueue cancelAllOperations];
 	
@@ -765,7 +766,6 @@ IMPORTANT
 	success = (![[NSFileManager defaultManager] fileExistsAtPath:temporaryPath]);
 	GHAssertTrue(success,@"Temporary download file should have been deleted");		
 	
-	timeoutTimer = nil;
 	
 }
 

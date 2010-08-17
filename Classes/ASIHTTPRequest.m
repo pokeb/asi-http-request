@@ -24,7 +24,7 @@
 #import "ASIDataCompressor.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.7-41 2010-08-17";
+NSString *ASIHTTPRequestVersion = @"v1.7-42 2010-08-17";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -875,7 +875,7 @@ static NSOperationQueue *sharedQueue = nil;
 	// Should this request resume an existing download?
 	[self updatePartialDownloadSize];
 	if ([self partialDownloadSize]) {
-		//[self addRequestHeader:@"Range" value:[NSString stringWithFormat:@"bytes=%llu-",[self partialDownloadSize]]];
+		[self addRequestHeader:@"Range" value:[NSString stringWithFormat:@"bytes=%llu-",[self partialDownloadSize]]];
 	}
 }
 
@@ -2615,7 +2615,6 @@ static NSOperationQueue *sharedQueue = nil;
 
 - (void)handleBytesAvailable
 {
-
 	if (![self responseHeaders]) {
 		[self readResponseHeaders];
 	}
@@ -2745,10 +2744,10 @@ static NSOperationQueue *sharedQueue = nil;
 					}
 					
 					[self setInflatedFileDownloadOutputStream:[[[NSOutputStream alloc] initToFileAtPath:[self temporaryUncompressedDataDownloadPath] append:append] autorelease]];
-					[[self fileDownloadOutputStream] open];
+					[[self inflatedFileDownloadOutputStream] open];
 				}
 
-				[[self fileDownloadOutputStream] write:[inflatedData bytes] maxLength:[inflatedData length]];
+				[[self inflatedFileDownloadOutputStream] write:[inflatedData bytes] maxLength:[inflatedData length]];
 			}
 
 			
@@ -2807,16 +2806,25 @@ static NSOperationQueue *sharedQueue = nil;
 		// If we are going to redirect and we are resuming, let's ignore this download
 		if ([self shouldRedirect] && [self needsRedirect] && [self allowResumeForFileDownloads]) {
 		
-		// Decompress the file (if necessary) directly to the destination path
 		} else if ([self isResponseCompressed]) {
 			
+			// Decompress the file directly to the destination path
 			if ([self shouldWaitToInflateCompressedResponses]) {
 				[ASIDataDecompressor uncompressDataFromFile:[self temporaryFileDownloadPath] toFile:[self downloadDestinationPath] error:&fileError];
+
+			// Response should already have been inflated, move the temporary file to the destination path
+			} else {
+				NSError *moveError = nil;
+				[[NSFileManager defaultManager] moveItemAtPath:[self temporaryUncompressedDataDownloadPath] toPath:[self downloadDestinationPath] error:&moveError];
+				if (moveError) {
+					fileError = [NSError errorWithDomain:NetworkRequestErrorDomain code:ASIFileManagementError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Failed to move file from '%@' to '%@'",[self temporaryFileDownloadPath],[self downloadDestinationPath]],NSLocalizedDescriptionKey,moveError,NSUnderlyingErrorKey,nil]];
+				}
+				[self setTemporaryUncompressedDataDownloadPath:nil];
+
 			}
 			[self removeTemporaryDownloadFile];
-			[self removeTemporaryUncompressedDownloadFile];
+
 		} else {
-			
 	
 			//Remove any file at the destination path
 			NSError *moveError = nil;

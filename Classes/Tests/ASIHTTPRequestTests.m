@@ -649,7 +649,12 @@
 	GHAssertTrue(success,@"Failed to download data to a file");
 
 	// Now test with inflating the response on the fly
-	[ASIHTTPRequest removeFileAtPath:path error:NULL];
+	NSError *error = nil;
+	[ASIHTTPRequest removeFileAtPath:path error:&error];
+	if (error) {
+		GHFail(@"Failed to remove file, cannot proceed with test");
+	}
+
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setDownloadDestinationPath:path];
 	[request setShouldWaitToInflateCompressedResponses:NO];
@@ -1225,7 +1230,7 @@
 	[request setDownloadProgressDelegate:self];
 	[request startSynchronous];
 	
-	BOOL success = ([request contentLength] == 68);
+	BOOL success = ([request contentLength] == 163);
 	GHAssertTrue(success,@"Failed to download a segment of the data");
 	
 	NSString *content = [NSString stringWithContentsOfFile:downloadPath encoding:NSUTF8StringEncoding error:NULL];

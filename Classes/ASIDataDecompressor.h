@@ -8,7 +8,7 @@
 
 // This is a helper class used by ASIHTTPRequest to handle inflating (decompressing) data in memory and on disk
 // You may also find it helpful if you need to inflate data and files yourself - see the class methods below
-
+// Most of the zlib stuff is based on the sample code by Mark Adler available at http://zlib.net
 
 #import <Foundation/Foundation.h>
 #import <zlib.h>
