@@ -7,6 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B50C16CF121BF0720055FCAB /* ASIDataDecompressor.m in Sources */ = {isa = PBXBuildFile; fileRef = B50C16CB121BF0720055FCAB /* ASIDataDecompressor.m */; };
+		B50C16D0121BF0720055FCAB /* ASIDataCompressor.m in Sources */ = {isa = PBXBuildFile; fileRef = B50C16CD121BF0720055FCAB /* ASIDataCompressor.m */; };
+		B50C16D1121BF0720055FCAB /* ASIDataDecompressor.m in Sources */ = {isa = PBXBuildFile; fileRef = B50C16CB121BF0720055FCAB /* ASIDataDecompressor.m */; };
+		B50C16D2121BF0720055FCAB /* ASIDataCompressor.m in Sources */ = {isa = PBXBuildFile; fileRef = B50C16CD121BF0720055FCAB /* ASIDataCompressor.m */; };
+		B50C16D3121BF0720055FCAB /* ASIDataDecompressor.m in Sources */ = {isa = PBXBuildFile; fileRef = B50C16CB121BF0720055FCAB /* ASIDataDecompressor.m */; };
+		B50C16D4121BF0720055FCAB /* ASIDataCompressor.m in Sources */ = {isa = PBXBuildFile; fileRef = B50C16CD121BF0720055FCAB /* ASIDataCompressor.m */; };
 		B51791A31024C3E800583567 /* AuthenticationViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B51791A21024C3E800583567 /* AuthenticationViewController.m */; };
 		B51A1A9B11DDF85100ED75CF /* ASIDownloadCacheTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B51A1A7A11DDF7BF00ED75CF /* ASIDownloadCacheTests.m */; };
 		B522DACE1030B2AB009A2D22 /* ASIInputStream.m in Sources */ = {isa = PBXBuildFile; fileRef = B522DACD1030B2AB009A2D22 /* ASIInputStream.m */; };
@@ -122,6 +128,10 @@
 
 /* Begin PBXFileReference section */
 		1D6058910D05DD3D006BFB54 /* ASIHTTPRequest iPhone.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "ASIHTTPRequest iPhone.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		B50C16CB121BF0720055FCAB /* ASIDataDecompressor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIDataDecompressor.m; sourceTree = "<group>"; };
+		B50C16CC121BF0720055FCAB /* ASIDataDecompressor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIDataDecompressor.h; sourceTree = "<group>"; };
+		B50C16CD121BF0720055FCAB /* ASIDataCompressor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIDataCompressor.m; sourceTree = "<group>"; };
+		B50C16CE121BF0720055FCAB /* ASIDataCompressor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIDataCompressor.h; sourceTree = "<group>"; };
 		B51791A11024C3E800583567 /* AuthenticationViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AuthenticationViewController.h; path = "iPhone Sample/AuthenticationViewController.h"; sourceTree = "<group>"; };
 		B51791A21024C3E800583567 /* AuthenticationViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AuthenticationViewController.m; path = "iPhone Sample/AuthenticationViewController.m"; sourceTree = "<group>"; };
 		B51A1A7911DDF7BF00ED75CF /* ASIDownloadCacheTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIDownloadCacheTests.h; sourceTree = "<group>"; };
@@ -319,6 +329,10 @@
 				B55B604A0F765A320064029C /* ASINetworkQueue.m */,
 				B5FE752611DBBA6400F898C8 /* ASIDownloadCache.h */,
 				B5FE752511DBBA6400F898C8 /* ASIDownloadCache.m */,
+				B50C16CC121BF0720055FCAB /* ASIDataDecompressor.h */,
+				B50C16CB121BF0720055FCAB /* ASIDataDecompressor.m */,
+				B50C16CE121BF0720055FCAB /* ASIDataCompressor.h */,
+				B50C16CD121BF0720055FCAB /* ASIDataCompressor.m */,
 				B5873FC010FF28CA001E145F /* S3 */,
 				B5873FC710FF28CA001E145F /* CloudFiles */,
 				B55B60510F765A3C0064029C /* Tests */,
@@ -706,6 +720,8 @@
 				B5BD2B0E11CA542700D7C426 /* SampleViewController.m in Sources */,
 				B55252B511D22E2200F9B170 /* Reachability.m in Sources */,
 				B5FE752811DBBA6400F898C8 /* ASIDownloadCache.m in Sources */,
+				B50C16D1121BF0720055FCAB /* ASIDataDecompressor.m in Sources */,
+				B50C16D2121BF0720055FCAB /* ASIDataCompressor.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -744,6 +760,8 @@
 				B55252B411D22E2200F9B170 /* Reachability.m in Sources */,
 				B5FE752711DBBA6400F898C8 /* ASIDownloadCache.m in Sources */,
 				B51A1A9B11DDF85100ED75CF /* ASIDownloadCacheTests.m in Sources */,
+				B50C16CF121BF0720055FCAB /* ASIDataDecompressor.m in Sources */,
+				B50C16D0121BF0720055FCAB /* ASIDataCompressor.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -770,6 +788,8 @@
 				B5BD2B0C11CA542700D7C426 /* SampleViewController.m in Sources */,
 				B55252B611D22E2200F9B170 /* Reachability.m in Sources */,
 				B5FE752911DBBA6400F898C8 /* ASIDownloadCache.m in Sources */,
+				B50C16D3121BF0720055FCAB /* ASIDataDecompressor.m in Sources */,
+				B50C16D4121BF0720055FCAB /* ASIDataCompressor.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
