@@ -23,7 +23,7 @@
 
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.7-42 2010-08-18";
+NSString *ASIHTTPRequestVersion = @"v1.7-53 2010-08-18";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -130,10 +130,12 @@ static id <ASICacheDelegate> defaultCache = nil;
 // Used for tracking when requests are using the network
 static unsigned int runningRequestCount = 0;
 
-#if TARGET_OS_IPHONE
-// Use [ASIHTTPRequest setShouldUpdateNetworkActivityIndicator:NO] if you want to manage it yourself
+
+// You can use [ASIHTTPRequest setShouldUpdateNetworkActivityIndicator:NO] if you want to manage it yourself
+// Alternatively, override showNetworkActivityIndicator / hideNetworkActivityIndicator
+// By default this does nothing on Mac OS X, but again override the above methods for a different behaviour
 static BOOL shouldUpdateNetworkActivityIndicator = YES;
-#endif
+
 
 //**Queue stuff**/
 
@@ -2990,11 +2992,12 @@ static NSOperationQueue *sharedQueue = nil;
 
 		if ([self readStreamIsScheduled]) {
 			runningRequestCount--;
-			#if TARGET_OS_IPHONE
 			if (shouldUpdateNetworkActivityIndicator && runningRequestCount == 0) {
-				[[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
+				// Wait half a second before turning off the indicator
+				// This can prevent flicker when you have a single request finish and then immediately start another request
+				// We will cancel hiding the activity indicator if we start again
+				[[self class] performSelector:@selector(hideNetworkActivityIndicator) withObject:nil afterDelay:0.5];
 			}
-			#endif
 		}
 
 		[self setReadStreamIsScheduled:NO];
@@ -3014,11 +3017,10 @@ static NSOperationQueue *sharedQueue = nil;
 
 		[connectionsLock lock];
 		runningRequestCount++;
-		#if TARGET_OS_IPHONE
 		if (shouldUpdateNetworkActivityIndicator) {
-			[[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:YES];
+			[NSObject cancelPreviousPerformRequestsWithTarget:[self class] selector:@selector(hideNetworkActivityIndicator) object:nil];
+			[[self class] showNetworkActivityIndicator];
 		}
-		#endif
 		[connectionsLock unlock];
 
 		// Reset the timeout
@@ -3028,17 +3030,19 @@ static NSOperationQueue *sharedQueue = nil;
 	}
 }
 
+
 - (void)unscheduleReadStream
 {
 	if ([self readStream] && [self readStreamIsScheduled]) {
 
 		[connectionsLock lock];
 		runningRequestCount--;
-		#if TARGET_OS_IPHONE
 		if (shouldUpdateNetworkActivityIndicator && runningRequestCount == 0) {
-			[[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
+			// Wait half a second before turning off the indicator
+			// This can prevent flicker when you have a single request finish and then immediately start another request
+			// We will cancel hiding the activity indicator if we start again
+			[[self class] performSelector:@selector(hideNetworkActivityIndicator) withObject:nil afterDelay:0.5];
 		}
-		#endif
 		[connectionsLock unlock];
 
 		[[self readStream] removeFromRunLoop:[NSRunLoop currentRunLoop] forMode:[self runLoopMode]];
@@ -3976,14 +3980,27 @@ static NSOperationQueue *sharedQueue = nil;
 	[connectionsLock unlock];
 	return inUse;
 }
-#if TARGET_OS_IPHONE
+
 + (void)setShouldUpdateNetworkActivityIndicator:(BOOL)shouldUpdate
 {
 	[connectionsLock lock];
 	shouldUpdateNetworkActivityIndicator = shouldUpdate;
 	[connectionsLock unlock];
 }
+
++ (void)showNetworkActivityIndicator
+{
+#if TARGET_OS_IPHONE
+	[[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:YES];
 #endif
+}
+
++ (void)hideNetworkActivityIndicator
+{
+#if TARGET_OS_IPHONE
+	[[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];	
+#endif
+}
 
 
 #pragma mark threading behaviour

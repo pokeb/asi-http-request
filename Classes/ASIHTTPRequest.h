@@ -725,9 +725,15 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 #pragma mark network activity
 
 + (BOOL)isNetworkInUse;
-#if TARGET_OS_IPHONE
+
 + (void)setShouldUpdateNetworkActivityIndicator:(BOOL)shouldUpdate;
-#endif
+
+// Shows the network activity spinner thing on iOS. You may wish to override this to do something else in Mac projects
++ (void)showNetworkActivityIndicator;
+
+// Hides the network activity spinner thing on iOS
++ (void)hideNetworkActivityIndicator;
+
 
 #pragma mark miscellany
 
