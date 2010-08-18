@@ -3626,8 +3626,8 @@ static NSOperationQueue *sharedQueue = nil;
 
 + (NSString *)defaultUserAgentString
 {
-	NSBundle *bundle = [NSBundle mainBundle];
-	
+	NSBundle *bundle = [NSBundle bundleForClass:[self class]];
+
 	// Attempt to find a name for this application
 	NSString *appName = [bundle objectForInfoDictionaryKey:@"CFBundleDisplayName"];
 	if (!appName) {
