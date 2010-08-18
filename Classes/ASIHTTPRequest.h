@@ -427,6 +427,11 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 
 	// Set secondsToCache to use a custom time interval for expiring the response when it is stored in a cache
 	NSTimeInterval secondsToCache;
+
+	#if TARGET_OS_IPHONE && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_4_0
+	BOOL shouldContinueWhenAppEntersBackground;
+	UIBackgroundTaskIdentifier backgroundTask;
+	#endif
 }
 
 #pragma mark init / dealloc
@@ -855,4 +860,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 @property (assign, readonly) BOOL didUseCachedResponse;
 @property (assign) NSTimeInterval secondsToCache;
 @property (retain) NSArray *clientCertificates;
+#if TARGET_OS_IPHONE && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_4_0
+@property (assign) BOOL shouldContinueWhenAppEntersBackground;
+#endif
 @end

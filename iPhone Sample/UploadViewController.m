@@ -20,6 +20,9 @@
 	[request setPostValue:@"test" forKey:@"value2"];
 	[request setPostValue:@"test" forKey:@"value3"];
 	[request setTimeOutSeconds:20];
+	#if __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_4_0
+	[request setShouldContinueWhenAppEntersBackground:YES];
+	#endif
 	[request setUploadProgressDelegate:progressIndicator];
 	[request setDelegate:self];
 	[request setDidFailSelector:@selector(uploadFailed:)];
@@ -53,6 +56,23 @@
 - (void)uploadFinished:(ASIHTTPRequest *)theRequest
 {
 	[resultView setText:[NSString stringWithFormat:@"Finished uploading %llu bytes of data",[theRequest postLength]]];
+
+	#if __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_4_0
+    // Clear out the old notification before scheduling a new one.
+    if ([[[UIApplication sharedApplication] scheduledLocalNotifications] count] > 0)
+        [[UIApplication sharedApplication] cancelAllLocalNotifications];
+
+    // Create a new notification
+    UILocalNotification* alarm = [[[UILocalNotification alloc] init] autorelease];
+    if (alarm) {
+		[alarm setFireDate:[NSDate date]];
+		[alarm setTimeZone:[NSTimeZone defaultTimeZone]];
+		[alarm setRepeatInterval:0];
+		[alarm setSoundName:@"alarmsound.caf"];
+		[alarm setAlertBody:@"Boom!\r\n\r\nUpload is finished!"];
+        [[UIApplication sharedApplication] scheduleLocalNotification:alarm];
+    }
+	#endif
 }
 
 - (void)dealloc
@@ -78,7 +98,7 @@
 
 }
 
-static NSString *intro = @"Demonstrates POSTing content to a URL, showing upload progress.\nYou'll only see accurate progress for uploads when the request body is larger than 128KB (in 2.2.1 SDK), or when the request body is larger than 32KB (in 3.0 SDK)";
+static NSString *intro = @"Demonstrates POSTing content to a URL, showing upload progress.\nYou'll only see accurate progress for uploads when the request body is larger than 128KB (in 2.2.1 SDK), or when the request body is larger than 32KB (in 3.0 SDK)\n\nThis request is also setup to run when the app enters the background on devices running on iOS4. In the delegate method that is called when the request finishes, we show a local notification to let the user know the upload is finished.";
 
 - (UIView *)tableView:(UITableView *)theTableView viewForHeaderInSection:(NSInteger)section
 {
