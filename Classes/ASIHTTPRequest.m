@@ -23,7 +23,7 @@
 
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.7-25 2010-07-22";
+NSString *ASIHTTPRequestVersion = @"v1.7-53 2010-08-18";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -130,10 +130,12 @@ static id <ASICacheDelegate> defaultCache = nil;
 // Used for tracking when requests are using the network
 static unsigned int runningRequestCount = 0;
 
-#if TARGET_OS_IPHONE
-// Use [ASIHTTPRequest setShouldUpdateNetworkActivityIndicator:NO] if you want to manage it yourself
+
+// You can use [ASIHTTPRequest setShouldUpdateNetworkActivityIndicator:NO] if you want to manage it yourself
+// Alternatively, override showNetworkActivityIndicator / hideNetworkActivityIndicator
+// By default this does nothing on Mac OS X, but again override the above methods for a different behaviour
 static BOOL shouldUpdateNetworkActivityIndicator = YES;
-#endif
+
 
 //**Queue stuff**/
 
@@ -175,6 +177,8 @@ static NSOperationQueue *sharedQueue = nil;
 + (void)unsubscribeFromNetworkReachabilityNotifications;
 // Called when the status of the network changes
 + (void)reachabilityChanged:(NSNotification *)note;
+
+- (void)failAuthentication;
 
 #endif
 
@@ -315,6 +319,7 @@ static NSOperationQueue *sharedQueue = nil;
 		CFRelease(request);
 	}
 	[self cancelLoad];
+	[queue release];
 	[userInfo release];
 	[postBody release];
 	[compressedPostBody release];
@@ -361,7 +366,6 @@ static NSOperationQueue *sharedQueue = nil;
     
 	[super dealloc];
 }
-
 
 #pragma mark setup request
 
@@ -505,35 +509,56 @@ static NSOperationQueue *sharedQueue = nil;
 - (void)setQueue:(id)newQueue
 {
 	[[self cancelledLock] lock];
-	queue = newQueue;
+	if (newQueue != queue) {
+		[queue release];
+		queue = [newQueue retain];
+	}
 	[[self cancelledLock] unlock];
 }
 
 #pragma mark get information about this request
 
-- (void)cancel
+// cancel the request - this must be run on the same thread as the request is running on
+- (void)cancelOnRequestThread
 {
 	#if DEBUG_REQUEST_STATUS
 	NSLog(@"Request cancelled: %@",self);
 	#endif
-
+    
 	[[self cancelledLock] lock];
 
-	if ([self isCancelled] || [self complete]) {
+    if ([self isCancelled] || [self complete]) {
 		[[self cancelledLock] unlock];
 		return;
 	}
-
 	[self failWithError:ASIRequestCancelledError];
 	[self setComplete:YES];
 	[self cancelLoad];
 	
 	[[self retain] autorelease];
-	[super cancel];
-
+    [self willChangeValueForKey:@"isCancelled"];
+    cancelled = YES;
+    [self didChangeValueForKey:@"isCancelled"];
+    
 	[[self cancelledLock] unlock];
 }
 
+- (void)cancel
+{
+    [self performSelector:@selector(cancelOnRequestThread) onThread:[[self class] threadForRequest:self] withObject:nil waitUntilDone:NO];    
+}
+
+
+- (BOOL)isCancelled
+{
+    BOOL result;
+    
+	[[self cancelledLock] lock];
+    result = cancelled;
+    [[self cancelledLock] unlock];
+    
+    return result;
+}
 
 // Call this method to get the received data as an NSString. Don't use for binary data!
 - (NSString *)responseString
@@ -604,7 +629,7 @@ static NSOperationQueue *sharedQueue = nil;
 
 - (BOOL)isFinished 
 {
-	return [self complete];
+	return finished;
 }
 
 - (BOOL)isExecuting {
@@ -1052,7 +1077,7 @@ static NSOperationQueue *sharedQueue = nil;
 			// Check if we should have expired this connection
 			} else if ([[[self connectionInfo] objectForKey:@"expires"] timeIntervalSinceNow] < 0) {
 				#if DEBUG_PERSISTENT_CONNECTIONS
-				NSLog(@"Not re-using connection #%hi because it has expired",[[[self connectionInfo] objectForKey:@"id"] intValue]);
+				NSLog(@"Not re-using connection #%i because it has expired",[[[self connectionInfo] objectForKey:@"id"] intValue]);
 				#endif
 				[persistentConnectionsPool removeObject:[self connectionInfo]];
 				[self setConnectionInfo:nil];
@@ -1097,7 +1122,7 @@ static NSOperationQueue *sharedQueue = nil;
 		CFReadStreamSetProperty((CFReadStreamRef)[self readStream],  kCFStreamPropertyHTTPAttemptPersistentConnection, kCFBooleanTrue);
 		
 		#if DEBUG_PERSISTENT_CONNECTIONS
-		NSLog(@"Request #%@ will use connection #%hi",[self requestID],[[[self connectionInfo] objectForKey:@"id"] intValue]);
+		NSLog(@"Request #%@ will use connection #%i",[self requestID],[[[self connectionInfo] objectForKey:@"id"] intValue]);
 		#endif
 		
 		
@@ -1720,7 +1745,7 @@ static NSOperationQueue *sharedQueue = nil;
 		[[self connectionInfo] setObject:[NSDate dateWithTimeIntervalSinceNow:[self persistentConnectionTimeoutSeconds]] forKey:@"expires"];
 	}
 	
-	if ([self isCancelled] || [self error]) {
+    if ([self isCancelled] || [self error]) {
 		return;
 	}
 	
@@ -1743,6 +1768,12 @@ static NSOperationQueue *sharedQueue = nil;
 
     [failedRequest reportFailure];
 	
+    if (!inProgress)
+    {
+        // if we're not in progress, we can't notify the queue we've finished (doing so can cause a crash later on)
+        // "markAsFinished" will be at the start of main() when we are started
+        return;
+    }
 	// markAsFinished may well cause this object to be dealloced
 	[self retain];
 	[self markAsFinished];
@@ -1873,7 +1904,7 @@ static NSOperationQueue *sharedQueue = nil;
 			[self setRequestCookies:[NSMutableArray array]];
 			
 			#if DEBUG_REQUEST_STATUS
-				NSLog(@"Request will redirect (code: %hi): %@",[self responseStatusCode],self);
+				NSLog(@"Request will redirect (code: %i): %@",[self responseStatusCode],self);
 			#endif
 			
 		}
@@ -2172,11 +2203,16 @@ static NSOperationQueue *sharedQueue = nil;
 // Called by delegate or authentication dialog to resume loading once authentication info has been populated
 - (void)retryUsingSuppliedCredentials
 {
-	[self attemptToApplyCredentialsAndResume];
+	[self performSelector:@selector(attemptToApplyCredentialsAndResume) onThread:[[self class] threadForRequest:self] withObject:nil waitUntilDone:NO];
 }
 
 // Called by delegate or authentication dialog to cancel authentication
 - (void)cancelAuthentication
+{
+	[self performSelector:@selector(failAuthentication) onThread:[[self class] threadForRequest:self] withObject:nil waitUntilDone:NO];
+}
+
+- (void)failAuthentication
 {
 	[self failWithError:ASIAuthenticationError];
 }
@@ -2722,7 +2758,7 @@ static NSOperationQueue *sharedQueue = nil;
 - (void)handleStreamComplete
 {	
 #if DEBUG_REQUEST_STATUS
-	NSLog(@"Request %@ finished downloading data",self);
+	NSLog(@"Request %@ finished downloading data (%qu bytes)",self, [self totalBytesRead]);
 #endif
 	
 	[self setDownloadComplete:YES];
@@ -2843,13 +2879,22 @@ static NSOperationQueue *sharedQueue = nil;
 		CFMakeCollectable(proxyAuthentication);
 	}
 
-	[self willChangeValueForKey:@"isFinished"];
-	[self willChangeValueForKey:@"isExecuting"];
+    BOOL wasInProgress = inProgress;
+    BOOL wasFinished = finished;
+
+    if (!wasFinished)
+        [self willChangeValueForKey:@"isFinished"];
+    if (wasInProgress)
+        [self willChangeValueForKey:@"isExecuting"];
+
 	[self setInProgress:NO];
 	[self setStatusTimer:nil];
+    finished = YES;
 
-	[self didChangeValueForKey:@"isExecuting"];
-	[self didChangeValueForKey:@"isFinished"];
+    if (wasInProgress)
+        [self didChangeValueForKey:@"isExecuting"];
+    if (!wasFinished)
+        [self didChangeValueForKey:@"isFinished"];
 
 	CFRunLoopStop(CFRunLoopGetCurrent());
 
@@ -2979,11 +3024,12 @@ static NSOperationQueue *sharedQueue = nil;
 
 		if ([self readStreamIsScheduled]) {
 			runningRequestCount--;
-			#if TARGET_OS_IPHONE
 			if (shouldUpdateNetworkActivityIndicator && runningRequestCount == 0) {
-				[[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
+				// Wait half a second before turning off the indicator
+				// This can prevent flicker when you have a single request finish and then immediately start another request
+				// We will cancel hiding the activity indicator if we start again
+				[[self class] performSelector:@selector(hideNetworkActivityIndicator) withObject:nil afterDelay:0.5];
 			}
-			#endif
 		}
 
 		[self setReadStreamIsScheduled:NO];
@@ -3003,11 +3049,10 @@ static NSOperationQueue *sharedQueue = nil;
 
 		[connectionsLock lock];
 		runningRequestCount++;
-		#if TARGET_OS_IPHONE
 		if (shouldUpdateNetworkActivityIndicator) {
-			[[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:YES];
+			[NSObject cancelPreviousPerformRequestsWithTarget:[self class] selector:@selector(hideNetworkActivityIndicator) object:nil];
+			[[self class] showNetworkActivityIndicator];
 		}
-		#endif
 		[connectionsLock unlock];
 
 		// Reset the timeout
@@ -3017,17 +3062,19 @@ static NSOperationQueue *sharedQueue = nil;
 	}
 }
 
+
 - (void)unscheduleReadStream
 {
 	if ([self readStream] && [self readStreamIsScheduled]) {
 
 		[connectionsLock lock];
 		runningRequestCount--;
-		#if TARGET_OS_IPHONE
 		if (shouldUpdateNetworkActivityIndicator && runningRequestCount == 0) {
-			[[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
+			// Wait half a second before turning off the indicator
+			// This can prevent flicker when you have a single request finish and then immediately start another request
+			// We will cancel hiding the activity indicator if we start again
+			[[self class] performSelector:@selector(hideNetworkActivityIndicator) withObject:nil afterDelay:0.5];
 		}
-		#endif
 		[connectionsLock unlock];
 
 		[[self readStream] removeFromRunLoop:[NSRunLoop currentRunLoop] forMode:[self runLoopMode]];
@@ -3050,7 +3097,7 @@ static NSOperationQueue *sharedQueue = nil;
 		NSDictionary *existingConnection = [persistentConnectionsPool objectAtIndex:i];
 		if (![existingConnection objectForKey:@"request"] && [[existingConnection objectForKey:@"expires"] timeIntervalSinceNow] <= 0) {
 #if DEBUG_PERSISTENT_CONNECTIONS
-			NSLog(@"Closing connection #%hi because it has expired",[[existingConnection objectForKey:@"id"] intValue]);
+			NSLog(@"Closing connection #%i because it has expired",[[existingConnection objectForKey:@"id"] intValue]);
 #endif
 			NSInputStream *stream = [existingConnection objectForKey:@"stream"];
 			if (stream) {
@@ -3630,8 +3677,8 @@ static NSOperationQueue *sharedQueue = nil;
 
 + (NSString *)defaultUserAgentString
 {
-	NSBundle *bundle = [NSBundle mainBundle];
-	
+	NSBundle *bundle = [NSBundle bundleForClass:[self class]];
+
 	// Attempt to find a name for this application
 	NSString *appName = [bundle objectForInfoDictionaryKey:@"CFBundleDisplayName"];
 	if (!appName) {
@@ -3949,6 +3996,14 @@ static NSOperationQueue *sharedQueue = nil;
 }
 #endif
 
+#pragma mark queue
+
+// Returns the shared queue
++ (NSOperationQueue *)sharedQueue
+{
+    return [[sharedQueue retain] autorelease];
+}
+
 #pragma mark cache
 
 + (void)setDefaultCache:(id <ASICacheDelegate>)cache
@@ -3972,14 +4027,27 @@ static NSOperationQueue *sharedQueue = nil;
 	[connectionsLock unlock];
 	return inUse;
 }
-#if TARGET_OS_IPHONE
+
 + (void)setShouldUpdateNetworkActivityIndicator:(BOOL)shouldUpdate
 {
 	[connectionsLock lock];
 	shouldUpdateNetworkActivityIndicator = shouldUpdate;
 	[connectionsLock unlock];
 }
+
++ (void)showNetworkActivityIndicator
+{
+#if TARGET_OS_IPHONE
+	[[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:YES];
 #endif
+}
+
++ (void)hideNetworkActivityIndicator
+{
+#if TARGET_OS_IPHONE
+	[[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];	
+#endif
+}
 
 
 #pragma mark threading behaviour

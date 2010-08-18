@@ -78,6 +78,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	
 	// Another delegate that is also notified of request status changes and progress updates
 	// Generally, you won't use this directly, but ASINetworkQueue sets itself as the queue so it can proxy updates to its own delegates
+	// NOTE: WILL BE RETAINED BY THE REQUEST
 	id <ASIHTTPRequestDelegate, ASIProgressDelegate> queue;
 	
 	// HTTP method to use (GET / POST / PUT / DELETE / HEAD). Defaults to GET
@@ -153,6 +154,12 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	// When the request fails or completes successfully, complete will be true
 	BOOL complete;
 	
+    // external "finished" indicator, subject of KVO notifications; updates after 'complete'
+    BOOL finished;
+    
+    // True if our 'cancel' selector has been called
+    BOOL cancelled;
+    
 	// If an error occurs, error will contain an NSError
 	// If error code is = ASIConnectionFailureErrorType (1, Connection failure occurred) - inspect [[error userInfo] objectForKey:NSUnderlyingErrorKey] for more information
 	NSError *error;
@@ -709,6 +716,11 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 
 #endif
 
+#pragma mark queue
+
+// Returns the shared queue
++ (NSOperationQueue *)sharedQueue;
+
 #pragma mark cache
 
 + (void)setDefaultCache:(id <ASICacheDelegate>)cache;
@@ -720,9 +732,15 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 #pragma mark network activity
 
 + (BOOL)isNetworkInUse;
-#if TARGET_OS_IPHONE
+
 + (void)setShouldUpdateNetworkActivityIndicator:(BOOL)shouldUpdate;
-#endif
+
+// Shows the network activity spinner thing on iOS. You may wish to override this to do something else in Mac projects
++ (void)showNetworkActivityIndicator;
+
+// Hides the network activity spinner thing on iOS
++ (void)hideNetworkActivityIndicator;
+
 
 #pragma mark miscellany
 
@@ -762,7 +780,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 @property (retain,setter=setURL:) NSURL *url;
 @property (retain) NSURL *originalURL;
 @property (assign, nonatomic) id delegate;
-@property (assign, nonatomic) id queue;
+@property (retain, nonatomic) id queue;
 @property (assign, nonatomic) id uploadProgressDelegate;
 @property (assign, nonatomic) id downloadProgressDelegate;
 @property (assign) BOOL useKeychainPersistence;

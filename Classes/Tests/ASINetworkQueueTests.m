@@ -55,6 +55,11 @@ IMPORTANT
 
 - (void)testDelegateMethods
 {
+	[self performSelectorOnMainThread:@selector(runDelegateMethodsTest) withObject:nil waitUntilDone:YES];
+}
+
+- (void)runDelegateMethodsTest
+{
 	started = NO;
 	finished = NO;
 	failed = NO;
@@ -436,8 +441,6 @@ IMPORTANT
 	success = ([request5 responseStatusCode] == 404);
 	GHAssertTrue(success,@"Failed to obtain the correct status code for request 5");
 
-
-	
 	[requestThatShouldFail release];
 	
 }
@@ -616,10 +619,6 @@ IMPORTANT
 	}
 }
 
-
-
-
-
 - (void)requestFailedExpectedly:(ASIHTTPRequest *)request
 {
     request_didfail = YES;
@@ -677,7 +676,8 @@ IMPORTANT
 	}
 	
 	NSURL *downloadURL = [NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_great_american_novel_%28young_readers_edition%29.txt"];
-	ASINetworkQueue *networkQueue = [ASINetworkQueue queue];	
+	ASINetworkQueue *networkQueue = [ASINetworkQueue queue];
+	[networkQueue setShouldCancelAllRequestsOnFailure:NO];
 
 	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:downloadURL] autorelease];
 	[request setDownloadDestinationPath:downloadPath];
@@ -1084,8 +1084,13 @@ IMPORTANT
 	GHAssertTrue(success,@"Failed to send credentials correctly? (Expected: '%@', got '%@')",expectedResponse,[[request responseString] lowercaseString]);
 }
 
-// Test for a bug where failing head requests would not notify the original request's delegate of the failure
 - (void)testHEADFailure
+{
+	[self performSelectorOnMainThread:@selector(runHEADFailureTest) withObject:nil waitUntilDone:YES];
+}
+
+// Test for a bug where failing head requests would not notify the original request's delegate of the failure
+- (void)runHEADFailureTest
 {
 	headFailed = NO;
 	ASINetworkQueue *queue = [ASINetworkQueue queue];

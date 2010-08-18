@@ -7,4 +7,5 @@ build
 *tmproj
 .DS_Store
 profile
-
+*.pbxuser
+*.mode1v3
