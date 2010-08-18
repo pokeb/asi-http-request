@@ -23,7 +23,7 @@
 
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.7-50 2010-08-18";
+NSString *ASIHTTPRequestVersion = @"v1.7-51 2010-08-18";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -359,6 +359,7 @@ static NSOperationQueue *sharedQueue = nil;
 	[postBodyWriteStream release];
 	[postBodyReadStream release];
 	[PACurl release];
+	[clientCertificates release];
 	[responseStatusMessage release];
 	[connectionInfo release];
 	[requestID release];
@@ -1409,6 +1410,7 @@ static NSOperationQueue *sharedQueue = nil;
 	[headRequest setUseHTTPVersionOne:[self useHTTPVersionOne]];
 	[headRequest setValidatesSecureCertificate:[self validatesSecureCertificate]];
     [headRequest setClientCertificateIdentity:clientCertificateIdentity];
+	[headRequest setClientCertificates:[[clientCertificates copy] autorelease]];
 	[headRequest setPACurl:[self PACurl]];
 	[headRequest setShouldPresentCredentialsBeforeChallenge:[self shouldPresentCredentialsBeforeChallenge]];
 	[headRequest setNumberOfTimesToRetryOnTimeout:[self numberOfTimesToRetryOnTimeout]];
@@ -3161,6 +3163,7 @@ static NSOperationQueue *sharedQueue = nil;
 	[newRequest setShouldRedirect:[self shouldRedirect]];
 	[newRequest setValidatesSecureCertificate:[self validatesSecureCertificate]];
     [newRequest setClientCertificateIdentity:clientCertificateIdentity];
+	[newRequest setClientCertificates:[[clientCertificates copy] autorelease]];
 	[newRequest setPACurl:[self PACurl]];
 	[newRequest setShouldPresentCredentialsBeforeChallenge:[self shouldPresentCredentialsBeforeChallenge]];
 	[newRequest setNumberOfTimesToRetryOnTimeout:[self numberOfTimesToRetryOnTimeout]];
@@ -3192,7 +3195,9 @@ static NSOperationQueue *sharedQueue = nil;
     
     clientCertificateIdentity = anIdentity;
     
-    CFRetain(clientCertificateIdentity);
+	if (clientCertificateIdentity) {
+		CFRetain(clientCertificateIdentity);
+	}
 }
 
 
