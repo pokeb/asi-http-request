@@ -66,7 +66,7 @@
 	return nil;
 }
 
-- (NSData *)compressBytes:(Bytef *)bytes length:(NSInteger)length error:(NSError **)err
+- (NSData *)compressBytes:(Bytef *)bytes length:(NSUInteger)length error:(NSError **)err
 {
 	if (length == 0) return nil;
 	
@@ -78,7 +78,7 @@
 	int status;
 	
 	zStream.next_in = bytes;
-	zStream.avail_in = length;
+	zStream.avail_in = (unsigned int)length;
 	zStream.avail_out = 0;
 	NSError *theError = nil;
 	
@@ -151,7 +151,7 @@
 	
 	UInt8 inputData[DATA_CHUNK_SIZE];
 	NSData *outputData;
-	int readLength;
+	NSInteger readLength;
 	NSError *theError = nil;
 	
 	ASIDataCompressor *compressor = [ASIDataCompressor compressor];

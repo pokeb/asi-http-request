@@ -667,6 +667,71 @@
 	GHAssertTrue(success,@"Failed to download data to a file");
 }
 
+- (void)request:(ASIHTTPRequest *)request didGetMoreData:(NSData *)data
+{
+	[[self responseData] appendData:data];
+}
+
+- (void)downloadFinished:(ASIHTTPRequest *)request
+{
+	finished = YES;
+}
+
+- (void)testCompressedResponseDelegateDataHandling
+{
+	finished = NO;
+	[self setResponseData:[NSMutableData data]];
+
+	NSURL *url = [[[NSURL alloc] initWithString:@"http://asi/ASIHTTPRequest/tests/the_hound_of_the_baskervilles.text"] autorelease];
+
+	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request startSynchronous];
+
+	NSString *response = [request responseString];
+
+	// Now download again, using the delegate to handle the data
+	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request setDelegate:self];
+	[request setDidReceiveDataSelector:@selector(request:didGetMoreData:)];
+	[request setDidFinishSelector:@selector(downloadFinished:)];
+	[request setShouldWaitToInflateCompressedResponses:NO];
+	[request startSynchronous];
+
+	while (!finished) {
+		sleep(1);
+	}
+
+	NSString *delegateResponse = [[[NSString alloc] initWithBytes:[responseData bytes] length:[responseData length] encoding:[request responseEncoding]] autorelease];
+	BOOL success = [delegateResponse isEqualToString:response];
+	GHAssertTrue(success,@"Failed to correctly download the response using a delegate");
+
+	// Test again without compression
+	finished = NO;
+	[self setResponseData:[NSMutableData data]];
+
+	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request setAllowCompressedResponse:NO];
+	[request startSynchronous];
+
+	response = [request responseString];
+
+	// Now download again, using the delegate to handle the data
+	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request setDelegate:self];
+	[request setDidReceiveDataSelector:@selector(request:didGetMoreData:)];
+	[request setDidFinishSelector:@selector(downloadFinished:)];
+	[request setAllowCompressedResponse:NO];
+	[request startSynchronous];
+
+	while (!finished) {
+		sleep(1);
+	}
+
+	delegateResponse = [[[NSString alloc] initWithBytes:[responseData bytes] length:[responseData length] encoding:[request responseEncoding]] autorelease];
+	success = [delegateResponse isEqualToString:response];
+	GHAssertTrue(success,@"Failed to correctly download the response using a delegate");
+}
+
 
 - (void)testDownloadProgress
 {

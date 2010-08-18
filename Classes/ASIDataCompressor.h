@@ -22,7 +22,7 @@
 + (id)compressor;
 
 // Compress the passed chunk of data
-- (NSData *)compressBytes:(Bytef *)bytes length:(NSInteger)length error:(NSError **)err;
+- (NSData *)compressBytes:(Bytef *)bytes length:(NSUInteger)length error:(NSError **)err;
 
 // Convenience method - pass it some data, and you'll get deflated data back
 + (NSData *)compressData:(NSData*)uncompressedData error:(NSError **)err;
