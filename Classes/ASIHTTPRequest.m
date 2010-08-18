@@ -23,7 +23,7 @@
 
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.7-53 2010-08-18";
+NSString *ASIHTTPRequestVersion = @"v1.7-50 2010-08-18";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -318,6 +318,9 @@ static NSOperationQueue *sharedQueue = nil;
 	if (request) {
 		CFRelease(request);
 	}
+	if (clientCertificateIdentity) {
+		CFRelease(clientCertificateIdentity);
+	}
 	[self cancelLoad];
 	[queue release];
 	[userInfo release];
@@ -359,11 +362,6 @@ static NSOperationQueue *sharedQueue = nil;
 	[responseStatusMessage release];
 	[connectionInfo release];
 	[requestID release];
-    
-    if (clientCertificateIdentity) {
-		CFRelease(clientCertificateIdentity);
-	}
-    
 	[super dealloc];
 }
 
@@ -946,29 +944,34 @@ static NSOperationQueue *sharedQueue = nil;
     //
     // Handle SSL certificate settings
     //
+
     if([[[[self url] scheme] lowercaseString] isEqualToString:@"https"]) {
-        NSMutableDictionary *sslProperties = [[NSMutableDictionary alloc] initWithCapacity:1];
-        
+
+        NSMutableDictionary *sslProperties = [NSMutableDictionary dictionaryWithCapacity:1];
+
         // Tell CFNetwork not to validate SSL certificates
         if (![self validatesSecureCertificate]) {
             [sslProperties setObject:(NSString *)kCFBooleanFalse forKey:(NSString *)kCFStreamSSLValidatesCertificateChain];
         }
-        
+
         // Tell CFNetwork to use a client certificate
         if (clientCertificateIdentity) {
-            CFArrayRef ca = CFArrayCreate(NULL, (const void **)&clientCertificateIdentity, 1, NULL);
-            
-            [sslProperties setObject:(NSArray *)ca forKey:(NSString *)kCFStreamSSLCertificates];
-            
-            CFRelease(ca);
+
+			NSMutableArray *certificates = [NSMutableArray arrayWithCapacity:[clientCertificates count]+1];
+
+			// The first object in the array is our SecIdentityRef
+			[certificates addObject:(id)clientCertificateIdentity];
+
+			// If we've added any additional certificates, add them too
+			for (id cert in clientCertificates) {
+				[certificates addObject:cert];
+			}
+            [sslProperties setObject:certificates forKey:(NSString *)kCFStreamSSLCertificates];
         }
-        
+
         CFReadStreamSetProperty((CFReadStreamRef)[self readStream], kCFStreamPropertySSLSettings, sslProperties);
-        
-        [sslProperties release];
     }
-    
-    
+
     
 	
 	//
@@ -4086,8 +4089,6 @@ static NSOperationQueue *sharedQueue = nil;
 	CFRelease(source);
 }
 
-
-
 #pragma mark miscellany 
 
 // From: http://www.cocoadev.com/index.pl?BaseSixtyFour
@@ -4250,4 +4251,5 @@ static NSOperationQueue *sharedQueue = nil;
 @synthesize cacheStoragePolicy;
 @synthesize didUseCachedResponse;
 @synthesize secondsToCache;
+@synthesize clientCertificates;
 @end

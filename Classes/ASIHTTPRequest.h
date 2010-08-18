@@ -335,6 +335,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
     
     // If not nil and the URL scheme is https, CFNetwork configured to supply a client certificate
     SecIdentityRef clientCertificateIdentity;
+	NSArray *clientCertificates;
 	
 	// Details on the proxy to use - you could set these yourself, but it's probably best to let ASIHTTPRequest detect the system proxy settings
 	NSString *proxyHost;
@@ -741,7 +742,6 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 // Hides the network activity spinner thing on iOS
 + (void)hideNetworkActivityIndicator;
 
-
 #pragma mark miscellany
 
 // Used for generating Authorization header when using basic authentication when shouldPresentCredentialsBeforeChallenge is true
@@ -854,4 +854,5 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 @property (assign) ASICacheStoragePolicy cacheStoragePolicy;
 @property (assign, readonly) BOOL didUseCachedResponse;
 @property (assign) NSTimeInterval secondsToCache;
+@property (retain) NSArray *clientCertificates;
 @end

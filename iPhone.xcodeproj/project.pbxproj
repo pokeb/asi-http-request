@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B50C1823121C26DB0055FCAB /* ClientCertificateTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B50C1822121C26DB0055FCAB /* ClientCertificateTests.m */; };
+		B50C182C121C26FA0055FCAB /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B50C182B121C26FA0055FCAB /* Security.framework */; };
+		B50C1848121C27510055FCAB /* client.p12 in Resources */ = {isa = PBXBuildFile; fileRef = B50C1847121C27510055FCAB /* client.p12 */; };
 		B51791A31024C3E800583567 /* AuthenticationViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B51791A21024C3E800583567 /* AuthenticationViewController.m */; };
 		B51A1A9B11DDF85100ED75CF /* ASIDownloadCacheTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B51A1A7A11DDF7BF00ED75CF /* ASIDownloadCacheTests.m */; };
 		B522DACE1030B2AB009A2D22 /* ASIInputStream.m in Sources */ = {isa = PBXBuildFile; fileRef = B522DACD1030B2AB009A2D22 /* ASIInputStream.m */; };
@@ -122,6 +125,10 @@
 
 /* Begin PBXFileReference section */
 		1D6058910D05DD3D006BFB54 /* ASIHTTPRequest iPhone.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "ASIHTTPRequest iPhone.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		B50C1821121C26DB0055FCAB /* ClientCertificateTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ClientCertificateTests.h; sourceTree = "<group>"; };
+		B50C1822121C26DB0055FCAB /* ClientCertificateTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ClientCertificateTests.m; sourceTree = "<group>"; };
+		B50C182B121C26FA0055FCAB /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
+		B50C1847121C27510055FCAB /* client.p12 */ = {isa = PBXFileReference; lastKnownFileType = file; name = client.p12; path = "iPhone Sample/Resources/client.p12"; sourceTree = "<group>"; };
 		B51791A11024C3E800583567 /* AuthenticationViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AuthenticationViewController.h; path = "iPhone Sample/AuthenticationViewController.h"; sourceTree = "<group>"; };
 		B51791A21024C3E800583567 /* AuthenticationViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AuthenticationViewController.m; path = "iPhone Sample/AuthenticationViewController.m"; sourceTree = "<group>"; };
 		B51A1A7911DDF7BF00ED75CF /* ASIDownloadCacheTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIDownloadCacheTests.h; sourceTree = "<group>"; };
@@ -280,6 +287,7 @@
 				B576D4D111C7CCBC0059B815 /* CoreGraphics.framework in Frameworks */,
 				B576D51411C7CE6D0059B815 /* Foundation.framework in Frameworks */,
 				B576D53E11C7CF350059B815 /* libz.1.2.3.dylib in Frameworks */,
+				B50C182C121C26FA0055FCAB /* Security.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -360,6 +368,7 @@
 				B576D53D11C7CF350059B815 /* libz.1.2.3.dylib */,
 				B552511311D20FC200F9B170 /* CoreGraphics.framework */,
 				B55251A011D2174C00F9B170 /* CoreGraphics.framework */,
+				B50C182B121C26FA0055FCAB /* Security.framework */,
 			);
 			name = iPhone;
 			sourceTree = "<group>";
@@ -395,6 +404,7 @@
 				B576D76511C7F4D90059B815 /* iPhoneMainWindow.xib */,
 				B576D76311C7F4D40059B815 /* iPadMainWindow.xib */,
 				B523254111CA01F1006C6E5A /* Sample.xib */,
+				B50C1847121C27510055FCAB /* client.p12 */,
 				B56529A2101C8EDA000499CF /* iphone-tests-icon.png */,
 				B55B60730F765A990064029C /* iphone-icon.png */,
 				B55B60CB0F765BB10064029C /* Tests-Info.plist */,
@@ -458,6 +468,8 @@
 				B5254FF71025F9BF00CF7BC4 /* ProxyTests.m */,
 				B52D4A2D10DA4ED5008E8365 /* PerformanceTests.h */,
 				B52D4A2E10DA4ED5008E8365 /* PerformanceTests.m */,
+				B50C1821121C26DB0055FCAB /* ClientCertificateTests.h */,
+				B50C1822121C26DB0055FCAB /* ClientCertificateTests.m */,
 			);
 			path = Tests;
 			sourceTree = "<group>";
@@ -626,6 +638,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B56529A3101C8EDA000499CF /* iphone-tests-icon.png in Resources */,
+				B50C1848121C27510055FCAB /* client.p12 in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -744,6 +757,7 @@
 				B55252B411D22E2200F9B170 /* Reachability.m in Sources */,
 				B5FE752711DBBA6400F898C8 /* ASIDownloadCache.m in Sources */,
 				B51A1A9B11DDF85100ED75CF /* ASIDownloadCacheTests.m in Sources */,
+				B50C1823121C26DB0055FCAB /* ClientCertificateTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
