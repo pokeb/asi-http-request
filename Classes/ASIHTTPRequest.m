@@ -665,6 +665,15 @@ static NSOperationQueue *sharedQueue = nil;
 
 #pragma mark request logic
 
+BOOL isMultitaskingSupported()
+{
+  BOOL multiTaskingSupported = NO;
+  if ([[UIDevice currentDevice] respondsToSelector:@selector(isMultitaskingSupported)]) {
+    multiTaskingSupported = [[UIDevice currentDevice] isMultitaskingSupported];
+  }
+  return multiTaskingSupported;
+}
+
 // Create the request
 - (void)main
 {
@@ -673,7 +682,7 @@ static NSOperationQueue *sharedQueue = nil;
 		[[self cancelledLock] lock];
 		
 		#if TARGET_OS_IPHONE && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_4_0
-		if ([[UIDevice currentDevice] isMultitaskingSupported] && [self shouldContinueWhenAppEntersBackground]) {
+		if (isMultitaskingSupported() && [self shouldContinueWhenAppEntersBackground]) {
 			backgroundTask = [[UIApplication sharedApplication] beginBackgroundTaskWithExpirationHandler:^{
 				// Synchronize the cleanup call on the main thread in case
 				// the task actually finishes at around the same time.
@@ -2966,7 +2975,7 @@ static NSOperationQueue *sharedQueue = nil;
 	CFRunLoopStop(CFRunLoopGetCurrent());
 
 	#if TARGET_OS_IPHONE && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_4_0
-	if ([[UIDevice currentDevice] isMultitaskingSupported] && [self shouldContinueWhenAppEntersBackground]) {
+	if (isMultitaskingSupported() && [self shouldContinueWhenAppEntersBackground]) {
 		dispatch_async(dispatch_get_main_queue(), ^{
 			if (backgroundTask != UIBackgroundTaskInvalid) {
 				[[UIApplication sharedApplication] endBackgroundTask:backgroundTask];
