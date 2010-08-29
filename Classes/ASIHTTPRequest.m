@@ -1886,10 +1886,13 @@ static NSOperationQueue *sharedQueue = nil;
 
 				// Perhaps there are other headers we should be preserving, but it's hard to know what we need to keep and what to throw away.
 				NSString *userAgent = [[self requestHeaders] objectForKey:@"User-Agent"];
+				NSString *accept = [[self requestHeaders] objectForKey:@"Accept"];
+				[self setRequestHeaders:nil];
 				if (userAgent) {
-					[self setRequestHeaders:[NSMutableDictionary dictionaryWithObject:userAgent forKey:@"User-Agent"]];
-				} else {
-					[self setRequestHeaders:nil];
+					[self addRequestHeader:@"User-Agent" value:userAgent];
+				}
+				if (accept) {
+					[self addRequestHeader:@"Accept" value:accept];
 				}
 				[self setHaveBuiltRequestHeaders:NO];
 			} else {
