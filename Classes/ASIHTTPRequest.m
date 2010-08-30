@@ -23,7 +23,7 @@
 
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.7-51 2010-08-18";
+NSString *ASIHTTPRequestVersion = @"v1.7-52 2010-08-30";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -652,6 +652,7 @@ static NSOperationQueue *sharedQueue = nil;
 		}
 
 		[self setComplete:NO];
+		[self setDidUseCachedResponse:NO];
 		
 		if (![self url]) {
 			[self failWithError:ASIUnableToCreateRequestError];
@@ -2829,7 +2830,7 @@ static NSOperationQueue *sharedQueue = nil;
 	}
 	
 	// Save to the cache
-	if ([self downloadCache]) {
+	if ([self downloadCache] && ![self didUseCachedResponse]) {
 		[[self downloadCache] storeResponseForRequest:self maxAge:[self secondsToCache]];
 	}
 	
@@ -2851,7 +2852,7 @@ static NSOperationQueue *sharedQueue = nil;
 		[self destroyReadStream];
 	}
 	
-	if (![self needsRedirect] && ![self authenticationNeeded]) {
+	if (![self needsRedirect] && ![self authenticationNeeded] && ![self didUseCachedResponse]) {
 		
 		if (fileError) {
 			[self failWithError:fileError];
@@ -2923,10 +2924,10 @@ static NSOperationQueue *sharedQueue = nil;
 			return NO;
 		}
 	}
-        
+
 	// only 200 responses are stored in the cache, so let the client know
 	// this was a successful response
-	self.responseStatusCode = 200;
+	[self setResponseStatusCode:200];
         
 	[self setDidUseCachedResponse:YES];
 	

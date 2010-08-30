@@ -291,4 +291,37 @@
 	[ASIHTTPRequest setDefaultCache:nil];
 }
 
+// Text fix for a bug where the didFinishSelector would be called twice for a cached response using ASIReloadIfDifferentCachePolicy
+- (void)testCacheOnlyCallsRequestFinishedOnce
+{
+	// Run this request on the main thread to force delegate calls to happen synchronously
+	[self performSelectorOnMainThread:@selector(runCacheOnlyCallsRequestFinishedOnceTest) withObject:nil waitUntilDone:YES];
+}
+
+- (void)runCacheOnlyCallsRequestFinishedOnceTest
+{
+	[[ASIDownloadCache sharedCache] clearCachedResponsesForStoragePolicy:ASICacheForSessionDurationCacheStoragePolicy];
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/i/logo.png"]];
+	[request setCachePolicy:ASIReloadIfDifferentCachePolicy];
+	[request setDownloadCache:[ASIDownloadCache sharedCache]];
+	[request setDelegate:self];
+	[request startSynchronous];
+
+	requestsFinishedCount = 0;
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/i/logo.png"]];
+	[request setCachePolicy:ASIReloadIfDifferentCachePolicy];
+	[request setDownloadCache:[ASIDownloadCache sharedCache]];
+	[request setDidFinishSelector:@selector(finishCached:)];
+	[request setDelegate:self];
+	[request startSynchronous];
+
+	BOOL success = (requestsFinishedCount == 1);
+	GHAssertTrue(success,@"didFinishSelector called more than once");
+}
+
+- (void)finishCached:(ASIHTTPRequest *)request
+{
+	requestsFinishedCount++;
+}
+
 @end

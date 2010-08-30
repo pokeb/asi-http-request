@@ -10,7 +10,7 @@
 
 
 @interface ASIDownloadCacheTests : ASITestCase {
-
+	NSUInteger requestsFinishedCount;
 }
 
 @end
