@@ -529,13 +529,13 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 // Helper method used for performing invocations on the main thread (used for progress)
 + (void)performSelector:(SEL)selector onTarget:(id *)target withObject:(id)object amount:(void *)amount;
 
-#pragma mark handling request complete / failure
+#pragma mark talking to delegates
 
 // Called when a request starts, lets the delegate know via didStartSelector
 - (void)requestStarted;
 
 // Called when a request receives response headers, lets the delegate know via didReceiveResponseHeadersSelector
-- (void)requestReceivedResponseHeaders;
+- (void)requestReceivedResponseHeaders:(NSDictionary *)newHeaders;
 
 // Called when a request completes successfully, lets the delegate know via didFinishSelector
 - (void)requestFinished;
@@ -782,7 +782,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 @property (assign) int proxyPort;
 @property (retain) NSString *proxyType;
 
-@property (retain,setter=setURL:) NSURL *url;
+@property (retain,setter=setURL:, nonatomic) NSURL *url;
 @property (retain) NSURL *originalURL;
 @property (assign, nonatomic) id delegate;
 @property (retain, nonatomic) id queue;

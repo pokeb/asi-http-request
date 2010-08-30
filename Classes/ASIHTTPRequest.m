@@ -23,13 +23,13 @@
 
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.7-52 2010-08-18";
+NSString *ASIHTTPRequestVersion = @"v1.7-53 2010-08-30";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
 static NSString *ASIHTTPRequestRunLoopMode = @"ASIHTTPRequestRunLoopMode";
 
-static const CFOptionFlags kNetworkEvents = kCFStreamEventOpenCompleted | kCFStreamEventHasBytesAvailable | kCFStreamEventEndEncountered | kCFStreamEventErrorOccurred;
+static const CFOptionFlags kNetworkEvents =  kCFStreamEventHasBytesAvailable | kCFStreamEventEndEncountered | kCFStreamEventErrorOccurred;
 
 // In memory caches of credentials, used on when useSessionPersistence is YES
 static NSMutableArray *sessionCredentialsStore = nil;
@@ -231,7 +231,7 @@ static NSOperationQueue *sharedQueue = nil;
 {
 	if (self == [ASIHTTPRequest class]) {
 		queueRequestStartedSelector = @selector(requestStarted:);
-		queueRequestReceivedResponseHeadersSelector = @selector(requestReceivedResponseHeaders:);
+		queueRequestReceivedResponseHeadersSelector = @selector(request:didReceiveResponseHeaders:);
 		queueRequestFinishedSelector = @selector(requestFinished:);
 		queueRequestFailedSelector = @selector(requestFailed:);
 		persistentConnectionsPool = [[NSMutableArray alloc] init];
@@ -278,7 +278,7 @@ static NSOperationQueue *sharedQueue = nil;
 	[self setValidatesSecureCertificate:YES];
 	[self setRequestCookies:[[[NSMutableArray alloc] init] autorelease]];
 	[self setDidStartSelector:@selector(requestStarted:)];
-	[self setDidReceiveResponseHeadersSelector:@selector(requestReceivedResponseHeaders:)];
+	[self setDidReceiveResponseHeadersSelector:@selector(request:didReceiveResponseHeaders:)];
 	[self setDidFinishSelector:@selector(requestFinished:)];
 	[self setDidFailSelector:@selector(requestFailed:)];
 	[self setDidReceiveDataSelector:@selector(request:didReceiveData:)];
@@ -367,6 +367,7 @@ static NSOperationQueue *sharedQueue = nil;
 }
 
 #pragma mark setup request
+
 
 - (void)addRequestHeader:(NSString *)header value:(NSString *)value
 {
@@ -479,6 +480,39 @@ static NSOperationQueue *sharedQueue = nil;
 		}
 	}
 	[stream close];
+}
+
+- (NSURL *)url
+{
+	[[self cancelledLock] lock];
+	NSURL *u = url;
+	[[self cancelledLock] unlock];
+	return u;
+}
+
+
+- (void)setURL:(NSURL *)newURL
+{
+	[[self cancelledLock] lock];
+	if ([newURL isEqual:[self url]]) {
+		[[self cancelledLock] unlock];
+		return;
+	}
+	[url release];
+	url = [newURL retain];
+	if (requestAuthentication) {
+		CFRelease(requestAuthentication);
+		requestAuthentication = NULL;
+	}
+	if (proxyAuthentication) {
+		CFRelease(proxyAuthentication);
+		proxyAuthentication = NULL;
+	}
+	if (request) {
+		CFRelease(request);
+		request = NULL;
+	}
+	[[self cancelledLock] unlock];
 }
 
 - (id)delegate
@@ -896,7 +930,7 @@ static NSOperationQueue *sharedQueue = nil;
 		return;
 	}
 	
-	[self requestStarted];
+	[self performSelectorOnMainThread:@selector(requestStarted) withObject:nil waitUntilDone:[NSThread isMainThread]];
 	
 	[self setDownloadComplete:NO];
 	[self setComplete:NO];
@@ -1657,66 +1691,37 @@ static NSOperationQueue *sharedQueue = nil;
 }
 
 
-#pragma mark handling request complete / failure
+#pragma mark talking to delegates
 
-- (void)callSelectorCallback:(SEL *)selectorPtr withTarget:(id *)targetPtr request:(ASIHTTPRequest *)request
-{
-	id target = *targetPtr;
-	SEL selector = *selectorPtr;
-	if (selector && target && [target respondsToSelector:selector]) {
-		[target performSelector:selector withObject:self];
-	}
-}
-
-// Call a selector for a delegate on the main thread
-// As either the delegate or the selector may be changed before we get
-// to run on the main thread, they are passed as pointers, which we only
-// dereference on the main thread just before we call the selector
-- (void)callSelectorOnMainThread:(SEL *)selector forDelegate:(id *)target
-{
-	if (!*selector || !*target)
-		return;
-	
-	SEL callback = @selector(callSelectorCallback:withTarget:request:);
-	NSMethodSignature *signature = [ASIHTTPRequest instanceMethodSignatureForSelector:callback];
-	NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
-	[invocation setSelector:callback];
-	[invocation setTarget:self];
-	[invocation setArgument:&selector atIndex:2];
-	[invocation setArgument:&target atIndex:3];
-	[invocation setArgument:&self atIndex:4];
-	
-	// Force the invocation to retain this request until after we have performed the callback
-    [invocation retainArguments];
-	[invocation performSelectorOnMainThread:@selector(invoke) withObject:nil waitUntilDone:[NSThread isMainThread]];
-}
-
-
-
-- (void)requestReceivedResponseHeaders
+/* ALWAYS CALLED ON MAIN THREAD! */
+- (void)requestReceivedResponseHeaders:(NSMutableDictionary *)newResponseHeaders
 {
 	if ([self error] || [self mainRequest]) {
 		return;
 	}
-	// Let the delegate know we have started
-	[self callSelectorOnMainThread:&didReceiveResponseHeadersSelector forDelegate:&delegate];
-	
-	// Let the queue know we have started
-	[self callSelectorOnMainThread:&queueRequestReceivedResponseHeadersSelector forDelegate:&queue];
+	if (delegate && [delegate respondsToSelector:didReceiveResponseHeadersSelector]) {
+		[delegate performSelector:didReceiveResponseHeadersSelector withObject:self withObject:newResponseHeaders];
+	}
+	if (queue && [queue respondsToSelector:queueRequestReceivedResponseHeadersSelector]) {
+		[queue performSelector:queueRequestReceivedResponseHeadersSelector withObject:self withObject:newResponseHeaders];
+	}
 }
 
+/* ALWAYS CALLED ON MAIN THREAD! */
 - (void)requestStarted
 {
 	if ([self error] || [self mainRequest]) {
 		return;
 	}
-	// Let the delegate know we have started
-	[self callSelectorOnMainThread:&didStartSelector forDelegate:&delegate];
-	
-	// Let the queue know we have started
-	[self callSelectorOnMainThread:&queueRequestStartedSelector forDelegate:&queue];
+	if (delegate && [delegate respondsToSelector:didStartSelector]) {
+		[delegate performSelector:didStartSelector withObject:self];
+	}
+	if (queue && [queue respondsToSelector:queueRequestStartedSelector]) {
+		[queue performSelector:queueRequestStartedSelector withObject:self];
+	}
 }
 
+/* ALWAYS CALLED ON MAIN THREAD! */
 // Subclasses might override this method to process the result in the same thread
 // If you do this, don't forget to call [super requestFinished] to let the queue / delegate know we're done
 - (void)requestFinished
@@ -1727,21 +1732,23 @@ static NSOperationQueue *sharedQueue = nil;
 	if ([self error] || [self mainRequest]) {
 		return;
 	}
-	// Let the delegate know we are done
-	[self callSelectorOnMainThread:&didFinishSelector forDelegate:&delegate];
-	
-	// Let the queue know we are done
-	[self callSelectorOnMainThread:&queueRequestFinishedSelector forDelegate:&queue];
+	if (delegate && [delegate respondsToSelector:didFinishSelector]) {
+		[delegate performSelector:didFinishSelector withObject:self];
+	}
+	if (queue && [queue respondsToSelector:queueRequestFinishedSelector]) {
+		[queue performSelector:queueRequestFinishedSelector withObject:self];
+	}
 }
 
-
+/* ALWAYS CALLED ON MAIN THREAD! */
 - (void)reportFailure
 {
-    // Let the delegate know something went wrong
-	[self callSelectorOnMainThread:&didFailSelector forDelegate:&delegate];
-	
-	// Let the queue know something went wrong
-	[self callSelectorOnMainThread:&queueRequestFailedSelector forDelegate:&queue];
+	if (delegate && [delegate respondsToSelector:didFailSelector]) {
+		[delegate performSelector:didFailSelector withObject:self];
+	}
+	if (queue && [queue respondsToSelector:queueRequestFailedSelector]) {
+		[queue performSelector:queueRequestFailedSelector withObject:self];
+	}
 }
 
 // Subclasses might override this method to perform error handling in the same thread
@@ -1789,7 +1796,7 @@ static NSOperationQueue *sharedQueue = nil;
 		[failedRequest setError:theError];
 	}
 
-    [failedRequest reportFailure];
+	[failedRequest performSelectorOnMainThread:@selector(reportFailure) withObject:nil waitUntilDone:[NSThread isMainThread]];
 	
     if (!inProgress)
     {
@@ -2006,7 +2013,7 @@ static NSOperationQueue *sharedQueue = nil;
 	}
 
 	CFRelease(message);
-	[self requestReceivedResponseHeaders];
+	[self performSelectorOnMainThread:@selector(requestReceivedResponseHeaders:) withObject:[[[self responseHeaders] copy] autorelease] waitUntilDone:[NSThread isMainThread]];
 }
 
 // Handle response text encoding
@@ -2226,6 +2233,11 @@ static NSOperationQueue *sharedQueue = nil;
 // Called by delegate or authentication dialog to resume loading once authentication info has been populated
 - (void)retryUsingSuppliedCredentials
 {
+	//If the url was changed by the delegate, our CFHTTPMessageRef will be NULL and we'll go back to the start
+	if (!request) {
+		[self performSelector:@selector(main) onThread:[[self class] threadForRequest:self] withObject:nil waitUntilDone:NO];
+		return;
+	}
 	[self performSelector:@selector(attemptToApplyCredentialsAndResume) onThread:[[self class] threadForRequest:self] withObject:nil waitUntilDone:NO];
 }
 
@@ -2874,7 +2886,7 @@ static NSOperationQueue *sharedQueue = nil;
 		if (fileError) {
 			[self failWithError:fileError];
 		} else {
-			[self requestFinished];
+			[self performSelectorOnMainThread:@selector(requestFinished) withObject:nil waitUntilDone:[NSThread isMainThread]];
 		}
 
 		[self markAsFinished];
@@ -2979,7 +2991,7 @@ static NSOperationQueue *sharedQueue = nil;
 	[theRequest setDownloadComplete:YES];
 	
 	[theRequest updateProgressIndicators];
-	[theRequest requestFinished];
+	[theRequest performSelectorOnMainThread:@selector(requestFinished) withObject:nil waitUntilDone:[NSThread isMainThread]];
 	[theRequest markAsFinished];	
 	if ([self mainRequest]) {
 		[self markAsFinished];

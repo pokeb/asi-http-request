@@ -15,7 +15,7 @@
 // These are the default delegate methods for request status
 // You can use different ones by setting didStartSelector / didFinishSelector / didFailSelector
 - (void)requestStarted:(ASIHTTPRequest *)request;
-- (void)requestReceivedResponseHeaders:(ASIHTTPRequest *)request;
+- (void)request:(ASIHTTPRequest *)request didReceiveResponseHeaders:(NSDictionary *)responseHeaders;
 - (void)requestFinished:(ASIHTTPRequest *)request;
 - (void)requestFailed:(ASIHTTPRequest *)request;
 

@@ -68,7 +68,7 @@ IMPORTANT
 	[networkQueue setDelegate:self];
 	[networkQueue setRequestDidStartSelector:@selector(delegateTestStarted:)];
 	[networkQueue setRequestDidFinishSelector:@selector(delegateTestFinished:)];
-	[networkQueue setRequestDidReceiveResponseHeadersSelector:@selector(delegateTestResponseHeaders:)];
+	[networkQueue setRequestDidReceiveResponseHeadersSelector:@selector(delegateTestRequest:receivedResponseHeaders:)];
 	
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
 	[networkQueue addOperation:request];
@@ -104,9 +104,9 @@ IMPORTANT
 	started = YES;
 }
 
-- (void)delegateTestResponseHeaders:(ASIHTTPRequest *)request
+- (void)delegateTestRequest:(ASIHTTPRequest *)request receivedResponseHeaders:(NSDictionary *)responseHeaders
 {
-	GHAssertNotNil([request responseHeaders],@"Called delegateTestResponseHeaders: when we have no headers");
+	GHAssertNotNil(responseHeaders,@"Called delegateTestResponseHeaders: when we have no headers");
 	receivedResponseHeaders = YES;
 }
 
