@@ -23,7 +23,7 @@
 
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.7-53 2010-08-30";
+NSString *ASIHTTPRequestVersion = @"v1.7-54 2010-08-30";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -62,11 +62,6 @@ static NSError *ASITooMuchRedirectionError;
 
 static NSMutableArray *bandwidthUsageTracker = nil;
 static unsigned long averageBandwidthUsedPerSecond = 0;
-
-static SEL queueRequestStartedSelector = nil;
-static SEL queueRequestReceivedResponseHeadersSelector = nil;
-static SEL queueRequestFinishedSelector = nil;
-static SEL queueRequestFailedSelector = nil;
 
 
 // These are used for queuing persistent connections on the same connection
@@ -220,6 +215,7 @@ static NSOperationQueue *sharedQueue = nil;
 @property (assign, nonatomic) NSString *runLoopMode;
 @property (retain, nonatomic) NSTimer *statusTimer;
 @property (assign) BOOL didUseCachedResponse;
+@property (retain, nonatomic) NSURL *redirectURL;
 @end
 
 
@@ -230,10 +226,6 @@ static NSOperationQueue *sharedQueue = nil;
 + (void)initialize
 {
 	if (self == [ASIHTTPRequest class]) {
-		queueRequestStartedSelector = @selector(requestStarted:);
-		queueRequestReceivedResponseHeadersSelector = @selector(request:didReceiveResponseHeaders:);
-		queueRequestFinishedSelector = @selector(requestFinished:);
-		queueRequestFailedSelector = @selector(requestFailed:);
 		persistentConnectionsPool = [[NSMutableArray alloc] init];
 		connectionsLock = [[NSRecursiveLock alloc] init];
 		progressLock = [[NSRecursiveLock alloc] init];
@@ -279,6 +271,7 @@ static NSOperationQueue *sharedQueue = nil;
 	[self setRequestCookies:[[[NSMutableArray alloc] init] autorelease]];
 	[self setDidStartSelector:@selector(requestStarted:)];
 	[self setDidReceiveResponseHeadersSelector:@selector(request:didReceiveResponseHeaders:)];
+	[self setWillRedirectSelector:@selector(request:willRedirectToURL:)];
 	[self setDidFinishSelector:@selector(requestFinished:)];
 	[self setDidFailSelector:@selector(requestFailed:)];
 	[self setDidReceiveDataSelector:@selector(request:didReceiveData:)];
@@ -512,6 +505,7 @@ static NSOperationQueue *sharedQueue = nil;
 		CFRelease(request);
 		request = NULL;
 	}
+	[self setRedirectURL:nil];
 	[[self cancelledLock] unlock];
 }
 
@@ -1268,6 +1262,7 @@ static NSOperationQueue *sharedQueue = nil;
 
 - (void)performRedirect
 {
+	[self setURL:[self redirectURL]];
 	[self setComplete:YES];
 	[self setNeedsRedirect:NO];
 	[self setRedirectCount:[self redirectCount]+1];
@@ -1280,6 +1275,13 @@ static NSOperationQueue *sharedQueue = nil;
 		// Go all the way back to the beginning and build the request again, so that we can apply any new cookies
 		[self main];
 	}
+}
+
+// Called by delegate to resume loading with a new url after the delegate recieved request:willRedirectToURL:
+- (void)redirectToURL:(NSURL *)newURL
+{
+	[self setRedirectURL:newURL];
+	[self performSelector:@selector(performRedirect) onThread:[[self class] threadForRequest:self] withObject:nil waitUntilDone:NO];
 }
 
 - (BOOL)shouldTimeOut
@@ -1694,20 +1696,6 @@ static NSOperationQueue *sharedQueue = nil;
 #pragma mark talking to delegates
 
 /* ALWAYS CALLED ON MAIN THREAD! */
-- (void)requestReceivedResponseHeaders:(NSMutableDictionary *)newResponseHeaders
-{
-	if ([self error] || [self mainRequest]) {
-		return;
-	}
-	if (delegate && [delegate respondsToSelector:didReceiveResponseHeadersSelector]) {
-		[delegate performSelector:didReceiveResponseHeadersSelector withObject:self withObject:newResponseHeaders];
-	}
-	if (queue && [queue respondsToSelector:queueRequestReceivedResponseHeadersSelector]) {
-		[queue performSelector:queueRequestReceivedResponseHeadersSelector withObject:self withObject:newResponseHeaders];
-	}
-}
-
-/* ALWAYS CALLED ON MAIN THREAD! */
 - (void)requestStarted
 {
 	if ([self error] || [self mainRequest]) {
@@ -1716,8 +1704,36 @@ static NSOperationQueue *sharedQueue = nil;
 	if (delegate && [delegate respondsToSelector:didStartSelector]) {
 		[delegate performSelector:didStartSelector withObject:self];
 	}
-	if (queue && [queue respondsToSelector:queueRequestStartedSelector]) {
-		[queue performSelector:queueRequestStartedSelector withObject:self];
+	if (queue && [queue respondsToSelector:@selector(requestStarted:)]) {
+		[queue performSelector:@selector(requestStarted:) withObject:self];
+	}
+}
+
+/* ALWAYS CALLED ON MAIN THREAD! */
+- (void)requestReceivedResponseHeaders:(NSMutableDictionary *)newResponseHeaders
+{
+	if ([self error] || [self mainRequest]) {
+		return;
+	}
+	if (delegate && [delegate respondsToSelector:didReceiveResponseHeadersSelector]) {
+		[delegate performSelector:didReceiveResponseHeadersSelector withObject:self withObject:newResponseHeaders];
+	}
+	if (queue && [queue respondsToSelector:@selector(request:didReceiveResponseHeaders:)]) {
+		[queue performSelector:@selector(request:didReceiveResponseHeaders:) withObject:self withObject:newResponseHeaders];
+	}
+}
+
+/* ALWAYS CALLED ON MAIN THREAD! */
+- (void)requestWillRedirectToURL:(NSURL *)newURL
+{
+	if ([self error] || [self mainRequest]) {
+		return;
+	}
+	if (delegate && [delegate respondsToSelector:willRedirectSelector]) {
+		[delegate performSelector:willRedirectSelector withObject:self withObject:newURL];
+	}
+	if (queue && [queue respondsToSelector:@selector(request:willRedirectToURL:)]) {
+		[queue performSelector:@selector(request:willRedirectToURL:) withObject:self withObject:newURL];
 	}
 }
 
@@ -1735,8 +1751,8 @@ static NSOperationQueue *sharedQueue = nil;
 	if (delegate && [delegate respondsToSelector:didFinishSelector]) {
 		[delegate performSelector:didFinishSelector withObject:self];
 	}
-	if (queue && [queue respondsToSelector:queueRequestFinishedSelector]) {
-		[queue performSelector:queueRequestFinishedSelector withObject:self];
+	if (queue && [queue respondsToSelector:@selector(requestFinished:)]) {
+		[queue performSelector:@selector(requestFinished:) withObject:self];
 	}
 }
 
@@ -1746,8 +1762,8 @@ static NSOperationQueue *sharedQueue = nil;
 	if (delegate && [delegate respondsToSelector:didFailSelector]) {
 		[delegate performSelector:didFailSelector withObject:self];
 	}
-	if (queue && [queue respondsToSelector:queueRequestFailedSelector]) {
-		[queue performSelector:queueRequestFailedSelector withObject:self];
+	if (queue && [queue respondsToSelector:@selector(requestFailed:)]) {
+		[queue performSelector:@selector(requestFailed:) withObject:self];
 	}
 }
 
@@ -1925,7 +1941,7 @@ static NSOperationQueue *sharedQueue = nil;
 
 			// Force the redirected request to rebuild the request headers (if not a 303, it will re-use old ones, and add any new ones)
 			
-			[self setURL:[[NSURL URLWithString:[responseHeaders valueForKey:@"Location"] relativeToURL:[self url]] absoluteURL]];
+			[self setRedirectURL:[[NSURL URLWithString:[responseHeaders valueForKey:@"Location"] relativeToURL:[self url]] absoluteURL]];
 			[self setNeedsRedirect:YES];
 			
 			// Clear the request cookies
@@ -2269,7 +2285,6 @@ static NSOperationQueue *sharedQueue = nil;
 
 - (BOOL)askDelegateForProxyCredentials
 {
-
 	// If we have a delegate, we'll see if it can handle proxyAuthenticationNeededForRequest:.
 	// Otherwise, we'll try the queue (if this request is part of one) and it will pass the message on to its own delegate
 	id authenticationDelegate = [self delegate];
@@ -2666,7 +2681,24 @@ static NSOperationQueue *sharedQueue = nil;
 	[[self cancelledLock] unlock];
 	
 	if ([self downloadComplete] && [self needsRedirect]) {
-		[self performRedirect];
+
+		// We must lock again to ensure delegate / queue aren't changed while we check them
+		[[self cancelledLock] lock];
+		// Here we perform an initial check to see if either the delegate or the queue wants to be asked about the redirect, because if not we should redirect straight away
+		// We will check again on the main thread later
+		BOOL needToAskDelegateAboutRedirect = (([self delegate] && [[self delegate] respondsToSelector:[self willRedirectSelector]]) || ([self queue] && [[self queue] respondsToSelector:@selector(request:willRedirectToURL:)]));
+		[[self cancelledLock] unlock];
+
+		// Either the delegate or the queue's delegate is interested in being told when we are about to redirect
+		if (needToAskDelegateAboutRedirect) {
+			NSURL *newURL = [[[self redirectURL] copy] autorelease];
+			[self setRedirectURL:nil];
+			[self performSelectorOnMainThread:@selector(requestWillRedirectToURL:) withObject:newURL waitUntilDone:[NSThread isMainThread]];
+
+		// If neither the delegate nor the queue's delegate implement request:willRedirectToURL:, we will redirect automatically
+		} else {
+			[self performRedirect];
+		}
 	} else if ([self downloadComplete] && [self authenticationNeeded]) {
 		[self attemptToApplyCredentialsAndResume];
 	}
@@ -4210,6 +4242,7 @@ static NSOperationQueue *sharedQueue = nil;
 @synthesize temporaryFileDownloadPath;
 @synthesize didStartSelector;
 @synthesize didReceiveResponseHeadersSelector;
+@synthesize willRedirectSelector;
 @synthesize didFinishSelector;
 @synthesize didFailSelector;
 @synthesize didReceiveDataSelector;
@@ -4297,6 +4330,7 @@ static NSOperationQueue *sharedQueue = nil;
 @synthesize didUseCachedResponse;
 @synthesize secondsToCache;
 @synthesize clientCertificates;
+@synthesize redirectURL;
 #if TARGET_OS_IPHONE && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_4_0
 @synthesize shouldContinueWhenAppEntersBackground;
 #endif

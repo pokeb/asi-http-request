@@ -1773,5 +1773,31 @@
 	[request retryUsingSuppliedCredentials];
 }
 
+- (void)testDelegateRedirectHandling
+{
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/redirect_to_ssl"]];
+	[request setDelegate:self];
+	[request setWillRedirectSelector:@selector(request:isGoingToRedirectToURL:)];
+	[request setDidFailSelector:@selector(redirectURLTestFailed:)];
+	[request setDidFinishSelector:@selector(redirectURLTestSucceeded:)];
+	[request startAsynchronous];
+}
+
+- (void)redirectURLTestSucceeded:(ASIHTTPRequest *)request
+{
+	BOOL success = [[request url] isEqual:[NSURL URLWithString:@"http://allseeing-i.com"]];
+	GHAssertTrue(success,@"Request failed to redirect to url specified by delegate");
+}
+
+- (void)redirectURLTestFailed:(ASIHTTPRequest *)request
+{
+	GHFail(@"Request failed, cannot proceed with test");
+}
+
+- (void)request:(ASIHTTPRequest *)request isGoingToRedirectToURL:(NSURL *)url
+{
+	[request redirectToURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
+}
+
 @synthesize responseData;
 @end

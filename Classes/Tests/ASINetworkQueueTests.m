@@ -1201,6 +1201,37 @@ IMPORTANT
 	complete = YES;
 }
 
+- (void)testDelegateRedirectHandling
+{
+	ASINetworkQueue *networkQueue = [ASINetworkQueue queue];
+	[networkQueue setDelegate:self];
+
+	[networkQueue setRequestWillRedirectSelector:@selector(request:isGoingToRedirectToURL:)];
+	[networkQueue setRequestDidFailSelector:@selector(redirectURLTestFailed:)];
+	[networkQueue setRequestDidFinishSelector:@selector(redirectURLTestSucceeded:)];
+
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/redirect_to_ssl"]];
+
+	[networkQueue addOperation:request];
+	[networkQueue go];
+}
+
+- (void)redirectURLTestSucceeded:(ASIHTTPRequest *)request
+{
+	BOOL success = [[request url] isEqual:[NSURL URLWithString:@"http://allseeing-i.com"]];
+	GHAssertTrue(success,@"Request failed to redirect to url specified by delegate");
+}
+
+- (void)redirectURLTestFailed:(ASIHTTPRequest *)request
+{
+	GHFail(@"Request failed, cannot proceed with test");
+}
+
+- (void)request:(ASIHTTPRequest *)request isGoingToRedirectToURL:(NSURL *)url
+{
+	[request redirectToURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
+}
+
 @synthesize immediateCancelQueue;
 @synthesize failedRequests;
 @synthesize finishedRequests;

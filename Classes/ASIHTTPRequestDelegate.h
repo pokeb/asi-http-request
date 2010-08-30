@@ -16,6 +16,7 @@
 // You can use different ones by setting didStartSelector / didFinishSelector / didFailSelector
 - (void)requestStarted:(ASIHTTPRequest *)request;
 - (void)request:(ASIHTTPRequest *)request didReceiveResponseHeaders:(NSDictionary *)responseHeaders;
+- (void)request:(ASIHTTPRequest *)request willRedirectToURL:(NSURL *)newURL;
 - (void)requestFinished:(ASIHTTPRequest *)request;
 - (void)requestFailed:(ASIHTTPRequest *)request;
 

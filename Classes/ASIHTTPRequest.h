@@ -73,6 +73,9 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	// Will always contain the original url used for making the request (the value of url can change when a request is redirected)
 	NSURL *originalURL;
 	
+	// Temporarily stores the url we are about to redirect to. Will be nil again when we do redirect
+	NSURL *redirectURL;
+
 	// The delegate, you need to manage setting and talking to your delegate in your subclasses
 	id <ASIHTTPRequestDelegate> delegate;
 	
@@ -265,6 +268,10 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	
 	// Called on the delegate (if implemented) when the request receives response headers. Default is requestDidReceiveResponseHeaders:
 	SEL didReceiveResponseHeadersSelector;
+
+	// Called on the delegate (if implemented) when the request recieves a Location header and shouldRedirect is YES
+	// The delegate can then change the url if needed, and can restart the request by calling [request resume], or simply cancel it
+	SEL willRedirectSelector;
 
 	// Called on the delegate (if implemented) when the request completes successfully. Default is requestFinished:
 	SEL didFinishSelector;
@@ -548,6 +555,9 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 // Otherwise, returns NO, and nothing will happen
 - (BOOL)retryUsingNewConnection;
 
+// Can be called by delegates from inside their willRedirectSelector implementations to restart the request with a new url
+- (void)redirectToURL:(NSURL *)newURL;
+
 #pragma mark parsing HTTP response headers
 
 // Reads the response headers to find the content length, encoding, cookies for the session 
@@ -794,6 +804,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 @property (retain) NSString *temporaryFileDownloadPath;
 @property (assign) SEL didStartSelector;
 @property (assign) SEL didReceiveResponseHeadersSelector;
+@property (assign) SEL willRedirectSelector;
 @property (assign) SEL didFinishSelector;
 @property (assign) SEL didFailSelector;
 @property (assign) SEL didReceiveDataSelector;
