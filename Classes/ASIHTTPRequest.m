@@ -23,7 +23,7 @@
 
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.7-52 2010-08-30";
+NSString *ASIHTTPRequestVersion = @"v1.7-56 2010-08-30";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -1885,14 +1885,14 @@ static NSOperationQueue *sharedQueue = nil;
 				[self setPostLength:0];
 
 				// Perhaps there are other headers we should be preserving, but it's hard to know what we need to keep and what to throw away.
-				NSString *userAgent = [[self requestHeaders] objectForKey:@"User-Agent"];
-				NSString *accept = [[self requestHeaders] objectForKey:@"Accept"];
+				NSString *userAgentHeader = [[self requestHeaders] objectForKey:@"User-Agent"];
+				NSString *acceptHeader = [[self requestHeaders] objectForKey:@"Accept"];
 				[self setRequestHeaders:nil];
-				if (userAgent) {
-					[self addRequestHeader:@"User-Agent" value:userAgent];
+				if (userAgentHeader) {
+					[self addRequestHeader:@"User-Agent" value:userAgentHeader];
 				}
-				if (accept) {
-					[self addRequestHeader:@"Accept" value:accept];
+				if (acceptHeader) {
+					[self addRequestHeader:@"Accept" value:acceptHeader];
 				}
 				[self setHaveBuiltRequestHeaders:NO];
 			} else {
