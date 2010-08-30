@@ -766,6 +766,11 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 // Returns a date from a string in RFC1123 format
 + (NSDate *)dateFromRFC1123String:(NSString *)string;
 
+// Used for detecting multitasking support at runtime (for backgrounding requests)
+#if TARGET_OS_IPHONE
++ (BOOL)isMultitaskingSupported;
+#endif
+
 #pragma mark threading behaviour
 
 // In the default implementation, all requests run in a single background thread

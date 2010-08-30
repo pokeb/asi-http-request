@@ -23,7 +23,7 @@
 
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.7-54 2010-08-30";
+NSString *ASIHTTPRequestVersion = @"v1.7-56 2010-08-30";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -665,15 +665,6 @@ static NSOperationQueue *sharedQueue = nil;
 
 #pragma mark request logic
 
-BOOL isMultitaskingSupported()
-{
-  BOOL multiTaskingSupported = NO;
-  if ([[UIDevice currentDevice] respondsToSelector:@selector(isMultitaskingSupported)]) {
-    multiTaskingSupported = [[UIDevice currentDevice] isMultitaskingSupported];
-  }
-  return multiTaskingSupported;
-}
-
 // Create the request
 - (void)main
 {
@@ -682,7 +673,7 @@ BOOL isMultitaskingSupported()
 		[[self cancelledLock] lock];
 		
 		#if TARGET_OS_IPHONE && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_4_0
-		if (isMultitaskingSupported() && [self shouldContinueWhenAppEntersBackground]) {
+		if ([ASIHTTPRequest isMultitaskingSupported] && [self shouldContinueWhenAppEntersBackground]) {
 			backgroundTask = [[UIApplication sharedApplication] beginBackgroundTaskWithExpirationHandler:^{
 				// Synchronize the cleanup call on the main thread in case
 				// the task actually finishes at around the same time.
@@ -2975,7 +2966,7 @@ BOOL isMultitaskingSupported()
 	CFRunLoopStop(CFRunLoopGetCurrent());
 
 	#if TARGET_OS_IPHONE && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_4_0
-	if (isMultitaskingSupported() && [self shouldContinueWhenAppEntersBackground]) {
+	if ([ASIHTTPRequest isMultitaskingSupported] && [self shouldContinueWhenAppEntersBackground]) {
 		dispatch_async(dispatch_get_main_queue(), ^{
 			if (backgroundTask != UIBackgroundTaskInvalid) {
 				[[UIApplication sharedApplication] endBackgroundTask:backgroundTask];
@@ -4176,6 +4167,17 @@ BOOL isMultitaskingSupported()
 }
 
 #pragma mark miscellany 
+
+#if TARGET_OS_IPHONE
++ (BOOL)isMultitaskingSupported
+{
+	BOOL multiTaskingSupported = NO;
+	if ([[UIDevice currentDevice] respondsToSelector:@selector(isMultitaskingSupported)]) {
+		multiTaskingSupported = [[UIDevice currentDevice] isMultitaskingSupported];
+	}
+	return multiTaskingSupported;
+}
+#endif
 
 // From: http://www.cocoadev.com/index.pl?BaseSixtyFour
 
