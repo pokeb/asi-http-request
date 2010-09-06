@@ -3689,6 +3689,11 @@ static NSOperationQueue *sharedQueue = nil;
 
 + (NSString *)defaultUserAgentString
 {
+	// Return global user agent if provided
+	if (userAgent) {
+		return userAgent;
+	}
+	
 	NSBundle *bundle = [NSBundle bundleForClass:[self class]];
 
 	// Attempt to find a name for this application
@@ -3745,6 +3750,16 @@ static NSOperationQueue *sharedQueue = nil;
 #endif
 	// Takes the form "My Application 1.0 (Macintosh; Mac OS X 10.5.7; en_GB)"
 	return [NSString stringWithFormat:@"%@ %@ (%@; %@ %@; %@)", appName, appVersion, deviceName, OSName, OSVersion, locale];
+}
+
++ (NSString *)userAgent
+{
+	return userAgent;
+}
+
++ (void)setDefaultUserAgent:(NSString *)agent
+{
+	userAgent = [agent copy];
 }
 
 #pragma mark proxy autoconfiguration
@@ -4157,6 +4172,7 @@ static NSOperationQueue *sharedQueue = nil;
 
 @synthesize username;
 @synthesize password;
+@synthesize userAgent;
 @synthesize domain;
 @synthesize proxyUsername;
 @synthesize proxyPassword;

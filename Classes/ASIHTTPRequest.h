@@ -168,6 +168,9 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	NSString *username;
 	NSString *password;
 	
+	// Global User-Agent for requests unless one is provided for a specific request
+	NSString *userAgent;
+	
 	// Domain used for NTLM authentication
 	NSString *domain;
 	
@@ -672,6 +675,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 // Will be used as a user agent if requests do not specify a custom user agent
 // Is only used when you have specified a Bundle Display Name (CFDisplayBundleName) or Bundle Name (CFBundleName) in your plist
 + (NSString *)defaultUserAgentString;
++ (void)setDefaultUserAgent:(NSString *)agent;
 
 #pragma mark proxy autoconfiguration
 
@@ -767,6 +771,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 
 @property (retain) NSString *username;
 @property (retain) NSString *password;
+@property (retain) NSString *userAgent;
 @property (retain) NSString *domain;
 
 @property (retain) NSString *proxyUsername;
