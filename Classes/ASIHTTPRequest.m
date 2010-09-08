@@ -363,6 +363,19 @@ static NSOperationQueue *sharedQueue = nil;
 	[responseStatusMessage release];
 	[connectionInfo release];
 	[requestID release];
+#if NS_BLOCKS_AVAILABLE
+  [completionBlock release];
+  [failureBlock release];
+  [startedBlock release];
+  [headersReceivedBlock release];
+  [bytesReceivedBlock release];
+  [bytesSentBlock release];
+  [downloadSizeIncrementedBlock release];
+  [uploadSizeIncrementedBlock release];
+  [dataReceivedBlock release];
+  [proxyAuthenticationNeededBlock release];
+  [authenticationNeededBlock release];
+#endif
 	[super dealloc];
 }
 
@@ -1508,7 +1521,11 @@ static NSOperationQueue *sharedQueue = nil;
 	[ASIHTTPRequest performSelector:@selector(request:didReceiveBytes:) onTarget:&queue withObject:self amount:&value];
 	[ASIHTTPRequest performSelector:@selector(request:didReceiveBytes:) onTarget:&downloadProgressDelegate withObject:self amount:&value];
 	[ASIHTTPRequest updateProgressIndicator:&downloadProgressDelegate withProgress:[self totalBytesRead]+[self partialDownloadSize] ofTotal:[self contentLength]+[self partialDownloadSize]];
-		
+#if NS_BLOCKS_AVAILABLE    
+    if(bytesReceivedBlock){
+        bytesReceivedBlock(self, bytesReadSoFar, [self contentLength] + [self partialDownloadSize]);
+    }
+#endif	
 	[self setLastBytesRead:bytesReadSoFar];
 }
 
@@ -1547,6 +1564,12 @@ static NSOperationQueue *sharedQueue = nil;
 	[ASIHTTPRequest performSelector:@selector(request:didSendBytes:) onTarget:&queue withObject:self amount:&value];
 	[ASIHTTPRequest performSelector:@selector(request:didSendBytes:) onTarget:&uploadProgressDelegate withObject:self amount:&value];
 	[ASIHTTPRequest updateProgressIndicator:&uploadProgressDelegate withProgress:[self totalBytesSent]-[self uploadBufferSize] ofTotal:[self postLength]-[self uploadBufferSize]];
+	
+	#if NS_BLOCKS_AVAILABLE
+        if(bytesSentBlock){
+          bytesSentBlock(self, value, [self postLength]-[self uploadBufferSize]);
+        }
+        #endif
 }
 
 
@@ -1554,6 +1577,12 @@ static NSOperationQueue *sharedQueue = nil;
 {
 	[ASIHTTPRequest performSelector:@selector(request:incrementDownloadSizeBy:) onTarget:&queue withObject:self amount:&length];
 	[ASIHTTPRequest performSelector:@selector(request:incrementDownloadSizeBy:) onTarget:&downloadProgressDelegate withObject:self amount:&length];
+	
+	#if NS_BLOCKS_AVAILABLE
+        if(downloadSizeIncrementedBlock){
+          downloadSizeIncrementedBlock(self, length);
+        }
+        #endif
 }
 
 
@@ -1561,6 +1590,11 @@ static NSOperationQueue *sharedQueue = nil;
 {
 	[ASIHTTPRequest performSelector:@selector(request:incrementUploadSizeBy:) onTarget:&queue withObject:self amount:&length];
 	[ASIHTTPRequest performSelector:@selector(request:incrementUploadSizeBy:) onTarget:&uploadProgressDelegate withObject:self amount:&length];
+	#if NS_BLOCKS_AVAILABLE
+        if(uploadSizeIncrementedBlock){
+          uploadSizeIncrementedBlock(self, length);
+        }
+        #endif
 }
 
 
@@ -1570,6 +1604,11 @@ static NSOperationQueue *sharedQueue = nil;
 	[ASIHTTPRequest performSelector:@selector(request:didSendBytes:) onTarget:&queue withObject:self amount:&progressToRemove];
 	[ASIHTTPRequest performSelector:@selector(request:didSendBytes:) onTarget:&uploadProgressDelegate withObject:self amount:&progressToRemove];
 	[ASIHTTPRequest updateProgressIndicator:&uploadProgressDelegate withProgress:0 ofTotal:[self postLength]];
+	#if NS_BLOCKS_AVAILABLE
+        if(bytesSentBlock){
+           bytesSentBlock(self, progressToRemove, [self postLength]);
+        }
+        #endif
 }
 
 + (void)performInvocation:(NSInvocation *)invocation onTarget:(id *)target
@@ -1686,6 +1725,12 @@ static NSOperationQueue *sharedQueue = nil;
 	
 	// Let the queue know we have started
 	[self callSelectorOnMainThread:&queueRequestReceivedResponseHeadersSelector forDelegate:&queue];
+	
+#if NS_BLOCKS_AVAILABLE
+    if(headersReceivedBlock){
+        headersReceivedBlock(self);
+    }
+#endif
 }
 
 - (void)requestStarted
@@ -1695,6 +1740,12 @@ static NSOperationQueue *sharedQueue = nil;
 	}
 	// Let the delegate know we have started
 	[self callSelectorOnMainThread:&didStartSelector forDelegate:&delegate];
+	
+	#if NS_BLOCKS_AVAILABLE
+        if(startedBlock){
+          startedBlock(self);
+        }
+        #endif
 	
 	// Let the queue know we have started
 	[self callSelectorOnMainThread:&queueRequestStartedSelector forDelegate:&queue];
@@ -1715,6 +1766,12 @@ static NSOperationQueue *sharedQueue = nil;
 	
 	// Let the queue know we are done
 	[self callSelectorOnMainThread:&queueRequestFinishedSelector forDelegate:&queue];
+	
+	#if NS_BLOCKS_AVAILABLE
+	    if(completionBlock){
+	        completionBlock(self);
+	    }
+	#endif
 }
 
 
@@ -1773,6 +1830,12 @@ static NSOperationQueue *sharedQueue = nil;
 	}
 
     [failedRequest reportFailure];
+
+#if NS_BLOCKS_AVAILABLE
+    if(failureBlock){
+        failureBlock(self);
+    }
+#endif
 	
     if (!inProgress)
     {
@@ -2250,11 +2313,16 @@ static NSOperationQueue *sharedQueue = nil;
 	if (!authenticationDelegate) {
 		authenticationDelegate = [self queue];
 	}
-	
+#if NS_BLOCKS_AVAILABLE
+	if(proxyAuthenticationNeededBlock){
+        proxyAuthenticationNeededBlock(self);
+    }
+#endif
 	if ([authenticationDelegate respondsToSelector:@selector(proxyAuthenticationNeededForRequest:)]) {
 		[authenticationDelegate performSelectorOnMainThread:@selector(proxyAuthenticationNeededForRequest:) withObject:self waitUntilDone:[NSThread isMainThread]];
 		return YES;
 	}
+
 	return NO;
 }
 
@@ -2435,11 +2503,17 @@ static NSOperationQueue *sharedQueue = nil;
 	if (!authenticationDelegate) {
 		authenticationDelegate = [self queue];
 	}
-	
+#if NS_BLOCKS_AVAILABLE
+    if(authenticationNeededBlock){
+        authenticationNeededBlock(self);
+    }
+#endif
+
 	if ([authenticationDelegate respondsToSelector:@selector(authenticationNeededForRequest:)]) {
 		[authenticationDelegate performSelectorOnMainThread:@selector(authenticationNeededForRequest:) withObject:self waitUntilDone:[NSThread isMainThread]];
 		return YES;
 	}
+
 	return NO;
 }
 
@@ -2723,7 +2797,13 @@ static NSOperationQueue *sharedQueue = nil;
 		// If we need to redirect, and have automatic redirect on, and might be resuming a download, let's do nothing with the content
 		if ([self needsRedirect] && [self shouldRedirect] && [self allowResumeForFileDownloads]) {
 			return;
-		}
+        }
+#if NS_BLOCKS_AVAILABLE
+        if(dataReceivedBlock){
+            NSData *data = [NSData dataWithBytes:buffer length:bytesRead];
+            dataReceivedBlock(self, data);
+        }
+#endif
 		
 		// Does the delegate want to handle the data manually?
 		if ([[self delegate] respondsToSelector:[self didReceiveDataSelector]]) {
@@ -4152,6 +4232,59 @@ static NSOperationQueue *sharedQueue = nil;
 	[formatter setDateFormat:[NSString stringWithFormat:@"%@dd MMM yyyy HH:mm%@ z",day,seconds]];
 	return [formatter dateFromString:string];
 }
+
+#pragma mark -
+#pragma mark blocks
+#if NS_BLOCKS_AVAILABLE
+- (void)setStartedBlock:(ASIHTTPRequestBlock)aStartedBlock{
+    [startedBlock release];
+    startedBlock = [aStartedBlock copy];
+}
+
+- (void)setHeadersReceivedBlock:(ASIHTTPRequestBlock)aReceivedBlock{
+    [headersReceivedBlock release];
+    headersReceivedBlock = [aReceivedBlock copy];
+}
+
+- (void)setCompletionBlock:(ASIHTTPRequestBlock)aCompletionBlock{
+    [completionBlock release];
+    completionBlock = [aCompletionBlock copy];
+}
+- (void)setFailedBlock:(ASIHTTPRequestBlock)aFailedBlock{
+    [failureBlock release];
+    failureBlock = [aFailedBlock copy];
+}
+- (void)setBytesReceivedBlock:(ASIHTTPRequestProgressBlock) aBytesReceivedBlock{
+    [bytesReceivedBlock release];
+    bytesReceivedBlock = [aBytesReceivedBlock copy];
+}
+- (void)setBytesSentBlock:(ASIHTTPRequestProgressBlock)aBytesSentBlock{
+    [bytesSentBlock release];
+    bytesSentBlock = [aBytesSentBlock copy];
+}
+- (void)setDownloadSizeIncrementedBlock:(ASIHTTPRequestSizeBlock) aDownloadSizeIncrementedBlock{
+    [downloadSizeIncrementedBlock release];
+    downloadSizeIncrementedBlock = [aDownloadSizeIncrementedBlock copy];
+}
+- (void)setUploadSizeIncrementedBlock:(ASIHTTPRequestSizeBlock) anUploadSizeIncrementedBlock{
+    [uploadSizeIncrementedBlock release];
+    uploadSizeIncrementedBlock = [anUploadSizeIncrementedBlock copy];
+}
+
+- (void)setDataReceivedBlock:(ASIHTTPRequestDataReceivedBlock)aReceivedBlock{
+    [dataReceivedBlock release];
+    dataReceivedBlock = [aReceivedBlock copy];
+}
+
+- (void)setAuthenticationNeededBlock:(ASIHTTPRequestBlock)anAuthenticationBlock{
+    [authenticationNeededBlock release];
+    authenticationNeededBlock = [anAuthenticationBlock copy];
+}
+- (void)setProxyAuthenticationNeededBlock:(ASIHTTPRequestBlock)aProxyAuthenticationBlock{
+    [proxyAuthenticationNeededBlock release];
+    proxyAuthenticationNeededBlock = [aProxyAuthenticationBlock copy];
+}
+#endif
 
 #pragma mark ===
 
