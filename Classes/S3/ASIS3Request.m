@@ -19,7 +19,6 @@ NSString *const ASIS3AccessPolicyBucketOwnerFullControl = @"bucket-owner-full-co
 NSString *const ASIS3RequestSchemeHTTP = @"http";
 NSString *const ASIS3RequestSchemeHTTPS = @"https";
 
-
 static NSString *sharedAccessKey = nil;
 static NSString *sharedSecretAccessKey = nil;
 
@@ -119,7 +118,7 @@ static NSString *sharedSecretAccessKey = nil;
 	// Add a header for the access policy if one was set, otherwise we won't add one (and S3 will default to private)
 	NSMutableDictionary *amzHeaders = [self S3Headers];
 	NSString *canonicalizedAmzHeaders = @"";
-	for (NSString *header in [amzHeaders keyEnumerator]) {
+	for (NSString *header in [amzHeaders keysSortedByValueUsingSelector:@selector(compare:)]) {
 		canonicalizedAmzHeaders = [NSString stringWithFormat:@"%@%@:%@\n",canonicalizedAmzHeaders,[header lowercaseString],[amzHeaders objectForKey:header]];
 		[self addRequestHeader:header value:[amzHeaders objectForKey:header]];
 	}

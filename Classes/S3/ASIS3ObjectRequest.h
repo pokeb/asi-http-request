@@ -10,6 +10,9 @@
 #import <Foundation/Foundation.h>
 #import "ASIS3Request.h"
 
+// Constants for storage class
+extern NSString *const ASIS3StorageClassStandard;
+extern NSString *const ASIS3StorageClassReducedRedundancy;
 
 @interface ASIS3ObjectRequest : ASIS3Request {
 
@@ -28,7 +31,14 @@
 	// Can be autodetected when PUTing a file from disk, will default to 'application/octet-stream' when PUTing data
 	NSString *mimeType;
 	
+	// Set this to specify you want to work with a particular subresource (eg an acl for that resource)
+	// See requestWithBucket:key:subResource:, below.
 	NSString* subResource;
+
+	// The storage class to be used for PUT requests
+	// Set this to ASIS3StorageClassReducedRedundancy to save money on storage, at (presumably) a slightly higher risk you will lose the data
+	// If this is not set, no x-amz-storage-class header will be sent to S3, and their default will be used
+	NSString *storageClass;
 }
 
 // Create a request, building an appropriate url
@@ -66,5 +76,5 @@
 @property (retain, nonatomic) NSString *sourceKey;
 @property (retain, nonatomic) NSString *mimeType;
 @property (retain, nonatomic) NSString *subResource;
-
+@property (retain, nonatomic) NSString *storageClass;
 @end

@@ -23,13 +23,18 @@ extern NSString *const ASIS3AccessPolicyAuthenticatedRead;
 extern NSString *const ASIS3AccessPolicyBucketOwnerRead;
 extern NSString *const ASIS3AccessPolicyBucketOwnerFullControl;
 
+// Constants for requestScheme - defaults is ASIS3RequestSchemeHTTP
+extern NSString *const ASIS3RequestSchemeHTTP;
+extern NSString *const ASIS3RequestSchemeHTTPS;
+
+
+
 typedef enum _ASIS3ErrorType {
     ASIS3ResponseParsingFailedType = 1,
     ASIS3ResponseErrorType = 2
 } ASIS3ErrorType;
 
-extern NSString *const ASIS3RequestSchemeHTTP;
-extern NSString *const ASIS3RequestSchemeHTTPS;
+
 
 @interface ASIS3Request : ASIHTTPRequest <NSCopying, NSXMLParserDelegate> {
 	
