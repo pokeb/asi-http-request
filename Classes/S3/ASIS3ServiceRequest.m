@@ -21,9 +21,9 @@
 
 + (id)serviceRequest
 {
-	return [[[self alloc] initWithURL:[NSURL URLWithString:@"http://s3.amazonaws.com"]] autorelease];
+	ASIS3ServiceRequest *request = [[[self alloc] initWithURL:nil] autorelease];
+	return request;
 }
-
 
 - (id)initWithURL:(NSURL *)newURL
 {
@@ -32,7 +32,6 @@
 	return self;
 }
 
-
 - (void)dealloc
 {
 	[buckets release];
@@ -40,6 +39,11 @@
 	[ownerID release];
 	[ownerName release];
 	[super dealloc];
+}
+
+- (void)buildURL
+{
+	[self setURL:[NSURL URLWithString:[NSString stringWithFormat:@"%@://%@",[self requestScheme],[[self class] S3Host]]]];
 }
 
 - (void)parser:(NSXMLParser *)parser didStartElement:(NSString *)elementName namespaceURI:(NSString *)namespaceURI qualifiedName:(NSString *)qName attributes:(NSDictionary *)attributeDict

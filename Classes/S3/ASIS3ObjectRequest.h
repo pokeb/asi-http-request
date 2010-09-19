@@ -60,11 +60,11 @@
 // Creates a HEAD request for the object at path
 + (id)HEADRequestWithBucket:(NSString *)bucket key:(NSString *)key;
 
-@property (retain) NSString *bucket;
-@property (retain) NSString *key;
-@property (retain) NSString *sourceBucket;
-@property (retain) NSString *sourceKey;
+@property (retain, nonatomic) NSString *bucket;
+@property (retain, nonatomic) NSString *key;
+@property (retain, nonatomic) NSString *sourceBucket;
+@property (retain, nonatomic) NSString *sourceKey;
 @property (retain, nonatomic) NSString *mimeType;
-@property (retain) NSString *subResource;
+@property (retain, nonatomic) NSString *subResource;
 
 @end
