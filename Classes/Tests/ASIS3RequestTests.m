@@ -757,6 +757,48 @@ static NSString *bucket = @"";
 }
 
 
+- (void)testHTTPS
+{
+	[ASIS3Request setSharedAccessKey:accessKey];
+	[ASIS3Request setSharedSecretAccessKey:secretAccessKey];
+
+	// Create a bucket
+	ASIS3Request *request = [ASIS3BucketRequest PUTRequestWithBucket:bucket];
+	[request setRequestScheme:ASIS3RequestSchemeHTTPS];
+	[request startSynchronous];
+	GHAssertNil([request error],@"Failed to create a bucket");
+
+	// PUT something in it
+	NSString *key = @"king";
+	request = [ASIS3ObjectRequest PUTRequestForData:[@"fink" dataUsingEncoding:NSUTF8StringEncoding] withBucket:bucket key:key];
+	[request setRequestScheme:ASIS3RequestSchemeHTTPS];
+	[request startSynchronous];
+	BOOL success = [[request responseString] isEqualToString:@""];
+	GHAssertTrue(success,@"Failed to PUT some data into S3");
+
+	// GET it
+	request = [ASIS3ObjectRequest requestWithBucket:bucket key:key];
+	[request setRequestScheme:ASIS3RequestSchemeHTTPS];
+	[request startSynchronous];
+	success = [[request responseString] isEqualToString:@"fink"];
+	GHAssertTrue(success,@"Failed to GET the correct data from S3");
+
+	// DELETE it
+	request = [ASIS3ObjectRequest DELETERequestWithBucket:bucket key:@"king"];
+	[request startSynchronous];
+	success = [[request responseString] isEqualToString:@""];
+	GHAssertTrue(success,@"Failed to DELETE the copy from S3");
+
+	// Delete the bucket
+	request = [ASIS3BucketRequest DELETERequestWithBucket:bucket];
+	[request setRequestScheme:ASIS3RequestSchemeHTTPS];
+	[request startSynchronous];
+	GHAssertNil([request error],@"Failed to delete a bucket");
+
+	[ASIS3Request setSharedAccessKey:nil];
+	[ASIS3Request setSharedSecretAccessKey:nil];
+}
+
 
 @synthesize networkQueue;
 
