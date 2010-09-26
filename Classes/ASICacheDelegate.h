@@ -10,11 +10,14 @@
 @class ASIHTTPRequest;
 
 typedef enum _ASICachePolicy {
-	ASIDefaultCachePolicy = 0,
-	ASIIgnoreCachePolicy = 1,
-	ASIReloadIfDifferentCachePolicy = 2,
-	ASIOnlyLoadIfNotCachedCachePolicy = 3,
-	ASIUseCacheIfLoadFailsCachePolicy = 4
+	ASIUseDefaultCachePolicy = 0,
+	ASIDoNotReadFromCacheCachePolicy = 1,
+	ASIDoNotWriteToCacheCachePolicy = 2,
+	ASIAskServerIfModifiedWhenStaleCachePolicy = 4,
+	ASIAskServerIfModifiedCachePolicy = 8,
+	ASIOnlyLoadIfNotCachedCachePolicy = 16,
+	ASIDontLoadCachePolicy = 32,
+	ASIFallbackToCacheIfLoadFailsCachePolicy = 64
 } ASICachePolicy;
 
 typedef enum _ASICacheStoragePolicy {
@@ -29,6 +32,8 @@ typedef enum _ASICacheStoragePolicy {
 
 // Should return the cache policy that will be used when requests have their cache policy set to ASIDefaultCachePolicy
 - (ASICachePolicy)defaultCachePolicy;
+
+- (BOOL)canUseCachedDataForRequest:(ASIHTTPRequest *)request;
 
 // Should Remove cached data for a particular request
 - (void)removeCachedDataForRequest:(ASIHTTPRequest *)request;
@@ -52,4 +57,5 @@ typedef enum _ASICacheStoragePolicy {
 
 // Clear cached data stored for the passed storage policy
 - (void)clearCachedResponsesForStoragePolicy:(ASICacheStoragePolicy)cachePolicy;
+
 @end

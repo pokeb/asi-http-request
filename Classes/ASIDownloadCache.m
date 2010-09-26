@@ -25,7 +25,7 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 {
 	self = [super init];
 	[self setShouldRespectCacheControlHeaders:YES];
-	[self setDefaultCachePolicy:ASIReloadIfDifferentCachePolicy];
+	[self setDefaultCachePolicy:ASIUseDefaultCachePolicy];
 	[self setAccessLock:[[[NSRecursiveLock alloc] init] autorelease]];
 	return self;
 }
@@ -85,7 +85,7 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 {
 	[[self accessLock] lock];
 	
-	if ([request error] || ![request responseHeaders] || ([request responseStatusCode] != 200)) {
+	if ([request error] || ![request responseHeaders] || ([request responseStatusCode] != 200) || ([request cachePolicy] & ASIDoNotWriteToCacheCachePolicy)) {
 		[[self accessLock] unlock];
 		return;
 	}
@@ -94,17 +94,7 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 		[[self accessLock] unlock];
 		return;
 	}
-	
-	// If the request is set to use the default policy, use this cache's default policy
-	ASICachePolicy policy = [request cachePolicy];
-	if (policy == ASIDefaultCachePolicy) {
-		policy = [self defaultCachePolicy];
-	}
-	
-	if (policy == ASIIgnoreCachePolicy) {
-		[[self accessLock] unlock];
-		return;
-	}
+
 	NSString *path = nil;
 	if ([request cacheStoragePolicy] == ASICacheForSessionDurationCacheStoragePolicy) {
 		path = [[self storagePath] stringByAppendingPathComponent:sessionCacheFolder];
@@ -235,9 +225,27 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 		return NO;
 	}
 
+	// If we already have response headers for this request, check to see if the new content is different
+	if ([request responseHeaders]) {
+
+		// New content is not different
+		if ([request responseStatusCode] == 304) {
+			return YES;
+		}
+
+		// If the Etag or Last-Modified date are different from the one we have, we'll have to fetch this resource again
+		NSArray *headersToCompare = [NSArray arrayWithObjects:@"Etag",@"Last-Modified",nil];
+		for (NSString *header in headersToCompare) {
+			if (![[[request responseHeaders] objectForKey:header] isEqualToString:[cachedHeaders objectForKey:header]]) {
+				[[self accessLock] unlock];
+				return NO;
+			}
+		}
+	}
+
 	if ([self shouldRespectCacheControlHeaders]) {
 
-		// Look for an Expires header to see if the content is out of data
+		// Look for an Expires header to see if the content is out of date
 		NSString *expires = [cachedHeaders objectForKey:@"Expires"];
 		if (expires) {
 			if ([[ASIHTTPRequest dateFromRFC1123String:expires] timeIntervalSinceNow] < 0) {
@@ -266,17 +274,7 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 		
 	}
 	
-	// If we already have response headers for this request, check to see if the new content is different
-	if ([request responseHeaders] && [request responseStatusCode] != 304) {
-		// If the Etag or Last-Modified date are different from the one we have, fetch the document again
-		NSArray *headersToCompare = [NSArray arrayWithObjects:@"Etag",@"Last-Modified",nil];
-		for (NSString *header in headersToCompare) {
-			if (![[[request responseHeaders] objectForKey:header] isEqualToString:[cachedHeaders objectForKey:header]]) {
-				[[self accessLock] unlock];
-				return NO;
-			}
-		}
-	}
+
 	[[self accessLock] unlock];
 	return YES;
 }
@@ -293,8 +291,8 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 - (void)setDefaultCachePolicy:(ASICachePolicy)cachePolicy
 {
 	[[self accessLock] lock];
-	if (cachePolicy == ASIDefaultCachePolicy) {
-		defaultCachePolicy = ASIReloadIfDifferentCachePolicy;
+	if (!cachePolicy) {
+		defaultCachePolicy = ASIAskServerIfModifiedWhenStaleCachePolicy;
 	}  else {
 		defaultCachePolicy = cachePolicy;	
 	}
@@ -379,6 +377,49 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 	return dateFormatter;
 }
 
+
+- (BOOL)canUseCachedDataForRequest:(ASIHTTPRequest *)request
+{
+	// Ensure the request is allowed to read from the cache
+	if ([request cachePolicy] & ASIDoNotReadFromCacheCachePolicy) {
+		return NO;
+
+	// If we don't want to load the request whatever happens, always pretend we have cached data even if we don't
+	} else if ([request cachePolicy] & ASIDontLoadCachePolicy) {
+		return YES;
+	}
+
+	NSDictionary *headers = [self cachedHeadersForRequest:request];
+	if (!headers) {
+		return NO;
+	}
+	NSString *dataPath = [self pathToCachedResponseDataForRequest:request];
+	if (!dataPath) {
+		return NO;
+	}
+
+	// If we get here, we have cached data
+
+	// If we have cached data, we can use it
+	if ([request cachePolicy] & ASIOnlyLoadIfNotCachedCachePolicy) {
+		return YES;
+
+	// If we have cached data that is current, we can use it
+	} else if ([request cachePolicy] & ASIAskServerIfModifiedWhenStaleCachePolicy) {
+		if ([self isCachedDataCurrentForRequest:request]) {
+			return YES;
+		}
+
+	// If we've got headers from a conditional GET and the cached data is still current, we can use it
+	} else if ([request cachePolicy] & ASIAskServerIfModifiedCachePolicy) {
+		if (![request responseHeaders]) {
+			return NO;
+		} else if ([self isCachedDataCurrentForRequest:request]) {
+			return YES;
+		}
+	}
+	return NO;
+}
 
 @synthesize storagePath;
 @synthesize defaultCachePolicy;

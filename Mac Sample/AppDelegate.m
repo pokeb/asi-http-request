@@ -320,10 +320,10 @@
 	
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/table-row-data.xml"]];
 	[request setDownloadCache:[ASIDownloadCache sharedCache]];
-	[[ASIDownloadCache sharedCache] setDefaultCachePolicy:ASIOnlyLoadIfNotCachedCachePolicy];
 	[request setDidFinishSelector:@selector(tableViewDataFetchFinished:)];
 	[request setDelegate:self];
 	[[self tableQueue] addOperation:request];
+	[[self tableQueue] setDownloadProgressDelegate:progressIndicator];
 	[[self tableQueue] go];
 }
 
@@ -367,6 +367,7 @@
 		return [[[self rowData] objectAtIndex:rowIndex] objectForKey:@"description"];
 	}
 }
+
 
 - (void)rowImageDownloadFinished:(ASIHTTPRequest *)request
 {

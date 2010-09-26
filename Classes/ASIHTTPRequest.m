@@ -167,7 +167,7 @@ static NSOperationQueue *sharedQueue = nil;
 - (BOOL)shouldTimeOut;
 
 
-- (BOOL)useDataFromCache;
+- (void)useDataFromCache;
 
 // Called to update the size of a partial download when starting a request, or retrying after a timeout
 - (void)updatePartialDownloadSize;
@@ -295,7 +295,7 @@ static NSOperationQueue *sharedQueue = nil;
 
 + (id)requestWithURL:(NSURL *)newURL usingCache:(id <ASICacheDelegate>)cache
 {
-	return [self requestWithURL:newURL usingCache:cache andCachePolicy:ASIDefaultCachePolicy];
+	return [self requestWithURL:newURL usingCache:cache andCachePolicy:ASIUseDefaultCachePolicy];
 }
 
 + (id)requestWithURL:(NSURL *)newURL usingCache:(id <ASICacheDelegate>)cache andCachePolicy:(ASICachePolicy)policy
@@ -690,18 +690,21 @@ static NSOperationQueue *sharedQueue = nil;
 		[self buildRequestHeaders];
 		
 		if ([self downloadCache]) {
-			if ([self cachePolicy] == ASIDefaultCachePolicy) {
+
+			// If this request should use the default policy, set its policy to the download cache's default policy
+			if (![self cachePolicy]) {
 				[self setCachePolicy:[[self downloadCache] defaultCachePolicy]];
 			}
 
-			// See if we should pull from the cache rather than fetching the data
-			if ([self cachePolicy] == ASIOnlyLoadIfNotCachedCachePolicy) {
-				if ([self useDataFromCache]) {
-					return;
-				}
-			} else if ([self cachePolicy] == ASIReloadIfDifferentCachePolicy) {
+			// If have have cached data that is valid for this request, use that and stop
+			if ([[self downloadCache] canUseCachedDataForRequest:self]) {
+				[self useDataFromCache];
+				return;
+			}
 
-				// Force a conditional GET if we have a cached version of this content already
+			// If cached data is stale, or we have been told to ask the server if it has been modified anyway, we need to add headers for a conditional GET
+			if ([self cachePolicy] & (ASIAskServerIfModifiedWhenStaleCachePolicy|ASIAskServerIfModifiedCachePolicy)) {
+
 				NSDictionary *cachedHeaders = [[self downloadCache] cachedHeadersForRequest:self];
 				if (cachedHeaders) {
 					NSString *etag = [cachedHeaders objectForKey:@"Etag"];
@@ -1755,10 +1758,9 @@ static NSOperationQueue *sharedQueue = nil;
 		return;
 	}
 	
-	if ([self downloadCache] && [self cachePolicy] == ASIUseCacheIfLoadFailsCachePolicy) {
-		if ([self useDataFromCache]) {
-			return;
-		}
+	if ([self downloadCache] && ([self cachePolicy] & ASIFallbackToCacheIfLoadFailsCachePolicy)) {
+		[self useDataFromCache];
+		return;
 	}
 	
 	
@@ -1817,11 +1819,13 @@ static NSOperationQueue *sharedQueue = nil;
 	[self setResponseStatusCode:(int)CFHTTPMessageGetResponseStatusCode(message)];
 	[self setResponseStatusMessage:[(NSString *)CFHTTPMessageCopyResponseStatusLine(message) autorelease]];
 	
-	if ([self downloadCache] && [self cachePolicy] == ASIReloadIfDifferentCachePolicy) {
-		if ([self useDataFromCache]) {
-			CFRelease(message);
-			return;
-		}
+	if ([self downloadCache] && ([[self downloadCache] canUseCachedDataForRequest:self])) {
+		// Read the response from the cache
+		[self useDataFromCache];
+		// Update the response headers (this will usually move the expiry date into the future)
+		[[self downloadCache] storeResponseForRequest:self maxAge:[self secondsToCache]];
+		CFRelease(message);
+		return;
 	}
 
 	// Is the server response a challenge for credentials?
@@ -2910,47 +2914,37 @@ static NSOperationQueue *sharedQueue = nil;
 	[self release];
 }
 
-- (BOOL)useDataFromCache
+- (void)useDataFromCache
 {
 	NSDictionary *headers = [[self downloadCache] cachedHeadersForRequest:self];
-	if (!headers) {
-		return NO;
-	}
 	NSString *dataPath = [[self downloadCache] pathToCachedResponseDataForRequest:self];
-	if (!dataPath) {
-		return NO;
-	}
-	
-	if ([self cachePolicy] == ASIReloadIfDifferentCachePolicy) {
-		if (![[self downloadCache] isCachedDataCurrentForRequest:self]) {
-			[[self downloadCache] removeCachedDataForRequest:self];
-			return NO;
-		}
-	}
 
-	// only 200 responses are stored in the cache, so let the client know
-	// this was a successful response
-	[self setResponseStatusCode:200];
-        
-	[self setDidUseCachedResponse:YES];
-	
 	ASIHTTPRequest *theRequest = self;
 	if ([self mainRequest]) {
 		theRequest = [self mainRequest];
 	}
-	[theRequest setResponseHeaders:headers];
-	if ([theRequest downloadDestinationPath]) {
-		[theRequest setDownloadDestinationPath:dataPath];
-	} else {
-		[theRequest setRawResponseData:[NSMutableData dataWithContentsOfFile:dataPath]];
+
+	if (headers && dataPath) {
+
+		// only 200 responses are stored in the cache, so let the client know
+		// this was a successful response
+		[self setResponseStatusCode:200];
+
+		[self setDidUseCachedResponse:YES];
+
+		[theRequest setResponseHeaders:headers];
+		if ([theRequest downloadDestinationPath]) {
+			[theRequest setDownloadDestinationPath:dataPath];
+		} else {
+			[theRequest setRawResponseData:[NSMutableData dataWithContentsOfFile:dataPath]];
+		}
+		[theRequest setContentLength:[[[self responseHeaders] objectForKey:@"Content-Length"] longLongValue]];
+		[theRequest setTotalBytesRead:[self contentLength]];
+
+		[theRequest parseStringEncodingFromHeaders];
+
+		[theRequest setResponseCookies:[NSHTTPCookie cookiesWithResponseHeaderFields:headers forURL:[self url]]];
 	}
-	[theRequest setContentLength:[[[self responseHeaders] objectForKey:@"Content-Length"] longLongValue]];
-	[theRequest setTotalBytesRead:[self contentLength]];
-
-	[theRequest parseStringEncodingFromHeaders];
-
-	[theRequest setResponseCookies:[NSHTTPCookie cookiesWithResponseHeaderFields:headers forURL:[self url]]];
-
 	[theRequest setComplete:YES];
 	[theRequest setDownloadComplete:YES];
 	
@@ -2960,7 +2954,6 @@ static NSOperationQueue *sharedQueue = nil;
 	if ([self mainRequest]) {
 		[self markAsFinished];
 	}
-	return YES;
 }
 
 - (BOOL)retryUsingNewConnection

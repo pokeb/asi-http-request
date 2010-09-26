@@ -16,71 +16,145 @@
 {
 	[[ASIDownloadCache sharedCache] clearCachedResponsesForStoragePolicy:ASICacheForSessionDurationCacheStoragePolicy];
 	[[ASIDownloadCache sharedCache] clearCachedResponsesForStoragePolicy:ASICachePermanentlyCacheStoragePolicy];
-	[[ASIDownloadCache sharedCache] setDefaultCachePolicy:ASIReloadIfDifferentCachePolicy];
-	
+	[[ASIDownloadCache sharedCache] setDefaultCachePolicy:ASIUseDefaultCachePolicy];
+	[ASIHTTPRequest setDefaultCache:nil];
+
 	// Ensure a request without a download cache does not pull from the cache
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/cache-away"]];
 	[request startSynchronous];
 	BOOL success = ![request didUseCachedResponse];
 	GHAssertTrue(success,@"Used cached response when we shouldn't have");
-	
+
+	// Make all requests use the cache
+	[ASIHTTPRequest setDefaultCache:[ASIDownloadCache sharedCache]];
+
 	// Check a request isn't setting didUseCachedResponse when the data is not in the cache
 	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/cache-away"]];
-	[request setDownloadCache:[ASIDownloadCache sharedCache]];
 	[request startSynchronous];
 	success = ![request didUseCachedResponse];
 	GHAssertTrue(success,@"Cached response should not have been available");	
-	
-	// Ensure the cache works
+
+	// Test read from the cache
 	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/cache-away"]];
-	[request setDownloadCache:[ASIDownloadCache sharedCache]];
 	[request startSynchronous];
 	success = [request didUseCachedResponse];
 	GHAssertTrue(success,@"Failed to use cached response");
-	
+
+	// Test preventing reads from the cache
+	[[ASIDownloadCache sharedCache] setShouldRespectCacheControlHeaders:YES];
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/cache-away"]];
+	[request setCachePolicy:ASIAskServerIfModifiedWhenStaleCachePolicy|ASIDoNotReadFromCacheCachePolicy];
+	[request startSynchronous];
+	success = ![request didUseCachedResponse];
+	GHAssertTrue(success,@"Used the cache when reads were not enabled");
+
+	//Empty the cache
+	[[ASIDownloadCache sharedCache] clearCachedResponsesForStoragePolicy:ASICacheForSessionDurationCacheStoragePolicy];
+
+	// Test preventing writes to the cache
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/cache-away"]];
+	[request setCachePolicy:ASIAskServerIfModifiedWhenStaleCachePolicy|ASIDoNotWriteToCacheCachePolicy];
+	[request startSynchronous];
+
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/cache-away"]];
+	[request setCachePolicy:ASIAskServerIfModifiedWhenStaleCachePolicy];
+	[request startSynchronous];
+	success = ![request didUseCachedResponse];
+	GHAssertTrue(success,@"Used cached response when the cache should have been empty");
+
 	// Test respecting etag
 	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/content-always-new"]];
-	[request setDownloadCache:[ASIDownloadCache sharedCache]];
 	[request startSynchronous];
 	success = ![request didUseCachedResponse];
 	GHAssertTrue(success,@"Used cached response when we shouldn't have");
-	
+
 	// Etag will be different on the second request
 	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/content-always-new"]];
-	[request setDownloadCache:[ASIDownloadCache sharedCache]];
+
+	// Note: we are forcing it to perform a conditional GET
+	[request setCachePolicy:ASIDoNotReadFromCacheCachePolicy|ASIAskServerIfModifiedCachePolicy];
 	[request startSynchronous];
 	success = ![request didUseCachedResponse];
 	GHAssertTrue(success,@"Used cached response when we shouldn't have");
-	
+
 	// Test ignoring server headers
 	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/no-cache"]];
-	[request setDownloadCache:[ASIDownloadCache sharedCache]];
 	[[ASIDownloadCache sharedCache] setShouldRespectCacheControlHeaders:NO];
 	[request startSynchronous];
+
 	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/no-cache"]];
-	[request setDownloadCache:[ASIDownloadCache sharedCache]];
 	[[ASIDownloadCache sharedCache] setShouldRespectCacheControlHeaders:NO];
 	[request startSynchronous];
+
 	success = [request didUseCachedResponse];
 	GHAssertTrue(success,@"Failed to use cached response");
-	
+
 	// Test ASIOnlyLoadIfNotCachedCachePolicy
 	[[ASIDownloadCache sharedCache] setShouldRespectCacheControlHeaders:YES];
 	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/content-always-new"]];
-	[request setDownloadCache:[ASIDownloadCache sharedCache]];
 	[[ASIDownloadCache sharedCache] setDefaultCachePolicy:ASIOnlyLoadIfNotCachedCachePolicy];
 	[request startSynchronous];
 	success = [request didUseCachedResponse];
 	GHAssertTrue(success,@"Failed to use cached response");
-	
+
 	// Test clearing the cache
 	[[ASIDownloadCache sharedCache] clearCachedResponsesForStoragePolicy:ASICacheForSessionDurationCacheStoragePolicy];
-	
+
 	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/cache-away"]];
-	[request setDownloadCache:[ASIDownloadCache sharedCache]];
 	[request startSynchronous];
 	success = ![request didUseCachedResponse];
 	GHAssertTrue(success,@"Cached response should not have been available");
+
+	// Test ASIAskServerIfModifiedWhenStaleCachePolicy
+	[[ASIDownloadCache sharedCache] setDefaultCachePolicy:ASIUseDefaultCachePolicy];
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/content-always-new"]];
+	[request setSecondsToCache:2];
+	[request startSynchronous];
+
+	// This request should not go to the network
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/content-always-new"]];
+	[request startSynchronous];
+	success = [request didUseCachedResponse];
+	GHAssertTrue(success,@"Failed to use cached response");
+
+	[NSThread sleepForTimeInterval:2];
+
+	// This request will perform a conditional GET
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/content-always-new"]];
+	[request setSecondsToCache:2];
+	[request startSynchronous];
+	success = ![request didUseCachedResponse];
+	GHAssertTrue(success,@"Failed to use cached response");
+
+	// Test ASIFallbackToCacheIfLoadFailsCachePolicy
+	// Store something in the cache
+	[request setURL:[NSURL URLWithString:@"http://inva.lid"]];
+	[request setResponseHeaders:[NSDictionary dictionaryWithObject:@"test" forKey:@"test"]];
+	[request setRawResponseData:(NSMutableData *)[@"test" dataUsingEncoding:NSUTF8StringEncoding]];
+	[[ASIDownloadCache sharedCache] storeResponseForRequest:request maxAge:0];
+
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://inva.lid"]];
+	[request setCachePolicy:ASIFallbackToCacheIfLoadFailsCachePolicy];
+	[request startSynchronous];
+
+	success = [request didUseCachedResponse];
+	GHAssertTrue(success,@"Failed to use cached response");
+
+	success = [[request responseString] isEqualToString:@"test"];
+	GHAssertTrue(success,@"Failed to read cached response");
+
+	success = [[[request responseHeaders] valueForKey:@"test"] isEqualToString:@"test"];
+	GHAssertTrue(success,@"Failed to read cached response headers");
+
+	// Test ASIDontLoadCachePolicy
+	[[ASIDownloadCache sharedCache] clearCachedResponsesForStoragePolicy:ASICacheForSessionDurationCacheStoragePolicy];
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/content-always-new"]];
+	[request setCachePolicy:ASIDontLoadCachePolicy];
+	[request startSynchronous];
+	success = ![request error];
+	GHAssertTrue(success,@"Request had an error");
+	success = ![request contentLength];
+	GHAssertTrue(success,@"Request had a response");
 }
 
 - (void)testDefaultPolicy
@@ -101,45 +175,20 @@
 
 - (void)testNoCache
 {
-	// Test default cache policy
-	[[ASIDownloadCache sharedCache] clearCachedResponsesForStoragePolicy:ASICacheForSessionDurationCacheStoragePolicy];
-	[[ASIDownloadCache sharedCache] setDefaultCachePolicy:ASIIgnoreCachePolicy];
-	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/the_great_american_novel_(abridged).txt"]];
-	[request setDownloadCache:[ASIDownloadCache sharedCache]];
-	[request startSynchronous];
-	
-	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/the_great_american_novel_(abridged).txt"]];
-	[request setDownloadCache:[ASIDownloadCache sharedCache]];
-	[request startSynchronous];
-	BOOL success = ![request didUseCachedResponse];
-	GHAssertTrue(success,@"Data should not have been stored in the cache");	
-	
-	// Test request cache policy
-	[[ASIDownloadCache sharedCache] setDefaultCachePolicy:ASIDefaultCachePolicy];
-	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/the_great_american_novel_(abridged).txt"]];
-	[request setCachePolicy:ASIIgnoreCachePolicy];
-	[request setDownloadCache:[ASIDownloadCache sharedCache]];
-	[request startSynchronous];
-	
-	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/the_great_american_novel_(abridged).txt"]];
-	[request setDownloadCache:[ASIDownloadCache sharedCache]];
-	[request startSynchronous];
-	success = ![request didUseCachedResponse];
-	GHAssertTrue(success,@"Data should not have been stored in the cache");
-	
+
 	// Test server no-cache headers
 	[[ASIDownloadCache sharedCache] clearCachedResponsesForStoragePolicy:ASICacheForSessionDurationCacheStoragePolicy];
 	NSArray *cacheHeaders = [NSArray arrayWithObjects:@"cache-control/no-cache",@"cache-control/no-store",@"pragma/no-cache",nil];
 	for (NSString *cacheType in cacheHeaders) {
 		NSString *url = [NSString stringWithFormat:@"http://asi/ASIHTTPRequest/tests/%@",cacheType];
-		request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:url]];
+		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:url]];
 		[request setDownloadCache:[ASIDownloadCache sharedCache]];
 		[request startSynchronous];
 		
 		request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:url]];
 		[request setDownloadCache:[ASIDownloadCache sharedCache]];
 		[request startSynchronous];
-		success = ![request didUseCachedResponse];
+		BOOL success = ![request didUseCachedResponse];
 		GHAssertTrue(success,@"Data should not have been stored in the cache");
 	}
 }
@@ -168,7 +217,7 @@
 - (void)testExpiry
 {
 	[[ASIDownloadCache sharedCache] clearCachedResponsesForStoragePolicy:ASICacheForSessionDurationCacheStoragePolicy];
-	[[ASIDownloadCache sharedCache] setDefaultCachePolicy:ASIReloadIfDifferentCachePolicy];
+	[[ASIDownloadCache sharedCache] setDefaultCachePolicy:ASIAskServerIfModifiedCachePolicy];
 
 	NSArray *headers = [NSArray arrayWithObjects:@"last-modified",@"etag",@"expires",@"max-age",nil];
 	for (NSString *header in headers) {
@@ -191,7 +240,7 @@
 - (void)testCustomExpiry
 {
 	[[ASIDownloadCache sharedCache] clearCachedResponsesForStoragePolicy:ASICacheForSessionDurationCacheStoragePolicy];
-	[[ASIDownloadCache sharedCache] setDefaultCachePolicy:ASIReloadIfDifferentCachePolicy];
+	[[ASIDownloadCache sharedCache] setDefaultCachePolicy:ASIUseDefaultCachePolicy];
 	[[ASIDownloadCache sharedCache] setShouldRespectCacheControlHeaders:YES];
 
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/cache-away"]];
@@ -223,7 +272,7 @@
 {
 	// Test default cache policy
 	[[ASIDownloadCache sharedCache] clearCachedResponsesForStoragePolicy:ASICacheForSessionDurationCacheStoragePolicy];
-	[[ASIDownloadCache sharedCache] setDefaultCachePolicy:ASIReloadIfDifferentCachePolicy];
+	[[ASIDownloadCache sharedCache] setDefaultCachePolicy:ASIUseDefaultCachePolicy];
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/the_great_american_novel_(abridged).txt"]];
 	[request setDownloadCache:[ASIDownloadCache sharedCache]];
 	[request startSynchronous];
@@ -302,14 +351,14 @@
 {
 	[[ASIDownloadCache sharedCache] clearCachedResponsesForStoragePolicy:ASICacheForSessionDurationCacheStoragePolicy];
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/i/logo.png"]];
-	[request setCachePolicy:ASIReloadIfDifferentCachePolicy];
+	[request setCachePolicy:ASIUseDefaultCachePolicy];
 	[request setDownloadCache:[ASIDownloadCache sharedCache]];
 	[request setDelegate:self];
 	[request startSynchronous];
 
 	requestsFinishedCount = 0;
 	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/i/logo.png"]];
-	[request setCachePolicy:ASIReloadIfDifferentCachePolicy];
+	[request setCachePolicy:ASIUseDefaultCachePolicy];
 	[request setDownloadCache:[ASIDownloadCache sharedCache]];
 	[request setDidFinishSelector:@selector(finishCached:)];
 	[request setDelegate:self];
