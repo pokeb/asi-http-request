@@ -12,6 +12,12 @@
 #import "DetailCell.h"
 #import "ToggleCell.h"
 
+@interface UIAlertView (SPI)
+- (void) addTextFieldWithValue:(NSString *) value label:(NSString *) label;
+- (void) addTextFieldAtIndex:(NSUInteger) index;
+- (UITextField *) textFieldAtIndex:(NSUInteger) index;
+@end
+
 @implementation AuthenticationViewController
 
 - (IBAction)fetchTopSecretInformation:(id)sender
