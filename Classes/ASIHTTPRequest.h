@@ -65,6 +65,14 @@ extern NSString* const NetworkRequestErrorDomain;
 // This number is not official, as far as I know there is no officially documented bandwidth limit
 extern unsigned long const ASIWWANBandwidthThrottleAmount;
 
+#if NS_BLOCKS_AVAILABLE
+typedef void (^ASIHTTPRequestBlock)(ASIHTTPRequest *request);
+//typedef BOOL (^ASIHTTPRequestAuthenticationBlock)(ASIHTTPRequest *request);
+typedef void (^ASIHTTPRequestSizeBlock)(ASIHTTPRequest *request, long long size);
+typedef void (^ASIHTTPRequestProgressBlock)(ASIHTTPRequest *request, unsigned long long size, unsigned long long total);
+typedef void (^ASIHTTPRequestDataReceivedBlock)(ASIHTTPRequest *request, NSData *data);
+#endif
+
 @interface ASIHTTPRequest : NSOperation <NSCopying> {
 	
 	// The url for this operation, should include GET params in the query string where appropriate
@@ -427,6 +435,41 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 
 	// Set secondsToCache to use a custom time interval for expiring the response when it is stored in a cache
 	NSTimeInterval secondsToCache;
+    
+#if NS_BLOCKS_AVAILABLE
+    //block to execute when request starts
+    ASIHTTPRequestBlock startedBlock;
+    
+    //block to execute when headers are received
+    ASIHTTPRequestBlock headersReceivedBlock;
+    
+    //block to execute when request completes successfully
+    ASIHTTPRequestBlock completionBlock;
+    
+    //block to execute when request fails
+    ASIHTTPRequestBlock failureBlock;
+    
+    //block for when bytes are received
+    ASIHTTPRequestProgressBlock bytesReceivedBlock;
+    
+    //block for when bytes are sent
+    ASIHTTPRequestProgressBlock bytesSentBlock;
+    
+    //block for when download size is incremented
+    ASIHTTPRequestSizeBlock downloadSizeIncrementedBlock;
+    
+    //block for when upload size is incremented
+    ASIHTTPRequestSizeBlock uploadSizeIncrementedBlock;
+    
+    //block for handling raw bytes received
+    ASIHTTPRequestDataReceivedBlock dataReceivedBlock;
+    
+    //block for handling authentication
+    ASIHTTPRequestBlock authenticationNeededBlock;
+    
+    //block for handling proxy authentication
+    ASIHTTPRequestBlock proxyAuthenticationNeededBlock;    
+#endif 
 }
 
 #pragma mark init / dealloc
@@ -439,6 +482,20 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 
 + (id)requestWithURL:(NSURL *)newURL usingCache:(id <ASICacheDelegate>)cache;
 + (id)requestWithURL:(NSURL *)newURL usingCache:(id <ASICacheDelegate>)cache andCachePolicy:(ASICachePolicy)policy;
+
+#if NS_BLOCKS_AVAILABLE
+- (void)setStartedBlock:(ASIHTTPRequestBlock)aStartedBlock;
+- (void)setHeadersReceivedBlock:(ASIHTTPRequestBlock)aReceivedBlock;
+- (void)setCompletionBlock:(ASIHTTPRequestBlock)aCompletionBlock;
+- (void)setFailedBlock:(ASIHTTPRequestBlock)aFailedBlock;
+- (void)setBytesReceivedBlock:(ASIHTTPRequestProgressBlock) aBytesReceivedBlock;
+- (void)setBytesSentBlock:(ASIHTTPRequestProgressBlock)aBytesSentBlock;
+- (void)setDownloadSizeIncrementedBlock:(ASIHTTPRequestSizeBlock) aDownloadSizeIncrementedBlock;
+- (void)setUploadSizeIncrementedBlock:(ASIHTTPRequestSizeBlock) anUploadSizeIncrementedBlock;
+- (void)setDataReceivedBlock:(ASIHTTPRequestDataReceivedBlock)aReceivedBlock;
+- (void)setAuthenticationNeededBlock:(ASIHTTPRequestBlock)anAuthenticationBlock;
+- (void)setProxyAuthenticationNeededBlock:(ASIHTTPRequestBlock)aProxyAuthenticationBlock;
+#endif
 
 #pragma mark setup request
 
