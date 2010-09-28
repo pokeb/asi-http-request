@@ -50,7 +50,7 @@
 	if (![self fileData]) {
 		[self setFileData:[NSMutableDictionary dictionary]];
 	}
-	
+
 	// If data is a path to a local file
 	if ([data isKindOfClass:[NSString class]]) {
 		BOOL isDirectory = NO;
@@ -63,14 +63,14 @@
 		if (!fileName) {
 			fileName = [(NSString *)data lastPathComponent];
 		}
-	
+
 		// If we were given the path to a file, and the user didn't specify a mime type, we can detect it (currently only on Mac OS)
 		// Will return 'application/octet-stream' on iPhone, or if the mime type cannot be determined
 		if (!contentType) {
 			contentType = [ASIHTTPRequest mimeTypeForFileAtPath:data];
 		}
 	}
-	
+
 	NSDictionary *fileInfo = [NSDictionary dictionaryWithObjectsAndKeys:data, @"data", contentType, @"contentType", fileName, @"fileName", nil];
 	[[self fileData] setObject:fileInfo forKey:key];
 	[self setRequestMethod: @"POST"];
@@ -89,7 +89,7 @@
 	if (!contentType) {
 		contentType = @"application/octet-stream";
 	}
-	
+
 	NSDictionary *fileInfo = [NSDictionary dictionaryWithObjectsAndKeys:data, @"data", contentType, @"contentType", fileName, @"fileName", nil];
 	[[self fileData] setObject:fileInfo forKey:key];
 	[self setRequestMethod: @"POST"];
@@ -100,25 +100,25 @@
 	if (![self postData] && ![self fileData]) {
 		[super buildPostBody];
 		return;
-	}	
+	}
 	if ([[self fileData] count] > 0) {
 		[self setShouldStreamPostDataFromDisk:YES];
 	}
-	 
-	
+
+
 	// Set your own boundary string only if really obsessive. We don't bother to check if post data contains the boundary, since it's pretty unlikely that it does.
 	NSString *stringBoundary = @"0xKhTmLbOuNdArY";
-	
+
 	[self addRequestHeader:@"Content-Type" value:[NSString stringWithFormat:@"multipart/form-data; boundary=%@",stringBoundary]];
-	
+
 	[self appendPostData:[[NSString stringWithFormat:@"--%@\r\n",stringBoundary] dataUsingEncoding:NSUTF8StringEncoding]];
-	
+
 	// Adds post data
 	NSData *endItemBoundary = [[NSString stringWithFormat:@"\r\n--%@\r\n",stringBoundary] dataUsingEncoding:NSUTF8StringEncoding];
 	NSEnumerator *e = [[self postData] keyEnumerator];
 	NSString *key;
 	int i=0;
-	while (key = [e nextObject]) {
+	while ((key = [e nextObject])) {
 		[self appendPostData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"\r\n\r\n",key] dataUsingEncoding:NSUTF8StringEncoding]];
 		[self appendPostData:[[[self postData] objectForKey:key] dataUsingEncoding:NSUTF8StringEncoding]];
 		i++;
@@ -126,11 +126,11 @@
 			[self appendPostData:endItemBoundary];
 		}
 	}
-	
+
 	// Adds files to upload
 	e = [fileData keyEnumerator];
 	i=0;
-	while (key = [e nextObject]) {
+	while ((key = [e nextObject])) {
 		NSDictionary *fileInfo = [[self fileData] objectForKey:key];
 		id file = [fileInfo objectForKey:@"data"];
 		NSString *contentType = [fileInfo objectForKey:@"contentType"];
@@ -146,13 +146,13 @@
 		}
 		i++;
 		// Only add the boundary if this is not the last item in the post body
-		if (i != [[self fileData] count]) { 
+		if (i != [[self fileData] count]) {
 			[self appendPostData:endItemBoundary];
 		}
 	}
-	
+
 	[self appendPostData:[[NSString stringWithFormat:@"\r\n--%@--\r\n",stringBoundary] dataUsingEncoding:NSUTF8StringEncoding]];
-	
+
 	[super buildPostBody];
 }
 

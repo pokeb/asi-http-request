@@ -33,7 +33,7 @@ NSLock *dialogLock = nil;
 	[sharedDialog setRequest:request];
 	[sharedDialog setType:ASIProxyAuthenticationType];
 	[sharedDialog show];
-	[dialogLock unlock];	
+	[dialogLock unlock];
 }
 
 + (void)presentAuthenticationDialogForRequest:(ASIHTTPRequest *)request
@@ -44,7 +44,7 @@ NSLock *dialogLock = nil;
 	[sharedDialog setRequest:request];
 	[sharedDialog show];
 	[dialogLock unlock];
-	
+
 }
 
 - (void)show
@@ -53,7 +53,7 @@ NSLock *dialogLock = nil;
 	[self setLoginDialog:[[[UIActionSheet alloc] init] autorelease]];
 	[[self loginDialog] setActionSheetStyle:UIActionSheetStyleBlackOpaque];
 	[[self loginDialog] setDelegate:self];
-	
+
 	// We show the login form in a table view, similar to Safari's authentication dialog
 	UITableView *table = [[[UITableView alloc] initWithFrame:CGRectMake(0,80,320,480) style:UITableViewStyleGrouped] autorelease];
 	[table setDelegate:self];
@@ -61,7 +61,7 @@ NSLock *dialogLock = nil;
 	[[self loginDialog] addSubview:table];
 	[[self loginDialog] showInView:[[[UIApplication sharedApplication] windows] objectAtIndex:0]];
 	[[self loginDialog] setFrame:CGRectMake(0,0,320,480)];
-	
+
 	// Setup the title (Couldn't figure out how to put this in the same toolbar as the buttons)
 	UIToolbar *titleBar = [[[UIToolbar alloc] initWithFrame:CGRectMake(0,0,320,30)] autorelease];
 	UILabel *label = [[[UILabel alloc] initWithFrame:CGRectMake(10,0,300,30)] autorelease];
@@ -71,23 +71,23 @@ NSLock *dialogLock = nil;
 		[label setText:@"Login to this secure server."];
 	}
 	[label setTextColor:[UIColor blackColor]];
-	[label setFont:[UIFont systemFontOfSize:13.0]];
-	[label setShadowColor:[UIColor colorWithRed:1 green:1 blue:1 alpha:0.5]];
-	[label setShadowOffset:CGSizeMake(0, 1.0)];
+	[label setFont:[UIFont systemFontOfSize:13.0f]];
+	[label setShadowColor:[UIColor colorWithRed:1.0f green:1.0f blue:1.0f alpha:0.5f]];
+	[label setShadowOffset:CGSizeMake(0.0f, 1.0f)];
 	[label setOpaque:NO];
 	[label setBackgroundColor:nil];
 	[label setTextAlignment:UITextAlignmentCenter];
-	
+
 	[titleBar addSubview:label];
 	[[self loginDialog] addSubview:titleBar];
-	
-	// Setup the toolbar 
+
+	// Setup the toolbar
 	UIToolbar *toolbar = [[[UIToolbar alloc] initWithFrame:CGRectMake(0,30,320,50)] autorelease];
 
 	NSMutableArray *items = [[[NSMutableArray alloc] init] autorelease];
 	UIBarButtonItem *backButton = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self action:@selector(cancelAuthenticationFromDialog:)] autorelease];
 	[items addObject:backButton];
-	
+
 	label = [[[UILabel alloc] initWithFrame:CGRectMake(0,0,170,50)] autorelease];
 	if ([self type] == ASIProxyAuthenticationType) {
 		[label setText:[[self request] proxyHost]];
@@ -95,13 +95,13 @@ NSLock *dialogLock = nil;
 		[label setText:[[[self request] url] host]];
 	}
 	[label setTextColor:[UIColor whiteColor]];
-	[label setFont:[UIFont boldSystemFontOfSize:22.0]];
-	[label setShadowColor:[UIColor colorWithRed:0 green:0 blue:0 alpha:0.5]];
-	[label setShadowOffset:CGSizeMake(0, -1.0)];
+	[label setFont:[UIFont boldSystemFontOfSize:22.0f]];
+	[label setShadowColor:[UIColor colorWithRed:0.0f green:0.0f blue:0.0f alpha:0.5f]];
+	[label setShadowOffset:CGSizeMake(0.0f, -1.0f)];
 	[label setOpaque:NO];
 	[label setBackgroundColor:nil];
 	[label setTextAlignment:UITextAlignmentCenter];
-	
+
 	[toolbar addSubview:label];
 
 	UIBarButtonItem *labelButton = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:nil action:nil] autorelease];
@@ -109,13 +109,13 @@ NSLock *dialogLock = nil;
 	[items addObject:labelButton];
 	[items addObject:[[[UIBarButtonItem alloc] initWithTitle:@"Login" style:UIBarButtonItemStyleDone target:self action:@selector(loginWithCredentialsFromDialog:)] autorelease]];
 	[toolbar setItems:items];
-	
+
 	[[self loginDialog] addSubview:toolbar];
-	
+
 	// Force reload the table content, and focus the first field to show the keyboard
 	[table reloadData];
 	[[[[table cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]] subviews] objectAtIndex:2] becomeFirstResponder];
-	
+
 }
 
 - (void)cancelAuthenticationFromDialog:(id)sender
@@ -128,15 +128,15 @@ NSLock *dialogLock = nil;
 {
 	NSString *username = [[[[[[[self loginDialog] subviews] objectAtIndex:0] cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]] subviews] objectAtIndex:2] text];
 	NSString *password = [[[[[[[self loginDialog] subviews] objectAtIndex:0] cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:1]] subviews] objectAtIndex:2] text];
-	
+
 	if ([self type] == ASIProxyAuthenticationType) {
 		[[self request] setProxyUsername:username];
 		[[self request] setProxyPassword:password];
 	} else {
 		[[self request] setUsername:username];
-		[[self request] setPassword:password];		
+		[[self request] setPassword:password];
 	}
-	
+
 	// Handle NTLM domains
 	NSString *scheme = ([self type] == ASIStandardAuthenticationType) ? [[self request] authenticationScheme] : [[self request] proxyAuthenticationScheme];
 	if ([scheme isEqualToString:(NSString *)kCFHTTPAuthenticationSchemeNTLM]) {
@@ -147,9 +147,9 @@ NSLock *dialogLock = nil;
 			[[self request] setDomain:domain];
 		}
 	}
-	
+
 	[[self loginDialog] dismissWithClickedButtonIndex:1 animated:YES];
-	[[self request] retryUsingSuppliedCredentials];	
+	[[self request] retryUsingSuppliedCredentials];
 }
 
 
@@ -199,9 +199,9 @@ NSLock *dialogLock = nil;
 		[textField setSecureTextEntry:YES];
 	} else if ([indexPath section] == 2) {
 		[textField setPlaceholder:@"Domain"];
-	}	
+	}
 	[cell addSubview:textField];
-	
+
 	return cell;
 }
 
