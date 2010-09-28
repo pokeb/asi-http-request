@@ -19,6 +19,12 @@
 	[self setRequest:[ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/top_secret/"]]];
 	[request setUseKeychainPersistence:[useKeychain isOn]];
 	[request setDelegate:self];
+    [request setAuthenticationNeededBlock:^(ASIHTTPRequest *request){
+        NSLog(@"authentication needed");
+    }];
+    [request setProxyAuthenticationNeededBlock:^(ASIHTTPRequest *request){
+        NSLog(@"proxy authentication needed");
+    }];
 	[request setShouldPresentAuthenticationDialog:[useBuiltInDialog isOn]];
 	[request setDidFinishSelector:@selector(topSecretFetchComplete:)];
 	[request setDidFailSelector:@selector(topSecretFetchFailed:)];
