@@ -153,7 +153,7 @@ static const NSUInteger kDomainSection = 1;
 
 	// Reset the transform so we can set the size
 	self.view.layer.affineTransform = CGAffineTransformIdentity;
-	self.view.frame = (CGRect){0,0,f.size};
+	self.view.frame = (CGRect){ { 0, 0 }, f.size};
 
 	// Revert to the previous transform for correct animation
 	self.view.layer.affineTransform = previousTransform;
@@ -165,7 +165,7 @@ static const NSUInteger kDomainSection = 1;
 	self.view.layer.affineTransform = newTransform;
 
 	// Fix the view origin
-	self.view.frame = (CGRect){f.origin.x,f.origin.y,self.view.frame.size};
+	self.view.frame = (CGRect){ { f.origin.x, f.origin.y },self.view.frame.size};
     [UIView commitAnimations];
 }
 		 
