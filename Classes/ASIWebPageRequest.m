@@ -10,7 +10,8 @@
 #import "ASIWebPageRequest.h"
 #import "ASINetworkQueue.h"
 
-static xmlChar *xpathExpr = (xmlChar *)"//link/@href|//script/@src|//img/@src|//frame/@src|//iframe/@src|//*/@style";
+static xmlChar *xpathExpr = (xmlChar *)"//xhtml:link/@href|//xhtml:script/@src|//xhtml:img/@src|//xhtml:frame/@src|//xhtml:iframe/@src|//*/@style";
+
 
 static NSLock *xmlParsingLock = nil;
 static NSMutableArray *requestsUsingXMLParser = nil;
@@ -97,6 +98,7 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 		[[self externalResourceQueue] addOperation:externalResourceRequest];
 	}
 
+	// Remove external resources
 	[[self externalResourceQueue] go];
 
 }
@@ -127,9 +129,6 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 		xmlInitParser();
 	}
 	[requestsUsingXMLParser addObject:self];
-
-	// Strip the namespace, because it makes the xpath query a pain
-	responseHTML = [responseHTML stringByReplacingOccurrencesOfString:@" xmlns=\"http://www.w3.org/1999/xhtml\"" withString:@""];
 
 	NSData *data = [responseHTML dataUsingEncoding:NSUTF8StringEncoding];
 
@@ -243,15 +242,21 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 
 - (void)readResourceURLs
 {
-	/* Create xpath evaluation context */
+	// Create xpath evaluation context
     xmlXPathContextPtr xpathCtx = xmlXPathNewContext(doc);
     if(xpathCtx == NULL) {
-		xmlFreeDoc(doc);
 		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:101 userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Error: unable to create new XPath context",NSLocalizedDescriptionKey,nil]]];
 		return;
     }
+
+	// Add the namespace
+	if (xmlXPathRegisterNs(xpathCtx,(xmlChar *)"xhtml",(xmlChar *)"http://www.w3.org/1999/xhtml") != 0) {
+		xmlXPathFreeContext(xpathCtx);
+		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:101 userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Error: failed to register namespace for XPath",NSLocalizedDescriptionKey,nil]]];
+		return;
+	}
     
-    /* Evaluate xpath expression */
+    // Evaluate xpath expression
     xmlXPathObjectPtr xpathObj = xmlXPathEvalExpression(xpathExpr, xpathCtx);
     if(xpathObj == NULL) {
         xmlXPathFreeContext(xpathCtx); 
@@ -260,6 +265,7 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 		return;
     }
 	
+	// Now loop through our matches
 	xmlNodeSetPtr nodes = xpathObj->nodesetval;
 
     int size = (nodes) ? nodes->nodeNr : 0;
@@ -298,7 +304,7 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 
 - (void)updateResourceURLs
 {
-	/* Create xpath evaluation context */
+	// Create xpath evaluation context
 	xmlXPathContextPtr xpathCtx = xmlXPathNewContext(doc);
 	if(xpathCtx == NULL) {
 		xmlFreeDoc(doc);
@@ -306,7 +312,14 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 		return;
 	}
 
- 	/* Evaluate xpath expression */
+	// <PAIN:xml namespaces="ibet://these/always/caused/more/problems/than/they/solved">
+	if (xmlXPathRegisterNs(xpathCtx,(xmlChar *)"xhtml",(xmlChar *)"http://www.w3.org/1999/xhtml") != 0) {
+		xmlXPathFreeContext(xpathCtx);
+		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:101 userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Error: failed to register namespace for XPath",NSLocalizedDescriptionKey,nil]]];
+		return;
+	}
+
+ 	// Evaluate xpath expression
 	xmlXPathObjectPtr xpathObj = xmlXPathEvalExpression(xpathExpr, xpathCtx);
 	if(xpathObj == NULL) {
 		xmlXPathFreeContext(xpathCtx);
@@ -419,8 +432,11 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 		if (!theURL) {
 			break;
 		}
-		// Remove any quotes around the url
-		[urls addObject:[theURL stringByTrimmingCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"\"'"]]];
+		// Remove any quotes or whitespace around the url
+		theURL = [theURL stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+		theURL = [theURL stringByTrimmingCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"\"'"]];
+		theURL = [theURL stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+		[urls addObject:theURL];
 	}
 	return urls;
 }
