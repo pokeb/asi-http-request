@@ -2977,7 +2977,7 @@ static NSOperationQueue *sharedQueue = nil;
 		[self destroyReadStream];
 	}
 	
-<<<<<<< HEAD
+
 	if (![self needsRedirect] && ![self authenticationNeeded] && ![self didUseCachedResponse]) {
 		
 		if (fileError) {
@@ -2985,13 +2985,6 @@ static NSOperationQueue *sharedQueue = nil;
 		} else {
 			[self performSelectorOnMainThread:@selector(requestFinished) withObject:nil waitUntilDone:[NSThread isMainThread]];
 		}
-=======
-	if (fileError) {
-		[self failWithError:fileError];
-		
-	} else if (![self needsRedirect] && ![self authenticationNeeded]) {
-		[self requestFinished];
->>>>>>> newgzipstuff
 
 		[self markAsFinished];
 		
@@ -4197,14 +4190,11 @@ static NSOperationQueue *sharedQueue = nil;
 @synthesize cacheStoragePolicy;
 @synthesize didUseCachedResponse;
 @synthesize secondsToCache;
-<<<<<<< HEAD
 @synthesize clientCertificates;
 @synthesize redirectURL;
 #if TARGET_OS_IPHONE && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_4_0
 @synthesize shouldContinueWhenAppEntersBackground;
 #endif
-=======
 @synthesize dataDecompressor;
 @synthesize shouldWaitToInflateCompressedResponses;
->>>>>>> newgzipstuff
 @end

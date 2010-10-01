@@ -17,6 +17,18 @@
 		B522DE601031BB03009A2D22 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B53FADE70FF38B2A002E2DE6 /* SystemConfiguration.framework */; };
 		B522DE821031BD5E009A2D22 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B53FADE70FF38B2A002E2DE6 /* SystemConfiguration.framework */; };
 		B52D4A3210DA4EE0008E8365 /* PerformanceTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B52D4A3110DA4EE0008E8365 /* PerformanceTests.m */; };
+		B53E624A1255EB7E00C1E79A /* ASIWebPageRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B53E62481255EB7E00C1E79A /* ASIWebPageRequest.m */; };
+		B53E624B1255EB7E00C1E79A /* ASIWebPageRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B53E62481255EB7E00C1E79A /* ASIWebPageRequest.m */; };
+		B53E62561255EC4600C1E79A /* libxml2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B53E62551255EC4600C1E79A /* libxml2.dylib */; };
+		B53E62581255EC4E00C1E79A /* libtidy.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B53E62571255EC4E00C1E79A /* libtidy.dylib */; };
+		B53E62711255ED8700C1E79A /* ASIDataCompressor.m in Sources */ = {isa = PBXBuildFile; fileRef = B53E626F1255ED8700C1E79A /* ASIDataCompressor.m */; };
+		B53E62721255ED8700C1E79A /* ASIDataCompressor.m in Sources */ = {isa = PBXBuildFile; fileRef = B53E626F1255ED8700C1E79A /* ASIDataCompressor.m */; };
+		B53E628F1255EE4B00C1E79A /* ASIDataDecompressor.m in Sources */ = {isa = PBXBuildFile; fileRef = B53E628D1255EE4B00C1E79A /* ASIDataDecompressor.m */; };
+		B53E62901255EE4B00C1E79A /* ASIDataDecompressor.m in Sources */ = {isa = PBXBuildFile; fileRef = B53E628D1255EE4B00C1E79A /* ASIDataDecompressor.m */; };
+		B53E62B11255EEB800C1E79A /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B53E62B01255EEB800C1E79A /* WebKit.framework */; };
+		B53E62DB1255F6F600C1E79A /* libtidy.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B53E62571255EC4E00C1E79A /* libtidy.dylib */; };
+		B53E62DC1255F6FC00C1E79A /* libxml2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B53E62551255EC4600C1E79A /* libxml2.dylib */; };
+		B53E62EF1255F73300C1E79A /* ASIDataCompressorTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B53E62EE1255F73300C1E79A /* ASIDataCompressorTests.m */; };
 		B5403FEE1151149E00D8BE63 /* ASIS3Bucket.m in Sources */ = {isa = PBXBuildFile; fileRef = B5403FE71151149E00D8BE63 /* ASIS3Bucket.m */; };
 		B5403FEF1151149E00D8BE63 /* ASIS3BucketRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5403FE91151149E00D8BE63 /* ASIS3BucketRequest.m */; };
 		B5403FF01151149E00D8BE63 /* ASIS3ObjectRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5403FEB1151149E00D8BE63 /* ASIS3ObjectRequest.m */; };
@@ -109,6 +121,17 @@
 		B522D71E103074AC009A2D22 /* ASIInputStream.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIInputStream.m; sourceTree = "<group>"; };
 		B52D4A3010DA4EE0008E8365 /* PerformanceTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PerformanceTests.h; sourceTree = "<group>"; };
 		B52D4A3110DA4EE0008E8365 /* PerformanceTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PerformanceTests.m; sourceTree = "<group>"; };
+		B53E62481255EB7E00C1E79A /* ASIWebPageRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIWebPageRequest.m; sourceTree = "<group>"; };
+		B53E62491255EB7E00C1E79A /* ASIWebPageRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIWebPageRequest.h; sourceTree = "<group>"; };
+		B53E62551255EC4600C1E79A /* libxml2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxml2.dylib; path = usr/lib/libxml2.dylib; sourceTree = SDKROOT; };
+		B53E62571255EC4E00C1E79A /* libtidy.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libtidy.dylib; path = usr/lib/libtidy.dylib; sourceTree = SDKROOT; };
+		B53E626F1255ED8700C1E79A /* ASIDataCompressor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIDataCompressor.m; sourceTree = "<group>"; };
+		B53E62701255ED8700C1E79A /* ASIDataCompressor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIDataCompressor.h; sourceTree = "<group>"; };
+		B53E628D1255EE4B00C1E79A /* ASIDataDecompressor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIDataDecompressor.m; sourceTree = "<group>"; };
+		B53E628E1255EE4B00C1E79A /* ASIDataDecompressor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIDataDecompressor.h; sourceTree = "<group>"; };
+		B53E62B01255EEB800C1E79A /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
+		B53E62ED1255F73300C1E79A /* ASIDataCompressorTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIDataCompressorTests.h; sourceTree = "<group>"; };
+		B53E62EE1255F73300C1E79A /* ASIDataCompressorTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIDataCompressorTests.m; sourceTree = "<group>"; };
 		B53FADE70FF38B2A002E2DE6 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
 		B5403FE61151149E00D8BE63 /* ASIS3Bucket.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ASIS3Bucket.h; path = S3/ASIS3Bucket.h; sourceTree = "<group>"; };
 		B5403FE71151149E00D8BE63 /* ASIS3Bucket.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ASIS3Bucket.m; path = S3/ASIS3Bucket.m; sourceTree = "<group>"; };
@@ -185,6 +208,9 @@
 				8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */,
 				B55B5EB80F7658200064029C /* libz.1.2.3.dylib in Frameworks */,
 				B522DE821031BD5E009A2D22 /* SystemConfiguration.framework in Frameworks */,
+				B53E62561255EC4600C1E79A /* libxml2.dylib in Frameworks */,
+				B53E62581255EC4E00C1E79A /* libtidy.dylib in Frameworks */,
+				B53E62B11255EEB800C1E79A /* WebKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -196,6 +222,8 @@
 				B55B60140F7659A30064029C /* libz.1.2.3.dylib in Frameworks */,
 				B522DE601031BB03009A2D22 /* SystemConfiguration.framework in Frameworks */,
 				B50C17DB121C254D0055FCAB /* Security.framework in Frameworks */,
+				B53E62DB1255F6F600C1E79A /* libtidy.dylib in Frameworks */,
+				B53E62DC1255F6FC00C1E79A /* libxml2.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -243,6 +271,9 @@
 				B51791281024BF0F00583567 /* Security.framework */,
 				B50C17DA121C254D0055FCAB /* Security.framework */,
 				B50C18D1121C2F240055FCAB /* Foundation.framework */,
+				B53E62551255EC4600C1E79A /* libxml2.dylib */,
+				B53E62571255EC4E00C1E79A /* libtidy.dylib */,
+				B53E62B01255EEB800C1E79A /* WebKit.framework */,
 			);
 			name = Mac;
 			sourceTree = "<group>";
@@ -315,6 +346,12 @@
 				B552535C11D23EBB00F9B170 /* ASICacheDelegate.h */,
 				B552535B11D23EBB00F9B170 /* ASIDownloadCache.h */,
 				B552535A11D23EBB00F9B170 /* ASIDownloadCache.m */,
+				B53E62491255EB7E00C1E79A /* ASIWebPageRequest.h */,
+				B53E62481255EB7E00C1E79A /* ASIWebPageRequest.m */,
+				B53E62701255ED8700C1E79A /* ASIDataCompressor.h */,
+				B53E626F1255ED8700C1E79A /* ASIDataCompressor.m */,
+				B53E628E1255EE4B00C1E79A /* ASIDataDecompressor.h */,
+				B53E628D1255EE4B00C1E79A /* ASIDataDecompressor.m */,
 				B5873F8F10FF2890001E145F /* CloudFiles */,
 				B51E61A2100BA84C004A300D /* S3 */,
 				B55B5D190F76568E0064029C /* Tests */,
@@ -340,6 +377,8 @@
 				B587400610FF2913001E145F /* ASICloudFilesRequestTests.m */,
 				B51A1A9311DDF84700ED75CF /* ASIDownloadCacheTests.h */,
 				B51A1A9411DDF84700ED75CF /* ASIDownloadCacheTests.m */,
+				B53E62ED1255F73300C1E79A /* ASIDataCompressorTests.h */,
+				B53E62EE1255F73300C1E79A /* ASIDataCompressorTests.m */,
 				B5728C9E10AEC2F4004F4CE6 /* StressTests.h */,
 				B5728C9F10AEC2F4004F4CE6 /* StressTests.m */,
 				B50244191025D36B002B13E1 /* ProxyTests.h */,
@@ -530,6 +569,9 @@
 				B55B5E700F7656A40064029C /* main.m in Sources */,
 				B522D720103074AC009A2D22 /* ASIInputStream.m in Sources */,
 				B552536111D23ECD00F9B170 /* ASIDownloadCache.m in Sources */,
+				B53E624B1255EB7E00C1E79A /* ASIWebPageRequest.m in Sources */,
+				B53E62721255ED8700C1E79A /* ASIDataCompressor.m in Sources */,
+				B53E62901255EE4B00C1E79A /* ASIDataDecompressor.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -566,6 +608,10 @@
 				B5403FF11151149E00D8BE63 /* ASIS3ServiceRequest.m in Sources */,
 				B552535D11D23EBB00F9B170 /* ASIDownloadCache.m in Sources */,
 				B51A1A9511DDF84700ED75CF /* ASIDownloadCacheTests.m in Sources */,
+				B53E624A1255EB7E00C1E79A /* ASIWebPageRequest.m in Sources */,
+				B53E62711255ED8700C1E79A /* ASIDataCompressor.m in Sources */,
+				B53E628F1255EE4B00C1E79A /* ASIDataDecompressor.m in Sources */,
+				B53E62EF1255F73300C1E79A /* ASIDataCompressorTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -616,6 +662,7 @@
 				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/AppKit.framework/Headers/AppKit.h";
 				GCC_PREPROCESSOR_DEFINITIONS = "";
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				HEADER_SEARCH_PATHS = /Developer/SDKs/MacOSX10.5.sdk/usr/include/libxml2;
 				INFOPLIST_FILE = "Mac Sample/Tests-Info.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
 				LD_RUNPATH_SEARCH_PATHS = "@loader_path/../Frameworks";
@@ -647,6 +694,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/AppKit.framework/Headers/AppKit.h";
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				HEADER_SEARCH_PATHS = /Developer/SDKs/MacOSX10.5.sdk/usr/include/libxml2;
 				INFOPLIST_FILE = "Mac Sample/Tests-Info.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
 				MACOSX_DEPLOYMENT_TARGET = 10.6;
@@ -668,7 +716,7 @@
 			baseConfigurationReference = B515507810BD56E800608267 /* strict.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				COPY_PHASE_STRIP = NO;
 				GCC_C_LANGUAGE_STANDARD = "compiler-default";
 				GCC_DYNAMIC_NO_PIC = NO;
@@ -679,11 +727,12 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Mac Sample/Mac_Prefix.pch";
 				GCC_PREPROCESSOR_DEFINITIONS = "";
+				HEADER_SEARCH_PATHS = /Developer/SDKs/MacOSX10.5.sdk/usr/include/libxml2;
 				INFOPLIST_FILE = "Mac Sample/Info.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
 				MACOSX_DEPLOYMENT_TARGET = 10.5;
 				PRODUCT_NAME = Mac;
-				SDKROOT = macosx10.6;
+				SDKROOT = macosx10.5;
 			};
 			name = Debug;
 		};
@@ -692,12 +741,14 @@
 			baseConfigurationReference = B515507810BD56E800608267 /* strict.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_C_LANGUAGE_STANDARD = "compiler-default";
 				GCC_ENABLE_OBJC_GC = unsupported;
 				GCC_MODEL_TUNING = G5;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = Mac_Prefix.pch;
+				HEADER_SEARCH_PATHS = /Developer/SDKs/MacOSX10.5.sdk/usr/include/libxml2;
 				INFOPLIST_FILE = "Mac Sample/Info.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
 				MACOSX_DEPLOYMENT_TARGET = 10.5;

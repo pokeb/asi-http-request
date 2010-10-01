@@ -51,7 +51,7 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 		return;
 	}
 	[super requestFinished];
-	[(id)super markAsFinished];
+	[super markAsFinished];
 }
 
 - (void)parseAsCSS
@@ -90,7 +90,7 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 
 	if (![[self resourceList] count]) {
 		[super requestFinished];
-		[(id)super markAsFinished];
+		[super markAsFinished];
 		return;
 	}
 
@@ -147,7 +147,7 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 	NSData *data = [responseHTML dataUsingEncoding:NSUTF8StringEncoding];
 
     /* Load XML document */
-    doc = xmlParseMemory([data bytes], [data length]);
+    doc = xmlParseMemory([data bytes], (int)[data length]);
     if (doc == NULL) {
 		xmlFreeDoc(doc);
 		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:101 userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Error: unable to parse reponse XML",NSLocalizedDescriptionKey,nil]]];
@@ -163,7 +163,7 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 
 	if (![[self resourceList] count]) {
 		[super requestFinished];
-		[(id)super markAsFinished];
+		[super markAsFinished];
 		return;
 	}
 	
@@ -249,7 +249,7 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 	[self setResponseHeaders:newHeaders];
 
 	[super requestFinished];
-	[(id)super markAsFinished];
+	[super markAsFinished];
 }
 
 - (void)readResourceURLs

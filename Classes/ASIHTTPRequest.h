@@ -443,13 +443,13 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 
 	// Set secondsToCache to use a custom time interval for expiring the response when it is stored in a cache
 	NSTimeInterval secondsToCache;
-<<<<<<< HEAD
+
 
 	#if TARGET_OS_IPHONE && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_4_0
 	BOOL shouldContinueWhenAppEntersBackground;
 	UIBackgroundTaskIdentifier backgroundTask;
 	#endif
-=======
+
 	
 	// When downloading a gzipped response, the request will use this helper object to inflate the response
 	ASIDataDecompressor *dataDecompressor;
@@ -468,7 +468,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	// Setting this to NO may be especially useful for users using ASIHTTPRequest in conjunction with a streaming parser, as it will allow partial gzipped responses to be inflated and passed on to the parser while the request is still running
 	BOOL shouldWaitToInflateCompressedResponses;
 	
->>>>>>> newgzipstuff
+
 }
 
 #pragma mark init / dealloc
@@ -629,6 +629,10 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 - (void)handleStreamError;
 
 #pragma mark cleanup
+
+// Cleans up and lets the queue know this operation is finished.
+// Appears in this header for subclassing only, do not call this method from outside your request!
+- (void)markAsFinished;
 
 // Cleans up temporary files. There's normally no reason to call these yourself, they are called automatically when a request completes or fails
 
@@ -899,13 +903,11 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 @property (assign) ASICacheStoragePolicy cacheStoragePolicy;
 @property (assign, readonly) BOOL didUseCachedResponse;
 @property (assign) NSTimeInterval secondsToCache;
-<<<<<<< HEAD
 @property (retain) NSArray *clientCertificates;
 #if TARGET_OS_IPHONE && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_4_0
 @property (assign) BOOL shouldContinueWhenAppEntersBackground;
 #endif
-=======
 @property (retain) ASIDataDecompressor *dataDecompressor;
 @property (assign) BOOL shouldWaitToInflateCompressedResponses;
->>>>>>> newgzipstuff
+
 @end

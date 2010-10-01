@@ -1288,10 +1288,11 @@
 	[request setDownloadDestinationPath:downloadPath];
 	[request setTemporaryFileDownloadPath:tempPath];
 	[request setAllowResumeForFileDownloads:YES];
+	[request setAllowCompressedResponse:NO];
 	[request setDownloadProgressDelegate:self];
 	[request startSynchronous];
 	
-	BOOL success = ([request contentLength] == 163);
+	BOOL success = ([request contentLength] == 163-95);
 	GHAssertTrue(success,@"Failed to download a segment of the data");
 	
 	NSString *content = [NSString stringWithContentsOfFile:downloadPath encoding:NSUTF8StringEncoding error:NULL];
@@ -1632,7 +1633,7 @@
 	GHAssertTrue(success,@"Request failed to use time out set by server");
 	
 	// Wait 3 seconds - connection should have timed out
-	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:3]];
+	sleep(3);
 	
 	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
 	[request startSynchronous];
