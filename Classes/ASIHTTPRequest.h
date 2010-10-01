@@ -14,11 +14,14 @@
 #if TARGET_OS_IPHONE
 	#import <CFNetwork/CFNetwork.h>
 #endif
+
 #import <stdio.h>
 #import "ASIHTTPRequestConfig.h"
 #import "ASIHTTPRequestDelegate.h"
 #import "ASIProgressDelegate.h"
 #import "ASICacheDelegate.h"
+
+@class ASIDataDecompressor;
 
 extern NSString *ASIHTTPRequestVersion;
 
@@ -53,7 +56,8 @@ typedef enum _ASINetworkErrorType {
     ASIInternalErrorWhileApplyingCredentialsType  = 7,
 	ASIFileManagementError = 8,
 	ASITooMuchRedirectionErrorType = 9,
-	ASIUnhandledExceptionError = 10
+	ASIUnhandledExceptionError = 10,
+	ASICompressionError = 11
 	
 } ASINetworkErrorType;
 
@@ -148,11 +152,16 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	// If downloadDestinationPath is not set, download data will be stored in memory
 	NSString *downloadDestinationPath;
 	
-	//The location that files will be downloaded to. Once a download is complete, files will be decompressed (if necessary) and moved to downloadDestinationPath
+	// The location that files will be downloaded to. Once a download is complete, files will be decompressed (if necessary) and moved to downloadDestinationPath
 	NSString *temporaryFileDownloadPath;
+	
+	// If the response is gzipped and shouldWaitToInflateCompressedResponses is NO, a file will be created at this path containing the inflated response as it comes in
+	NSString *temporaryUncompressedDataDownloadPath;
 	
 	// Used for writing data to a file when downloadDestinationPath is set
 	NSOutputStream *fileDownloadOutputStream;
+	
+	NSOutputStream *inflatedFileDownloadOutputStream;
 	
 	// When the request fails or completes successfully, complete will be true
 	BOOL complete;
@@ -434,11 +443,32 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 
 	// Set secondsToCache to use a custom time interval for expiring the response when it is stored in a cache
 	NSTimeInterval secondsToCache;
+<<<<<<< HEAD
 
 	#if TARGET_OS_IPHONE && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_4_0
 	BOOL shouldContinueWhenAppEntersBackground;
 	UIBackgroundTaskIdentifier backgroundTask;
 	#endif
+=======
+	
+	// When downloading a gzipped response, the request will use this helper object to inflate the response
+	ASIDataDecompressor *dataDecompressor;
+	
+	// Controls how responses with a gzipped encoding are inflated (decompressed)
+	// When set to YES (This is the default):
+	// * gzipped responses for requests without a downloadDestinationPath will be inflated only when [request responseData] / [request responseString] is called
+	// * gzipped responses for requests with a downloadDestinationPath set will be inflated only when the request completes
+	//
+	// When set to NO
+	// All requests will inflate the response as it comes in
+	// * If the request has no downloadDestinationPath set, the raw (compressed) response is disgarded and rawResponseData will contain the decompressed response
+	// * If the request has a downloadDestinationPath, the raw response will be stored in temporaryFileDownloadPath as normal, the inflated response will be stored in temporaryUncompressedDataDownloadPath
+	//   Once the request completes suceessfully, the contents of temporaryUncompressedDataDownloadPath are moved into downloadDestinationPath
+	//
+	// Setting this to NO may be especially useful for users using ASIHTTPRequest in conjunction with a streaming parser, as it will allow partial gzipped responses to be inflated and passed on to the parser while the request is still running
+	BOOL shouldWaitToInflateCompressedResponses;
+	
+>>>>>>> newgzipstuff
 }
 
 #pragma mark init / dealloc
@@ -494,15 +524,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 // Run request in the background
 - (void)startAsynchronous;
 
-#pragma mark request logic
 
-// Call to delete the temporary file used during a file download (if it exists)
-// No need to call this if the request succeeds - it is removed automatically
-- (void)removeTemporaryDownloadFile;
-
-// Call to remove the file used as the request body
-// No need to call this if the request succeeds and you didn't specify postBodyFilePath manually - it is removed automatically
-- (void)removePostDataFile;
 
 #pragma mark HEAD request
 
@@ -606,6 +628,25 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 - (void)handleStreamComplete;
 - (void)handleStreamError;
 
+#pragma mark cleanup
+
+// Cleans up temporary files. There's normally no reason to call these yourself, they are called automatically when a request completes or fails
+
+// Clean up the temporary file used to store the downloaded data when it comes in (if downloadDestinationPath is set)
+- (BOOL)removeTemporaryDownloadFile;
+
+// Clean up the temporary file used to store data that is inflated (decompressed) as it comes in
+- (BOOL)removeTemporaryUncompressedDownloadFile;
+
+// Clean up the temporary file used to store the request body (when shouldStreamPostDataFromDisk is YES)
+- (BOOL)removeTemporaryUploadFile;
+
+// Clean up the temporary file used to store a deflated (compressed) request body when shouldStreamPostDataFromDisk is YES
+- (BOOL)removeTemporaryCompressedUploadFile;
+
+// Remove a file on disk, returning NO and populating the passed error pointer if it fails
++ (BOOL)removeFileAtPath:(NSString *)path error:(NSError **)err;
+
 #pragma mark persistent connections
 
 // Get the ID of the connection this request used (only really useful in tests and debugging)
@@ -663,24 +704,6 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 
 // Dump all session data (authentication and cookies)
 + (void)clearSession;
-
-#pragma mark gzip decompression
-
-// Uncompress gzipped data with zlib
-+ (NSData *)uncompressZippedData:(NSData*)compressedData;
-
-// Uncompress gzipped data from a file into another file, used when downloading to a file
-+ (int)uncompressZippedDataFromFile:(NSString *)sourcePath toFile:(NSString *)destinationPath;
-+ (int)uncompressZippedDataFromSource:(FILE *)source toDestination:(FILE *)dest;
-
-#pragma mark gzip compression
-
-// Compress data with gzip using zlib
-+ (NSData *)compressData:(NSData*)uncompressedData;
-
-// gzip compress data from a file, saving to another file, used for uploading when shouldCompressRequestBody is true
-+ (int)compressDataFromFile:(NSString *)sourcePath toFile:(NSString *)destinationPath;
-+ (int)compressDataFromSource:(FILE *)source toDestination:(FILE *)dest;
 
 #pragma mark get user agent
 
@@ -807,6 +830,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 @property (assign) BOOL useSessionPersistence;
 @property (retain) NSString *downloadDestinationPath;
 @property (retain) NSString *temporaryFileDownloadPath;
+@property (retain) NSString *temporaryUncompressedDataDownloadPath;
 @property (assign) SEL didStartSelector;
 @property (assign) SEL didReceiveResponseHeadersSelector;
 @property (assign) SEL willRedirectSelector;
@@ -875,8 +899,13 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 @property (assign) ASICacheStoragePolicy cacheStoragePolicy;
 @property (assign, readonly) BOOL didUseCachedResponse;
 @property (assign) NSTimeInterval secondsToCache;
+<<<<<<< HEAD
 @property (retain) NSArray *clientCertificates;
 #if TARGET_OS_IPHONE && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_4_0
 @property (assign) BOOL shouldContinueWhenAppEntersBackground;
 #endif
+=======
+@property (retain) ASIDataDecompressor *dataDecompressor;
+@property (assign) BOOL shouldWaitToInflateCompressedResponses;
+>>>>>>> newgzipstuff
 @end

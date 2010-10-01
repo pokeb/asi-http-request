@@ -11,7 +11,7 @@
 //  See: http://developer.apple.com/samplecode/ImageClient/listing37.html
 
 #import "ASIHTTPRequest.h"
-#import <zlib.h>
+
 #if TARGET_OS_IPHONE
 #import "Reachability.h"
 #import "ASIAuthenticationDialog.h"
@@ -20,7 +20,8 @@
 #import <SystemConfiguration/SystemConfiguration.h>
 #endif
 #import "ASIInputStream.h"
-
+#import "ASIDataDecompressor.h"
+#import "ASIDataCompressor.h"
 
 // Automatically set on build
 NSString *ASIHTTPRequestVersion = @"v1.7-56 2010-08-30";
@@ -192,6 +193,7 @@ static NSOperationQueue *sharedQueue = nil;
 @property (assign, nonatomic) unsigned long long lastBytesSent;
 @property (retain) NSRecursiveLock *cancelledLock;
 @property (retain, nonatomic) NSOutputStream *fileDownloadOutputStream;
+@property (retain, nonatomic) NSOutputStream *inflatedFileDownloadOutputStream;
 @property (assign) int authenticationRetryCount;
 @property (assign) int proxyAuthenticationRetryCount;
 @property (assign, nonatomic) BOOL updatedProgress;
@@ -260,6 +262,7 @@ static NSOperationQueue *sharedQueue = nil;
 	[self setShouldResetDownloadProgress:YES];
 	[self setShouldResetUploadProgress:YES];
 	[self setAllowCompressedResponse:YES];
+	[self setShouldWaitToInflateCompressedResponses:YES];
 	[self setDefaultResponseEncoding:NSISOLatin1StringEncoding];
 	[self setShouldPresentProxyAuthenticationDialog:YES];
 	
@@ -323,7 +326,9 @@ static NSOperationQueue *sharedQueue = nil;
 	[requestCookies release];
 	[downloadDestinationPath release];
 	[temporaryFileDownloadPath release];
+	[temporaryUncompressedDataDownloadPath release];
 	[fileDownloadOutputStream release];
+	[inflatedFileDownloadOutputStream release];
 	[username release];
 	[password release];
 	[domain release];
@@ -355,6 +360,7 @@ static NSOperationQueue *sharedQueue = nil;
 	[responseStatusMessage release];
 	[connectionInfo release];
 	[requestID release];
+	[dataDecompressor release];
 	[super dealloc];
 }
 
@@ -373,6 +379,7 @@ static NSOperationQueue *sharedQueue = nil;
 // postLength must be set by the time this function is complete
 - (void)buildPostBody
 {
+
 	if ([self haveBuiltPostBody]) {
 		return;
 	}
@@ -386,15 +393,24 @@ static NSOperationQueue *sharedQueue = nil;
 			[self setPostBodyWriteStream:nil];
 		}
 
-		NSError *err = nil;
+		
 		NSString *path;
 		if ([self shouldCompressRequestBody]) {
-			[self setCompressedPostBodyFilePath:[NSTemporaryDirectory() stringByAppendingPathComponent:[[NSProcessInfo processInfo] globallyUniqueString]]];
-			[ASIHTTPRequest compressDataFromFile:[self postBodyFilePath] toFile:[self compressedPostBodyFilePath]];
+			if (![self compressedPostBodyFilePath]) {
+				[self setCompressedPostBodyFilePath:[NSTemporaryDirectory() stringByAppendingPathComponent:[[NSProcessInfo processInfo] globallyUniqueString]]];
+				
+				NSError *err = nil;
+				[ASIDataCompressor compressDataFromFile:[self postBodyFilePath] toFile:[self compressedPostBodyFilePath] error:&err];
+				if (err) {
+					[self failWithError:err];
+					return;
+				}
+			}
 			path = [self compressedPostBodyFilePath];
 		} else {
 			path = [self postBodyFilePath];
 		}
+		NSError *err = nil;
 		[self setPostLength:[[[NSFileManager defaultManager] attributesOfItemAtPath:path error:&err] fileSize]];
 		if (err) {
 			[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIFileManagementError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Failed to get attributes for file at path '@%'",path],NSLocalizedDescriptionKey,error,NSUnderlyingErrorKey,nil]]];
@@ -404,7 +420,13 @@ static NSOperationQueue *sharedQueue = nil;
 	// Otherwise, we have an in-memory request body
 	} else {
 		if ([self shouldCompressRequestBody]) {
-			[self setCompressedPostBody:[ASIHTTPRequest compressData:[self postBody]]];
+			NSError *err = nil;
+			NSData *compressedBody = [ASIDataCompressor compressData:[self postBody] error:&err];
+			if (err) {
+				[self failWithError:err];
+				return;
+			}
+			[self setCompressedPostBody:compressedBody];
 			[self setPostLength:[[self compressedPostBody] length]];
 		} else {
 			[self setPostLength:[[self postBody] length]];
@@ -418,6 +440,7 @@ static NSOperationQueue *sharedQueue = nil;
 		[self addRequestHeader:@"Content-Length" value:[NSString stringWithFormat:@"%llu",[self postLength]]];
 	}
 	[self setHaveBuiltPostBody:YES];
+
 }
 
 // Sets up storage for the post body
@@ -605,11 +628,12 @@ static NSOperationQueue *sharedQueue = nil;
 
 - (NSData *)responseData
 {	
-	if ([self isResponseCompressed]) {
-		return [ASIHTTPRequest uncompressZippedData:[self rawResponseData]];
+	if ([self isResponseCompressed] && [self shouldWaitToInflateCompressedResponses]) {
+		return [ASIDataDecompressor uncompressData:[self rawResponseData] error:NULL];
 	} else {
 		return [self rawResponseData];
 	}
+	return nil;
 }
 
 #pragma mark running a request
@@ -1380,6 +1404,7 @@ static NSOperationQueue *sharedQueue = nil;
     [self destroyReadStream];
 	
 	[[self postBodyReadStream] close];
+	[self setPostBodyReadStream:nil];
 	
     if ([self rawResponseData]) {
 		[self setRawResponseData:nil];
@@ -1387,55 +1412,28 @@ static NSOperationQueue *sharedQueue = nil;
 	// If we were downloading to a file
 	} else if ([self temporaryFileDownloadPath]) {
 		[[self fileDownloadOutputStream] close];
+		[self setFileDownloadOutputStream:nil];
+		
+		[[self inflatedFileDownloadOutputStream] close];
+		[self setInflatedFileDownloadOutputStream:nil];
 		
 		// If we haven't said we might want to resume, let's remove the temporary file too
 		if (![self allowResumeForFileDownloads]) {
 			[self removeTemporaryDownloadFile];
 		}
+		[self removeTemporaryUncompressedDownloadFile];
+		
+
 	}
 	
 	// Clean up any temporary file used to store request body for streaming
 	if (![self authenticationNeeded] && [self didCreateTemporaryPostDataFile]) {
-		[self removePostDataFile];
+		[self removeTemporaryUploadFile];
+		[self removeTemporaryCompressedUploadFile];
 		[self setDidCreateTemporaryPostDataFile:NO];
 	}
 	
 	[self setResponseHeaders:nil];
-}
-
-
-- (void)removeTemporaryDownloadFile
-{
-	if ([self temporaryFileDownloadPath]) {
-		if ([[NSFileManager defaultManager] fileExistsAtPath:[self temporaryFileDownloadPath]]) {
-			NSError *removeError = nil;
-			[[NSFileManager defaultManager] removeItemAtPath:[self temporaryFileDownloadPath] error:&removeError];
-			if (removeError) {
-				[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIFileManagementError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Failed to delete file at path '%@'",[self temporaryFileDownloadPath]],NSLocalizedDescriptionKey,removeError,NSUnderlyingErrorKey,nil]]];
-			}
-		}
-		[self setTemporaryFileDownloadPath:nil];
-	}
-}
-
-- (void)removePostDataFile
-{
-	if ([self postBodyFilePath]) {
-		NSError *removeError = nil;
-		[[NSFileManager defaultManager] removeItemAtPath:[self postBodyFilePath] error:&removeError];
-		if (removeError) {
-			[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIFileManagementError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Failed to delete file at path '%@'",[self postBodyFilePath]],NSLocalizedDescriptionKey,removeError,NSUnderlyingErrorKey,nil]]];
-		}
-		[self setPostBodyFilePath:nil];
-	}
-	if ([self compressedPostBodyFilePath]) {
-		NSError *removeError = nil;
-		[[NSFileManager defaultManager] removeItemAtPath:[self compressedPostBodyFilePath] error:&removeError];
-		if (removeError) {
-			[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIFileManagementError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Failed to delete file at path '%@'",[self compressedPostBodyFilePath]],NSLocalizedDescriptionKey,removeError,NSUnderlyingErrorKey,nil]]];
-		}
-		[self setCompressedPostBodyFilePath:nil];
-	}
 }
 
 #pragma mark HEAD request
@@ -2778,6 +2776,20 @@ static NSOperationQueue *sharedQueue = nil;
 		
 	// If zero bytes were read, wait for the EOF to come.
     } else if (bytesRead) {
+
+		// If we are inflating the response on the fly
+		NSData *inflatedData = nil;
+		if ([self isResponseCompressed] && ![self shouldWaitToInflateCompressedResponses]) {
+			if (![self dataDecompressor]) {
+				[self setDataDecompressor:[ASIDataDecompressor decompressor]];
+			}
+			NSError *err = nil;
+			inflatedData = [[self dataDecompressor] uncompressBytes:buffer length:bytesRead error:&err];
+			if (err) {
+				[self failWithError:err];
+				return;
+			}
+		}
 		
 		[self setTotalBytesRead:[self totalBytesRead]+bytesRead];
 		[self setLastActivityTime:[NSDate date]];
@@ -2792,19 +2804,29 @@ static NSOperationQueue *sharedQueue = nil;
 		
 		// Does the delegate want to handle the data manually?
 		if ([[self delegate] respondsToSelector:[self didReceiveDataSelector]]) {
+			
+			
 			NSMethodSignature *signature = [[[self delegate] class] instanceMethodSignatureForSelector:[self didReceiveDataSelector]];
 			NSInvocation *invocation = [[NSInvocation invocationWithMethodSignature:signature] retain];
 			[invocation setSelector:[self didReceiveDataSelector]];
 			[invocation setArgument:&self atIndex:2];
-			NSData *data = [NSData dataWithBytes:buffer length:bytesRead];
+			
+			NSData *data;
+			if ([self isResponseCompressed] && ![self shouldWaitToInflateCompressedResponses]) {
+				data = inflatedData;
+			} else {
+				data = [NSData dataWithBytes:buffer length:bytesRead];
+			}
 			[invocation setArgument:&data atIndex:3];
 			[invocation retainArguments];
             [self performSelectorOnMainThread:@selector(invocateDelegate:) withObject:invocation waitUntilDone:[NSThread isMainThread]];
 
+
+			
 		// Are we downloading to a file?
 		} else if ([self downloadDestinationPath]) {
+			BOOL append = NO;
 			if (![self fileDownloadOutputStream]) {
-				BOOL append = NO;
 				if (![self temporaryFileDownloadPath]) {
 					[self setTemporaryFileDownloadPath:[NSTemporaryDirectory() stringByAppendingPathComponent:[[NSProcessInfo processInfo] globallyUniqueString]]];
 				} else if ([self allowResumeForFileDownloads] && [[self requestHeaders] objectForKey:@"Range"]) {
@@ -2821,16 +2843,35 @@ static NSOperationQueue *sharedQueue = nil;
 			}
 			[[self fileDownloadOutputStream] write:buffer maxLength:bytesRead];
 			
+			if ([self isResponseCompressed] && ![self shouldWaitToInflateCompressedResponses]) {
+				
+				if (![self inflatedFileDownloadOutputStream]) {
+					if (![self temporaryUncompressedDataDownloadPath]) {
+						[self setTemporaryUncompressedDataDownloadPath:[NSTemporaryDirectory() stringByAppendingPathComponent:[[NSProcessInfo processInfo] globallyUniqueString]]];
+					}
+					
+					[self setInflatedFileDownloadOutputStream:[[[NSOutputStream alloc] initToFileAtPath:[self temporaryUncompressedDataDownloadPath] append:append] autorelease]];
+					[[self inflatedFileDownloadOutputStream] open];
+				}
+
+				[[self inflatedFileDownloadOutputStream] write:[inflatedData bytes] maxLength:[inflatedData length]];
+			}
+
+			
 		//Otherwise, let's add the data to our in-memory store
 		} else {
-			[rawResponseData appendBytes:buffer length:bytesRead];
+			if ([self isResponseCompressed] && ![self shouldWaitToInflateCompressedResponses]) {
+				[rawResponseData appendData:inflatedData];
+			} else {
+				[rawResponseData appendBytes:buffer length:bytesRead];
+			}
 		}
     }
-
 }
 
 - (void)handleStreamComplete
 {	
+
 #if DEBUG_REQUEST_STATUS
 	NSLog(@"Request %@ finished downloading data (%qu bytes)",self, [self totalBytesRead]);
 #endif
@@ -2850,41 +2891,57 @@ static NSOperationQueue *sharedQueue = nil;
 
 	
 	[[self postBodyReadStream] close];
+	[self setPostBodyReadStream:nil];
 	
+	[self setDataDecompressor:nil];
+
 	NSError *fileError = nil;
 	
 	// Delete up the request body temporary file, if it exists
 	if ([self didCreateTemporaryPostDataFile] && ![self authenticationNeeded]) {
-		[self removePostDataFile];
+		[self removeTemporaryUploadFile];
+		[self removeTemporaryCompressedUploadFile];
 	}
 	
 	// Close the output stream as we're done writing to the file
 	if ([self temporaryFileDownloadPath]) {
+		
 		[[self fileDownloadOutputStream] close];
 		[self setFileDownloadOutputStream:nil];
-		
+
+		[[self inflatedFileDownloadOutputStream] close];
+		[self setInflatedFileDownloadOutputStream:nil];
+
 		// If we are going to redirect and we are resuming, let's ignore this download
 		if ([self shouldRedirect] && [self needsRedirect] && [self allowResumeForFileDownloads]) {
 		
-		// Decompress the file (if necessary) directly to the destination path
 		} else if ([self isResponseCompressed]) {
-			int decompressionStatus = [ASIHTTPRequest uncompressZippedDataFromFile:[self temporaryFileDownloadPath] toFile:[self downloadDestinationPath]];
-			if (decompressionStatus != Z_OK) {
-				fileError = [NSError errorWithDomain:NetworkRequestErrorDomain code:ASIFileManagementError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Decompression of %@ failed with code %hi",[self temporaryFileDownloadPath],decompressionStatus],NSLocalizedDescriptionKey,nil]];
+			
+			// Decompress the file directly to the destination path
+			if ([self shouldWaitToInflateCompressedResponses]) {
+				[ASIDataDecompressor uncompressDataFromFile:[self temporaryFileDownloadPath] toFile:[self downloadDestinationPath] error:&fileError];
+
+			// Response should already have been inflated, move the temporary file to the destination path
+			} else {
+				NSError *moveError = nil;
+				[[NSFileManager defaultManager] moveItemAtPath:[self temporaryUncompressedDataDownloadPath] toPath:[self downloadDestinationPath] error:&moveError];
+				if (moveError) {
+					fileError = [NSError errorWithDomain:NetworkRequestErrorDomain code:ASIFileManagementError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Failed to move file from '%@' to '%@'",[self temporaryFileDownloadPath],[self downloadDestinationPath]],NSLocalizedDescriptionKey,moveError,NSUnderlyingErrorKey,nil]];
+				}
+				[self setTemporaryUncompressedDataDownloadPath:nil];
+
 			}
 			[self removeTemporaryDownloadFile];
+
 		} else {
-			
 	
 			//Remove any file at the destination path
 			NSError *moveError = nil;
-			if ([[NSFileManager defaultManager] fileExistsAtPath:[self downloadDestinationPath]]) {
-				[[NSFileManager defaultManager] removeItemAtPath:[self downloadDestinationPath] error:&moveError];
-				if (moveError) {
-					fileError = [NSError errorWithDomain:NetworkRequestErrorDomain code:ASIFileManagementError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Unable to remove file at path '%@'",[self downloadDestinationPath]],NSLocalizedDescriptionKey,moveError,NSUnderlyingErrorKey,nil]];
-				}
+			if (![[self class] removeFileAtPath:[self downloadDestinationPath] error:&moveError]) {
+				fileError = moveError;
+
 			}
-					
+
 			//Move the temporary file to the destination path
 			if (!fileError) {
 				[[NSFileManager defaultManager] moveItemAtPath:[self temporaryFileDownloadPath] toPath:[self downloadDestinationPath] error:&moveError];
@@ -2920,6 +2977,7 @@ static NSOperationQueue *sharedQueue = nil;
 		[self destroyReadStream];
 	}
 	
+<<<<<<< HEAD
 	if (![self needsRedirect] && ![self authenticationNeeded] && ![self didUseCachedResponse]) {
 		
 		if (fileError) {
@@ -2927,6 +2985,13 @@ static NSOperationQueue *sharedQueue = nil;
 		} else {
 			[self performSelectorOnMainThread:@selector(requestFinished) withObject:nil waitUntilDone:[NSThread isMainThread]];
 		}
+=======
+	if (fileError) {
+		[self failWithError:fileError];
+		
+	} else if (![self needsRedirect] && ![self authenticationNeeded]) {
+		[self requestFinished];
+>>>>>>> newgzipstuff
 
 		[self markAsFinished];
 		
@@ -2935,6 +3000,7 @@ static NSOperationQueue *sharedQueue = nil;
 		[self setStatusTimer:nil];
 		CFRunLoopStop(CFRunLoopGetCurrent());
 	}
+
 }
 
 - (void)markAsFinished
@@ -3154,6 +3220,71 @@ static NSOperationQueue *sharedQueue = nil;
 		[self setReadStreamIsScheduled:NO];
 	}
 }
+
+#pragma mark cleanup
+
+- (BOOL)removeTemporaryDownloadFile
+{
+	NSError *err = nil;
+	if ([self temporaryFileDownloadPath]) {
+		if (![[self class] removeFileAtPath:[self temporaryFileDownloadPath] error:&err]) {
+			[self failWithError:err];
+		}
+		[self setTemporaryFileDownloadPath:nil];
+	}
+	return (!err);
+}
+
+- (BOOL)removeTemporaryUncompressedDownloadFile
+{
+	NSError *err = nil;
+	if ([self temporaryUncompressedDataDownloadPath]) {
+		if (![[self class] removeFileAtPath:[self temporaryUncompressedDataDownloadPath] error:&err]) {
+			[self failWithError:err];
+		}
+		[self setTemporaryUncompressedDataDownloadPath:nil];
+	}
+	return (!err);
+}
+
+- (BOOL)removeTemporaryUploadFile
+{
+	NSError *err = nil;
+	if ([self postBodyFilePath]) {
+		if (![[self class] removeFileAtPath:[self postBodyFilePath] error:&err]) {
+			[self failWithError:err];
+		}
+		[self setPostBodyFilePath:nil];
+	}
+	return (!err);
+}
+
+- (BOOL)removeTemporaryCompressedUploadFile
+{
+	NSError *err = nil;
+	if ([self compressedPostBodyFilePath]) {
+		if (![[self class] removeFileAtPath:[self compressedPostBodyFilePath] error:&err]) {
+			[self failWithError:err];
+		}
+		[self setCompressedPostBodyFilePath:nil];
+	}
+	return (!err);
+}
+
++ (BOOL)removeFileAtPath:(NSString *)path error:(NSError **)err
+{
+	if ([[NSFileManager defaultManager] fileExistsAtPath:path]) {
+		NSError *removeError = nil;
+		[[NSFileManager defaultManager] removeItemAtPath:path error:&removeError];
+		if (removeError) {
+			*err = [NSError errorWithDomain:NetworkRequestErrorDomain code:ASIFileManagementError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Failed to delete file at path '%@'",path],NSLocalizedDescriptionKey,removeError,NSUnderlyingErrorKey,nil]];
+			return NO;
+		}
+	}
+	return YES;
+}
+
+
 
 #pragma mark persistent connections
 
@@ -3475,278 +3606,6 @@ static NSOperationQueue *sharedQueue = nil;
 	[sessionCredentialsLock unlock];
 	[[self class] setSessionCookies:nil];
 	[[[self class] defaultCache] clearCachedResponsesForStoragePolicy:ASICacheForSessionDurationCacheStoragePolicy];
-}
-
-#pragma mark gzip decompression
-
-//
-// Contributed by Shaun Harrison of Enormego, see: http://developers.enormego.com/view/asihttprequest_gzip
-// Based on this: http://deusty.blogspot.com/2007/07/gzip-compressiondecompression.html
-//
-+ (NSData *)uncompressZippedData:(NSData*)compressedData
-{
-	if ([compressedData length] == 0) return compressedData;
-	
-	NSUInteger full_length = [compressedData length];
-	NSUInteger half_length = [compressedData length] / 2;
-	
-	NSMutableData *decompressed = [NSMutableData dataWithLength: full_length + half_length];
-	BOOL done = NO;
-	int status;
-	
-	z_stream strm;
-	strm.next_in = (Bytef *)[compressedData bytes];
-	strm.avail_in = (unsigned int)[compressedData length];
-	strm.total_out = 0;
-	strm.zalloc = Z_NULL;
-	strm.zfree = Z_NULL;
-	
-	if (inflateInit2(&strm, (15+32)) != Z_OK) return nil;
-	
-	while (!done) {
-		// Make sure we have enough room and reset the lengths.
-		if (strm.total_out >= [decompressed length]) {
-			[decompressed increaseLengthBy: half_length];
-		}
-		strm.next_out = [decompressed mutableBytes] + strm.total_out;
-		strm.avail_out = (unsigned int)([decompressed length] - strm.total_out);
-		
-		// Inflate another chunk.
-		status = inflate (&strm, Z_SYNC_FLUSH);
-		if (status == Z_STREAM_END) {
-			done = YES;
-		} else if (status != Z_OK) {
-			break;
-		}
-	}
-	if (inflateEnd (&strm) != Z_OK) return nil;
-	
-	// Set real length.
-	if (done) {
-		[decompressed setLength: strm.total_out];
-		return [NSData dataWithData: decompressed];
-	} else {
-		return nil;
-	}
-}
-
-// NOTE: To debug this method, turn off Data Formatters in Xcode or you'll crash on closeFile
-+ (int)uncompressZippedDataFromFile:(NSString *)sourcePath toFile:(NSString *)destinationPath
-{
-	// Create an empty file at the destination path
-	if (![[NSFileManager defaultManager] createFileAtPath:destinationPath contents:[NSData data] attributes:nil]) {
-		return 1;
-	}
-	
-	// Get a FILE struct for the source file
-	NSFileHandle *inputFileHandle = [NSFileHandle fileHandleForReadingAtPath:sourcePath];
-	FILE *source = fdopen([inputFileHandle fileDescriptor], "r");
-	
-	// Get a FILE struct for the destination path
-	NSFileHandle *outputFileHandle = [NSFileHandle fileHandleForWritingAtPath:destinationPath];
-	FILE *dest = fdopen([outputFileHandle fileDescriptor], "w");
-	
-	
-	// Uncompress data in source and save in destination
-	int status = [ASIHTTPRequest uncompressZippedDataFromSource:source toDestination:dest];
-	
-	// Close the files
-	fclose(dest);
-	fclose(source);
-	[inputFileHandle closeFile];
-	[outputFileHandle closeFile];	
-	return status;
-}
-
-//
-// From the zlib sample code by Mark Adler, code here:
-//	http://www.zlib.net/zpipe.c
-//
-#define CHUNK 16384
-
-+ (int)uncompressZippedDataFromSource:(FILE *)source toDestination:(FILE *)dest
-{
-    int ret;
-    unsigned have;
-    z_stream strm;
-    unsigned char in[CHUNK];
-    unsigned char out[CHUNK];
-	
-    /* allocate inflate state */
-    strm.zalloc = Z_NULL;
-    strm.zfree = Z_NULL;
-    strm.opaque = Z_NULL;
-    strm.avail_in = 0;
-    strm.next_in = Z_NULL;
-    ret = inflateInit2(&strm, (15+32));
-    if (ret != Z_OK)
-        return ret;
-	
-    /* decompress until deflate stream ends or end of file */
-    do {
-        strm.avail_in = (unsigned int)fread(in, 1, CHUNK, source);
-        if (ferror(source)) {
-            (void)inflateEnd(&strm);
-            return Z_ERRNO;
-        }
-        if (strm.avail_in == 0)
-            break;
-        strm.next_in = in;
-		
-        /* run inflate() on input until output buffer not full */
-        do {
-            strm.avail_out = CHUNK;
-            strm.next_out = out;
-            ret = inflate(&strm, Z_NO_FLUSH);
-            assert(ret != Z_STREAM_ERROR);  /* state not clobbered */
-            switch (ret) {
-				case Z_NEED_DICT:
-					ret = Z_DATA_ERROR;     /* and fall through */
-				case Z_DATA_ERROR:
-				case Z_MEM_ERROR:
-					(void)inflateEnd(&strm);
-					return ret;
-            }
-            have = CHUNK - strm.avail_out;
-            if (fwrite(&out, 1, have, dest) != have || ferror(dest)) {
-                (void)inflateEnd(&strm);
-                return Z_ERRNO;
-            }
-        } while (strm.avail_out == 0);
-		
-        /* done when inflate() says it's done */
-    } while (ret != Z_STREAM_END);
-	
-    /* clean up and return */
-    (void)inflateEnd(&strm);
-    return ret == Z_STREAM_END ? Z_OK : Z_DATA_ERROR;
-}
-
-
-#pragma mark gzip compression
-
-// Based on this from Robbie Hanson: http://deusty.blogspot.com/2007/07/gzip-compressiondecompression.html
-
-+ (NSData *)compressData:(NSData*)uncompressedData
-{
-	if ([uncompressedData length] == 0) return uncompressedData;
-	
-	z_stream strm;
-	
-	strm.zalloc = Z_NULL;
-	strm.zfree = Z_NULL;
-	strm.opaque = Z_NULL;
-	strm.total_out = 0;
-	strm.next_in=(Bytef *)[uncompressedData bytes];
-	strm.avail_in = (unsigned int)[uncompressedData length];
-	
-	// Compresssion Levels:
-	//   Z_NO_COMPRESSION
-	//   Z_BEST_SPEED
-	//   Z_BEST_COMPRESSION
-	//   Z_DEFAULT_COMPRESSION
-	
-	if (deflateInit2(&strm, Z_DEFAULT_COMPRESSION, Z_DEFLATED, (15+16), 8, Z_DEFAULT_STRATEGY) != Z_OK) return nil;
-	
-	NSMutableData *compressed = [NSMutableData dataWithLength:16384];  // 16K chunks for expansion
-	
-	do {
-		
-		if (strm.total_out >= [compressed length])
-			[compressed increaseLengthBy: 16384];
-		
-		strm.next_out = [compressed mutableBytes] + strm.total_out;
-		strm.avail_out = (unsigned int)([compressed length] - strm.total_out);
-		
-		deflate(&strm, Z_FINISH);  
-		
-	} while (strm.avail_out == 0);
-	
-	deflateEnd(&strm);
-	
-	[compressed setLength: strm.total_out];
-	return [NSData dataWithData:compressed];
-}
-
-// NOTE: To debug this method, turn off Data Formatters in Xcode or you'll crash on closeFile
-+ (int)compressDataFromFile:(NSString *)sourcePath toFile:(NSString *)destinationPath
-{
-	// Create an empty file at the destination path
-	[[NSFileManager defaultManager] createFileAtPath:destinationPath contents:[NSData data] attributes:nil];
-	
-	// Get a FILE struct for the source file
-	NSFileHandle *inputFileHandle = [NSFileHandle fileHandleForReadingAtPath:sourcePath];
-	FILE *source = fdopen([inputFileHandle fileDescriptor], "r");
-
-	// Get a FILE struct for the destination path
-	NSFileHandle *outputFileHandle = [NSFileHandle fileHandleForWritingAtPath:destinationPath];
-	FILE *dest = fdopen([outputFileHandle fileDescriptor], "w");
-
-	// compress data in source and save in destination
-	int status = [ASIHTTPRequest compressDataFromSource:source toDestination:dest];
-
-	// Close the files
-	fclose(dest);
-	fclose(source);
-	
-	// We have to close both of these explictly because CFReadStreamCreateForStreamedHTTPRequest() seems to go bonkers otherwise
-	[inputFileHandle closeFile];
-	[outputFileHandle closeFile];
-
-	return status;
-}
-
-//
-// Also from the zlib sample code  at http://www.zlib.net/zpipe.c
-// 
-+ (int)compressDataFromSource:(FILE *)source toDestination:(FILE *)dest
-{
-    int ret, flush;
-    unsigned have;
-    z_stream strm;
-    unsigned char in[CHUNK];
-    unsigned char out[CHUNK];
-	
-    /* allocate deflate state */
-    strm.zalloc = Z_NULL;
-    strm.zfree = Z_NULL;
-    strm.opaque = Z_NULL;
-    ret = deflateInit2(&strm, Z_DEFAULT_COMPRESSION, Z_DEFLATED, (15+16), 8, Z_DEFAULT_STRATEGY);
-    if (ret != Z_OK)
-        return ret;
-	
-    /* compress until end of file */
-    do {
-        strm.avail_in = (unsigned int)fread(in, 1, CHUNK, source);
-        if (ferror(source)) {
-            (void)deflateEnd(&strm);
-            return Z_ERRNO;
-        }
-        flush = feof(source) ? Z_FINISH : Z_NO_FLUSH;
-        strm.next_in = in;
-		
-        /* run deflate() on input until output buffer not full, finish
-		 compression if all of source has been read in */
-        do {
-            strm.avail_out = CHUNK;
-            strm.next_out = out;
-            ret = deflate(&strm, flush);    /* no bad return value */
-            assert(ret != Z_STREAM_ERROR);  /* state not clobbered */
-            have = CHUNK - strm.avail_out;
-            if (fwrite(out, 1, have, dest) != have || ferror(dest)) {
-                (void)deflateEnd(&strm);
-                return Z_ERRNO;
-            }
-        } while (strm.avail_out == 0);
-        assert(strm.avail_in == 0);     /* all input will be used */
-		
-        /* done when last data in file processed */
-    } while (flush != Z_FINISH);
-    assert(ret == Z_STREAM_END);        /* stream will be complete */
-	
-    /* clean up and return */
-    (void)deflateEnd(&strm);
-    return Z_OK;
 }
 
 #pragma mark get user agent
@@ -4247,6 +4106,7 @@ static NSOperationQueue *sharedQueue = nil;
 @synthesize useCookiePersistence;
 @synthesize downloadDestinationPath;
 @synthesize temporaryFileDownloadPath;
+@synthesize temporaryUncompressedDataDownloadPath;
 @synthesize didStartSelector;
 @synthesize didReceiveResponseHeadersSelector;
 @synthesize willRedirectSelector;
@@ -4296,6 +4156,7 @@ static NSOperationQueue *sharedQueue = nil;
 @synthesize cancelledLock;
 @synthesize haveBuiltPostBody;
 @synthesize fileDownloadOutputStream;
+@synthesize inflatedFileDownloadOutputStream;
 @synthesize authenticationRetryCount;
 @synthesize proxyAuthenticationRetryCount;
 @synthesize updatedProgress;
@@ -4336,9 +4197,14 @@ static NSOperationQueue *sharedQueue = nil;
 @synthesize cacheStoragePolicy;
 @synthesize didUseCachedResponse;
 @synthesize secondsToCache;
+<<<<<<< HEAD
 @synthesize clientCertificates;
 @synthesize redirectURL;
 #if TARGET_OS_IPHONE && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_4_0
 @synthesize shouldContinueWhenAppEntersBackground;
 #endif
+=======
+@synthesize dataDecompressor;
+@synthesize shouldWaitToInflateCompressedResponses;
+>>>>>>> newgzipstuff
 @end
