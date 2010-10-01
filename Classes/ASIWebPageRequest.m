@@ -10,7 +10,7 @@
 #import "ASIWebPageRequest.h"
 #import "ASINetworkQueue.h"
 
-static xmlChar *xpathExpr = (xmlChar *)"//link[@rel = \"stylesheet\"]/@href|//script/@src|//img/@src|//frame/@src|//iframe/@src|//*/@style";
+static xmlChar *xpathExpr = (xmlChar *)"//link/@href|//script/@src|//img/@src|//frame/@src|//iframe/@src|//*/@style";
 
 static NSLock *xmlParsingLock = nil;
 static NSMutableArray *requestsUsingXMLParser = nil;
