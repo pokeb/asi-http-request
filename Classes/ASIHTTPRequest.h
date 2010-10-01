@@ -73,6 +73,9 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	// Will always contain the original url used for making the request (the value of url can change when a request is redirected)
 	NSURL *originalURL;
 	
+	// Temporarily stores the url we are about to redirect to. Will be nil again when we do redirect
+	NSURL *redirectURL;
+
 	// The delegate, you need to manage setting and talking to your delegate in your subclasses
 	id <ASIHTTPRequestDelegate> delegate;
 	
@@ -266,6 +269,10 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	// Called on the delegate (if implemented) when the request receives response headers. Default is requestDidReceiveResponseHeaders:
 	SEL didReceiveResponseHeadersSelector;
 
+	// Called on the delegate (if implemented) when the request recieves a Location header and shouldRedirect is YES
+	// The delegate can then change the url if needed, and can restart the request by calling [request resume], or simply cancel it
+	SEL willRedirectSelector;
+
 	// Called on the delegate (if implemented) when the request completes successfully. Default is requestFinished:
 	SEL didFinishSelector;
 	
@@ -427,6 +434,11 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 
 	// Set secondsToCache to use a custom time interval for expiring the response when it is stored in a cache
 	NSTimeInterval secondsToCache;
+
+	#if TARGET_OS_IPHONE && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_4_0
+	BOOL shouldContinueWhenAppEntersBackground;
+	UIBackgroundTaskIdentifier backgroundTask;
+	#endif
 }
 
 #pragma mark init / dealloc
@@ -524,13 +536,13 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 // Helper method used for performing invocations on the main thread (used for progress)
 + (void)performSelector:(SEL)selector onTarget:(id *)target withObject:(id)object amount:(void *)amount;
 
-#pragma mark handling request complete / failure
+#pragma mark talking to delegates
 
 // Called when a request starts, lets the delegate know via didStartSelector
 - (void)requestStarted;
 
 // Called when a request receives response headers, lets the delegate know via didReceiveResponseHeadersSelector
-- (void)requestReceivedResponseHeaders;
+- (void)requestReceivedResponseHeaders:(NSDictionary *)newHeaders;
 
 // Called when a request completes successfully, lets the delegate know via didFinishSelector
 - (void)requestFinished;
@@ -542,6 +554,9 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 // Returns YES if we haven't already retried, and connection will be restarted
 // Otherwise, returns NO, and nothing will happen
 - (BOOL)retryUsingNewConnection;
+
+// Can be called by delegates from inside their willRedirectSelector implementations to restart the request with a new url
+- (void)redirectToURL:(NSURL *)newURL;
 
 #pragma mark parsing HTTP response headers
 
@@ -751,6 +766,11 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 // Returns a date from a string in RFC1123 format
 + (NSDate *)dateFromRFC1123String:(NSString *)string;
 
+// Used for detecting multitasking support at runtime (for backgrounding requests)
+#if TARGET_OS_IPHONE
++ (BOOL)isMultitaskingSupported;
+#endif
+
 #pragma mark threading behaviour
 
 // In the default implementation, all requests run in a single background thread
@@ -777,7 +797,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 @property (assign) int proxyPort;
 @property (retain) NSString *proxyType;
 
-@property (retain,setter=setURL:) NSURL *url;
+@property (retain,setter=setURL:, nonatomic) NSURL *url;
 @property (retain) NSURL *originalURL;
 @property (assign, nonatomic) id delegate;
 @property (retain, nonatomic) id queue;
@@ -789,6 +809,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 @property (retain) NSString *temporaryFileDownloadPath;
 @property (assign) SEL didStartSelector;
 @property (assign) SEL didReceiveResponseHeadersSelector;
+@property (assign) SEL willRedirectSelector;
 @property (assign) SEL didFinishSelector;
 @property (assign) SEL didFailSelector;
 @property (assign) SEL didReceiveDataSelector;
@@ -855,4 +876,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 @property (assign, readonly) BOOL didUseCachedResponse;
 @property (assign) NSTimeInterval secondsToCache;
 @property (retain) NSArray *clientCertificates;
+#if TARGET_OS_IPHONE && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_4_0
+@property (assign) BOOL shouldContinueWhenAppEntersBackground;
+#endif
 @end

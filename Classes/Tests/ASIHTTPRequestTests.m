@@ -118,15 +118,13 @@
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
 	[request setDelegate:self];
 	[request startSynchronous];
-	
-	// Hacky, but this test won't run on the main thread, we have to hope the delegate methods will be called in this time
-	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:2]];
+
 	
 	GHAssertTrue(started,@"Failed to call the delegate method when the request started");	
 	GHAssertTrue(receivedResponseHeaders,@"Failed to call the delegate method when the request started");	
 	GHAssertTrue(finished,@"Failed to call the delegate method when the request finished");
 	
-	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_great_american_novel_%28abridged%29.txt"]];
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_great_american_novel.txt"]];
 	[request setDelegate:self];
 	[request setTimeOutSeconds:0.01];
 	[request startSynchronous];
@@ -150,7 +148,7 @@
 	GHAssertTrue(started,@"Failed to call the delegate method when the request started");	
 	GHAssertTrue(finished,@"Failed to call the delegate method when the request finished");
 	
-	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_great_american_novel_%28abridged%29.txt"]];
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_great_american_novel.txt"]];
 	[request setDidFailSelector:@selector(delegateTestFailed:)];
 	[request setDelegate:self];
 	[request setTimeOutSeconds:0.01];
@@ -165,9 +163,9 @@
 	started = YES;
 }
 
-- (void)requestReceivedResponseHeaders:(ASIHTTPRequest *)request
+- (void)request:(ASIHTTPRequest *)request didReceiveResponseHeaders:(NSDictionary *)newResponseHeaders
 {
-	GHAssertNotNil([request responseHeaders],@"Called requestReceivedResponseHeaders: when we have no headers");
+	GHAssertNotNil(newResponseHeaders,@"Called request:didReceiveResponseHeaders: when we have no headers");
 	receivedResponseHeaders = YES;
 }
 
@@ -752,8 +750,6 @@
 	success = [[request responseString] isEqualToString:requestBody];
 	GHAssertTrue(success,@"Failed upload the correct request body");		
 }
-
-
 
 - (void)testCookies
 {
@@ -1753,6 +1749,54 @@
 
 	BOOL success = [expectedOutput isEqualToString:[NSString stringWithContentsOfFile:completePath encoding:NSUTF8StringEncoding error:NULL]];
 	GHAssertTrue(success, @"Failed to send the correct Range headers to the server when resuming after a timeout");
+}
+
+- (void)testChangeURLOnAuthenticationRetry
+{
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/basic-authentication"]];
+	[request setDelegate:self];
+	[request setValidatesSecureCertificate:NO];
+	[request startAsynchronous];
+}
+
+- (void)changeURLFailed:(ASIHTTPRequest *)request
+{
+	GHFail(@"Request failed when changing url");
+}
+
+- (void)authenticationNeededForRequest:(ASIHTTPRequest *)request
+{
+	[request setUsername:@"foo"];
+	[request setPassword:@"foo"];
+	[request setDidFailSelector:@selector(changeURLFailed:)];
+	[request setURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
+	[request retryUsingSuppliedCredentials];
+}
+
+- (void)testDelegateRedirectHandling
+{
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/redirect_to_ssl"]];
+	[request setDelegate:self];
+	[request setWillRedirectSelector:@selector(request:isGoingToRedirectToURL:)];
+	[request setDidFailSelector:@selector(redirectURLTestFailed:)];
+	[request setDidFinishSelector:@selector(redirectURLTestSucceeded:)];
+	[request startAsynchronous];
+}
+
+- (void)redirectURLTestSucceeded:(ASIHTTPRequest *)request
+{
+	BOOL success = [[request url] isEqual:[NSURL URLWithString:@"http://allseeing-i.com"]];
+	GHAssertTrue(success,@"Request failed to redirect to url specified by delegate");
+}
+
+- (void)redirectURLTestFailed:(ASIHTTPRequest *)request
+{
+	GHFail(@"Request failed, cannot proceed with test");
+}
+
+- (void)request:(ASIHTTPRequest *)request isGoingToRedirectToURL:(NSURL *)url
+{
+	[request redirectToURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
 }
 
 @synthesize responseData;
