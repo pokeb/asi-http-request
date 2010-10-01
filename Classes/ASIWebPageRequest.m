@@ -20,6 +20,7 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 - (void)updateResourceURLs;
 - (void)parseAsHTML;
 - (void)parseAsCSS;
+- (void)addURLToFetch:(NSString *)newURL;
 + (NSArray *)CSSURLsFromString:(NSString *)string;
 @property (retain, nonatomic) ASINetworkQueue *externalResourceQueue;
 @property (retain, nonatomic) NSMutableDictionary *resourceList;
@@ -68,15 +69,11 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 	[self setResourceList:[NSMutableDictionary dictionary]];
 
 	for (NSString *theURL in urls) {
-		if (([[theURL substringToIndex:1] isEqualToString:@"'"] && [[theURL substringFromIndex:[theURL length]-1] isEqualToString:@"'"]) ||([[theURL substringToIndex:1] isEqualToString:@"\""] && [[theURL substringFromIndex:[theURL length]-1] isEqualToString:@"\""])) {
-			theURL = [theURL substringWithRange:NSMakeRange(1,[theURL length]-2)];
-		}
 		NSURL *newURL = [NSURL URLWithString:theURL relativeToURL:[self url]];
 		if (newURL) {
-			[[self resourceList] setObject:[NSMutableDictionary dictionary] forKey:theURL];
+			[self addURLToFetch:theURL];
 		}
 	}
-
 	if (![[self resourceList] count]) {
 		[super requestFinished];
 		[super markAsFinished];
@@ -95,6 +92,7 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 		ASIWebPageRequest *externalResourceRequest = [ASIWebPageRequest requestWithURL:[NSURL URLWithString:theURL relativeToURL:[self url]]];
 		[externalResourceRequest setRequestHeaders:[self requestHeaders]];
 		[externalResourceRequest setDownloadCache:[self downloadCache]];
+		[externalResourceRequest setCachePolicy:[self cachePolicy]];
 		[externalResourceRequest setUserInfo:[NSDictionary dictionaryWithObject:theURL forKey:@"Path"]];
 		[[self externalResourceQueue] addOperation:externalResourceRequest];
 	}
@@ -168,6 +166,7 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 		ASIWebPageRequest *externalResourceRequest = [ASIWebPageRequest requestWithURL:[NSURL URLWithString:theURL relativeToURL:[self url]]];
 		[externalResourceRequest setRequestHeaders:[self requestHeaders]];
 		[externalResourceRequest setDownloadCache:[self downloadCache]];
+		[externalResourceRequest setCachePolicy:[self cachePolicy]];
 		[externalResourceRequest setUserInfo:[NSDictionary dictionaryWithObject:theURL forKey:@"Path"]];
 		[[self externalResourceQueue] addOperation:externalResourceRequest];
 	}
@@ -238,6 +237,7 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 	[self setResponseHeaders:newHeaders];
 
 	[super requestFinished];
+	[[self downloadCache] storeResponseForRequest:self maxAge:[self secondsToCache]];
 	[super markAsFinished];
 }
 
@@ -271,10 +271,10 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 		if ([[nodeName lowercaseString] isEqualToString:@"style"]) {
 			NSArray *externalResources = [[self class] CSSURLsFromString:value];
 			for (NSString *theURL in externalResources) {
-				[resourceList setObject:[NSMutableDictionary dictionary] forKey:theURL];
+				[self addURLToFetch:theURL];
 			}
 		} else {
-			[resourceList setObject:[NSMutableDictionary dictionary] forKey:value];
+			[self addURLToFetch:value];
 		}
 		if (nodes->nodeTab[i]->type != XML_NAMESPACE_DECL) {
 			nodes->nodeTab[i] = NULL;
@@ -283,6 +283,16 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 	
 	xmlXPathFreeObject(xpathObj);
     xmlXPathFreeContext(xpathCtx); 
+}
+
+- (void)addURLToFetch:(NSString *)newURL
+{
+	// Get rid of any surrounding whitespace
+	newURL = [newURL stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+	// Don't attempt to fetch data URIs
+	if (![[[newURL substringToIndex:5] lowercaseString] isEqualToString:@"data:"]) {
+		[[self resourceList] setObject:[NSMutableDictionary dictionary] forKey:newURL];
+	}
 }
 
 
@@ -409,7 +419,8 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 		if (!theURL) {
 			break;
 		}
-		[urls addObject:theURL];
+		// Remove any quotes around the url
+		[urls addObject:[theURL stringByTrimmingCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"\"'"]]];
 	}
 	return urls;
 }
