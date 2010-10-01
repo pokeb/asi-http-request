@@ -21,6 +21,8 @@
 - (void)testListRequest;
 - (void)testSubclasses;
 - (void)createTestBucket;
+- (void)testCopy;
+- (void)testHTTPS;
 
 @property (retain,nonatomic) ASINetworkQueue *networkQueue;
 @end

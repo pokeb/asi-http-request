@@ -20,8 +20,6 @@ static NSString *accessKey = @"";
 // You should run these tests on a bucket that does not yet exist
 static NSString *bucket = @"";
 
-
-
 // Used for subclass test
 @interface ASIS3ObjectRequestSubclass : ASIS3ObjectRequest {}
 @end
@@ -220,6 +218,7 @@ static NSString *bucket = @"";
 	ASIS3ObjectRequest *request = [ASIS3ObjectRequest PUTRequestForFile:filePath withBucket:bucket key:key];
 	[request setSecretAccessKey:secretAccessKey];
 	[request setAccessKey:accessKey];
+	[request setStorageClass:ASIS3StorageClassReducedRedundancy];
 	[request startSynchronous];
 	success = [[request responseString] isEqualToString:@""];
 	GHAssertTrue(success,@"Failed to PUT a file to S3");	
@@ -452,7 +451,7 @@ static NSString *bucket = @"";
 	[listRequest setPrefix:@"foo"];
 	[listRequest setMarker:@"bar"];
 	[listRequest setMaxResultCount:5];
-	[listRequest createQueryString];
+	[listRequest buildURL];
 	NSString *expectedURL = [NSString stringWithFormat:@"http://%@.s3.amazonaws.com/?acl&prefix=foo&marker=bar&delimiter=/&max-keys=5",bucket];
 	success = ([[[listRequest url] absoluteString] isEqualToString:expectedURL]);
 	GHAssertTrue(success,@"Generated the wrong url when requesting a subresource");
@@ -756,6 +755,94 @@ static NSString *bucket = @"";
 	[bucketObject2 release];
 }
 
+
+- (void)testHTTPS
+{
+	[ASIS3Request setSharedAccessKey:accessKey];
+	[ASIS3Request setSharedSecretAccessKey:secretAccessKey];
+
+	// Create a bucket
+	ASIS3Request *request = [ASIS3BucketRequest PUTRequestWithBucket:bucket];
+	[request setRequestScheme:ASIS3RequestSchemeHTTPS];
+	[request startSynchronous];
+	GHAssertNil([request error],@"Failed to create a bucket");
+
+	// PUT something in it
+	NSString *key = @"king";
+	request = [ASIS3ObjectRequest PUTRequestForData:[@"fink" dataUsingEncoding:NSUTF8StringEncoding] withBucket:bucket key:key];
+	[request setRequestScheme:ASIS3RequestSchemeHTTPS];
+	[request startSynchronous];
+	BOOL success = [[request responseString] isEqualToString:@""];
+	GHAssertTrue(success,@"Failed to PUT some data into S3");
+
+	// GET it
+	request = [ASIS3ObjectRequest requestWithBucket:bucket key:key];
+	[request setRequestScheme:ASIS3RequestSchemeHTTPS];
+	[request startSynchronous];
+	success = [[request responseString] isEqualToString:@"fink"];
+	GHAssertTrue(success,@"Failed to GET the correct data from S3");
+
+	// DELETE it
+	request = [ASIS3ObjectRequest DELETERequestWithBucket:bucket key:@"king"];
+	[request setRequestScheme:ASIS3RequestSchemeHTTPS];
+	[request startSynchronous];
+	success = [[request responseString] isEqualToString:@""];
+	GHAssertTrue(success,@"Failed to DELETE the object from S3");
+
+	// Delete the bucket
+	request = [ASIS3BucketRequest DELETERequestWithBucket:bucket];
+	[request setRequestScheme:ASIS3RequestSchemeHTTPS];
+	[request startSynchronous];
+	GHAssertNil([request error],@"Failed to delete a bucket");
+
+	[ASIS3Request setSharedAccessKey:nil];
+	[ASIS3Request setSharedSecretAccessKey:nil];
+}
+
+// Ideally this test would actually parse the ACL XML and check it, but for now it just makes sure S3 doesn't return an error
+- (void)testCannedACLs
+{
+	[ASIS3Request setSharedAccessKey:accessKey];
+	[ASIS3Request setSharedSecretAccessKey:secretAccessKey];
+
+	// Create a bucket
+	ASIS3Request *request = [ASIS3BucketRequest PUTRequestWithBucket:bucket];
+	[request setRequestScheme:ASIS3RequestSchemeHTTPS];
+	[request startSynchronous];
+	GHAssertNil([request error],@"Failed to create a bucket");
+
+	NSArray *ACLs = [NSArray arrayWithObjects:ASIS3AccessPolicyPrivate,ASIS3AccessPolicyPublicRead,ASIS3AccessPolicyPublicReadWrite,ASIS3AccessPolicyAuthenticatedRead,ASIS3AccessPolicyBucketOwnerRead,ASIS3AccessPolicyBucketOwnerFullControl,nil];
+
+	for (NSString *cannedACL in ACLs) {
+		// PUT object
+		NSString *key = @"king";
+		request = [ASIS3ObjectRequest PUTRequestForData:[@"fink" dataUsingEncoding:NSUTF8StringEncoding] withBucket:bucket key:key];
+		[request setAccessPolicy:cannedACL];
+		[request startSynchronous];
+		GHAssertNil([request error],@"Failed to PUT some data into S3");
+
+		// GET object ACL
+		request = [ASIS3ObjectRequest requestWithBucket:bucket key:key subResource:@"acl"];
+		[request startSynchronous];
+		GHAssertNil([request error],@"Failed to fetch the object");
+	}
+
+	// DELETE it
+	request = [ASIS3ObjectRequest DELETERequestWithBucket:bucket key:@"king"];
+	[request setRequestScheme:ASIS3RequestSchemeHTTPS];
+	[request startSynchronous];
+	BOOL success = [[request responseString] isEqualToString:@""];
+	GHAssertTrue(success,@"Failed to DELETE the object from S3");
+
+	// Delete the bucket
+	request = [ASIS3BucketRequest DELETERequestWithBucket:bucket];
+	[request setRequestScheme:ASIS3RequestSchemeHTTPS];
+	[request startSynchronous];
+	GHAssertNil([request error],@"Failed to delete a bucket");
+
+	[ASIS3Request setSharedAccessKey:nil];
+	[ASIS3Request setSharedSecretAccessKey:nil];
+}
 
 
 @synthesize networkQueue;

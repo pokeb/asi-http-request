@@ -8,6 +8,8 @@
 
 #import "ASIS3ObjectRequest.h"
 
+NSString *const ASIS3StorageClassStandard = @"STANDARD";
+NSString *const ASIS3StorageClassReducedRedundancy = @"REDUCED_REDUNDANCY";
 
 @implementation ASIS3ObjectRequest
 
@@ -21,8 +23,7 @@
 
 + (id)requestWithBucket:(NSString *)bucket key:(NSString *)key
 {
-	NSString *path = [ASIS3Request stringByURLEncodingForS3Path:key];
-	ASIS3ObjectRequest *request = [[[self alloc] initWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://%@.s3.amazonaws.com%@",bucket,path]]] autorelease];
+	ASIS3ObjectRequest *request = [[[self alloc] initWithURL:nil] autorelease];
 	[request setBucket:bucket];
 	[request setKey:key];
 	return request;
@@ -30,8 +31,7 @@
 
 + (id)requestWithBucket:(NSString *)bucket key:(NSString *)key subResource:(NSString *)subResource
 {
-	NSString *path = [ASIS3Request stringByURLEncodingForS3Path:key];
-	ASIS3ObjectRequest *request = [[[self alloc] initWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://%@.s3.amazonaws.com%@?%@",bucket,path,subResource]]] autorelease];
+	ASIS3ObjectRequest *request = [[[self alloc] initWithURL:nil] autorelease];
 	[request setSubResource:subResource];
 	[request setBucket:bucket];
 	[request setKey:key];
@@ -79,8 +79,6 @@
 	return request;
 }
 
-
-
 - (id)copyWithZone:(NSZone *)zone
 {
 	ASIS3ObjectRequest *newRequest = [super copyWithZone:zone];
@@ -100,7 +98,17 @@
 	[sourceKey release];
 	[sourceBucket release];
 	[subResource release];
+	[storageClass release];
 	[super dealloc];
+}
+
+- (void)buildURL
+{
+	if ([self subResource]) {
+		[self setURL:[NSURL URLWithString:[NSString stringWithFormat:@"%@://%@.%@%@?%@",[self requestScheme],[self bucket],[[self class] S3Host],[ASIS3Request stringByURLEncodingForS3Path:[self key]],[self subResource]]]];
+	} else {
+		[self setURL:[NSURL URLWithString:[NSString stringWithFormat:@"%@://%@.%@%@",[self requestScheme],[self bucket],[[self class] S3Host],[ASIS3Request stringByURLEncodingForS3Path:[self key]]]]];
+	}
 }
 
 - (NSString *)mimeType
@@ -129,6 +137,9 @@
 		NSString *path = [ASIS3Request stringByURLEncodingForS3Path:[self sourceKey]];
 		[headers setObject:[[self sourceBucket] stringByAppendingString:path] forKey:@"x-amz-copy-source"];
 	}
+	if ([self storageClass]) {
+		[headers setObject:[self storageClass] forKey:@"x-amz-storage-class"];
+	}
 	return headers;
 }
 
@@ -141,12 +152,11 @@
 	return [super stringToSignForHeaders:canonicalizedAmzHeaders resource:canonicalizedResource];
 }
 
-
 @synthesize bucket;
 @synthesize key;
 @synthesize sourceBucket;
 @synthesize sourceKey;
 @synthesize mimeType;
 @synthesize subResource;
-
+@synthesize storageClass;
 @end
