@@ -23,6 +23,7 @@
 
 
 // Automatically set on build
+
 NSString *ASIHTTPRequestVersion = @"v1.7-56 2010-08-30";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
@@ -189,7 +190,6 @@ static NSOperationQueue *sharedQueue = nil;
 @property (assign) unsigned long long contentLength;
 @property (assign) unsigned long long partialDownloadSize;
 @property (assign, nonatomic) unsigned long long uploadBufferSize;
-@property (assign) NSStringEncoding responseEncoding;
 @property (retain, nonatomic) NSOutputStream *postBodyWriteStream;
 @property (retain, nonatomic) NSInputStream *postBodyReadStream;
 @property (assign) unsigned long long totalBytesRead;
