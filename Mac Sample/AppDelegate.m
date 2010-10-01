@@ -380,7 +380,7 @@
 
 - (IBAction)fetchWebPage:(id)sender
 {
-	ASIWebPageRequest *request = [[[ASIWebPageRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/Who-is-using-it"]] autorelease];
+	ASIWebPageRequest *request = [[[ASIWebPageRequest alloc] initWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/ASIWebPageRequest/index.html"]] autorelease];
 	[request setDidFailSelector:@selector(webPageFetchFailed:)];
 	[request setDidFinishSelector:@selector(webPageFetchSucceeded:)];
 	[request setDelegate:self];

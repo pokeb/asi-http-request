@@ -10,7 +10,7 @@
 #import "ASIWebPageRequest.h"
 #import "ASINetworkQueue.h"
 
-static xmlChar *xpathExpr = (xmlChar *)"//link[@rel = \"stylesheet\"]/@href|//script/@src|//img/@src";
+static xmlChar *xpathExpr = (xmlChar *)"//link[@rel = \"stylesheet\"]/@href|//script/@src|//img/@src|//frame/@src|//iframe/@src|//*/@style";
 
 static NSLock *xmlParsingLock = nil;
 static NSMutableArray *requestsUsingXMLParser = nil;
@@ -20,6 +20,7 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 - (void)updateResourceURLs;
 - (void)parseAsHTML;
 - (void)parseAsCSS;
++ (NSArray *)CSSURLsFromString:(NSString *)string;
 @property (retain, nonatomic) ASINetworkQueue *externalResourceQueue;
 @property (retain, nonatomic) NSMutableDictionary *resourceList;
 @end
@@ -62,19 +63,7 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:100 userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Unable to read HTML string from response",NSLocalizedDescriptionKey,nil]]];
 		return;
 	}
-	NSMutableArray *urls = [NSMutableArray array];
-	NSScanner *scanner = [NSScanner scannerWithString:responseCSS];
-	[scanner setCaseSensitive:NO];
-	while (1) {
-		NSString *theURL = nil;
-		[scanner scanUpToString:@"url(" intoString:NULL];
-		[scanner scanString:@"url(" intoString:NULL];
-		[scanner scanUpToString:@")" intoString:&theURL];
-		if (!theURL) {
-			break;
-		}
-		[urls addObject:theURL];
-	}
+	NSArray *urls = [[self class] CSSURLsFromString:responseCSS];
 
 	[self setResourceList:[NSMutableDictionary dictionary]];
 
@@ -277,8 +266,16 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 	int i;
     for(i = size - 1; i >= 0; i--) {
 		assert(nodes->nodeTab[i]);
-		NSString *theURL = [NSString stringWithCString:(char *)xmlNodeGetContent(nodes->nodeTab[i]) encoding:NSUTF8StringEncoding];
-		[resourceList setObject:[NSMutableDictionary dictionary] forKey:theURL];
+		NSString *nodeName  = [NSString stringWithCString:(char *)nodes->nodeTab[i]->name encoding:NSUTF8StringEncoding];
+		NSString *value = [NSString stringWithCString:(char *)xmlNodeGetContent(nodes->nodeTab[i]) encoding:NSUTF8StringEncoding];
+		if ([[nodeName lowercaseString] isEqualToString:@"style"]) {
+			NSArray *externalResources = [[self class] CSSURLsFromString:value];
+			for (NSString *theURL in externalResources) {
+				[resourceList setObject:[NSMutableDictionary dictionary] forKey:theURL];
+			}
+		} else {
+			[resourceList setObject:[NSMutableDictionary dictionary] forKey:value];
+		}
 		if (nodes->nodeTab[i]->type != XML_NAMESPACE_DECL) {
 			nodes->nodeTab[i] = NULL;
 		}
@@ -313,14 +310,30 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 	int i;
 	for(i = size - 1; i >= 0; i--) {
 		assert(nodes->nodeTab[i]);
-		NSString *theURL = [NSString stringWithCString:(char *)xmlNodeGetContent(nodes->nodeTab[i]) encoding:NSUTF8StringEncoding];
-		NSData *data = [[resourceList objectForKey:theURL] objectForKey:@"Data"];
-		NSString *contentType = [[resourceList objectForKey:theURL] objectForKey:@"ContentType"];
-		if (data && contentType) {
-			NSString *newData = [NSString stringWithFormat:@"data:%@;base64,",contentType];
-			newData = [newData stringByAppendingString:[ASIHTTPRequest base64forData:data]];
-			xmlNodeSetContent(nodes->nodeTab[i], (xmlChar *)[newData cStringUsingEncoding:NSUTF8StringEncoding]);
+		NSString *nodeName  = [NSString stringWithCString:(char *)nodes->nodeTab[i]->name encoding:NSUTF8StringEncoding];
+		NSString *value = [NSString stringWithCString:(char *)xmlNodeGetContent(nodes->nodeTab[i]) encoding:NSUTF8StringEncoding];
+		if ([[nodeName lowercaseString] isEqualToString:@"style"]) {
+			NSArray *externalResources = [[self class] CSSURLsFromString:value];
+			for (NSString *theURL in externalResources) {
+				NSData *data = [[resourceList objectForKey:theURL] objectForKey:@"Data"];
+				NSString *contentType = [[resourceList objectForKey:theURL] objectForKey:@"ContentType"];
+				if (data && contentType) {
+					NSString *newData = [NSString stringWithFormat:@"data:%@;base64,",contentType];
+					newData = [newData stringByAppendingString:[ASIHTTPRequest base64forData:data]];
+					value = [value stringByReplacingOccurrencesOfString:theURL withString:newData];
+				}
+			}
+			xmlNodeSetContent(nodes->nodeTab[i], (xmlChar *)[value cStringUsingEncoding:NSUTF8StringEncoding]);
+		} else {
+			NSData *data = [[resourceList objectForKey:value] objectForKey:@"Data"];
+			NSString *contentType = [[resourceList objectForKey:value] objectForKey:@"ContentType"];
+			if (data && contentType) {
+				NSString *newData = [NSString stringWithFormat:@"data:%@;base64,",contentType];
+				newData = [newData stringByAppendingString:[ASIHTTPRequest base64forData:data]];
+				xmlNodeSetContent(nodes->nodeTab[i], (xmlChar *)[newData cStringUsingEncoding:NSUTF8StringEncoding]);
+			}
 		}
+
 		if (nodes->nodeTab[i]->type != XML_NAMESPACE_DECL) {
 			nodes->nodeTab[i] = NULL;
 		}
@@ -347,7 +360,7 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 	if (rc >= 0) {
 		rc = (tidyOptSetBool(tdoc, TidyXmlDecl, yes) ? rc : -1 );
 		rc = (tidyOptSetValue(tdoc, TidyCharEncoding, "utf8") ? rc : -1 );
-		rc = (tidyOptSetValue(tdoc, TidyDoctype, "strict") ? rc : -1 );
+		rc = (tidyOptSetValue(tdoc, TidyDoctype, "auto") ? rc : -1 );
 		// Stop tidy stripping HTML 5 tags
 		rc = (tidyOptSetValue(tdoc, TidyBlockTags, "header, section, nav, footer, article, audio, video") ? rc : -1);
 	}
@@ -381,6 +394,24 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 	tidyRelease(tdoc);
 	
 	return xhtml;
+}
+
++ (NSArray *)CSSURLsFromString:(NSString *)string
+{
+	NSMutableArray *urls = [NSMutableArray array];
+	NSScanner *scanner = [NSScanner scannerWithString:string];
+	[scanner setCaseSensitive:NO];
+	while (1) {
+		NSString *theURL = nil;
+		[scanner scanUpToString:@"url(" intoString:NULL];
+		[scanner scanString:@"url(" intoString:NULL];
+		[scanner scanUpToString:@")" intoString:&theURL];
+		if (!theURL) {
+			break;
+		}
+		[urls addObject:theURL];
+	}
+	return urls;
 }
 
 @synthesize externalResourceQueue;
