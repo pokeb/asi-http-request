@@ -182,13 +182,11 @@ static NSOperationQueue *sharedQueue = nil;
 @property (retain) NSArray *responseCookies;
 @property (assign) int responseStatusCode;
 @property (retain, nonatomic) NSDate *lastActivityTime;
-@property (assign) unsigned long long contentLength;
+
 @property (assign) unsigned long long partialDownloadSize;
 @property (assign, nonatomic) unsigned long long uploadBufferSize;
 @property (retain, nonatomic) NSOutputStream *postBodyWriteStream;
 @property (retain, nonatomic) NSInputStream *postBodyReadStream;
-@property (assign) unsigned long long totalBytesRead;
-@property (assign) unsigned long long totalBytesSent;
 @property (assign, nonatomic) unsigned long long lastBytesRead;
 @property (assign, nonatomic) unsigned long long lastBytesSent;
 @property (retain) NSRecursiveLock *cancelledLock;
@@ -1335,7 +1333,6 @@ static NSOperationQueue *sharedQueue = nil;
 {
 	// We won't let the request cancel while we're updating progress / checking for a timeout
 	[[self cancelledLock] lock];
-	
 	// See if our NSOperationQueue told us to cancel
 	if ([self isCancelled] || [self complete]) {
 		[[self cancelledLock] unlock];
@@ -1562,7 +1559,6 @@ static NSOperationQueue *sharedQueue = nil;
 	[ASIHTTPRequest performSelector:@selector(request:didReceiveBytes:) onTarget:&queue withObject:self amount:&value];
 	[ASIHTTPRequest performSelector:@selector(request:didReceiveBytes:) onTarget:&downloadProgressDelegate withObject:self amount:&value];
 	[ASIHTTPRequest updateProgressIndicator:&downloadProgressDelegate withProgress:[self totalBytesRead]+[self partialDownloadSize] ofTotal:[self contentLength]+[self partialDownloadSize]];
-		
 	[self setLastBytesRead:bytesReadSoFar];
 }
 
@@ -2887,6 +2883,9 @@ static NSOperationQueue *sharedQueue = nil;
 	[self setLastBytesSent:totalBytesSent];	
 	[self setTotalBytesSent:[NSMakeCollectable([(NSNumber *)CFReadStreamCopyProperty((CFReadStreamRef)[self readStream], kCFStreamPropertyHTTPRequestBytesWrittenCount) autorelease]) unsignedLongLongValue]];
 	[self setComplete:YES];
+	if (![self contentLength]) {
+		[self setContentLength:[self totalBytesRead]];
+	}
 	[self updateProgressIndicators];
 
 	

@@ -23,6 +23,7 @@
 - (void)authSheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo;
 - (void)postFinished:(ASIHTTPRequest *)request;
 - (void)postFailed:(ASIHTTPRequest *)request;
+- (void)fetchURL:(NSURL *)url;
 @end
 
 @implementation AppDelegate
@@ -380,10 +381,30 @@
 
 - (IBAction)fetchWebPage:(id)sender
 {
-	ASIWebPageRequest *request = [[[ASIWebPageRequest alloc] initWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/ASIWebPageRequest/index.html"]] autorelease];
+	[self fetchURL:[NSURL URLWithString:[urlField stringValue]]];
+
+}
+
+- (void)webView:(WebView *)sender decidePolicyForNavigationAction:(NSDictionary *)actionInformation request:(NSURLRequest *)request frame:(WebFrame *)frame decisionListener:(id)listener
+{
+	// If this is a web page we've requested ourselves, let it load
+	if ([[actionInformation objectForKey:WebActionNavigationTypeKey] intValue] == WebNavigationTypeOther) {
+		[listener use];
+		return;
+	}
+	// If the user clicked on a link, let's tell the webview to ignore it, and we'll load it ourselves
+	[self fetchURL:[request URL]];
+	[listener ignore];
+}
+
+- (void)fetchURL:(NSURL *)url
+{
+	ASIWebPageRequest *request = [ASIWebPageRequest requestWithURL:url];
 	[request setDidFailSelector:@selector(webPageFetchFailed:)];
 	[request setDidFinishSelector:@selector(webPageFetchSucceeded:)];
 	[request setDelegate:self];
+	[request setShowAccurateProgress:NO];
+	[request setDownloadProgressDelegate:progressIndicator];
 	[request setDownloadCache:[ASIDownloadCache sharedCache]];
 	[[ASIDownloadCache sharedCache] setDefaultCachePolicy:ASIOnlyLoadIfNotCachedCachePolicy];
 	[[ASIDownloadCache sharedCache] setShouldRespectCacheControlHeaders:NO];
@@ -395,11 +416,11 @@
 	[[NSAlert alertWithError:[request error]] runModal];
 }
 
-
 - (void)webPageFetchSucceeded:(ASIHTTPRequest *)request
 {
 	[webPageSource setString:[request responseString]];
 	[[webView mainFrame] loadHTMLString:[request responseString] baseURL:[request url]];
+	[urlField setStringValue:[[request url] absoluteString]];
 }
 
 

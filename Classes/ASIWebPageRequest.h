@@ -9,10 +9,7 @@
 //  Known issue: You cannot use startSychronous with an ASIWebPageRequest
 
 #import "ASIHTTPRequest.h"
-#import <tidy/tidy.h>
-#import <tidy/buffio.h>
-#import <libxml/tree.h>
-#import <libxml/parser.h>
+#import <libxml/HTMLparser.h>
 #import <libxml/xpath.h>
 #import <libxml/xpathInternals.h>
 
@@ -29,9 +26,11 @@ typedef enum _ASIWebContentType {
 	NSMutableDictionary *resourceList;
 	xmlDocPtr doc;
 	ASIWebContentType webContentType;
+	unsigned long long totalDownloadSize;
+	unsigned long long totalDownloadProgress;
+	ASIWebPageRequest *parentRequest;
 }
 
-+ (NSString *)XHTMLForString:(NSString *)inputHTML error:(NSError **)error;
 
-
+@property (assign, nonatomic) ASIWebPageRequest *parentRequest;
 @end

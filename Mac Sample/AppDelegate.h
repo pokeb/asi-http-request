@@ -50,6 +50,7 @@
 
 	IBOutlet WebView *webView;
 	IBOutlet NSTextView *webPageSource;
+	IBOutlet NSTextField *urlField;
 }
 
 - (IBAction)simpleURLFetch:(id)sender;
