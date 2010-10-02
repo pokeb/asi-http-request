@@ -66,8 +66,18 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 - (void)parseAsCSS
 {
 	webContentType = ASICSSWebContentType;
-	NSString *responseCSS = [self responseString];
-	if (!responseCSS) {
+
+	NSString *responseCSS = nil;
+	NSError *err = nil;
+	if ([self downloadDestinationPath]) {
+		responseCSS = [NSString stringWithContentsOfFile:[self downloadDestinationPath] encoding:[self responseEncoding] error:&err];
+	} else {
+		responseCSS = [self responseString];
+	}
+	if (err) {
+		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:100 userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Unable to read HTML string from response",NSLocalizedDescriptionKey,err,NSUnderlyingErrorKey,nil]]];
+		return;
+	} else if (!responseCSS) {
 		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:100 userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Unable to read HTML string from response",NSLocalizedDescriptionKey,nil]]];
 		return;
 	}
@@ -99,6 +109,9 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 		[externalResourceRequest setUserInfo:[NSDictionary dictionaryWithObject:theURL forKey:@"Path"]];
 		[externalResourceRequest setParentRequest:self];
 		[externalResourceRequest setShouldResetDownloadProgress:NO];
+		if ([self downloadDestinationPath]) {
+			[externalResourceRequest setDownloadDestinationPath:[self cachePathForRequest:externalResourceRequest]];
+		}
 		[[self externalResourceQueue] addOperation:externalResourceRequest];
 		[externalResourceRequest setShowAccurateProgress:YES];
 	}
@@ -111,20 +124,6 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 - (void)parseAsHTML
 {
 	webContentType = ASIHTMLWebContentType;
-	NSString *responseHTML = [self responseString];
-	if (!responseHTML) {
-		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:100 userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Unable to read HTML string from response",NSLocalizedDescriptionKey,nil]]];
-		return;
-	}
-
-	NSError *err = nil;
-	if (err) {
-		[self failWithError:err];
-		return;
-	} else if (!responseHTML) {
-		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:101 userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Unable to convert response string to XHTML",NSLocalizedDescriptionKey,nil]]];
-		return;	
-	}
 
 	// Only allow parsing of a single document at a time
 	[xmlParsingLock lock];
@@ -134,10 +133,14 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 	}
 	[requestsUsingXMLParser addObject:self];
 
-	NSData *data = [responseHTML dataUsingEncoding:[self responseEncoding]];
 
     /* Load XML document */
-	doc = htmlReadMemory([data bytes], (int)[data length], "", NULL, HTML_PARSE_NONET | HTML_PARSE_NOWARNING | HTML_PARSE_NOERROR);
+	if ([self downloadDestinationPath]) {
+		doc = htmlReadFile([[self downloadDestinationPath] cStringUsingEncoding:NSUTF8StringEncoding], NULL, HTML_PARSE_NONET | HTML_PARSE_NOWARNING | HTML_PARSE_NOERROR);
+	} else {
+		NSData *data = [self responseData];
+		doc = htmlReadMemory([data bytes], (int)[data length], "", NULL, HTML_PARSE_NONET | HTML_PARSE_NOWARNING | HTML_PARSE_NOERROR);
+	}
     if (doc == NULL) {
 		xmlFreeDoc(doc);
 		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:101 userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Error: unable to parse reponse XML",NSLocalizedDescriptionKey,nil]]];
@@ -172,6 +175,9 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 		[externalResourceRequest setUserInfo:[NSDictionary dictionaryWithObject:theURL forKey:@"Path"]];
 		[externalResourceRequest setParentRequest:self];
 		[externalResourceRequest setShouldResetDownloadProgress:NO];
+		if ([self downloadDestinationPath]) {
+			[externalResourceRequest setDownloadDestinationPath:[self cachePathForRequest:externalResourceRequest]];
+		}
 		[[self externalResourceQueue] addOperation:externalResourceRequest];
 		[externalResourceRequest setShowAccurateProgress:YES];
 		[self incrementDownloadSizeBy:1];
@@ -214,7 +220,11 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 		contentType = @"application/octet-stream";
 	}
 	[requestResponse setObject:contentType forKey:@"ContentType"];
-	[requestResponse setObject:[externalResourceRequest responseData] forKey:@"Data"];
+	if ([self downloadDestinationPath]) {
+		[requestResponse setObject:[externalResourceRequest downloadDestinationPath] forKey:@"DataPath"];
+	} else {
+		[requestResponse setObject:[externalResourceRequest responseData] forKey:@"Data"];
+	}
 }
 
 - (void)externalResourceFetchFailed:(ASIHTTPRequest *)externalResourceRequest
@@ -225,34 +235,57 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 - (void)finishedFetchingExternalResources:(ASINetworkQueue *)queue
 {
 	if (webContentType == ASICSSWebContentType) {
-		NSMutableString *parsedResponse = [[[self responseString] mutableCopy] autorelease];
+		NSMutableString *parsedResponse;
+		NSError *err = nil;
+		if ([self downloadDestinationPath]) {
+			parsedResponse = [NSMutableString stringWithContentsOfFile:[self downloadDestinationPath] encoding:[self responseEncoding] error:&err];
+		} else {
+			parsedResponse = [[[self responseString] mutableCopy] autorelease];
+		}
+		if (err) {
+			[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:101 userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Error: unable to read response CSS from disk",NSLocalizedDescriptionKey,nil]]];
+			return;
+		}
 		if (![self error]) {
 			for (NSString *resource in [[self resourceList] keyEnumerator]) {
-				NSDictionary *resourceInfo = [[self resourceList] objectForKey:resource];
-				NSData *data = [resourceInfo objectForKey:@"Data"];
-				NSString *contentType = [resourceInfo objectForKey:@"ContentType"];
-				if (data && contentType) {
-					if (data && contentType) {
-						NSString *newData = [NSString stringWithFormat:@"data:%@;base64,",contentType];
-						newData = [newData stringByAppendingString:[ASIHTTPRequest base64forData:data]];
-						[parsedResponse replaceOccurrencesOfString:resource withString:newData options:0 range:NSMakeRange(0, [parsedResponse length])];
+				if ([parsedResponse rangeOfString:resource].location != NSNotFound) {
+					NSString *newURL = [self contentForExternalURL:resource];
+					if (newURL) {
+						[parsedResponse replaceOccurrencesOfString:resource withString:newURL options:0 range:NSMakeRange(0, [parsedResponse length])];
 					}
 				}
 			}
 		}
-		[self setRawResponseData:(id)[parsedResponse dataUsingEncoding:[self responseEncoding]]];
-
+		if ([self downloadDestinationPath]) {
+			[parsedResponse writeToFile:[self downloadDestinationPath] atomically:NO encoding:[self responseEncoding] error:&err];
+			if (err) {
+				[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:101 userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Error: unable to write response CSS to disk",NSLocalizedDescriptionKey,nil]]];
+				return;
+			}
+		} else {
+			[self setRawResponseData:(id)[parsedResponse dataUsingEncoding:[self responseEncoding]]];
+		}
 	} else {
 		[xmlParsingLock lock];
 
 		[self updateResourceURLs];
 		xmlChar *bytes = nil;
 		int size = 0;
-		xmlDocDumpMemory(doc,&bytes,&size);
-		[self setRawResponseData:[[[NSMutableData alloc] initWithBytes:bytes length:size] autorelease]];
+		FILE *file = NULL;
+		if ([self downloadDestinationPath]) {
+			file = fdopen([[NSFileHandle fileHandleForWritingAtPath:[self downloadDestinationPath]] fileDescriptor], "w");
+			xmlDocDump(file, doc);
+		} else {
+			xmlDocDumpMemory(doc,&bytes,&size);
+			[self setRawResponseData:[[[NSMutableData alloc] initWithBytes:bytes length:size] autorelease]];
+		}
 
 		xmlFreeDoc(doc);
 		doc = nil;
+
+		if (file) {
+			fclose(file);
+		}
 
 		[requestsUsingXMLParser removeObject:self];
 		if (![requestsUsingXMLParser count]) {
@@ -374,22 +407,18 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 		if ([[nodeName lowercaseString] isEqualToString:@"style"]) {
 			NSArray *externalResources = [[self class] CSSURLsFromString:value];
 			for (NSString *theURL in externalResources) {
-				NSData *data = [[resourceList objectForKey:theURL] objectForKey:@"Data"];
-				NSString *contentType = [[resourceList objectForKey:theURL] objectForKey:@"ContentType"];
-				if (data && contentType) {
-					NSString *newData = [NSString stringWithFormat:@"data:%@;base64,",contentType];
-					newData = [newData stringByAppendingString:[ASIHTTPRequest base64forData:data]];
-					value = [value stringByReplacingOccurrencesOfString:theURL withString:newData];
+				if ([value rangeOfString:theURL].location != NSNotFound) {
+					NSString *newURL = [self contentForExternalURL:theURL];
+					if (newURL) {
+						value = [value stringByReplacingOccurrencesOfString:theURL withString:newURL];
+					}
 				}
 			}
 			xmlNodeSetContent(nodes->nodeTab[i], (xmlChar *)[value cStringUsingEncoding:[self responseEncoding]]);
 		} else {
-			NSData *data = [[resourceList objectForKey:value] objectForKey:@"Data"];
-			NSString *contentType = [[resourceList objectForKey:value] objectForKey:@"ContentType"];
-			if (data && contentType) {
-				NSString *newData = [NSString stringWithFormat:@"data:%@;base64,",contentType];
-				newData = [newData stringByAppendingString:[ASIHTTPRequest base64forData:data]];
-				xmlNodeSetContent(nodes->nodeTab[i], (xmlChar *)[newData cStringUsingEncoding:[self responseEncoding]]);
+			NSString *newURL = [self contentForExternalURL:value];
+			if (newURL) {
+				xmlNodeSetContent(nodes->nodeTab[i], (xmlChar *)[newURL cStringUsingEncoding:[self responseEncoding]]);
 			}
 		}
 
@@ -421,6 +450,30 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 		[urls addObject:theURL];
 	}
 	return urls;
+}
+
+- (NSString *)contentForExternalURL:(NSString *)theURL
+{
+	NSData *data;
+	if ([[resourceList objectForKey:theURL] objectForKey:@"DataPath"]) {
+		data = [NSData dataWithContentsOfFile:[[resourceList objectForKey:theURL] objectForKey:@"DataPath"]];
+	} else {
+		data = [[resourceList objectForKey:theURL] objectForKey:@"Data"];
+	}
+	NSString *contentType = [[resourceList objectForKey:theURL] objectForKey:@"ContentType"];
+	if (data && contentType) {
+		NSString *dataURI = [NSString stringWithFormat:@"data:%@;base64,",contentType];
+		dataURI = [dataURI stringByAppendingString:[ASIHTTPRequest base64forData:data]];
+		return dataURI;
+	}
+	return nil;
+}
+
+static int resourceNum = 0;
+- (NSString *)cachePathForRequest:(ASIWebPageRequest *)theRequest
+{
+	resourceNum++;
+	return [NSString stringWithFormat:@"/Users/ben/Desktop/%i",resourceNum];
 }
 
 @synthesize externalResourceQueue;

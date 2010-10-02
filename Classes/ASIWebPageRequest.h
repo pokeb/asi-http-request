@@ -21,6 +21,7 @@ typedef enum _ASIWebContentType {
     ASICSSWebContentType = 2
 } ASIWebContentType;
 
+
 @interface ASIWebPageRequest : ASIHTTPRequest {
 	ASINetworkQueue *externalResourceQueue;
 	NSMutableDictionary *resourceList;
@@ -31,6 +32,8 @@ typedef enum _ASIWebContentType {
 	ASIWebPageRequest *parentRequest;
 }
 
+- (NSString *)contentForExternalURL:(NSString *)theURL;
+- (NSString *)cachePathForRequest:(ASIWebPageRequest *)theRequest;
 
 @property (assign, nonatomic) ASIWebPageRequest *parentRequest;
 @end

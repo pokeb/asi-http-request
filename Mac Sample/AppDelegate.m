@@ -406,6 +406,7 @@
 	[request setShowAccurateProgress:NO];
 	[request setDownloadProgressDelegate:progressIndicator];
 	[request setDownloadCache:[ASIDownloadCache sharedCache]];
+	[request setDownloadDestinationPath:@"/Users/ben/Desktop/fink"];
 	[[ASIDownloadCache sharedCache] setDefaultCachePolicy:ASIOnlyLoadIfNotCachedCachePolicy];
 	[[ASIDownloadCache sharedCache] setShouldRespectCacheControlHeaders:NO];
 	[request startAsynchronous];
@@ -418,8 +419,15 @@
 
 - (void)webPageFetchSucceeded:(ASIHTTPRequest *)request
 {
-	[webPageSource setString:[request responseString]];
-	[[webView mainFrame] loadHTMLString:[request responseString] baseURL:[request url]];
+	if ([request downloadDestinationPath]) {
+		NSString *response = [NSString stringWithContentsOfFile:[request downloadDestinationPath] encoding:[request responseEncoding] error:nil];
+		[webPageSource setString:response];
+		[[webView mainFrame] loadHTMLString:response baseURL:[request url]];	
+	} else {
+		[webPageSource setString:[request responseString]];
+		[[webView mainFrame] loadHTMLString:[request responseString] baseURL:[request url]];
+	}
+
 	[urlField setStringValue:[[request url] absoluteString]];
 }
 
