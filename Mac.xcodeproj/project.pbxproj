@@ -20,13 +20,11 @@
 		B53E624A1255EB7E00C1E79A /* ASIWebPageRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B53E62481255EB7E00C1E79A /* ASIWebPageRequest.m */; };
 		B53E624B1255EB7E00C1E79A /* ASIWebPageRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B53E62481255EB7E00C1E79A /* ASIWebPageRequest.m */; };
 		B53E62561255EC4600C1E79A /* libxml2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B53E62551255EC4600C1E79A /* libxml2.dylib */; };
-		B53E62581255EC4E00C1E79A /* libtidy.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B53E62571255EC4E00C1E79A /* libtidy.dylib */; };
 		B53E62711255ED8700C1E79A /* ASIDataCompressor.m in Sources */ = {isa = PBXBuildFile; fileRef = B53E626F1255ED8700C1E79A /* ASIDataCompressor.m */; };
 		B53E62721255ED8700C1E79A /* ASIDataCompressor.m in Sources */ = {isa = PBXBuildFile; fileRef = B53E626F1255ED8700C1E79A /* ASIDataCompressor.m */; };
 		B53E628F1255EE4B00C1E79A /* ASIDataDecompressor.m in Sources */ = {isa = PBXBuildFile; fileRef = B53E628D1255EE4B00C1E79A /* ASIDataDecompressor.m */; };
 		B53E62901255EE4B00C1E79A /* ASIDataDecompressor.m in Sources */ = {isa = PBXBuildFile; fileRef = B53E628D1255EE4B00C1E79A /* ASIDataDecompressor.m */; };
 		B53E62B11255EEB800C1E79A /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B53E62B01255EEB800C1E79A /* WebKit.framework */; };
-		B53E62DB1255F6F600C1E79A /* libtidy.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B53E62571255EC4E00C1E79A /* libtidy.dylib */; };
 		B53E62DC1255F6FC00C1E79A /* libxml2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B53E62551255EC4600C1E79A /* libxml2.dylib */; };
 		B53E62EF1255F73300C1E79A /* ASIDataCompressorTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B53E62EE1255F73300C1E79A /* ASIDataCompressorTests.m */; };
 		B5403FEE1151149E00D8BE63 /* ASIS3Bucket.m in Sources */ = {isa = PBXBuildFile; fileRef = B5403FE71151149E00D8BE63 /* ASIS3Bucket.m */; };
@@ -209,7 +207,6 @@
 				B55B5EB80F7658200064029C /* libz.1.2.3.dylib in Frameworks */,
 				B522DE821031BD5E009A2D22 /* SystemConfiguration.framework in Frameworks */,
 				B53E62561255EC4600C1E79A /* libxml2.dylib in Frameworks */,
-				B53E62581255EC4E00C1E79A /* libtidy.dylib in Frameworks */,
 				B53E62B11255EEB800C1E79A /* WebKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -222,7 +219,6 @@
 				B55B60140F7659A30064029C /* libz.1.2.3.dylib in Frameworks */,
 				B522DE601031BB03009A2D22 /* SystemConfiguration.framework in Frameworks */,
 				B50C17DB121C254D0055FCAB /* Security.framework in Frameworks */,
-				B53E62DB1255F6F600C1E79A /* libtidy.dylib in Frameworks */,
 				B53E62DC1255F6FC00C1E79A /* libxml2.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
