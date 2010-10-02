@@ -377,6 +377,7 @@
 - (IBAction)clearCache:(id)sender
 {
 	[[ASIDownloadCache sharedCache] clearCachedResponsesForStoragePolicy:ASICacheForSessionDurationCacheStoragePolicy];
+	[[ASIDownloadCache sharedCache] clearCachedResponsesForStoragePolicy:ASICachePermanentlyCacheStoragePolicy];
 }
 
 - (IBAction)fetchWebPage:(id)sender
@@ -399,15 +400,21 @@
 
 - (void)fetchURL:(NSURL *)url
 {
+	// This allows our ASIDownloadCache to masquerade as as NSURLCache
+	// It allows the webView to load the content we downloaded when replaceURLsWithDataURLs is NO 
+	[NSURLCache setSharedURLCache:[ASIDownloadCache sharedCache]];
 	ASIWebPageRequest *request = [ASIWebPageRequest requestWithURL:url];
 	[request setDidFailSelector:@selector(webPageFetchFailed:)];
 	[request setDidFinishSelector:@selector(webPageFetchSucceeded:)];
 	[request setDelegate:self];
 	[request setShowAccurateProgress:NO];
 	[request setDownloadProgressDelegate:progressIndicator];
+	[request setReplaceURLsWithDataURLs:([dataURICheckbox state] == NSOnState)];
+
+	// It is strongly recommended that you set both a downloadCache and a downloadDestinationPath for all ASIWebPageRequests
 	[request setDownloadCache:[ASIDownloadCache sharedCache]];
-	[request setDownloadDestinationPath:@"/Users/ben/Desktop/fink"];
-	[[ASIDownloadCache sharedCache] setDefaultCachePolicy:ASIOnlyLoadIfNotCachedCachePolicy];
+	[request setDownloadDestinationPath:[[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"fink"]];
+
 	[[ASIDownloadCache sharedCache] setShouldRespectCacheControlHeaders:NO];
 	[request startAsynchronous];
 }

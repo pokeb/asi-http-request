@@ -51,6 +51,7 @@
 	IBOutlet WebView *webView;
 	IBOutlet NSTextView *webPageSource;
 	IBOutlet NSTextField *urlField;
+	IBOutlet NSButton *dataURICheckbox;
 }
 
 - (IBAction)simpleURLFetch:(id)sender;

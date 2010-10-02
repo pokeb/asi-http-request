@@ -9,8 +9,11 @@
 
 #import "ASIWebPageRequest.h"
 #import "ASINetworkQueue.h"
+#import <CommonCrypto/CommonHMAC.h>
 
-static xmlChar *xpathExpr = (xmlChar *)"//link/@href|//script/@src|//img/@src|//frame/@src|//iframe/@src|//*/@style";
+// An xPath query that controls the external resources ASIWebPageRequest will fetch
+// By default, it will fetch stylesheets, javascript files, images, frames, iframes, and html 5 video / audio
+static xmlChar *xpathExpr = (xmlChar *)"//link/@href|//script/@src|//img/@src|//frame/@src|//iframe/@src|//*/@style|//source/@src";
 
 static NSLock *xmlParsingLock = nil;
 static NSMutableArray *requestsUsingXMLParser = nil;
@@ -106,8 +109,10 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 		[externalResourceRequest setRequestHeaders:[self requestHeaders]];
 		[externalResourceRequest setDownloadCache:[self downloadCache]];
 		[externalResourceRequest setCachePolicy:[self cachePolicy]];
+		[externalResourceRequest setCacheStoragePolicy:[self cacheStoragePolicy]];
 		[externalResourceRequest setUserInfo:[NSDictionary dictionaryWithObject:theURL forKey:@"Path"]];
 		[externalResourceRequest setParentRequest:self];
+		[externalResourceRequest setReplaceURLsWithDataURLs:[self replaceURLsWithDataURLs]];
 		[externalResourceRequest setShouldResetDownloadProgress:NO];
 		if ([self downloadDestinationPath]) {
 			[externalResourceRequest setDownloadDestinationPath:[self cachePathForRequest:externalResourceRequest]];
@@ -115,10 +120,7 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 		[[self externalResourceQueue] addOperation:externalResourceRequest];
 		[externalResourceRequest setShowAccurateProgress:YES];
 	}
-
-	// Remove external resources
 	[[self externalResourceQueue] go];
-
 }
 
 - (void)parseAsHTML
@@ -172,8 +174,10 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 		[externalResourceRequest setRequestHeaders:[self requestHeaders]];
 		[externalResourceRequest setDownloadCache:[self downloadCache]];
 		[externalResourceRequest setCachePolicy:[self cachePolicy]];
+		[externalResourceRequest setCacheStoragePolicy:[self cacheStoragePolicy]];
 		[externalResourceRequest setUserInfo:[NSDictionary dictionaryWithObject:theURL forKey:@"Path"]];
 		[externalResourceRequest setParentRequest:self];
+		[externalResourceRequest setReplaceURLsWithDataURLs:[self replaceURLsWithDataURLs]];
 		[externalResourceRequest setShouldResetDownloadProgress:NO];
 		if ([self downloadDestinationPath]) {
 			[externalResourceRequest setDownloadDestinationPath:[self cachePathForRequest:externalResourceRequest]];
@@ -234,76 +238,81 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 
 - (void)finishedFetchingExternalResources:(ASINetworkQueue *)queue
 {
-	if (webContentType == ASICSSWebContentType) {
-		NSMutableString *parsedResponse;
-		NSError *err = nil;
-		if ([self downloadDestinationPath]) {
-			parsedResponse = [NSMutableString stringWithContentsOfFile:[self downloadDestinationPath] encoding:[self responseEncoding] error:&err];
-		} else {
-			parsedResponse = [[[self responseString] mutableCopy] autorelease];
-		}
-		if (err) {
-			[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:101 userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Error: unable to read response CSS from disk",NSLocalizedDescriptionKey,nil]]];
-			return;
-		}
-		if (![self error]) {
-			for (NSString *resource in [[self resourceList] keyEnumerator]) {
-				if ([parsedResponse rangeOfString:resource].location != NSNotFound) {
-					NSString *newURL = [self contentForExternalURL:resource];
-					if (newURL) {
-						[parsedResponse replaceOccurrencesOfString:resource withString:newURL options:0 range:NSMakeRange(0, [parsedResponse length])];
+	if ([self replaceURLsWithDataURLs]) {
+		if (webContentType == ASICSSWebContentType) {
+			NSMutableString *parsedResponse;
+			NSError *err = nil;
+			if ([self downloadDestinationPath]) {
+				parsedResponse = [NSMutableString stringWithContentsOfFile:[self downloadDestinationPath] encoding:[self responseEncoding] error:&err];
+			} else {
+				parsedResponse = [[[self responseString] mutableCopy] autorelease];
+			}
+			if (err) {
+				[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:101 userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Error: unable to read response CSS from disk",NSLocalizedDescriptionKey,nil]]];
+				return;
+			}
+			if (![self error]) {
+				for (NSString *resource in [[self resourceList] keyEnumerator]) {
+					if ([parsedResponse rangeOfString:resource].location != NSNotFound) {
+						NSString *newURL = [self contentForExternalURL:resource];
+						if (newURL) {
+							[parsedResponse replaceOccurrencesOfString:resource withString:newURL options:0 range:NSMakeRange(0, [parsedResponse length])];
+						}
 					}
 				}
 			}
-		}
-		if ([self downloadDestinationPath]) {
-			[parsedResponse writeToFile:[self downloadDestinationPath] atomically:NO encoding:[self responseEncoding] error:&err];
-			if (err) {
-				[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:101 userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Error: unable to write response CSS to disk",NSLocalizedDescriptionKey,nil]]];
-				return;
+			if ([self downloadDestinationPath]) {
+				[parsedResponse writeToFile:[self downloadDestinationPath] atomically:NO encoding:[self responseEncoding] error:&err];
+				if (err) {
+					[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:101 userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Error: unable to write response CSS to disk",NSLocalizedDescriptionKey,nil]]];
+					return;
+				}
+			} else {
+				[self setRawResponseData:(id)[parsedResponse dataUsingEncoding:[self responseEncoding]]];
 			}
 		} else {
-			[self setRawResponseData:(id)[parsedResponse dataUsingEncoding:[self responseEncoding]]];
-		}
-	} else {
-		[xmlParsingLock lock];
+			[xmlParsingLock lock];
 
-		[self updateResourceURLs];
-		xmlChar *bytes = nil;
-		int size = 0;
-		FILE *file = NULL;
-		if ([self downloadDestinationPath]) {
-			file = fdopen([[NSFileHandle fileHandleForWritingAtPath:[self downloadDestinationPath]] fileDescriptor], "w");
-			xmlDocDump(file, doc);
-		} else {
-			xmlDocDumpMemory(doc,&bytes,&size);
-			[self setRawResponseData:[[[NSMutableData alloc] initWithBytes:bytes length:size] autorelease]];
-		}
+			[self updateResourceURLs];
+			xmlChar *bytes = nil;
+			int size = 0;
+			FILE *file = NULL;
+			if ([self downloadDestinationPath]) {
+				file = fdopen([[NSFileHandle fileHandleForWritingAtPath:[self downloadDestinationPath]] fileDescriptor], "w");
+				xmlDocDump(file, doc);
+			} else {
+				xmlDocDumpMemory(doc,&bytes,&size);
+				[self setRawResponseData:[[[NSMutableData alloc] initWithBytes:bytes length:size] autorelease]];
+			}
 
-		xmlFreeDoc(doc);
-		doc = nil;
+			xmlFreeDoc(doc);
+			doc = nil;
 
-		if (file) {
-			fclose(file);
-		}
+			if (file) {
+				fclose(file);
+			}
 
-		[requestsUsingXMLParser removeObject:self];
-		if (![requestsUsingXMLParser count]) {
-			xmlCleanupParser();
+			[requestsUsingXMLParser removeObject:self];
+			if (![requestsUsingXMLParser count]) {
+				xmlCleanupParser();
+			}
+			[xmlParsingLock unlock];
 		}
-		[xmlParsingLock unlock];
 	}
-
 	if (![self parentRequest]) {
-		[[self class] updateProgressIndicator:&downloadProgressDelegate withProgress:totalDownloadProgress ofTotal:totalDownloadSize];
+		[[self class] updateProgressIndicator:&downloadProgressDelegate withProgress:contentLength ofTotal:contentLength];
 	}
 
 	NSMutableDictionary *newHeaders = [[[self responseHeaders] mutableCopy] autorelease];
 	[newHeaders removeObjectForKey:@"Content-Encoding"];
 	[self setResponseHeaders:newHeaders];
 
+	// Write the parsed content back to the cache
+	if ([self replaceURLsWithDataURLs]) {
+		[[self downloadCache] storeResponseForRequest:self maxAge:[self secondsToCache]];
+	}
+
 	[super requestFinished];
-	[[self downloadCache] storeResponseForRequest:self maxAge:[self secondsToCache]];
 	[super markAsFinished];
 }
 
@@ -469,14 +478,26 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 	return nil;
 }
 
-static int resourceNum = 0;
 - (NSString *)cachePathForRequest:(ASIWebPageRequest *)theRequest
 {
-	resourceNum++;
-	return [NSString stringWithFormat:@"/Users/ben/Desktop/%i",resourceNum];
+	// If we're using a download cache (and its a good idea to do so when using ASIWebPageRequest), ask it for the location to store this file
+	// This ends up being quite efficient, as we download directly to the cache
+	if ([self downloadCache]) {
+		return [[self downloadCache] pathToStoreCachedResponseDataForRequest:theRequest];
+
+	// This is a fallback for when we don't have a download cache - we store the external resource in a file in the temporary directory
+	} else {
+		// Borrowed from: http://stackoverflow.com/questions/652300/using-md5-hash-on-a-string-in-cocoa
+		const char *cStr = [[[theRequest url] absoluteString] UTF8String];
+		unsigned char result[16];
+		CC_MD5(cStr, (CC_LONG)strlen(cStr), result);
+		NSString *md5 = [NSString stringWithFormat:@"%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X",result[0], result[1], result[2], result[3], result[4], result[5], result[6], result[7],result[8], result[9], result[10], result[11],result[12], result[13], result[14], result[15]]; 	
+		return [NSTemporaryDirectory() stringByAppendingPathComponent:md5];
+	}
 }
 
 @synthesize externalResourceQueue;
 @synthesize resourceList;
 @synthesize parentRequest;
+@synthesize replaceURLsWithDataURLs;
 @end

@@ -590,6 +590,8 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 // Attempts to set the correct encoding by looking at the Content-Type header, if this is one
 - (void)parseStringEncodingFromHeaders;
 
++ (void)parseMimeType:(NSString **)mimeType andResponseEncoding:(NSStringEncoding *)stringEncoding fromContentType:(NSString *)contentType;
+
 #pragma mark http authentication stuff
 
 // Apply credentials to this request
@@ -792,6 +794,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 
 // Returns a date from a string in RFC1123 format
 + (NSDate *)dateFromRFC1123String:(NSString *)string;
+
 
 // Used for detecting multitasking support at runtime (for backgrounding requests)
 #if TARGET_OS_IPHONE

@@ -772,7 +772,7 @@ static NSOperationQueue *sharedQueue = nil;
 			// If cached data is stale, or we have been told to ask the server if it has been modified anyway, we need to add headers for a conditional GET
 			if ([self cachePolicy] & (ASIAskServerIfModifiedWhenStaleCachePolicy|ASIAskServerIfModifiedCachePolicy)) {
 
-				NSDictionary *cachedHeaders = [[self downloadCache] cachedHeadersForRequest:self];
+				NSDictionary *cachedHeaders = [[self downloadCache] cachedResponseHeadersForURL:[self url]];
 				if (cachedHeaders) {
 					NSString *etag = [cachedHeaders objectForKey:@"Etag"];
 					if (etag) {
@@ -1888,7 +1888,7 @@ static NSOperationQueue *sharedQueue = nil;
 		}
 	}
 
-	// Handle response text encoding
+	// Read response textEncoding
 	[self parseStringEncodingFromHeaders];
 
 	// Handle cookies
@@ -2033,31 +2033,17 @@ static NSOperationQueue *sharedQueue = nil;
 	[self performSelectorOnMainThread:@selector(requestReceivedResponseHeaders:) withObject:[[[self responseHeaders] copy] autorelease] waitUntilDone:[NSThread isMainThread]];
 }
 
-// Handle response text encoding
-// If the Content-Type header specified an encoding, we'll use that, otherwise we use defaultStringEncoding (which defaults to NSISOLatin1StringEncoding)
 - (void)parseStringEncodingFromHeaders
 {
-	NSString *contentType = [[self responseHeaders] objectForKey:@"Content-Type"];
-	NSStringEncoding encoding = [self defaultResponseEncoding];
-	if (contentType) {
-
-		NSString *charsetSeparator = @"charset=";
-		NSScanner *charsetScanner = [NSScanner scannerWithString: contentType];
-		NSString *IANAEncoding = nil;
-
-		if ([charsetScanner scanUpToString: charsetSeparator intoString: NULL] && [charsetScanner scanLocation] < [contentType length]) {
-			[charsetScanner setScanLocation: [charsetScanner scanLocation] + [charsetSeparator length]];
-			[charsetScanner scanUpToString: @";" intoString: &IANAEncoding];
-		}
-
-		if (IANAEncoding) {
-			CFStringEncoding cfEncoding = CFStringConvertIANACharSetNameToEncoding((CFStringRef)IANAEncoding);
-			if (cfEncoding != kCFStringEncodingInvalidId) {
-				encoding = CFStringConvertEncodingToNSStringEncoding(cfEncoding);
-			}
-		}
+	// Handle response text encoding
+	NSStringEncoding charset = 0;
+	NSString *mimeType = nil;
+	[[self class] parseMimeType:&mimeType andResponseEncoding:&charset fromContentType:[[self responseHeaders] valueForKey:@"Content-Type"]];
+	if (charset != 0) {
+		[self setResponseEncoding:charset];
+	} else {
+		[self setResponseEncoding:[self defaultResponseEncoding]];
 	}
-	[self setResponseEncoding:encoding];
 }
 
 #pragma mark http authentication
@@ -3045,8 +3031,8 @@ static NSOperationQueue *sharedQueue = nil;
 
 - (void)useDataFromCache
 {
-	NSDictionary *headers = [[self downloadCache] cachedHeadersForRequest:self];
-	NSString *dataPath = [[self downloadCache] pathToCachedResponseDataForRequest:self];
+	NSDictionary *headers = [[self downloadCache] cachedResponseHeadersForURL:[self url]];
+	NSString *dataPath = [[self downloadCache] pathToCachedResponseDataForURL:[self url]];
 
 	ASIHTTPRequest *theRequest = self;
 	if ([self mainRequest]) {
@@ -4078,6 +4064,35 @@ static NSOperationQueue *sharedQueue = nil;
 	[formatter setDateFormat:[NSString stringWithFormat:@"%@dd MMM yyyy HH:mm%@ z",day,seconds]];
 	return [formatter dateFromString:string];
 }
+
+
++ (void)parseMimeType:(NSString **)mimeType andResponseEncoding:(NSStringEncoding *)stringEncoding fromContentType:(NSString *)contentType
+{
+	if (!contentType) {
+		return;
+	}
+	NSScanner *charsetScanner = [NSScanner scannerWithString: contentType];
+	if (![charsetScanner scanUpToString:@";" intoString:mimeType] || [charsetScanner scanLocation] == [contentType length]) {
+		*mimeType = [contentType stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+		return;
+	}
+	*mimeType = [*mimeType stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+	NSString *charsetSeparator = @"charset=";
+	NSString *IANAEncoding = nil;
+
+	if ([charsetScanner scanUpToString: charsetSeparator intoString: NULL] && [charsetScanner scanLocation] < [contentType length]) {
+		[charsetScanner setScanLocation: [charsetScanner scanLocation] + [charsetSeparator length]];
+		[charsetScanner scanUpToString: @";" intoString: &IANAEncoding];
+	}
+
+	if (IANAEncoding) {
+		CFStringEncoding cfEncoding = CFStringConvertIANACharSetNameToEncoding((CFStringRef)IANAEncoding);
+		if (cfEncoding != kCFStringEncodingInvalidId) {
+			*stringEncoding = CFStringConvertEncodingToNSStringEncoding(cfEncoding);
+		}
+	}
+}
+
 
 #pragma mark ===
 
