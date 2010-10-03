@@ -39,6 +39,12 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 	}
 }
 
+- (void)dealloc
+{
+	[parentRequest release];
+	[super dealloc];
+}
+
 - (void)markAsFinished
 {
 }

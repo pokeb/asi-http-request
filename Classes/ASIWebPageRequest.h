@@ -59,6 +59,6 @@ typedef enum _ASIWebContentType {
 - (NSString *)cachePathForRequest:(ASIWebPageRequest *)theRequest;
 
 
-@property (assign, nonatomic) ASIWebPageRequest *parentRequest;
+@property (retain, nonatomic) ASIWebPageRequest *parentRequest;
 @property (assign, nonatomic) BOOL replaceURLsWithDataURLs;
 @end
