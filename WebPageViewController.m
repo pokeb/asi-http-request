@@ -11,12 +11,13 @@
 #import "ASIWebPageRequest.h"
 #import "ASIDownloadCache.h"
 #import "ToggleCell.h"
+#import "RequestProgressCell.h"
+
 @implementation WebPageViewController
 
 - (void)fetchWebPage:(id)sender
 {
 	[self fetchURL:[NSURL URLWithString:[urlField text]]];
-	
 }
 
 - (void)clearCache:(id)sender
@@ -27,17 +28,23 @@
 
 - (void)fetchURL:(NSURL *)url
 {
+	[urlField resignFirstResponder];
+
+	[self setRequestsInProgress:[NSMutableArray array]];
+	[[self tableView] reloadSections:[NSIndexSet indexSetWithIndex:2] withRowAnimation:UITableViewRowAnimationBottom];
+
 	// This allows our ASIDownloadCache to masquerade as as NSURLCache
 	// It allows the webView to load the content we downloaded when replaceURLsWithDataURLs is NO 
 	[NSURLCache setSharedURLCache:[ASIDownloadCache sharedCache]];
-	
+
 	[request setDelegate:nil];
 	[request cancel];
 	[self setRequest:[ASIWebPageRequest requestWithURL:url]];
-	
+
 	[request setDidFailSelector:@selector(webPageFetchFailed:)];
 	[request setDidFinishSelector:@selector(webPageFetchSucceeded:)];
 	[request setDelegate:self];
+	[request setDownloadProgressDelegate:self];
 	[request setShowAccurateProgress:NO];
 	[request setReplaceURLsWithDataURLs:[replaceURLsSwitch isOn]];
 	
@@ -68,6 +75,7 @@
 	[urlField setText:[[theRequest url] absoluteString]];
 }
 
+// We'll take over the page load when the user clicks on a link
 - (BOOL)webView:(UIWebView *)webView shouldStartLoadWithRequest:(NSURLRequest *)theRequest navigationType:(UIWebViewNavigationType)navigationType
 {
 	if (navigationType == UIWebViewNavigationTypeLinkClicked) {
@@ -75,6 +83,32 @@
 		return NO;
 	}
 	return YES;
+}
+
+
+// At time of writing ASIWebPageRequests do not support automatic progress tracking across all requests needed for a page
+// The code below shows one approach you could use for tracking progress - it creates a new row with a progress indicator for each resource request
+// However, you could use the same approach and keep track of an overal total to show progress
+- (void)requestStarted:(ASIWebPageRequest *)theRequest
+{
+	[[self requestsInProgress] addObject:theRequest];
+	[[self tableView] beginUpdates];
+	[[self tableView] insertRowsAtIndexPaths:[NSArray arrayWithObject:[NSIndexPath indexPathForRow:[[self requestsInProgress] count]-1 inSection:2]] withRowAnimation:UITableViewRowAnimationBottom];
+	[[self tableView] endUpdates];
+}
+
+- (void)request:(ASIHTTPRequest *)theRequest didReceiveBytes:(long long)newLength
+{
+	NSInteger requestNumber = [[self requestsInProgress] indexOfObject:theRequest];
+	if (requestNumber != NSNotFound) {
+		RequestProgressCell *cell = (RequestProgressCell *)[[self tableView] cellForRowAtIndexPath:[NSIndexPath indexPathForRow:requestNumber inSection:2]];
+		[[cell progressView] setProgress:[theRequest totalBytesRead]/([theRequest contentLength]+[theRequest partialDownloadSize])];
+	}
+}
+
+- (void)request:(ASIHTTPRequest *)theRequest incrementDownloadSizeBy:(long long)newLength
+{
+	[self request:theRequest didReceiveBytes:0];
 }
 
 /*
@@ -147,6 +181,18 @@ static NSString *intro = @"ASIWebPageRequest lets you download complete webpages
 			replaceURLsSwitch = [(ToggleCell *)cell toggle];
 		}
 	} else if ([indexPath section] == 2) {
+
+		cell = [tableView dequeueReusableCellWithIdentifier:@"RequestProgressCell"];
+		if (!cell) {
+			cell = [RequestProgressCell cell];
+		}
+		ASIHTTPRequest *theRequest = [[self requestsInProgress] objectAtIndex:[indexPath row]];
+		[[cell textLabel] setText:[[theRequest url] absoluteString]];
+		if ([theRequest contentLength] > 0) {
+			[[(RequestProgressCell *)cell progressView] setProgress:[theRequest totalBytesRead]/([theRequest contentLength]+[theRequest partialDownloadSize])];
+		}
+
+	} else if ([indexPath section] == 3) {
 		
 		cell = [tableView dequeueReusableCellWithIdentifier:@"Response"];
 		if (!cell) {
@@ -155,7 +201,6 @@ static NSString *intro = @"ASIWebPageRequest lets you download complete webpages
 			
 		}	
 		[responseField setFrame:CGRectMake(5,5,tableWidth-tablePadding,180)];
-		
 		
 	}
 	[cell setSelectionStyle:UITableViewCellSelectionStyleNone];
@@ -204,6 +249,8 @@ static NSString *intro = @"ASIWebPageRequest lets you download complete webpages
 {
 	if (section == 1) {
 		return 2;
+	} else if (section == 2) {
+		return [requestsInProgress count];
 	}
 	return 1;
 }
@@ -226,8 +273,10 @@ static NSString *intro = @"ASIWebPageRequest lets you download complete webpages
 		} else {
 			return 50;
 		}
-	} else {
+	} else if ([indexPath section] == 3) {
 		return 200;
+	} else {
+		return 34;
 	}
 }
 
@@ -238,8 +287,9 @@ static NSString *intro = @"ASIWebPageRequest lets you download complete webpages
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
-	return 3;
+	return 4;
 }
 
 @synthesize request;
+@synthesize requestsInProgress;
 @end

@@ -94,6 +94,8 @@
 		B57AF06A125873F4002A1F0C /* libxml2.2.7.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B57AF069125873F4002A1F0C /* libxml2.2.7.3.dylib */; };
 		B57AF086125874A7002A1F0C /* WebPageViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B57AF085125874A7002A1F0C /* WebPageViewController.m */; };
 		B57AF087125874A7002A1F0C /* WebPageViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B57AF085125874A7002A1F0C /* WebPageViewController.m */; };
+		B57AF3681258A0C4002A1F0C /* RequestProgressCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B57AF3671258A0C4002A1F0C /* RequestProgressCell.m */; };
+		B57AF3691258A0C4002A1F0C /* RequestProgressCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B57AF3671258A0C4002A1F0C /* RequestProgressCell.m */; };
 		B5873FD610FF28CA001E145F /* ASIS3BucketObject.m in Sources */ = {isa = PBXBuildFile; fileRef = B5873FC210FF28CA001E145F /* ASIS3BucketObject.m */; };
 		B5873FD810FF28CA001E145F /* ASIS3Request.m in Sources */ = {isa = PBXBuildFile; fileRef = B5873FC610FF28CA001E145F /* ASIS3Request.m */; };
 		B5873FD910FF28CA001E145F /* ASICloudFilesCDNRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5873FC910FF28CA001E145F /* ASICloudFilesCDNRequest.m */; };
@@ -242,6 +244,8 @@
 		B57AF069125873F4002A1F0C /* libxml2.2.7.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxml2.2.7.3.dylib; path = usr/lib/libxml2.2.7.3.dylib; sourceTree = SDKROOT; };
 		B57AF084125874A7002A1F0C /* WebPageViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebPageViewController.h; sourceTree = "<group>"; };
 		B57AF085125874A7002A1F0C /* WebPageViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WebPageViewController.m; sourceTree = "<group>"; };
+		B57AF3661258A0C4002A1F0C /* RequestProgressCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RequestProgressCell.h; sourceTree = "<group>"; };
+		B57AF3671258A0C4002A1F0C /* RequestProgressCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RequestProgressCell.m; sourceTree = "<group>"; };
 		B5873FC110FF28CA001E145F /* ASIS3BucketObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIS3BucketObject.h; sourceTree = "<group>"; };
 		B5873FC210FF28CA001E145F /* ASIS3BucketObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIS3BucketObject.m; sourceTree = "<group>"; };
 		B5873FC510FF28CA001E145F /* ASIS3Request.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIS3Request.h; sourceTree = "<group>"; };
@@ -465,6 +469,8 @@
 				B5BD2AFC11CA542000D7C426 /* DetailCell.m */,
 				B5BD2AFD11CA542000D7C426 /* InfoCell.h */,
 				B5BD2AFE11CA542000D7C426 /* InfoCell.m */,
+				B57AF3661258A0C4002A1F0C /* RequestProgressCell.h */,
+				B57AF3671258A0C4002A1F0C /* RequestProgressCell.m */,
 				B5BD2AFF11CA542000D7C426 /* ToggleCell.h */,
 				B5BD2B0011CA542000D7C426 /* ToggleCell.m */,
 				B5BD2B0711CA542700D7C426 /* RootViewController.h */,
@@ -769,6 +775,7 @@
 				B53E6D981257B45800C1E79A /* ASIDataCompressor.m in Sources */,
 				B53E6D9E1257B46100C1E79A /* ASIWebPageRequest.m in Sources */,
 				B57AF087125874A7002A1F0C /* WebPageViewController.m in Sources */,
+				B57AF3681258A0C4002A1F0C /* RequestProgressCell.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -841,6 +848,7 @@
 				B53E6D9A1257B45800C1E79A /* ASIDataCompressor.m in Sources */,
 				B53E6D9F1257B46100C1E79A /* ASIWebPageRequest.m in Sources */,
 				B57AF086125874A7002A1F0C /* WebPageViewController.m in Sources */,
+				B57AF3691258A0C4002A1F0C /* RequestProgressCell.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -1636,7 +1636,7 @@ static NSOperationQueue *sharedQueue = nil;
 {
 	if ([*target respondsToSelector:selector]) {
 		NSMethodSignature *signature = nil;
-		signature = [[*target class] instanceMethodSignatureForSelector:selector];
+		signature = [*target methodSignatureForSelector:selector];
 		NSInvocation *invocation = [[NSInvocation invocationWithMethodSignature:signature] retain];
 		[invocation setSelector:selector];
 		

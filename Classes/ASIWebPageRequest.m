@@ -43,7 +43,6 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 {
 }
 
-
 - (void)requestFinished
 {
 	complete = NO;
@@ -114,6 +113,9 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 		[externalResourceRequest setParentRequest:self];
 		[externalResourceRequest setReplaceURLsWithDataURLs:[self replaceURLsWithDataURLs]];
 		[externalResourceRequest setShouldResetDownloadProgress:NO];
+		[externalResourceRequest setDelegate:self];
+		[externalResourceRequest setUploadProgressDelegate:self];
+		[externalResourceRequest setDownloadProgressDelegate:self];
 		if ([self downloadDestinationPath]) {
 			[externalResourceRequest setDownloadDestinationPath:[self cachePathForRequest:externalResourceRequest]];
 		}
@@ -179,40 +181,16 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 		[externalResourceRequest setParentRequest:self];
 		[externalResourceRequest setReplaceURLsWithDataURLs:[self replaceURLsWithDataURLs]];
 		[externalResourceRequest setShouldResetDownloadProgress:NO];
+		[externalResourceRequest setDelegate:self];
+		[externalResourceRequest setUploadProgressDelegate:self];
+		[externalResourceRequest setDownloadProgressDelegate:self];
 		if ([self downloadDestinationPath]) {
 			[externalResourceRequest setDownloadDestinationPath:[self cachePathForRequest:externalResourceRequest]];
 		}
 		[[self externalResourceQueue] addOperation:externalResourceRequest];
 		[externalResourceRequest setShowAccurateProgress:YES];
-		[self incrementDownloadSizeBy:1];
 	}
 	[[self externalResourceQueue] go];
-}
-
-- (void)updateDownloadProgress
-{
-	if ([self parentRequest]) {
-		[[self parentRequest] updateDownloadProgress];
-		return;
-	}
-	[super updateDownloadProgress];
-}
-
-- (void)setContentLength:(unsigned long long)newContentLength
-{
-	if ([self parentRequest]) {
-		[[self parentRequest] setContentLength:[[self parentRequest] contentLength]+newContentLength-contentLength];
-	}
-	[super setContentLength:newContentLength];
-}
-- (void)setTotalBytesRead:(unsigned long long)bytes
-{
-	totalBytesRead = bytes;
-	if ([self parentRequest]) {
-		[[self parentRequest] setTotalBytesRead:[[self parentRequest] totalBytesRead]+totalBytesRead-lastBytesRead];
-		lastBytesRead = totalBytesRead;
-		return;
-	}
 }
 
 - (void)externalResourceFetchSucceeded:(ASIHTTPRequest *)externalResourceRequest
@@ -439,6 +417,52 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 	xmlXPathFreeContext(xpathCtx);
 }
 
+- (BOOL)respondsToSelector:(SEL)selector
+{
+	if ([self parentRequest]) {
+		return [[self parentRequest] respondsToSelector:selector];
+	}
+	//Ok, now check for selectors we want to pass on to the delegate
+	if (selector == @selector(requestStarted:) || selector == @selector(request:didReceiveResponseHeaders:) || selector == @selector(request:willRedirectToURL:) || selector == @selector(requestFinished:) || selector == @selector(requestFailed:) || selector == @selector(request:didReceiveData:) || selector == @selector(authenticationNeededForRequest:) || selector == @selector(proxyAuthenticationNeededForRequest:)) {
+		return [delegate respondsToSelector:selector];
+	} else if (selector == @selector(request:didReceiveBytes:) || selector == @selector(request:incrementDownloadSizeBy:)) {
+		return [downloadProgressDelegate respondsToSelector:selector];
+	} else if (selector == @selector(request:didSendBytes:)  || selector == @selector(request:incrementUploadSizeBy:)) {
+		return [uploadProgressDelegate respondsToSelector:selector];
+	}
+	return [super respondsToSelector:selector];
+}
+
+- (NSMethodSignature *)methodSignatureForSelector:(SEL)selector
+{
+	if ([self parentRequest]) {
+		return [[self parentRequest] methodSignatureForSelector:selector];
+	}
+	if (selector == @selector(requestStarted:) || selector == @selector(request:didReceiveResponseHeaders:) || selector == @selector(request:willRedirectToURL:) || selector == @selector(requestFinished:) || selector == @selector(requestFailed:) || selector == @selector(request:didReceiveData:) || selector == @selector(authenticationNeededForRequest:) || selector == @selector(proxyAuthenticationNeededForRequest:)) {
+		return [(id)delegate methodSignatureForSelector:selector];
+	} else if (selector == @selector(request:didReceiveBytes:) || selector == @selector(request:incrementDownloadSizeBy:)) {
+		return [(id)downloadProgressDelegate methodSignatureForSelector:selector];
+	} else if (selector == @selector(request:didSendBytes:)  || selector == @selector(request:incrementUploadSizeBy:)) {
+		return [(id)uploadProgressDelegate methodSignatureForSelector:selector];
+	}
+	return nil;
+}
+
+- (void)forwardInvocation:(NSInvocation *)anInvocation
+{
+	if ([self parentRequest]) {
+		return [[self parentRequest] forwardInvocation:anInvocation];
+	}
+	SEL selector = [anInvocation selector];
+	if (selector == @selector(requestStarted:) || selector == @selector(request:didReceiveResponseHeaders:) || selector == @selector(request:willRedirectToURL:) || selector == @selector(requestFinished:) || selector == @selector(requestFailed:) || selector == @selector(request:didReceiveData:) || selector == @selector(authenticationNeededForRequest:) || selector == @selector(proxyAuthenticationNeededForRequest:)) {
+		[anInvocation invokeWithTarget:delegate];
+	} else if (selector == @selector(request:didReceiveBytes:) || selector == @selector(request:incrementDownloadSizeBy:)) {
+		[anInvocation invokeWithTarget:downloadProgressDelegate];
+	} else if (selector == @selector(request:didSendBytes:)  || selector == @selector(request:incrementUploadSizeBy:)) {
+		[anInvocation invokeWithTarget:uploadProgressDelegate];
+	}
+}
+
 + (NSArray *)CSSURLsFromString:(NSString *)string
 {
 	NSMutableArray *urls = [NSMutableArray array];
@@ -495,6 +519,7 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 		return [NSTemporaryDirectory() stringByAppendingPathComponent:md5];
 	}
 }
+
 
 @synthesize externalResourceQueue;
 @synthesize resourceList;

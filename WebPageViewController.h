@@ -17,8 +17,10 @@
 	UITextView *responseField;
 	UISwitch *replaceURLsSwitch;
 	ASIWebPageRequest *request;
+	NSMutableArray *requestsInProgress;
 }
 - (void)fetchURL:(NSURL *)url;
 
 @property (retain, nonatomic) ASIWebPageRequest *request;
+@property (retain, nonatomic) NSMutableArray *requestsInProgress;
 @end
