@@ -24,7 +24,7 @@
 #import "ASIDataCompressor.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.7-101 2010-10-03";
+NSString *ASIHTTPRequestVersion = @"v1.7-102 2010-10-03";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -1623,22 +1623,13 @@ static NSOperationQueue *sharedQueue = nil;
 	[ASIHTTPRequest updateProgressIndicator:&uploadProgressDelegate withProgress:0 ofTotal:[self postLength]];
 }
 
-+ (void)performInvocation:(NSInvocation *)invocation onTarget:(id *)target
-{
-    if (*target && [*target respondsToSelector:invocation.selector])
-    {
-        [invocation invokeWithTarget:*target];
-    }
-    [invocation release];
-    [self autorelease];
-}
-
 + (void)performSelector:(SEL)selector onTarget:(id *)target withObject:(id)object amount:(void *)amount
 {
 	if ([*target respondsToSelector:selector]) {
 		NSMethodSignature *signature = nil;
 		signature = [*target methodSignatureForSelector:selector];
-		NSInvocation *invocation = [[NSInvocation invocationWithMethodSignature:signature] retain];
+		NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
+
 		[invocation setSelector:selector];
 		
 		int argumentNumber = 2;
@@ -1662,9 +1653,20 @@ static NSOperationQueue *sharedQueue = nil;
         [cbInvocation setArgument:&invocation atIndex:2];
         [cbInvocation setArgument:&target atIndex:3];
         
-        [self retain]; // ensure we stay around for the duration of the callback
+		// Ensure both of these stay around for the duration of the callback. Don't worry - we get CFReleased in the very next method!
+		CFRetain(invocation);
+        CFRetain(self);
         [cbInvocation performSelectorOnMainThread:@selector(invoke) withObject:nil waitUntilDone:[NSThread isMainThread]];
     }
+}
+
++ (void)performInvocation:(NSInvocation *)invocation onTarget:(id *)target
+{
+    if (*target && [*target respondsToSelector:[invocation selector]]) {
+        [invocation invokeWithTarget:*target];
+    }
+	CFRelease(invocation);
+    CFRelease(self);
 }
 	
 	

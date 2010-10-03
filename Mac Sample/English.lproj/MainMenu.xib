@@ -1219,13 +1219,13 @@ b3R0b20gb2YgdGhlIHdpbmRvdy4gCg</string>
 													<reference key="NSTextColor" ref="981560827"/>
 												</object>
 											</object>
-											<object class="NSTextField" id="548434193">
+											<object class="NSTextField" id="258095058">
 												<reference key="NSNextResponder" ref="624078948"/>
 												<int key="NSvFlags">268</int>
 												<string key="NSFrame">{{13, 17}, {577, 102}}</string>
 												<reference key="NSSuperview" ref="624078948"/>
 												<bool key="NSEnabled">YES</bool>
-												<object class="NSTextFieldCell" key="NSCell" id="894689172">
+												<object class="NSTextFieldCell" key="NSCell" id="711120009">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">272629760</int>
 													<string type="base64-UTF8" key="NSContents">V2hlbiBhY2N1cmF0ZSBwcm9ncmVzcyBpcyB0dXJuZWQgb2ZmLCBlYWNoIHJlcXVlc3Qgb25seSB1cGRh
@@ -1236,7 +1236,7 @@ aWxsIGZpcnN0IHBlcmZvcm0gYSBIRUFEIHJlcXVlc3QgZm9yIGVhY2ggaW1hZ2UgdG8gb2J0YWluIGl0
 cyBzaXplLiBSZXF1ZXN0cyB0aGVuIHVwZGF0ZSB0aGUgcHJvZ3Jlc3MgYXMgZGF0YSBpcyByZWNlaXZl
 ZC4</string>
 													<reference key="NSSupport" ref="584670792"/>
-													<reference key="NSControlView" ref="548434193"/>
+													<reference key="NSControlView" ref="258095058"/>
 													<reference key="NSBackgroundColor" ref="482475293"/>
 													<reference key="NSTextColor" ref="981560827"/>
 												</object>
@@ -3023,14 +3023,6 @@ ZC4</string>
 					<int key="connectionID">600</int>
 				</object>
 				<object class="IBConnectionRecord">
-					<object class="IBActionConnection" key="connection">
-						<string key="label">fetchWebPage:</string>
-						<reference key="source" ref="1010338297"/>
-						<reference key="destination" ref="611913208"/>
-					</object>
-					<int key="connectionID">601</int>
-				</object>
-				<object class="IBConnectionRecord">
 					<object class="IBOutletConnection" key="connection">
 						<string key="label">dataURICheckbox</string>
 						<reference key="source" ref="1010338297"/>
@@ -3906,7 +3898,7 @@ ZC4</string>
 							<reference ref="889442032"/>
 							<reference ref="179677784"/>
 							<reference ref="955710928"/>
-							<reference ref="548434193"/>
+							<reference ref="258095058"/>
 							<reference ref="1057121416"/>
 						</object>
 						<reference key="parent" ref="725395930"/>
@@ -4643,17 +4635,17 @@ ZC4</string>
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">610</int>
-						<reference key="object" ref="548434193"/>
+						<reference key="object" ref="258095058"/>
 						<object class="NSMutableArray" key="children">
 							<bool key="EncodedWithXMLCoder">YES</bool>
-							<reference ref="894689172"/>
+							<reference ref="711120009"/>
 						</object>
 						<reference key="parent" ref="624078948"/>
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">611</int>
-						<reference key="object" ref="894689172"/>
-						<reference key="parent" ref="548434193"/>
+						<reference key="object" ref="711120009"/>
+						<reference key="parent" ref="258095058"/>
 					</object>
 				</object>
 			</object>
