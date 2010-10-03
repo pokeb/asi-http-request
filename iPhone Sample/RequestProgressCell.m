@@ -16,6 +16,7 @@
 	RequestProgressCell *cell = [[[RequestProgressCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier:@"RequestProgressCell"] autorelease];
 	[[cell textLabel] setTextAlignment:UITextAlignmentLeft];
 	[[cell textLabel] setFont:[UIFont systemFontOfSize:12]];
+	[[cell textLabel] setLineBreakMode:UILineBreakModeMiddleTruncation];
 	[cell setProgressView:[[[UIProgressView alloc] initWithFrame:CGRectMake(0,0,100,20)] autorelease]];
 	[cell setAccessoryView:[cell progressView]];
 	return cell;

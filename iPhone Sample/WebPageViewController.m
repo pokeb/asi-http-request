@@ -31,8 +31,8 @@
 	[urlField resignFirstResponder];
 
 	[self setRequestsInProgress:[NSMutableArray array]];
-	[[self tableView] reloadSections:[NSIndexSet indexSetWithIndex:2] withRowAnimation:UITableViewRowAnimationBottom];
-
+	[[self tableView] reloadData];
+	
 	// This allows our ASIDownloadCache to masquerade as as NSURLCache
 	// It allows the webView to load the content we downloaded when replaceURLsWithDataURLs is NO 
 	[NSURLCache setSharedURLCache:[ASIDownloadCache sharedCache]];
@@ -92,9 +92,15 @@
 - (void)requestStarted:(ASIWebPageRequest *)theRequest
 {
 	[[self requestsInProgress] addObject:theRequest];
-	[[self tableView] beginUpdates];
-	[[self tableView] insertRowsAtIndexPaths:[NSArray arrayWithObject:[NSIndexPath indexPathForRow:[[self requestsInProgress] count]-1 inSection:2]] withRowAnimation:UITableViewRowAnimationBottom];
-	[[self tableView] endUpdates];
+	[[self tableView] reloadData];
+}
+
+- (void)requestFinished:(ASIWebPageRequest *)theRequest
+{
+	if (![[self requestsInProgress] containsObject:theRequest]) {
+		[[self requestsInProgress] addObject:theRequest];
+		[[self tableView] reloadData];	
+	}
 }
 
 - (void)request:(ASIHTTPRequest *)theRequest didReceiveBytes:(long long)newLength
@@ -186,9 +192,15 @@ static NSString *intro = @"ASIWebPageRequest lets you download complete webpages
 			cell = [RequestProgressCell cell];
 		}
 		ASIHTTPRequest *theRequest = [[self requestsInProgress] objectAtIndex:[indexPath row]];
-		[[cell textLabel] setText:[[theRequest url] absoluteString]];
-		if ([theRequest contentLength] > 0) {
-			[[(RequestProgressCell *)cell progressView] setProgress:[theRequest totalBytesRead]/([theRequest contentLength]+[theRequest partialDownloadSize])];
+		if ([theRequest didUseCachedResponse]) {
+			[[cell textLabel] setText:[NSString stringWithFormat:@"Cached: %@",[[theRequest url] absoluteString]]];
+			[cell setAccessoryView:nil];
+			
+		} else {
+			[[cell textLabel] setText:[[theRequest url] absoluteString]];
+			if ([theRequest contentLength] > 0) {
+				[[(RequestProgressCell *)cell progressView] setProgress:[theRequest totalBytesRead]/([theRequest contentLength]+[theRequest partialDownloadSize])];
+			}
 		}
 
 	} else if ([indexPath section] == 3) {
