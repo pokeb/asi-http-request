@@ -278,7 +278,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	// Called on the delegate (if implemented) when the request receives response headers. Default is requestDidReceiveResponseHeaders:
 	SEL didReceiveResponseHeadersSelector;
 
-	// Called on the delegate (if implemented) when the request recieves a Location header and shouldRedirect is YES
+	// Called on the delegate (if implemented) when the request receives a Location header and shouldRedirect is YES
 	// The delegate can then change the url if needed, and can restart the request by calling [request resume], or simply cancel it
 	SEL willRedirectSelector;
 
@@ -461,9 +461,9 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	//
 	// When set to NO
 	// All requests will inflate the response as it comes in
-	// * If the request has no downloadDestinationPath set, the raw (compressed) response is disgarded and rawResponseData will contain the decompressed response
+	// * If the request has no downloadDestinationPath set, the raw (compressed) response is discarded and rawResponseData will contain the decompressed response
 	// * If the request has a downloadDestinationPath, the raw response will be stored in temporaryFileDownloadPath as normal, the inflated response will be stored in temporaryUncompressedDataDownloadPath
-	//   Once the request completes suceessfully, the contents of temporaryUncompressedDataDownloadPath are moved into downloadDestinationPath
+	//   Once the request completes successfully, the contents of temporaryUncompressedDataDownloadPath are moved into downloadDestinationPath
 	//
 	// Setting this to NO may be especially useful for users using ASIHTTPRequest in conjunction with a streaming parser, as it will allow partial gzipped responses to be inflated and passed on to the parser while the request is still running
 	BOOL shouldWaitToInflateCompressedResponses;

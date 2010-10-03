@@ -24,7 +24,7 @@
 #import "ASIDataCompressor.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.7-98 2010-10-03";
+NSString *ASIHTTPRequestVersion = @"v1.7-99 2010-10-03";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -112,7 +112,7 @@ static NSRecursiveLock *sessionCookiesLock = nil;
 
 // This lock ensures delegates only receive one notification that authentication is required at once
 // When using ASIAuthenticationDialogs, it also ensures only one dialog is shown at once
-// If a request can't aquire the lock immediately, it means a dialog is being shown or a delegate is handling the authentication challenge
+// If a request can't acquire the lock immediately, it means a dialog is being shown or a delegate is handling the authentication challenge
 // Once it gets the lock, it will try to look for existing credentials again rather than showing the dialog / notifying the delegate
 // This is so it can make use of any credentials supplied for the other request, if they are appropriate
 static NSRecursiveLock *delegateAuthenticationLock = nil;
@@ -991,7 +991,7 @@ static NSOperationQueue *sharedQueue = nil;
 		[self setReadStream:[(NSInputStream *)CFReadStreamCreateForStreamedHTTPRequest(kCFAllocatorDefault, request,(CFReadStreamRef)[self postBodyReadStream]) autorelease]];
     } else {
 		
-		// If we have a request body, we'll stream it from memory using our custom stream, so that we can measure bandwidth use and it can be bandwidth-throttled if nescessary
+		// If we have a request body, we'll stream it from memory using our custom stream, so that we can measure bandwidth use and it can be bandwidth-throttled if necessary
 		if ([self postBody] && [[self postBody] length] > 0) {
 			if ([self shouldCompressRequestBody] && [self compressedPostBody]) {
 				[self setPostBodyReadStream:[ASIInputStream inputStreamWithData:[self compressedPostBody] request:self]];
@@ -1302,7 +1302,7 @@ static NSOperationQueue *sharedQueue = nil;
 	}
 }
 
-// Called by delegate to resume loading with a new url after the delegate recieved request:willRedirectToURL:
+// Called by delegate to resume loading with a new url after the delegate received request:willRedirectToURL:
 - (void)redirectToURL:(NSURL *)newURL
 {
 	[self setRedirectURL:newURL];

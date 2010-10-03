@@ -394,7 +394,7 @@
 		return;
 	}
 	// If the user clicked on a link, let's tell the webview to ignore it, and we'll load it ourselves
-	[self fetchURL:[request URL]];
+	[self fetchURL:[NSURL URLWithString:[[request URL] absoluteString] relativeToURL:[NSURL URLWithString:[urlField stringValue]]]];
 	[listener ignore];
 }
 

@@ -6,7 +6,7 @@
 //  Copyright 2010 All-Seeing Interactive. All rights reserved.
 //
 //  This is an EXPERIMENTAL class - use at your own risk!
-//  It is strongly recommened to set a downloadDestinationPath when using ASIWebPageRequest
+//  It is strongly recommend to set a downloadDestinationPath when using ASIWebPageRequest
 //  Also, performance will be better if your ASIWebPageRequest has a downloadCache setup
 //  Known issue: You cannot use startSychronous with an ASIWebPageRequest
 
@@ -52,7 +52,7 @@ typedef enum _ASIWebContentType {
 
 // Will return a data URI that contains a base64 version of the content at this url
 // This is used when replacing urls in the html and css with actual data
-// If you subclass ASIWebPageRequest, you can override this function to return different conten or a url pointing at another location
+// If you subclass ASIWebPageRequest, you can override this function to return different content or a url pointing at another location
 - (NSString *)contentForExternalURL:(NSString *)theURL;
 
 // Returns the location that a downloaded external resource's content will be stored in

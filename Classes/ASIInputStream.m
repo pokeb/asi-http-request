@@ -65,7 +65,7 @@ static NSLock *readLock = nil;
 
 /*
  * Implement NSInputStream mandatory methods to make sure they are implemented
- * (necessary for MacRuby for example) and avoir the overhead of method
+ * (necessary for MacRuby for example) and avoid the overhead of method
  * forwarding for these common methods.
  */
 - (void)open
