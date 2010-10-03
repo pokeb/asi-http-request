@@ -90,12 +90,11 @@
 
 - (void)viewDidLoad
 {
+	[super viewDidLoad];
 	[[[self navigationBar] topItem] setTitle:@"Tracking Upload Progress"];
 	resultView = [[UITextView alloc] initWithFrame:CGRectZero];
 	[resultView setBackgroundColor:[UIColor clearColor]];
 	progressIndicator = [[UIProgressView alloc] initWithFrame:CGRectZero];
-	[[self view] setAutoresizingMask:UIViewAutoresizingFlexibleHeight|UIViewAutoresizingFlexibleWidth];
-
 }
 
 static NSString *intro = @"Demonstrates POSTing content to a URL, showing upload progress.\nYou'll only see accurate progress for uploads when the request body is larger than 128KB (in 2.2.1 SDK), or when the request body is larger than 32KB (in 3.0 SDK)\n\nThis request is also setup to run when the app enters the background on devices running on iOS4. In the delegate method that is called when the request finishes, we show a local notification to let the user know the upload is finished.";

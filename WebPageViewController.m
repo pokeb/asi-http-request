@@ -129,6 +129,7 @@
 
 - (void)viewDidLoad
 {
+	[super viewDidLoad];
 	[[[self navigationBar] topItem] setTitle:@"Downloading a Web Page"];
 	webView = [[UIWebView alloc] initWithFrame:CGRectZero];
 	[webView setDelegate:self];
@@ -139,8 +140,6 @@
 	urlField = [[UITextField alloc] initWithFrame:CGRectZero];
 	[urlField setBorderStyle:UITextBorderStyleRoundedRect];
 	[urlField setText:@"http://allseeing-i.com/ASIHTTPRequest/tests/ASIWebPageRequest/index.html"];
-	
-	[[self view] setAutoresizingMask:UIViewAutoresizingFlexibleHeight|UIViewAutoresizingFlexibleWidth];
 }
 
 static NSString *intro = @"ASIWebPageRequest lets you download complete webpages, including most of their external resources. ASIWebPageRequest can download stylesheets, javascript files, images (including those referenced in CSS), frames, iframes, and HTML 5 audio and video.\r\n\r\nExternal resources can be made available to a UIWebView by setting your ASIDownloadCache to be NSURLCache's default cache. Alternatively, you can set ASIWebPageRequest to replace urls of external files with their actual data. This lets you save a complete web page as a single file.\r\n\r\nASIWebPageRequest is NOT intended to be a drop-in replacement for UIWebView's regular loading mechanism. It is best used for getting more control over caching web pages you control, or for displaying web page content that requires more complex authentication (eg NTLM).\r\n\r\nIt is strongly recommended that you use ASIWebPageRequest in conjunction with a downloadCache, and you should always set a downloadDestinationPath for all ASIWebPageRequests.\r\n\r\nTo use ASIWebPage request, you must link with libxml, and add '${SDK_DIR}/usr/include/libxml2' to your Header Search Paths.";

@@ -106,12 +106,12 @@
 
 - (void)viewDidLoad
 {
+	[super viewDidLoad];
 	[[[self navigationBar] topItem] setTitle:@"HTTP Authentication"];
 	responseField = [[UITextView alloc] initWithFrame:CGRectZero];
 	[responseField setBackgroundColor:[UIColor clearColor]];
 	[responseField setEditable:NO];
 	[responseField setText:@"Secret information will appear here if authentication succeeds"];
-	[[self view] setAutoresizingMask:UIViewAutoresizingFlexibleHeight|UIViewAutoresizingFlexibleWidth];
 }
 
 static NSString *intro = @"Demonstrates fetching content from an area that requires HTTP authentication. You will be prompted for a username and password, enter 'topsecret' for both.\nIf you turn on keychain support, successful authentication will result in the username and password you provided being stored in your keychain. The application will use these details rather than prompt you the next time.\nToggle 'Use built-in dialog' to switch between ASIHTTPRequest's built-in dialog, and one created by the delegate.";

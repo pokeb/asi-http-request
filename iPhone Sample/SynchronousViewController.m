@@ -40,10 +40,8 @@ Most of the code below here relates to the table view, and isn't that interestin
 
 - (void)viewDidLoad
 {
+	[super viewDidLoad];
 	[[[self navigationBar] topItem] setTitle:@"Synchronous Requests"];
-	[[self view] setAutoresizingMask:UIViewAutoresizingFlexibleHeight|UIViewAutoresizingFlexibleWidth];
-	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillShow:) name:UIKeyboardWillShowNotification object:nil];
-	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillHide:) name:UIKeyboardWillHideNotification object:nil];
 
 }
 
@@ -51,31 +49,10 @@ Most of the code below here relates to the table view, and isn't that interestin
 {
 	[request cancel];
 	[request release];
-	[[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillShowNotification object:nil];
-	[[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillHideNotification object:nil];
 	[super dealloc];
 }
 
-- (void)keyboardWillShow:(NSNotification *)notification
-{
-#if __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_3_2
-	NSValue *keyboardBoundsValue = [[notification userInfo] objectForKey:UIKeyboardFrameEndUserInfoKey];
-#else
-	NSValue *keyboardBoundsValue = [[notification userInfo] objectForKey:UIKeyboardBoundsUserInfoKey];
-#endif
-	CGRect keyboardBounds;
-	[keyboardBoundsValue getValue:&keyboardBounds];
-	UIEdgeInsets e = UIEdgeInsetsMake(0, 0, keyboardBounds.size.height-42, 0);
-	[[self tableView] setScrollIndicatorInsets:e];
-	[[self tableView] setContentInset:e];
-}
 
-- (void)keyboardWillHide:(NSNotification *)notification
-{
-	UIEdgeInsets e = UIEdgeInsetsMake(0, 0, 0, 0);
-	[[self tableView] setScrollIndicatorInsets:e];
-	[[self tableView] setContentInset:e];	
-}
 
 static NSString *intro = @"Demonstrates fetching a web page synchronously, the HTML source will appear in the box below when the download is complete.  The interface will lock up when you press this button until the operation times out or succeeds. You should avoid using synchronous requests on the main thread, even for the simplest operations.";
 

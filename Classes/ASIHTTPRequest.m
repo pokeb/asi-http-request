@@ -4007,7 +4007,7 @@ static NSOperationQueue *sharedQueue = nil;
 {
 	BOOL multiTaskingSupported = NO;
 	if ([[UIDevice currentDevice] respondsToSelector:@selector(isMultitaskingSupported)]) {
-		multiTaskingSupported = [[UIDevice currentDevice] isMultitaskingSupported];
+		multiTaskingSupported = [(id)[UIDevice currentDevice] isMultitaskingSupported];
 	}
 	return multiTaskingSupported;
 }

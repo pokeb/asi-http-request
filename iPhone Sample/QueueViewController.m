@@ -93,8 +93,8 @@
 
 - (void)viewDidLoad
 {
+	[super viewDidLoad];
 	[[[self navigationBar] topItem] setTitle:@"Using a Queue"];
-	[[self view] setAutoresizingMask:UIViewAutoresizingFlexibleHeight|UIViewAutoresizingFlexibleWidth];
 }
 
 static NSString *intro = @"Demonstrates a fetching 3 items at once, using an ASINetworkQueue to track progress.\r\nEach request has its own downloadProgressDelegate, and the queue has an additional downloadProgressDelegate to track overall progress.";
