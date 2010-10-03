@@ -152,8 +152,9 @@
 	NSInteger readLength;
 	NSError *theError = nil;
 	
+
 	ASIDataDecompressor *decompressor = [ASIDataDecompressor decompressor];
-	
+
 	NSInputStream *inputStream = [NSInputStream inputStreamWithFileAtPath:sourcePath];
 	[inputStream open];
 	NSOutputStream *outputStream = [NSOutputStream outputStreamToFileAtPath:destinationPath append:NO];
@@ -165,7 +166,7 @@
 		readLength = [inputStream read:inputData maxLength:DATA_CHUNK_SIZE]; 
 		
 		// Make sure nothing went wrong
-		if ([inputStream streamError]) {
+		if ([inputStream streamStatus] == NSStreamEventErrorOccurred) {
             [decompressor closeStream];
 			if (err) {
 				*err = [NSError errorWithDomain:NetworkRequestErrorDomain code:ASICompressionError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Decompression of %@ failed because we were unable to read from the source data file",sourcePath],NSLocalizedDescriptionKey,[inputStream streamError],NSUnderlyingErrorKey,nil]];
@@ -186,7 +187,7 @@
 		[outputStream write:[outputData bytes] maxLength:[outputData length]];
 		
 		// Make sure nothing went wrong
-		if ([outputStream streamError]) {
+		if ([inputStream streamStatus] == NSStreamEventErrorOccurred) {
 			[decompressor closeStream];
 			if (err) {
 				*err = [NSError errorWithDomain:NetworkRequestErrorDomain code:ASICompressionError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Decompression of %@ failed because we were unable to write to the destination data file at &@",sourcePath,destinationPath],NSLocalizedDescriptionKey,[outputStream streamError],NSUnderlyingErrorKey,nil]];

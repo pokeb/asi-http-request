@@ -13,7 +13,7 @@
 
 // An xPath query that controls the external resources ASIWebPageRequest will fetch
 // By default, it will fetch stylesheets, javascript files, images, frames, iframes, and html 5 video / audio
-static xmlChar *xpathExpr = (xmlChar *)"//link/@href|//script/@src|//img/@src|//frame/@src|//iframe/@src|//*/@style|//source/@src";
+static xmlChar *xpathExpr = (xmlChar *)"//link/@href|//script/@src|//img/@src|//frame/@src|//iframe/@src|//style|//*/@style|//source/@src";
 
 static NSLock *xmlParsingLock = nil;
 static NSMutableArray *requestsUsingXMLParser = nil;

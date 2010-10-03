@@ -11,6 +11,7 @@
 #import "QueueViewController.h"
 #import "AuthenticationViewController.h"
 #import "UploadViewController.h"
+#import "WebPageViewController.h"
 
 @implementation RootViewController
 
@@ -18,7 +19,7 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    self.contentSizeForViewInPopover = CGSizeMake(310.0, self.tableView.rowHeight*4.0);
+    self.contentSizeForViewInPopover = CGSizeMake(310.0, self.tableView.rowHeight*5.0);
 }
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
@@ -44,13 +45,16 @@
 		case 3:
 			[[cell textLabel] setText:@"Upload"];
 			break;
+		case 4:
+			[[cell textLabel] setText:@"Web Page Download"];
+			break;
 	}
 	return cell;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-	return 4;
+	return 5;
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
@@ -68,6 +72,9 @@
 			break;
 		case 3:
 			viewController = [[[UploadViewController alloc] initWithNibName:@"Sample" bundle:nil] autorelease];
+			break;
+		case 4:
+			viewController = [[[WebPageViewController alloc] initWithNibName:@"Sample" bundle:nil] autorelease];
 			break;
 	}	
 	[splitViewController setViewControllers:[NSArray arrayWithObjects:[self navigationController],viewController,nil]];

@@ -2822,9 +2822,10 @@ static NSOperationQueue *sharedQueue = nil;
 
 				[self setFileDownloadOutputStream:[[[NSOutputStream alloc] initToFileAtPath:[self temporaryFileDownloadPath] append:append] autorelease]];
 				[[self fileDownloadOutputStream] open];
+
 			}
 			[[self fileDownloadOutputStream] write:buffer maxLength:bytesRead];
-			
+
 			if ([self isResponseCompressed] && ![self shouldWaitToInflateCompressedResponses]) {
 				
 				if (![self inflatedFileDownloadOutputStream]) {

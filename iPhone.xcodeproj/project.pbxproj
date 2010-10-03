@@ -91,6 +91,9 @@
 		B576D76611C7F4D90059B815 /* iPhoneMainWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = B576D76511C7F4D90059B815 /* iPhoneMainWindow.xib */; };
 		B576D77611C7F5810059B815 /* libz.1.2.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D53D11C7CF350059B815 /* libz.1.2.3.dylib */; };
 		B576D77711C7F5810059B815 /* libz.1.2.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D53D11C7CF350059B815 /* libz.1.2.3.dylib */; };
+		B57AF06A125873F4002A1F0C /* libxml2.2.7.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B57AF069125873F4002A1F0C /* libxml2.2.7.3.dylib */; };
+		B57AF086125874A7002A1F0C /* WebPageViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B57AF085125874A7002A1F0C /* WebPageViewController.m */; };
+		B57AF087125874A7002A1F0C /* WebPageViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B57AF085125874A7002A1F0C /* WebPageViewController.m */; };
 		B5873FD610FF28CA001E145F /* ASIS3BucketObject.m in Sources */ = {isa = PBXBuildFile; fileRef = B5873FC210FF28CA001E145F /* ASIS3BucketObject.m */; };
 		B5873FD810FF28CA001E145F /* ASIS3Request.m in Sources */ = {isa = PBXBuildFile; fileRef = B5873FC610FF28CA001E145F /* ASIS3Request.m */; };
 		B5873FD910FF28CA001E145F /* ASICloudFilesCDNRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5873FC910FF28CA001E145F /* ASICloudFilesCDNRequest.m */; };
@@ -236,6 +239,9 @@
 		B576D72311C7F34D0059B815 /* ASIHTTPRequest iPad.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "ASIHTTPRequest iPad.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B576D76311C7F4D40059B815 /* iPadMainWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = iPadMainWindow.xib; path = "iPhone Sample/Resources/iPadMainWindow.xib"; sourceTree = "<group>"; };
 		B576D76511C7F4D90059B815 /* iPhoneMainWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = iPhoneMainWindow.xib; path = "iPhone Sample/Resources/iPhoneMainWindow.xib"; sourceTree = "<group>"; };
+		B57AF069125873F4002A1F0C /* libxml2.2.7.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxml2.2.7.3.dylib; path = usr/lib/libxml2.2.7.3.dylib; sourceTree = SDKROOT; };
+		B57AF084125874A7002A1F0C /* WebPageViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebPageViewController.h; sourceTree = "<group>"; };
+		B57AF085125874A7002A1F0C /* WebPageViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WebPageViewController.m; sourceTree = "<group>"; };
 		B5873FC110FF28CA001E145F /* ASIS3BucketObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIS3BucketObject.h; sourceTree = "<group>"; };
 		B5873FC210FF28CA001E145F /* ASIS3BucketObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIS3BucketObject.m; sourceTree = "<group>"; };
 		B5873FC510FF28CA001E145F /* ASIS3Request.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIS3Request.h; sourceTree = "<group>"; };
@@ -323,6 +329,7 @@
 				B576D71D11C7F34D0059B815 /* Foundation.framework in Frameworks */,
 				B576D77611C7F5810059B815 /* libz.1.2.3.dylib in Frameworks */,
 				B55251A111D2174C00F9B170 /* CoreGraphics.framework in Frameworks */,
+				B57AF06A125873F4002A1F0C /* libxml2.2.7.3.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -350,10 +357,10 @@
 				B5FE752511DBBA6400F898C8 /* ASIDownloadCache.m */,
 				B53E6D9B1257B46100C1E79A /* ASIWebPageRequest.h */,
 				B53E6D9C1257B46100C1E79A /* ASIWebPageRequest.m */,
-				B53E6D911257B45800C1E79A /* ASIDataDecompressor.m */,
 				B53E6D921257B45800C1E79A /* ASIDataDecompressor.h */,
-				B53E6D931257B45800C1E79A /* ASIDataCompressor.m */,
+				B53E6D911257B45800C1E79A /* ASIDataDecompressor.m */,
 				B53E6D941257B45800C1E79A /* ASIDataCompressor.h */,
+				B53E6D931257B45800C1E79A /* ASIDataCompressor.m */,
 				B5873FC010FF28CA001E145F /* S3 */,
 				B5873FC710FF28CA001E145F /* CloudFiles */,
 				B55B60510F765A3C0064029C /* Tests */,
@@ -398,6 +405,7 @@
 				B50C182B121C26FA0055FCAB /* Security.framework */,
 				B53E6DD31257B5C900C1E79A /* libxml2.2.7.3.dylib */,
 				B53E6DEA1257B64100C1E79A /* libxml2.2.7.3.dylib */,
+				B57AF069125873F4002A1F0C /* libxml2.2.7.3.dylib */,
 			);
 			name = iPhone;
 			sourceTree = "<group>";
@@ -411,6 +419,8 @@
 				B55B60670F765A930064029C /* QueueViewController.m */,
 				B51791A11024C3E800583567 /* AuthenticationViewController.h */,
 				B51791A21024C3E800583567 /* AuthenticationViewController.m */,
+				B57AF084125874A7002A1F0C /* WebPageViewController.h */,
+				B57AF085125874A7002A1F0C /* WebPageViewController.m */,
 				B55B60690F765A930064029C /* UploadViewController.h */,
 				B55B606C0F765A930064029C /* UploadViewController.m */,
 				B55B606E0F765A930064029C /* iPhoneSampleAppDelegate.h */,
@@ -758,6 +768,7 @@
 				B53E6D971257B45800C1E79A /* ASIDataDecompressor.m in Sources */,
 				B53E6D981257B45800C1E79A /* ASIDataCompressor.m in Sources */,
 				B53E6D9E1257B46100C1E79A /* ASIWebPageRequest.m in Sources */,
+				B57AF087125874A7002A1F0C /* WebPageViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -829,6 +840,7 @@
 				B53E6D991257B45800C1E79A /* ASIDataDecompressor.m in Sources */,
 				B53E6D9A1257B45800C1E79A /* ASIDataCompressor.m in Sources */,
 				B53E6D9F1257B46100C1E79A /* ASIWebPageRequest.m in Sources */,
+				B57AF086125874A7002A1F0C /* WebPageViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -959,6 +971,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "iPhone Sample/iPhone_Prefix.pch";
 				GCC_VERSION = com.apple.compilers.llvmgcc42;
+				HEADER_SEARCH_PATHS = "${SDK_DIR}/usr/include/libxml2";
 				INFOPLIST_FILE = "iPhone Sample/iPadInfo.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 3.2;
 				PRODUCT_NAME = "ASIHTTPRequest iPad";
@@ -977,6 +990,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "iPhone Sample/iPhone_Prefix.pch";
 				GCC_VERSION = com.apple.compilers.llvmgcc42;
+				HEADER_SEARCH_PATHS = "${SDK_DIR}/usr/include/libxml2";
 				INFOPLIST_FILE = "iPhone Sample/iPadInfo.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 3.2;
 				PRODUCT_NAME = "ASIHTTPRequest iPad";
