@@ -24,7 +24,7 @@
 #import "ASIDataCompressor.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.7-100 2010-10-03";
+NSString *ASIHTTPRequestVersion = @"v1.7-101 2010-10-03";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -582,12 +582,13 @@ static NSOperationQueue *sharedQueue = nil;
 	[self setComplete:YES];
 	[self cancelLoad];
 	
-	[[self retain] autorelease];
+	CFRetain(self);
     [self willChangeValueForKey:@"isCancelled"];
     cancelled = YES;
     [self didChangeValueForKey:@"isCancelled"];
     
 	[[self cancelledLock] unlock];
+	CFRelease(self);
 }
 
 - (void)cancel
@@ -1265,7 +1266,7 @@ static NSOperationQueue *sharedQueue = nil;
 
 - (void)setStatusTimer:(NSTimer *)timer
 {
-	[self retain];
+	CFRetain(self);
 	// We must invalidate the old timer here, not before we've created and scheduled a new timer
 	// This is because the timer may be the only thing retaining an asynchronous request
 	if (statusTimer && timer != statusTimer) {
@@ -1273,7 +1274,7 @@ static NSOperationQueue *sharedQueue = nil;
 		[statusTimer release];
 	}
 	statusTimer = [timer retain];
-	[self release];
+	CFRelease(self);
 }
 
 // This gets fired every 1/4 of a second to update the progress and work out if we need to timeout
@@ -1692,6 +1693,7 @@ static NSOperationQueue *sharedQueue = nil;
 
 #pragma mark talking to delegates
 
+
 /* ALWAYS CALLED ON MAIN THREAD! */
 - (void)requestStarted
 {
@@ -1764,6 +1766,15 @@ static NSOperationQueue *sharedQueue = nil;
 	}
 }
 
+/* ALWAYS CALLED ON MAIN THREAD! */
+- (void)passReceivedDataToDelegate:(NSData *)data
+{
+	if (delegate && [delegate respondsToSelector:didReceiveDataSelector]) {
+		[delegate performSelector:didReceiveDataSelector withObject:self withObject:data];
+		return;
+	}
+}
+
 // Subclasses might override this method to perform error handling in the same thread
 // If you do this, don't forget to call [super failWithError:] to let the queue / delegate know we're done
 - (void)failWithError:(NSError *)theError
@@ -1816,10 +1827,7 @@ static NSOperationQueue *sharedQueue = nil;
         // "markAsFinished" will be at the start of main() when we are started
         return;
     }
-	// markAsFinished may well cause this object to be dealloced
-	[self retain];
 	[self markAsFinished];
-	[self release];
 }
 
 #pragma mark parsing HTTP response headers
@@ -2634,14 +2642,10 @@ static NSOperationQueue *sharedQueue = nil;
 
 - (void)handleNetworkEvent:(CFStreamEventType)type
 {	
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	[[self retain] autorelease];
-
 	[[self cancelledLock] lock];
 	
 	if ([self complete] || [self isCancelled]) {
 		[[self cancelledLock] unlock];
-		[pool release];
 		return;
 	}
 	
@@ -2689,17 +2693,6 @@ static NSOperationQueue *sharedQueue = nil;
 	} else if ([self downloadComplete] && [self authenticationNeeded]) {
 		[self attemptToApplyCredentialsAndResume];
 	}
-	[pool release];
-}
-
-// This runs on the main thread to run the given invocation on the current delegate
-- (void)invocateDelegate:(NSInvocation *)invocation
-{
-    if (delegate && [delegate respondsToSelector:invocation.selector])
-    {
-        [invocation invokeWithTarget:delegate];
-    }
-    [invocation release];
 }
 
 - (void)handleBytesAvailable
@@ -2787,23 +2780,13 @@ static NSOperationQueue *sharedQueue = nil;
 		// Does the delegate want to handle the data manually?
 		if ([[self delegate] respondsToSelector:[self didReceiveDataSelector]]) {
 			
-			
-			NSMethodSignature *signature = [[[self delegate] class] instanceMethodSignatureForSelector:[self didReceiveDataSelector]];
-			NSInvocation *invocation = [[NSInvocation invocationWithMethodSignature:signature] retain];
-			[invocation setSelector:[self didReceiveDataSelector]];
-			[invocation setArgument:&self atIndex:2];
-			
-			NSData *data;
+			NSData *data = nil;
 			if ([self isResponseCompressed] && ![self shouldWaitToInflateCompressedResponses]) {
 				data = inflatedData;
 			} else {
 				data = [NSData dataWithBytes:buffer length:bytesRead];
 			}
-			[invocation setArgument:&data atIndex:3];
-			[invocation retainArguments];
-            [self performSelectorOnMainThread:@selector(invocateDelegate:) withObject:invocation waitUntilDone:[NSThread isMainThread]];
-
-
+			[self performSelectorOnMainThread:@selector(passReceivedDataToDelegate:) withObject:data waitUntilDone:[NSThread isMainThread]];
 			
 		// Are we downloading to a file?
 		} else if ([self downloadDestinationPath]) {
@@ -2985,7 +2968,7 @@ static NSOperationQueue *sharedQueue = nil;
 - (void)markAsFinished
 {
 	// Autoreleased requests may well be dealloced here otherwise
-	[self retain];
+	CFRetain(self);
 
 	// dealloc won't be called when running with GC, so we'll clean these up now
 	if (request) {
@@ -3027,7 +3010,7 @@ static NSOperationQueue *sharedQueue = nil;
 		});
 	}
 	#endif
-	[self release];
+	CFRelease(self);
 }
 
 - (void)useDataFromCache
