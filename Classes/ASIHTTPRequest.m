@@ -430,6 +430,11 @@ static NSOperationQueue *sharedQueue = nil;
     [proxyAuthenticationNeededBlock release];
     proxyAuthenticationNeededBlock = [aProxyAuthenticationBlock copy];
 }
+
+- (void)setRequestRedirectedBlock:(ASIHTTPRequestBlock)aRedirectBlock{
+    [requestRedirectedBlock release];
+    requestRedirectedBlock = [aRedirectBlock copy];
+}
 #endif
 
 #pragma mark setup request
@@ -1995,6 +2000,16 @@ static NSOperationQueue *sharedQueue = nil;
 	// Note that ASIHTTPRequest does not currently support 305 Use Proxy
 	if ([self shouldRedirect] && [responseHeaders valueForKey:@"Location"]) {
 		if (([self responseStatusCode] > 300 && [self responseStatusCode] < 304) || [self responseStatusCode] == 307) {
+            
+            if([[self delegate] respondsToSelector:@selector(requestRedirected:)]){
+                [[self delegate] performSelectorOnMainThread:@selector(requestRedirected:) withObject:self waitUntilDone:[NSThread isMainThread]];
+            }
+#if NS_BLOCKS_AVAILABLE
+            if(requestRedirectedBlock){
+                __block ASIHTTPRequest *blockCopy = self;
+                requestRedirectedBlock(blockCopy);
+            }
+#endif
 			
 			// By default, we redirect 301 and 302 response codes as GET requests
 			// According to RFC 2616 this is wrong, but this is what most browsers do, so it's probably what you're expecting to happen

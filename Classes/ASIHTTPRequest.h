@@ -468,7 +468,10 @@ typedef void (^ASIHTTPRequestDataReceivedBlock)(ASIHTTPRequest *request, NSData 
     ASIHTTPRequestBlock authenticationNeededBlock;
     
     //block for handling proxy authentication
-    ASIHTTPRequestBlock proxyAuthenticationNeededBlock;    
+    ASIHTTPRequestBlock proxyAuthenticationNeededBlock;   
+    
+    //block for handling redirections, if you want to
+    ASIHTTPRequestBlock requestRedirectedBlock;
 #endif 
 }
 
@@ -495,6 +498,7 @@ typedef void (^ASIHTTPRequestDataReceivedBlock)(ASIHTTPRequest *request, NSData 
 - (void)setDataReceivedBlock:(ASIHTTPRequestDataReceivedBlock)aReceivedBlock;
 - (void)setAuthenticationNeededBlock:(ASIHTTPRequestBlock)anAuthenticationBlock;
 - (void)setProxyAuthenticationNeededBlock:(ASIHTTPRequestBlock)aProxyAuthenticationBlock;
+- (void)setRequestRedirectedBlock:(ASIHTTPRequestBlock)aRedirectBlock;
 #endif
 
 #pragma mark setup request
