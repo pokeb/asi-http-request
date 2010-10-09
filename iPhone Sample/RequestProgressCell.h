@@ -14,5 +14,5 @@
 }
 + (id)cell;
 
-@property (assign, nonatomic) UIProgressView *progressView;
+@property (retain, nonatomic) UIProgressView *progressView;
 @end

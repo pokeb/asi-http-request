@@ -17,11 +17,29 @@
 
 @class ASINetworkQueue;
 
+// Used internally for storing what type of data we got from the server
 typedef enum _ASIWebContentType {
     ASINotParsedWebContentType = 0,
     ASIHTMLWebContentType = 1,
     ASICSSWebContentType = 2
 } ASIWebContentType;
+
+// These correspond with the urlReplacementMode property of ASIWebPageRequest
+typedef enum _ASIURLReplacementMode {
+
+	// Don't modify html or css content at all
+    ASIDontModifyURLs = 0,
+
+	// Replace external resources urls (images, stylesheets etc) with data uris, so their content is embdedded directly in the html/css
+    ASIReplaceExternalResourcesWithData = 1,
+
+	// Replace external resource urls with the url of locally cached content
+	// You must set the baseURL of a WebView / UIWebView to a file url pointing at the downloadDestinationPath of the main ASIWebPageRequest if you want to display your content
+    // See the Mac or iPhone example projects for a demonstration of how to do this
+	// The hrefs of all hyperlinks are changed to use absolute urls when using this mode
+	ASIReplaceExternalResourcesWithLocalURLs = 2
+} ASIURLReplacementMode;
+
 
 
 @interface ASIWebPageRequest : ASIHTTPRequest {
@@ -43,11 +61,8 @@ typedef enum _ASIWebContentType {
 	// For example, a request for an image can be created by a request for a stylesheet which was created by a request for a web page
 	ASIWebPageRequest *parentRequest;
 
-	// If set to YES, ASIWebPageRequest will replace the urls of supported external resources with data urls that contain the the content of the external url
-	// This allows you to cache a complete webpage in a single file
-	// If set to NO, ASIWebPageRequest will still download the content of external resource URLS, but will not make changes to CSS or HTML
-	// If you set an ASIDownloadCache for this request and also use it as NSURLCache's sharedCache, webViews and UIWebViews should still be able load many external resources from disk without fetching them again
-	BOOL replaceURLsWithDataURLs;
+	// Controls what ASIWebPageRequest does with external resources. See the notes above for more.
+	ASIURLReplacementMode urlReplacementMode;
 }
 
 // Will return a data URI that contains a base64 version of the content at this url
@@ -60,5 +75,5 @@ typedef enum _ASIWebContentType {
 
 
 @property (retain, nonatomic) ASIWebPageRequest *parentRequest;
-@property (assign, nonatomic) BOOL replaceURLsWithDataURLs;
+@property (assign, nonatomic) ASIURLReplacementMode urlReplacementMode;
 @end

@@ -22,6 +22,12 @@
 	return cell;
 }
 
+- (void)dealloc
+{
+	[progressView release];
+	[super dealloc];
+}
+
 - (void)layoutSubviews
 {
 	[super layoutSubviews];

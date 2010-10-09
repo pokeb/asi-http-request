@@ -393,6 +393,7 @@
 		[listener use];
 		return;
 	}
+
 	// If the user clicked on a link, let's tell the webview to ignore it, and we'll load it ourselves
 	[self fetchURL:[NSURL URLWithString:[[request URL] absoluteString] relativeToURL:[NSURL URLWithString:[urlField stringValue]]]];
 	[listener ignore];
@@ -400,22 +401,19 @@
 
 - (void)fetchURL:(NSURL *)url
 {
-	// This allows our ASIDownloadCache to masquerade as as NSURLCache
-	// It allows the webView to load the content we downloaded when replaceURLsWithDataURLs is NO 
-	[NSURLCache setSharedURLCache:[ASIDownloadCache sharedCache]];
 	ASIWebPageRequest *request = [ASIWebPageRequest requestWithURL:url];
 	[request setDidFailSelector:@selector(webPageFetchFailed:)];
 	[request setDidFinishSelector:@selector(webPageFetchSucceeded:)];
 	[request setDelegate:self];
 	[request setShowAccurateProgress:NO];
 	[request setDownloadProgressDelegate:progressIndicator];
-	[request setReplaceURLsWithDataURLs:([dataURICheckbox state] == NSOnState)];
+	[request setUrlReplacementMode:([dataURICheckbox state] == NSOnState ? ASIReplaceExternalResourcesWithData : ASIReplaceExternalResourcesWithLocalURLs)];
 
 	// It is strongly recommended that you set both a downloadCache and a downloadDestinationPath for all ASIWebPageRequests
 	[request setDownloadCache:[ASIDownloadCache sharedCache]];
-	[request setDownloadDestinationPath:[[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"fink"]];
+	[request setDownloadDestinationPath:[[ASIDownloadCache sharedCache] pathToStoreCachedResponseDataForRequest:request]];
 
-	[[ASIDownloadCache sharedCache] setShouldRespectCacheControlHeaders:NO];
+	//[[ASIDownloadCache sharedCache] setShouldRespectCacheControlHeaders:NO];
 	[request startAsynchronous];
 }
 
@@ -426,13 +424,22 @@
 
 - (void)webPageFetchSucceeded:(ASIHTTPRequest *)request
 {
+	NSURL *baseURL;
+	if ([dataURICheckbox state] == NSOnState) {
+		baseURL = [request url];
+
+		// If we're using ASIReplaceExternalResourcesWithLocalURLs, we must set the baseURL to point to our locally cached file
+	} else {
+		baseURL = [NSURL fileURLWithPath:[request downloadDestinationPath]];
+	}
+
 	if ([request downloadDestinationPath]) {
 		NSString *response = [NSString stringWithContentsOfFile:[request downloadDestinationPath] encoding:[request responseEncoding] error:nil];
 		[webPageSource setString:response];
-		[[webView mainFrame] loadHTMLString:response baseURL:[request url]];	
+		[[webView mainFrame] loadHTMLString:response baseURL:baseURL];
 	} else {
 		[webPageSource setString:[request responseString]];
-		[[webView mainFrame] loadHTMLString:[request responseString] baseURL:[request url]];
+		[[webView mainFrame] loadHTMLString:[request responseString] baseURL:baseURL];
 	}
 
 	[urlField setStringValue:[[request url] absoluteString]];

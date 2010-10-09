@@ -13,7 +13,7 @@
 
 // An xPath query that controls the external resources ASIWebPageRequest will fetch
 // By default, it will fetch stylesheets, javascript files, images, frames, iframes, and html 5 video / audio
-static xmlChar *xpathExpr = (xmlChar *)"//link/@href|//script/@src|//img/@src|//frame/@src|//iframe/@src|//style|//*/@style|//source/@src";
+static xmlChar *xpathExpr = (xmlChar *)"//link/@href|//a/@href|//script/@src|//img/@src|//frame/@src|//iframe/@src|//style|//*/@style|//source/@src";
 
 static NSLock *xmlParsingLock = nil;
 static NSMutableArray *requestsUsingXMLParser = nil;
@@ -25,6 +25,7 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 - (void)parseAsCSS;
 - (void)addURLToFetch:(NSString *)newURL;
 + (NSArray *)CSSURLsFromString:(NSString *)string;
+- (NSString *)relativePathTo:(NSString *)destinationPath fromPath:(NSString *)sourcePath;
 @property (retain, nonatomic) ASINetworkQueue *externalResourceQueue;
 @property (retain, nonatomic) NSMutableDictionary *resourceList;
 @end
@@ -52,7 +53,7 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 - (void)requestFinished
 {
 	complete = NO;
-	if ([self mainRequest]) {
+	if ([self mainRequest] || [self didUseCachedResponse]) {
 		[super requestFinished];
 		[super markAsFinished];
 		return;
@@ -117,7 +118,7 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 		[externalResourceRequest setCacheStoragePolicy:[self cacheStoragePolicy]];
 		[externalResourceRequest setUserInfo:[NSDictionary dictionaryWithObject:theURL forKey:@"Path"]];
 		[externalResourceRequest setParentRequest:self];
-		[externalResourceRequest setReplaceURLsWithDataURLs:[self replaceURLsWithDataURLs]];
+		[externalResourceRequest setUrlReplacementMode:[self urlReplacementMode]];
 		[externalResourceRequest setShouldResetDownloadProgress:NO];
 		[externalResourceRequest setDelegate:self];
 		[externalResourceRequest setUploadProgressDelegate:self];
@@ -185,7 +186,7 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 		[externalResourceRequest setCacheStoragePolicy:[self cacheStoragePolicy]];
 		[externalResourceRequest setUserInfo:[NSDictionary dictionaryWithObject:theURL forKey:@"Path"]];
 		[externalResourceRequest setParentRequest:self];
-		[externalResourceRequest setReplaceURLsWithDataURLs:[self replaceURLsWithDataURLs]];
+		[externalResourceRequest setUrlReplacementMode:[self urlReplacementMode]];
 		[externalResourceRequest setShouldResetDownloadProgress:NO];
 		[externalResourceRequest setDelegate:self];
 		[externalResourceRequest setUploadProgressDelegate:self];
@@ -222,7 +223,7 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 
 - (void)finishedFetchingExternalResources:(ASINetworkQueue *)queue
 {
-	if ([self replaceURLsWithDataURLs]) {
+	if ([self urlReplacementMode] != ASIDontModifyURLs) {
 		if (webContentType == ASICSSWebContentType) {
 			NSMutableString *parsedResponse;
 			NSError *err = nil;
@@ -292,8 +293,8 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 	[self setResponseHeaders:newHeaders];
 
 	// Write the parsed content back to the cache
-	if ([self replaceURLsWithDataURLs]) {
-		[[self downloadCache] storeResponseForRequest:self maxAge:[self secondsToCache]];
+	if ([self urlReplacementMode] != ASIDontModifyURLs) {
+		//[[self downloadCache] storeResponseForRequest:self maxAge:[self secondsToCache]];
 	}
 
 	[super requestFinished];
@@ -341,7 +342,8 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 			for (NSString *theURL in externalResources) {
 				[self addURLToFetch:theURL];
 			}
-		} else {
+		} else if (![[parentName lowercaseString] isEqualToString:@"a"]) {
+			NSLog(@"%@",value);
 			[self addURLToFetch:value];
 		}
 		if (nodes->nodeTab[i]->type != XML_NAMESPACE_DECL) {
@@ -395,6 +397,7 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 	int i;
 	for(i = size - 1; i >= 0; i--) {
 		assert(nodes->nodeTab[i]);
+		NSString *parentName  = [NSString stringWithCString:(char *)nodes->nodeTab[i]->parent->name encoding:[self responseEncoding]];
 		NSString *nodeName  = [NSString stringWithCString:(char *)nodes->nodeTab[i]->name encoding:[self responseEncoding]];
 		NSString *value = [NSString stringWithCString:(char *)xmlNodeGetContent(nodes->nodeTab[i]) encoding:[self responseEncoding]];
 		if ([[nodeName lowercaseString] isEqualToString:@"style"]) {
@@ -408,6 +411,11 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 				}
 			}
 			xmlNodeSetContent(nodes->nodeTab[i], (xmlChar *)[value cStringUsingEncoding:[self responseEncoding]]);
+		} else if ([self urlReplacementMode] == ASIReplaceExternalResourcesWithLocalURLs && [[parentName lowercaseString] isEqualToString:@"a"]) {
+			NSString *newURL = [[NSURL URLWithString:value relativeToURL:[self url]] absoluteString];
+			if (newURL) {
+				xmlNodeSetContent(nodes->nodeTab[i], (xmlChar *)[newURL cStringUsingEncoding:[self responseEncoding]]);
+			}
 		} else {
 			NSString *newURL = [self contentForExternalURL:value];
 			if (newURL) {
@@ -491,8 +499,39 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 	return urls;
 }
 
+- (NSString *)relativePathTo:(NSString *)destinationPath fromPath:(NSString *)sourcePath
+{
+	NSArray *sourcePathComponents = [sourcePath pathComponents];
+	NSArray *destinationPathComponents = [destinationPath pathComponents];
+	NSUInteger i;
+	NSString *newPath = @"";
+	NSString *sourcePathComponent, *destinationPathComponent;
+	for (i=0; i<[sourcePathComponents count]; i++) {
+		sourcePathComponent = [sourcePathComponents objectAtIndex:i];
+		if ([destinationPathComponents count] > i) {
+			destinationPathComponent = [destinationPathComponents objectAtIndex:i];
+			if (![sourcePathComponent isEqualToString:destinationPathComponent]) {
+				NSUInteger i2;
+				for (i2=i+1; i2<[sourcePathComponents count]; i2++) {
+					newPath = [newPath stringByAppendingPathComponent:@".."];
+				}
+				newPath = [newPath stringByAppendingPathComponent:destinationPathComponent];
+				for (i2=i+1; i2<[destinationPathComponents count]; i2++) {
+					newPath = [newPath stringByAppendingPathComponent:[destinationPathComponents objectAtIndex:i2]];
+				}
+				break;
+			}
+		}
+	}
+	return newPath;
+}
+
 - (NSString *)contentForExternalURL:(NSString *)theURL
 {
+	if ([self urlReplacementMode] == ASIReplaceExternalResourcesWithLocalURLs) {
+		NSString *resourcePath = [[resourceList objectForKey:theURL] objectForKey:@"DataPath"];
+		return [self relativePathTo:resourcePath fromPath:[self downloadDestinationPath]];
+	}
 	NSData *data;
 	if ([[resourceList objectForKey:theURL] objectForKey:@"DataPath"]) {
 		data = [NSData dataWithContentsOfFile:[[resourceList objectForKey:theURL] objectForKey:@"DataPath"]];
@@ -522,7 +561,7 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 		unsigned char result[16];
 		CC_MD5(cStr, (CC_LONG)strlen(cStr), result);
 		NSString *md5 = [NSString stringWithFormat:@"%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X",result[0], result[1], result[2], result[3], result[4], result[5], result[6], result[7],result[8], result[9], result[10], result[11],result[12], result[13], result[14], result[15]]; 	
-		return [NSTemporaryDirectory() stringByAppendingPathComponent:md5];
+		return [[NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) objectAtIndex:0] stringByAppendingPathComponent:[md5 stringByAppendingPathExtension:@"html"]];
 	}
 }
 
@@ -530,5 +569,5 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 @synthesize externalResourceQueue;
 @synthesize resourceList;
 @synthesize parentRequest;
-@synthesize replaceURLsWithDataURLs;
+@synthesize urlReplacementMode;
 @end

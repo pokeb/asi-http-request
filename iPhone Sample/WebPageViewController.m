@@ -32,10 +32,6 @@
 
 	[self setRequestsInProgress:[NSMutableArray array]];
 	[[self tableView] reloadData];
-	
-	// This allows our ASIDownloadCache to masquerade as as NSURLCache
-	// It allows the webView to load the content we downloaded when replaceURLsWithDataURLs is NO 
-	[NSURLCache setSharedURLCache:[ASIDownloadCache sharedCache]];
 
 	[request setDelegate:nil];
 	[request cancel];
@@ -46,11 +42,12 @@
 	[request setDelegate:self];
 	[request setDownloadProgressDelegate:self];
 	[request setShowAccurateProgress:NO];
-	[request setReplaceURLsWithDataURLs:[replaceURLsSwitch isOn]];
+	[request setUrlReplacementMode:([replaceURLsSwitch isOn] ? ASIReplaceExternalResourcesWithData : ASIReplaceExternalResourcesWithLocalURLs)];
 	
 	// It is strongly recommended that you set both a downloadCache and a downloadDestinationPath for all ASIWebPageRequests
 	[request setDownloadCache:[ASIDownloadCache sharedCache]];
-	[request setDownloadDestinationPath:[[NSHomeDirectory() stringByAppendingPathComponent:@"Documents"] stringByAppendingPathComponent:@"webpage"]];
+	[request setCachePolicy:ASIOnlyLoadIfNotCachedCachePolicy];
+	[request setDownloadDestinationPath:[[ASIDownloadCache sharedCache] pathToStoreCachedResponseDataForRequest:request]];
 	
 	[[ASIDownloadCache sharedCache] setShouldRespectCacheControlHeaders:NO];
 	[request startAsynchronous];
@@ -63,13 +60,22 @@
 
 - (void)webPageFetchSucceeded:(ASIHTTPRequest *)theRequest
 {
+	NSURL *baseURL;
+	if ([replaceURLsSwitch isOn]) {
+		baseURL = [theRequest url];
+
+	// If we're using ASIReplaceExternalResourcesWithLocalURLs, we must set the baseURL to point to our locally cached file
+	} else {
+		baseURL = [NSURL fileURLWithPath:[request downloadDestinationPath]];
+	}
+
 	if ([theRequest downloadDestinationPath]) {
 		NSString *response = [NSString stringWithContentsOfFile:[theRequest downloadDestinationPath] encoding:[theRequest responseEncoding] error:nil];
 		[responseField setText:response];
-		[webView loadHTMLString:response baseURL:[theRequest url]];	
+		[webView loadHTMLString:response baseURL:baseURL];
 	} else {
 		[responseField setText:[theRequest responseString]];
-		[webView loadHTMLString:[theRequest responseString] baseURL:[theRequest url]];
+		[webView loadHTMLString:[theRequest responseString] baseURL:baseURL];
 	}
 	
 	[urlField setText:[[theRequest url] absoluteString]];
