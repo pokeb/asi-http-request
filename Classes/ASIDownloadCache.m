@@ -195,6 +195,32 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 	return nil;
 }
 
+- (NSString *)pathToCachedResponseHeadersForRequest:(ASIHTTPRequest *)request
+{
+	[[self accessLock] lock];
+	if (![self storagePath]) {
+		[[self accessLock] unlock];
+		return nil;
+	}
+	// Look in the session store
+	NSString *path = [[self storagePath] stringByAppendingPathComponent:sessionCacheFolder];
+	NSString *dataPath = [path stringByAppendingPathComponent:[[[self class] keyForRequest:request] stringByAppendingPathExtension:@"cachedheaders"]];
+	if ([[NSFileManager defaultManager] fileExistsAtPath:dataPath]) {
+		[[self accessLock] unlock];
+		return dataPath;
+	}
+	// Look in the permanent store
+	path = [[self storagePath] stringByAppendingPathComponent:permanentCacheFolder];
+	dataPath = [path stringByAppendingPathComponent:[[[self class] keyForRequest:request] stringByAppendingPathExtension:@"cachedheaders"]];
+	if ([[NSFileManager defaultManager] fileExistsAtPath:dataPath]) {
+		[[self accessLock] unlock];
+		return dataPath;
+	}
+	[[self accessLock] unlock];
+	return nil;
+}
+
+
 - (void)removeCachedDataForRequest:(ASIHTTPRequest *)request
 {
 	[[self accessLock] lock];
@@ -202,7 +228,7 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 		[[self accessLock] unlock];
 		return;
 	}
-	NSString *cachedHeadersPath = [[self storagePath] stringByAppendingPathComponent:[[[self class] keyForRequest:request] stringByAppendingPathExtension:@"cachedheaders"]];
+	NSString *cachedHeadersPath = [self pathToCachedResponseHeadersForRequest:request];
 	if (!cachedHeadersPath) {
 		[[self accessLock] unlock];
 		return;
