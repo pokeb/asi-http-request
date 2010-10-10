@@ -13,7 +13,7 @@
 
 // An xPath query that controls the external resources ASIWebPageRequest will fetch
 // By default, it will fetch stylesheets, javascript files, images, frames, iframes, and html 5 video / audio
-static xmlChar *xpathExpr = (xmlChar *)"//link/@href|//a/@href|//script/@src|//img/@src|//frame/@src|//iframe/@src|//style|//*/@style|//source/@src";
+static xmlChar *xpathExpr = (xmlChar *)"//link/@href|//a/@href|//script/@src|//img/@src|//frame/@src|//iframe/@src|//style|//*/@style|//source/@src|//video/@poster|//audio/@src";
 
 static NSLock *xmlParsingLock = nil;
 static NSMutableArray *requestsUsingXMLParser = nil;
@@ -112,6 +112,7 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 	[[self externalResourceQueue] cancelAllOperations];
 	[self setExternalResourceQueue:[ASINetworkQueue queue]];
 	[[self externalResourceQueue] setDelegate:self];
+	[[self externalResourceQueue] setShowAccurateProgress:[self showAccurateProgress]];
 	[[self externalResourceQueue] setQueueDidFinishSelector:@selector(finishedFetchingExternalResources:)];
 	[[self externalResourceQueue] setRequestDidFinishSelector:@selector(externalResourceFetchSucceeded:)];
 	[[self externalResourceQueue] setRequestDidFailSelector:@selector(externalResourceFetchFailed:)];
@@ -132,7 +133,6 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 			[externalResourceRequest setDownloadDestinationPath:[self cachePathForRequest:externalResourceRequest]];
 		}
 		[[self externalResourceQueue] addOperation:externalResourceRequest];
-		[externalResourceRequest setShowAccurateProgress:YES];
 	}
 	[[self externalResourceQueue] go];
 }
@@ -180,6 +180,7 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 	[[self externalResourceQueue] cancelAllOperations];
 	[self setExternalResourceQueue:[ASINetworkQueue queue]];
 	[[self externalResourceQueue] setDelegate:self];
+	[[self externalResourceQueue] setShowAccurateProgress:[self showAccurateProgress]];
 	[[self externalResourceQueue] setQueueDidFinishSelector:@selector(finishedFetchingExternalResources:)];
 	[[self externalResourceQueue] setRequestDidFinishSelector:@selector(externalResourceFetchSucceeded:)];
 	[[self externalResourceQueue] setRequestDidFailSelector:@selector(externalResourceFetchFailed:)];
@@ -200,7 +201,6 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 			[externalResourceRequest setDownloadDestinationPath:[self cachePathForRequest:externalResourceRequest]];
 		}
 		[[self externalResourceQueue] addOperation:externalResourceRequest];
-		[externalResourceRequest setShowAccurateProgress:YES];
 	}
 	[[self externalResourceQueue] go];
 }
@@ -264,23 +264,30 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 			[xmlParsingLock lock];
 
 			[self updateResourceURLs];
-			xmlChar *bytes = nil;
-			int size = 0;
-			FILE *file = NULL;
+
+
+			// We'll use the xmlsave API so we can strip the xml declaration
+			xmlSaveCtxtPtr saveContext;
+
 			if ([self downloadDestinationPath]) {
-				file = fdopen([[NSFileHandle fileHandleForWritingAtPath:[self downloadDestinationPath]] fileDescriptor], "w");
-				xmlDocDump(file, doc);
+				saveContext = xmlSaveToFd([[NSFileHandle fileHandleForWritingAtPath:[self downloadDestinationPath]] fileDescriptor],NULL,XML_SAVE_NO_DECL);
+				xmlSaveDoc(saveContext, doc);
+				xmlSaveClose(saveContext);
+
 			} else {
-				xmlDocDumpMemory(doc,&bytes,&size);
-				[self setRawResponseData:[[[NSMutableData alloc] initWithBytes:bytes length:size] autorelease]];
+				xmlBufferPtr buffer = xmlBufferCreate();
+				saveContext = xmlSaveToBuffer(buffer,NULL,XML_SAVE_NO_DECL);
+				xmlSaveDoc(saveContext, doc);
+				xmlSaveClose(saveContext);
+				[self setRawResponseData:[[[NSMutableData alloc] initWithBytes:buffer->content length:buffer->use] autorelease]];
+				xmlBufferFree(buffer);
 			}
+
+			// libxml will generate UTF-8
+			[self setResponseEncoding:NSUTF8StringEncoding];
 
 			xmlFreeDoc(doc);
 			doc = nil;
-
-			if (file) {
-				fclose(file);
-			}
 
 			[requestsUsingXMLParser removeObject:self];
 			if (![requestsUsingXMLParser count]) {
@@ -299,7 +306,7 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 
 	// Write the parsed content back to the cache
 	if ([self urlReplacementMode] != ASIDontModifyURLs) {
-		//[[self downloadCache] storeResponseForRequest:self maxAge:[self secondsToCache]];
+		[[self downloadCache] storeResponseForRequest:self maxAge:[self secondsToCache]];
 	}
 
 	[super requestFinished];
@@ -342,12 +349,22 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 			if ([[rel lowercaseString] isEqualToString:@"stylesheet"]) {
 				[self addURLToFetch:value];
 			}
+
 		// Parse the content of <style> tags and style attributes to find external image urls or external css files
 		} else if ([[nodeName lowercaseString] isEqualToString:@"style"]) {
 			NSArray *externalResources = [[self class] CSSURLsFromString:value];
 			for (NSString *theURL in externalResources) {
 				[self addURLToFetch:theURL];
 			}
+
+		// Parse the content of <source src=""> tags (HTML 5 audio + video)
+		// We explictly disable the download of files with .webm, .ogv and .ogg extensions, since it's highly likely they won't be useful to us
+		} else if ([[parentName lowercaseString] isEqualToString:@"source"] || [[parentName lowercaseString] isEqualToString:@"audio"]) {
+			NSString *fileExtension = [[value pathExtension] lowercaseString];
+			if (![fileExtension isEqualToString:@"ogg"] && ![fileExtension isEqualToString:@"ogv"] && ![fileExtension isEqualToString:@"webm"]) {
+				[self addURLToFetch:value];
+			}
+
 		// For all other elements matched by our xpath query (except hyperlinks), add the content as an external url to fetch
 		} else if (![[parentName lowercaseString] isEqualToString:@"a"]) {
 			[self addURLToFetch:value];

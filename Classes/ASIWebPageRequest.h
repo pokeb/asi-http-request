@@ -12,6 +12,7 @@
 
 #import "ASIHTTPRequest.h"
 #import <libxml/HTMLparser.h>
+#import <libxml/xmlsave.h>
 #import <libxml/xpath.h>
 #import <libxml/xpathInternals.h>
 
