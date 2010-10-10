@@ -46,10 +46,15 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 	[super dealloc];
 }
 
+// This is a bit of a hack
+// The role of this method in normal ASIHTTPRequests is to tell the queue we are done with the request, and perform some cleanup
+// We override it to stop that happening, and instead do that work in the bottom of finishedFetchingExternalResources:
 - (void)markAsFinished
 {
 }
 
+// This method is normally responsible for telling delegates we are done, but it happens to be the most convenient place to parse the responses
+// Again, we call the super implementation in finishedFetchingExternalResources:, or here if this download was not an HTML or CSS file
 - (void)requestFinished
 {
 	complete = NO;
@@ -337,13 +342,14 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 			if ([[rel lowercaseString] isEqualToString:@"stylesheet"]) {
 				[self addURLToFetch:value];
 			}
+		// Parse the content of <style> tags and style attributes to find external image urls or external css files
 		} else if ([[nodeName lowercaseString] isEqualToString:@"style"]) {
 			NSArray *externalResources = [[self class] CSSURLsFromString:value];
 			for (NSString *theURL in externalResources) {
 				[self addURLToFetch:theURL];
 			}
+		// For all other elements matched by our xpath query (except hyperlinks), add the content as an external url to fetch
 		} else if (![[parentName lowercaseString] isEqualToString:@"a"]) {
-			NSLog(@"%@",value);
 			[self addURLToFetch:value];
 		}
 		if (nodes->nodeTab[i]->type != XML_NAMESPACE_DECL) {
@@ -392,6 +398,7 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 		return;
 	}
 
+	// Loop through all the matches, replacing urls where nescessary
 	xmlNodeSetPtr nodes = xpathObj->nodesetval;
 	int size = (nodes) ? nodes->nodeNr : 0;
 	int i;
@@ -400,6 +407,8 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 		NSString *parentName  = [NSString stringWithCString:(char *)nodes->nodeTab[i]->parent->name encoding:[self responseEncoding]];
 		NSString *nodeName  = [NSString stringWithCString:(char *)nodes->nodeTab[i]->name encoding:[self responseEncoding]];
 		NSString *value = [NSString stringWithCString:(char *)xmlNodeGetContent(nodes->nodeTab[i]) encoding:[self responseEncoding]];
+
+		// Replace external urls in <style> tags or in style attributes
 		if ([[nodeName lowercaseString] isEqualToString:@"style"]) {
 			NSArray *externalResources = [[self class] CSSURLsFromString:value];
 			for (NSString *theURL in externalResources) {
@@ -411,11 +420,15 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 				}
 			}
 			xmlNodeSetContent(nodes->nodeTab[i], (xmlChar *)[value cStringUsingEncoding:[self responseEncoding]]);
+
+		// Replace relative hyperlinks with absolute ones, since we will need to set a local baseURL when loading this in a web view
 		} else if ([self urlReplacementMode] == ASIReplaceExternalResourcesWithLocalURLs && [[parentName lowercaseString] isEqualToString:@"a"]) {
 			NSString *newURL = [[NSURL URLWithString:value relativeToURL:[self url]] absoluteString];
 			if (newURL) {
 				xmlNodeSetContent(nodes->nodeTab[i], (xmlChar *)[newURL cStringUsingEncoding:[self responseEncoding]]);
 			}
+
+		// Replace all other external resource urls
 		} else {
 			NSString *newURL = [self contentForExternalURL:value];
 			if (newURL) {
@@ -431,6 +444,8 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 	xmlXPathFreeContext(xpathCtx);
 }
 
+// The three methods below are responsible for forwarding delegate methods we want to handle to the parent request's approdiate delegate
+// Certain delegate methods are ignored (eg setProgress: / setDoubleValue: / setMaxValue:)
 - (BOOL)respondsToSelector:(SEL)selector
 {
 	if ([self parentRequest]) {
@@ -477,6 +492,7 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 	}
 }
 
+// A quick and dirty way to build a list of external resource urls from a css string
 + (NSArray *)CSSURLsFromString:(NSString *)string
 {
 	NSMutableArray *urls = [NSMutableArray array];
@@ -499,6 +515,7 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 	return urls;
 }
 
+// Returns a relative file path from sourcePath to destinationPath (eg ../../foo/bar.txt)
 - (NSString *)relativePathTo:(NSString *)destinationPath fromPath:(NSString *)sourcePath
 {
 	NSArray *sourcePathComponents = [sourcePath pathComponents];

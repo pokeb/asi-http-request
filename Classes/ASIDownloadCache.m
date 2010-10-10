@@ -224,7 +224,6 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 	}
 
 	NSString *cachedHeadersPath = [self pathToCachedResponseHeadersForURL:[request url]];
-
 	if (!cachedHeadersPath) {
 		[[self accessLock] unlock];
 		return;

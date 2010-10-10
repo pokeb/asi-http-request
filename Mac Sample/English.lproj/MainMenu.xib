@@ -875,7 +875,7 @@
 															<object class="NSTextView" id="385949022">
 																<reference key="NSNextResponder" ref="934233033"/>
 																<int key="NSvFlags">2322</int>
-																<string key="NSFrameSize">{554, 80}</string>
+																<string key="NSFrame">{{0, 66}, {554, 14}}</string>
 																<reference key="NSSuperview" ref="934233033"/>
 																<object class="NSTextContainer" key="NSTextContainer" id="691554270">
 																	<object class="NSLayoutManager" key="NSLayoutManager">
@@ -1911,7 +1911,7 @@ ZC4</string>
 																		<string>public.url</string>
 																	</object>
 																</object>
-																<string key="NSFrameSize">{554, 11}</string>
+																<string key="NSFrame">{{0, -3}, {554, 14}}</string>
 																<reference key="NSSuperview" ref="201084921"/>
 																<object class="NSTextContainer" key="NSTextContainer" id="396187289">
 																	<object class="NSLayoutManager" key="NSLayoutManager">
@@ -3037,6 +3037,14 @@ ZC4</string>
 						<reference key="destination" ref="755476948"/>
 					</object>
 					<int key="connectionID">609</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBActionConnection" key="connection">
+						<string key="label">clearCache:</string>
+						<reference key="source" ref="1010338297"/>
+						<reference key="destination" ref="934590164"/>
+					</object>
+					<int key="connectionID">612</int>
 				</object>
 			</object>
 			<object class="IBMutableOrderedSet" key="objectRecords">
@@ -4469,10 +4477,10 @@ ZC4</string>
 							<reference ref="45647832"/>
 							<reference ref="140610977"/>
 							<reference ref="525846965"/>
-							<reference ref="934590164"/>
 							<reference ref="755476948"/>
 							<reference ref="611913208"/>
 							<reference ref="844366672"/>
+							<reference ref="934590164"/>
 						</object>
 						<reference key="parent" ref="904920234"/>
 					</object>
@@ -5356,7 +5364,7 @@ ZC4</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<object class="NSAffineTransform">
-						<bytes key="NSTransformStruct">P4AAAL+AAABBcAAAw4uAAA</bytes>
+						<bytes key="NSTransformStruct">P4AAAL+AAABBcAAAw4WAAA</bytes>
 					</object>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
@@ -5412,7 +5420,7 @@ ZC4</string>
 				</object>
 			</object>
 			<nil key="sourceID"/>
-			<int key="maxID">611</int>
+			<int key="maxID">612</int>
 		</object>
 		<object class="IBClassDescriber" key="IBDocument.Classes">
 			<object class="NSMutableArray" key="referencedPartialClassDescriptions">
