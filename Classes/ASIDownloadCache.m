@@ -194,6 +194,7 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 		[[self accessLock] unlock];
 		return nil;
 	}
+
 	NSString *path = [[self storagePath] stringByAppendingPathComponent:([request cacheStoragePolicy] == ASICacheForSessionDurationCacheStoragePolicy ? sessionCacheFolder : permanentCacheFolder)];
 	path =  [path stringByAppendingPathComponent:[[[self class] keyForURL:[request url]] stringByAppendingPathExtension:@"html"]];
 	[[self accessLock] unlock];
@@ -221,7 +222,9 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 		[[self accessLock] unlock];
 		return;
 	}
+
 	NSString *cachedHeadersPath = [self pathToCachedResponseHeadersForURL:[request url]];
+
 	if (!cachedHeadersPath) {
 		[[self accessLock] unlock];
 		return;

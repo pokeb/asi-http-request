@@ -24,7 +24,7 @@
 #import "ASIDataCompressor.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.7-106 2010-10-09";
+NSString *ASIHTTPRequestVersion = @"v1.7-107 2010-10-10";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -1976,7 +1976,7 @@ static NSOperationQueue *sharedQueue = nil;
 		}
 
 		if (cLength) {
-			SInt32 length = CFStringGetIntValue((CFStringRef)cLength);
+			unsigned long long length = strtoull([cLength UTF8String], NULL, 0);
 
 			// Workaround for Apache HEAD requests for dynamically generated content returning the wrong Content-Length when using gzip
 			if ([self mainRequest] && [self allowCompressedResponse] && length == 20 && [self showAccurateProgress] && [self shouldResetDownloadProgress]) {
