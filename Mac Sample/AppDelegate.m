@@ -413,7 +413,7 @@
 	[request setDownloadCache:[ASIDownloadCache sharedCache]];
 	[request setDownloadDestinationPath:[[ASIDownloadCache sharedCache] pathToStoreCachedResponseDataForRequest:request]];
 
-	//[[ASIDownloadCache sharedCache] setShouldRespectCacheControlHeaders:NO];
+	[[ASIDownloadCache sharedCache] setShouldRespectCacheControlHeaders:NO];
 	[request startAsynchronous];
 }
 
@@ -437,7 +437,7 @@
 		NSString *response = [NSString stringWithContentsOfFile:[request downloadDestinationPath] encoding:[request responseEncoding] error:nil];
 		[webPageSource setString:response];
 		[[webView mainFrame] loadHTMLString:response baseURL:baseURL];
-	} else {
+	} else if ([request responseString]) {
 		[webPageSource setString:[request responseString]];
 		[[webView mainFrame] loadHTMLString:[request responseString] baseURL:baseURL];
 	}

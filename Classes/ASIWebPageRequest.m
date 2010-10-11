@@ -217,7 +217,10 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 	if ([self downloadDestinationPath]) {
 		[requestResponse setObject:[externalResourceRequest downloadDestinationPath] forKey:@"DataPath"];
 	} else {
-		[requestResponse setObject:[externalResourceRequest responseData] forKey:@"Data"];
+		NSData *data = [externalResourceRequest responseData];
+		if (data) {
+			[requestResponse setObject:data forKey:@"Data"];
+		}
 	}
 }
 
@@ -270,17 +273,27 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 			xmlSaveCtxtPtr saveContext;
 
 			if ([self downloadDestinationPath]) {
-				saveContext = xmlSaveToFd([[NSFileHandle fileHandleForWritingAtPath:[self downloadDestinationPath]] fileDescriptor],NULL,XML_SAVE_NO_DECL);
+				saveContext = xmlSaveToFd([[NSFileHandle fileHandleForWritingAtPath:[self downloadDestinationPath]] fileDescriptor],NULL,2); // 2 == XML_SAVE_NO_DECL, this isn't declared on Mac OS 10.5
 				xmlSaveDoc(saveContext, doc);
 				xmlSaveClose(saveContext);
 
 			} else {
+#if TARGET_OS_MAC && MAC_OS_X_VERSION_MAX_ALLOWED <= __MAC_10_5
+				// xmlSaveToBuffer() is not implemented in the 10.5 version of libxml
+				NSString *tempPath = [NSTemporaryDirectory() stringByAppendingPathComponent:[[NSProcessInfo processInfo] globallyUniqueString]];
+				[[NSFileManager defaultManager] createFileAtPath:tempPath contents:nil attributes:nil];
+				saveContext = xmlSaveToFd([[NSFileHandle fileHandleForWritingAtPath:tempPath] fileDescriptor],NULL,2); // 2 == XML_SAVE_NO_DECL, this isn't declared on Mac OS 10.5
+				xmlSaveDoc(saveContext, doc);
+				xmlSaveClose(saveContext);
+				[self setRawResponseData:[NSMutableData dataWithContentsOfFile:tempPath]];
+#else
 				xmlBufferPtr buffer = xmlBufferCreate();
-				saveContext = xmlSaveToBuffer(buffer,NULL,XML_SAVE_NO_DECL);
+				saveContext = xmlSaveToBuffer(buffer,NULL,2); // 2 == XML_SAVE_NO_DECL, this isn't declared on Mac OS 10.5
 				xmlSaveDoc(saveContext, doc);
 				xmlSaveClose(saveContext);
 				[self setRawResponseData:[[[NSMutableData alloc] initWithBytes:buffer->content length:buffer->use] autorelease]];
 				xmlBufferFree(buffer);
+#endif
 			}
 
 			// libxml will generate UTF-8
