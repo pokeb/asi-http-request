@@ -116,7 +116,6 @@
 	if (requestNumber != NSNotFound) {
 		RequestProgressCell *cell = (RequestProgressCell *)[[self tableView] cellForRowAtIndexPath:[NSIndexPath indexPathForRow:requestNumber inSection:2]];
 		if ([theRequest contentLength]+[theRequest partialDownloadSize] > 0) {
-			unsigned long long totalSize = [theRequest contentLength]+[theRequest partialDownloadSize];
 			float progressAmount = ([theRequest totalBytesRead]*1.0f)/(([theRequest contentLength]+[theRequest partialDownloadSize])*1.0f);
 			[[cell progressView] setProgress:progressAmount];
 		}

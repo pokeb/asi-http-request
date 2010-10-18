@@ -19,12 +19,41 @@
 {
 	
 	NSURL *url = [NSURL URLWithString:[urlField text]];
+    NSMutableData *recievedData = [NSMutableData data];
 	// Create a request
 	// You don't normally need to retain a synchronous request, but we need to in this case because we'll need it later if we reload the table data
 	[self setRequest:[ASIHTTPRequest requestWithURL:url]];
 	
 	//Customise our user agent, for no real reason
 	[request addRequestHeader:@"User-Agent" value:@"ASIHTTPRequest"];
+    
+    [request setStartedBlock:^(ASIHTTPRequest *aRequest){
+        NSLog(@"started!");
+    }];
+    [request setHeadersReceivedBlock:^(ASIHTTPRequest *aRequest){
+        NSLog(@"headers recieved");
+    }];
+    
+    [request setBytesReceivedBlock:^(ASIHTTPRequest *aRequest, unsigned long long length, unsigned long long total){
+        NSLog(@"bytes received:%llu of total: %llu", length, total);
+    }];
+    
+    [request setDownloadSizeIncrementedBlock:^(ASIHTTPRequest *aRequest, long long length){
+        NSLog(@"download size incremented:%lld", length);
+    }];
+    
+    [request setDataReceivedBlock:^(ASIHTTPRequest *aRequest, NSData *data){
+        [recievedData appendData:data];
+        NSLog(@"data - %@", recievedData);
+    }];
+    
+	[request setCompletionBlock:^(ASIHTTPRequest *aRequest){
+        if ([aRequest error]) {
+            NSLog(@"error from block");
+        } else if ([aRequest responseString]) {
+            NSLog(@"finish from block");
+        }
+    }];
 	
 	// Start the request
 	[request startSynchronous];

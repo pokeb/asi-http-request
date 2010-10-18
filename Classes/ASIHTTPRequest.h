@@ -507,6 +507,9 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 
 	//block for handling proxy authentication
 	ASIHTTPRequestBlock proxyAuthenticationNeededBlock;
+	
+    //block for handling redirections, if you want to
+    ASIHTTPRequestBlock requestRedirectedBlock;
 	#endif
 }
 
@@ -520,6 +523,21 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 
 + (id)requestWithURL:(NSURL *)newURL usingCache:(id <ASICacheDelegate>)cache;
 + (id)requestWithURL:(NSURL *)newURL usingCache:(id <ASICacheDelegate>)cache andCachePolicy:(ASICachePolicy)policy;
+
+#if NS_BLOCKS_AVAILABLE
+- (void)setStartedBlock:(ASIHTTPRequestBlock)aStartedBlock;
+- (void)setHeadersReceivedBlock:(ASIHTTPRequestBlock)aReceivedBlock;
+- (void)setCompletionBlock:(ASIHTTPRequestBlock)aCompletionBlock;
+- (void)setFailedBlock:(ASIHTTPRequestBlock)aFailedBlock;
+- (void)setBytesReceivedBlock:(ASIHTTPRequestProgressBlock) aBytesReceivedBlock;
+- (void)setBytesSentBlock:(ASIHTTPRequestProgressBlock)aBytesSentBlock;
+- (void)setDownloadSizeIncrementedBlock:(ASIHTTPRequestSizeBlock) aDownloadSizeIncrementedBlock;
+- (void)setUploadSizeIncrementedBlock:(ASIHTTPRequestSizeBlock) anUploadSizeIncrementedBlock;
+- (void)setDataReceivedBlock:(ASIHTTPRequestDataReceivedBlock)aReceivedBlock;
+- (void)setAuthenticationNeededBlock:(ASIHTTPRequestBlock)anAuthenticationBlock;
+- (void)setProxyAuthenticationNeededBlock:(ASIHTTPRequestBlock)aProxyAuthenticationBlock;
+- (void)setRequestRedirectedBlock:(ASIHTTPRequestBlock)aRedirectBlock;
+#endif
 
 #pragma mark setup request
 

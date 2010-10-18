@@ -24,7 +24,7 @@
 #import "ASIDataCompressor.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.7-113 2010-10-18";
+NSString *ASIHTTPRequestVersion = @"v1.7-115 2010-10-18";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -377,7 +377,6 @@ static NSOperationQueue *sharedQueue = nil;
 }
 
 #pragma mark setup request
-
 
 - (void)addRequestHeader:(NSString *)header value:(NSString *)value
 {
@@ -1576,11 +1575,11 @@ static NSOperationQueue *sharedQueue = nil;
 	[ASIHTTPRequest updateProgressIndicator:&downloadProgressDelegate withProgress:[self totalBytesRead]+[self partialDownloadSize] ofTotal:[self contentLength]+[self partialDownloadSize]];
 
 	#if NS_BLOCKS_AVAILABLE
-	if (bytesReceivedBlock) {
-		bytesReceivedBlock(self, bytesReadSoFar, [self contentLength] + [self partialDownloadSize]);
-	}
+    if (bytesReceivedBlock) {
+		__block ASIHTTPRequest *blockCopy = self;
+		bytesReceivedBlock(blockCopy, bytesReadSoFar, blockCopy->contentLength + blockCopy->partialDownloadSize);
+    }
 	#endif
-
 	[self setLastBytesRead:bytesReadSoFar];
 }
 
@@ -1621,8 +1620,9 @@ static NSOperationQueue *sharedQueue = nil;
 	[ASIHTTPRequest updateProgressIndicator:&uploadProgressDelegate withProgress:[self totalBytesSent]-[self uploadBufferSize] ofTotal:[self postLength]-[self uploadBufferSize]];
 
 	#if NS_BLOCKS_AVAILABLE
-	if (bytesSentBlock) {
-		bytesSentBlock(self, value, [self postLength]-[self uploadBufferSize]);
+    if(bytesSentBlock){
+		__block ASIHTTPRequest *blockCopy = self;
+		bytesSentBlock(blockCopy, value, blockCopy->postLength);
 	}
 	#endif
 }
@@ -1634,9 +1634,10 @@ static NSOperationQueue *sharedQueue = nil;
 	[ASIHTTPRequest performSelector:@selector(request:incrementDownloadSizeBy:) onTarget:&downloadProgressDelegate withObject:self amount:&length];
 
 	#if NS_BLOCKS_AVAILABLE
-	if (downloadSizeIncrementedBlock) {
-		downloadSizeIncrementedBlock(self, length);
-	}
+    if(downloadSizeIncrementedBlock){
+		__block ASIHTTPRequest *blockCopy = self;
+		downloadSizeIncrementedBlock(blockCopy, length);
+    }
 	#endif
 }
 
@@ -1647,9 +1648,10 @@ static NSOperationQueue *sharedQueue = nil;
 	[ASIHTTPRequest performSelector:@selector(request:incrementUploadSizeBy:) onTarget:&uploadProgressDelegate withObject:self amount:&length];
 
 	#if NS_BLOCKS_AVAILABLE
-	if (uploadSizeIncrementedBlock) {
-		uploadSizeIncrementedBlock(self, length);
-	}
+    if(uploadSizeIncrementedBlock){
+        __block ASIHTTPRequest *blockCopy = self;
+        uploadSizeIncrementedBlock(blockCopy, length);
+    }
 	#endif
 }
 
@@ -1662,8 +1664,9 @@ static NSOperationQueue *sharedQueue = nil;
 	[ASIHTTPRequest updateProgressIndicator:&uploadProgressDelegate withProgress:0 ofTotal:[self postLength]];
 
 	#if NS_BLOCKS_AVAILABLE
-	if (bytesSentBlock) {
-		bytesSentBlock(self, progressToRemove, [self postLength]);
+    if(bytesSentBlock){
+		__block ASIHTTPRequest *blockCopy = self;
+		bytesSentBlock(blockCopy, progressToRemove, blockCopy->postLength);
 	}
 	#endif
 }
@@ -1768,11 +1771,12 @@ static NSOperationQueue *sharedQueue = nil;
 	if (queue && [queue respondsToSelector:@selector(request:didReceiveResponseHeaders:)]) {
 		[queue performSelector:@selector(request:didReceiveResponseHeaders:) withObject:self withObject:newResponseHeaders];
 	}
-
+    
 	#if NS_BLOCKS_AVAILABLE
-	if (headersReceivedBlock) {
-		headersReceivedBlock(self);
-	}
+	if(headersReceivedBlock){
+		__block ASIHTTPRequest *blockCopy = self;
+		headersReceivedBlock(blockCopy);
+    }
 	#endif
 }
 
@@ -1782,7 +1786,6 @@ static NSOperationQueue *sharedQueue = nil;
 	if ([self error] || [self mainRequest]) {
 		return;
 	}
-
 	if (delegate && [delegate respondsToSelector:willRedirectSelector]) {
 		[delegate performSelector:willRedirectSelector withObject:self withObject:newURL];
 	}
@@ -1791,8 +1794,9 @@ static NSOperationQueue *sharedQueue = nil;
 	}
 
 	#if NS_BLOCKS_AVAILABLE
-	if (startedBlock) {
-		startedBlock(self);
+	if(startedBlock){
+		__block ASIHTTPRequest *blockCopy = self;
+		startedBlock(blockCopy);
 	}
 	#endif
 }
@@ -1816,8 +1820,9 @@ static NSOperationQueue *sharedQueue = nil;
 		[queue performSelector:@selector(requestFinished:) withObject:self];
 	}
 	#if NS_BLOCKS_AVAILABLE
-	if (completionBlock) {
-		completionBlock(self);
+	if(completionBlock){
+		__block ASIHTTPRequest *blockCopy = self;
+		completionBlock(blockCopy);
 	}
 	#endif
 }
@@ -1831,15 +1836,27 @@ static NSOperationQueue *sharedQueue = nil;
 	if (queue && [queue respondsToSelector:@selector(requestFailed:)]) {
 		[queue performSelector:@selector(requestFailed:) withObject:self];
 	}
+	#if NS_BLOCKS_AVAILABLE
+    if(failureBlock){
+        __block ASIHTTPRequest *blockCopy = self;
+        failureBlock(blockCopy);
+    }
+	#endif
 }
 
 /* ALWAYS CALLED ON MAIN THREAD! */
-- (void)passReceivedDataToDelegate:(NSData *)data
+- (void)passOnReceivedData:(NSData *)data
 {
 	if (delegate && [delegate respondsToSelector:didReceiveDataSelector]) {
 		[delegate performSelector:didReceiveDataSelector withObject:self withObject:data];
-		return;
 	}
+
+	#if NS_BLOCKS_AVAILABLE
+	if (dataReceivedBlock) {
+		__block ASIHTTPRequest *blockCopy = self;
+		dataReceivedBlock(blockCopy, data);
+	}
+	#endif
 }
 
 // Subclasses might override this method to perform error handling in the same thread
@@ -1992,6 +2009,16 @@ static NSOperationQueue *sharedQueue = nil;
 	// Note that ASIHTTPRequest does not currently support 305 Use Proxy
 	if ([self shouldRedirect] && [responseHeaders valueForKey:@"Location"]) {
 		if (([self responseStatusCode] > 300 && [self responseStatusCode] < 304) || [self responseStatusCode] == 307) {
+            
+            if([[self delegate] respondsToSelector:@selector(requestRedirected:)]){
+                [[self delegate] performSelectorOnMainThread:@selector(requestRedirected:) withObject:self waitUntilDone:[NSThread isMainThread]];
+            }
+#if NS_BLOCKS_AVAILABLE
+            if(requestRedirectedBlock){
+                __block ASIHTTPRequest *blockCopy = self;
+                requestRedirectedBlock(blockCopy);
+            }
+#endif
 			
 			// By default, we redirect 301 and 302 response codes as GET requests
 			// According to RFC 2616 this is wrong, but this is what most browsers do, so it's probably what you're expecting to happen
@@ -2359,15 +2386,18 @@ static NSOperationQueue *sharedQueue = nil;
 	if (!authenticationDelegate) {
 		authenticationDelegate = [self queue];
 	}
-	#if NS_BLOCKS_AVAILABLE
-	if (proxyAuthenticationNeededBlock) {
-		proxyAuthenticationNeededBlock(self);
-	}
-	#endif
+
 	if ([authenticationDelegate respondsToSelector:@selector(proxyAuthenticationNeededForRequest:)]) {
 		[authenticationDelegate performSelectorOnMainThread:@selector(proxyAuthenticationNeededForRequest:) withObject:self waitUntilDone:[NSThread isMainThread]];
 		return YES;
 	}
+
+	#if NS_BLOCKS_AVAILABLE
+	if(proxyAuthenticationNeededBlock){
+		__block ASIHTTPRequest *blockCopy = self;
+		proxyAuthenticationNeededBlock(blockCopy);
+	}
+	#endif
 
 	return NO;
 }
@@ -2859,24 +2889,27 @@ static NSOperationQueue *sharedQueue = nil;
 		// If we need to redirect, and have automatic redirect on, and might be resuming a download, let's do nothing with the content
 		if ([self needsRedirect] && [self shouldRedirect] && [self allowResumeForFileDownloads]) {
 			return;
-        }
-		#if NS_BLOCKS_AVAILABLE
-        if (dataReceivedBlock) {
-			NSData *data = [NSData dataWithBytes:buffer length:bytesRead];
-			dataReceivedBlock(self, data);
-        }
-		#endif
+		}
 		
-		// Does the delegate want to handle the data manually?
+		BOOL dataWillBeHandledExternally = NO;
 		if ([[self delegate] respondsToSelector:[self didReceiveDataSelector]]) {
-			
+			dataWillBeHandledExternally = YES;
+		}
+		#if NS_BLOCKS_AVAILABLE
+		if (dataReceivedBlock) {
+			dataWillBeHandledExternally = YES;
+		}
+		#endif
+		// Does the delegate want to handle the data manually?
+		if (dataWillBeHandledExternally) {
+
 			NSData *data = nil;
 			if ([self isResponseCompressed] && ![self shouldWaitToInflateCompressedResponses]) {
 				data = inflatedData;
 			} else {
 				data = [NSData dataWithBytes:buffer length:bytesRead];
 			}
-			[self performSelectorOnMainThread:@selector(passReceivedDataToDelegate:) withObject:data waitUntilDone:[NSThread isMainThread]];
+			[self performSelectorOnMainThread:@selector(passOnReceivedData:) withObject:data waitUntilDone:[NSThread isMainThread]];
 			
 		// Are we downloading to a file?
 		} else if ([self downloadDestinationPath]) {
@@ -4231,6 +4264,11 @@ static NSOperationQueue *sharedQueue = nil;
 {
 	[proxyAuthenticationNeededBlock release];
 	proxyAuthenticationNeededBlock = [aProxyAuthenticationBlock copy];
+}
+- (void)setRequestRedirectedBlock:(ASIHTTPRequestBlock)aRedirectBlock
+{
+	[requestRedirectedBlock release];
+	requestRedirectedBlock = [aRedirectBlock copy];
 }
 #endif
 
