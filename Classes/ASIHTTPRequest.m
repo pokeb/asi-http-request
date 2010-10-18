@@ -24,7 +24,7 @@
 #import "ASIDataCompressor.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.7-115 2010-10-18";
+NSString *ASIHTTPRequestVersion = @"v1.7-119 2010-10-18";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -150,8 +150,8 @@ static NSOperationQueue *sharedQueue = nil;
 - (void)scheduleReadStream;
 - (void)unscheduleReadStream;
 
-- (BOOL)askDelegateForCredentials;
-- (BOOL)askDelegateForProxyCredentials;
+- (BOOL)willAskDelegateForCredentials;
+- (BOOL)willAskDelegateForProxyCredentials;
 + (void)measureBandwidthUsage;
 + (void)recordBandwidthUsage;
 - (void)startRequest;
@@ -1577,11 +1577,21 @@ static NSOperationQueue *sharedQueue = nil;
 	#if NS_BLOCKS_AVAILABLE
     if (bytesReceivedBlock) {
 		__block ASIHTTPRequest *blockCopy = self;
-		bytesReceivedBlock(blockCopy, bytesReadSoFar, blockCopy->contentLength + blockCopy->partialDownloadSize);
+		bytesReceivedBlock(blockCopy, value, blockCopy->contentLength + blockCopy->partialDownloadSize);
     }
 	#endif
 	[self setLastBytesRead:bytesReadSoFar];
 }
+
+#if NS_BLOCKS_AVAILABLE
+- (void)callBytesReceivedBlockWithBytes:(unsigned long long)bytes ofTotal:(unsigned long long)total
+{
+    if (bytesReceivedBlock) {
+		__block ASIHTTPRequest *blockCopy = self;
+		bytesReceivedBlock(blockCopy, bytes, blockCopy->contentLength + blockCopy->partialDownloadSize);
+    }
+}
+#endif
 
 
 - (void)updateUploadProgress
@@ -1741,8 +1751,7 @@ static NSOperationQueue *sharedQueue = nil;
 }
 
 
-#pragma mark talking to delegates
-
+#pragma mark talking to delegates / calling blocks
 
 /* ALWAYS CALLED ON MAIN THREAD! */
 - (void)requestStarted
@@ -1756,7 +1765,32 @@ static NSOperationQueue *sharedQueue = nil;
 	if (queue && [queue respondsToSelector:@selector(requestStarted:)]) {
 		[queue performSelector:@selector(requestStarted:) withObject:self];
 	}
+	#if NS_BLOCKS_AVAILABLE
+	if(startedBlock){
+		__block ASIHTTPRequest *blockCopy = self;
+		startedBlock(blockCopy);
+	}
+	#endif
 }
+
+/* ALWAYS CALLED ON MAIN THREAD! */
+- (void)requestRedirected
+{
+	if ([self error] || [self mainRequest]) {
+		return;
+	}
+
+	if([[self delegate] respondsToSelector:@selector(requestRedirected:)]){
+		[[self delegate] performSelector:@selector(requestRedirected:) withObject:self];
+	}
+	#if NS_BLOCKS_AVAILABLE
+	if(requestRedirectedBlock){
+		__block ASIHTTPRequest *blockCopy = self;
+		requestRedirectedBlock(blockCopy);
+	}
+	#endif
+}
+
 
 /* ALWAYS CALLED ON MAIN THREAD! */
 - (void)requestReceivedResponseHeaders:(NSMutableDictionary *)newResponseHeaders
@@ -2010,15 +2044,7 @@ static NSOperationQueue *sharedQueue = nil;
 	if ([self shouldRedirect] && [responseHeaders valueForKey:@"Location"]) {
 		if (([self responseStatusCode] > 300 && [self responseStatusCode] < 304) || [self responseStatusCode] == 307) {
             
-            if([[self delegate] respondsToSelector:@selector(requestRedirected:)]){
-                [[self delegate] performSelectorOnMainThread:@selector(requestRedirected:) withObject:self waitUntilDone:[NSThread isMainThread]];
-            }
-#if NS_BLOCKS_AVAILABLE
-            if(requestRedirectedBlock){
-                __block ASIHTTPRequest *blockCopy = self;
-                requestRedirectedBlock(blockCopy);
-            }
-#endif
+			[self performSelectorOnMainThread:@selector(requestRedirected) withObject:nil waitUntilDone:[NSThread isMainThread]];
 			
 			// By default, we redirect 301 and 302 response codes as GET requests
 			// According to RFC 2616 this is wrong, but this is what most browsers do, so it's probably what you're expecting to happen
@@ -2378,7 +2404,55 @@ static NSOperationQueue *sharedQueue = nil;
 }
 
 
-- (BOOL)askDelegateForProxyCredentials
+- (BOOL)willAskDelegateForProxyCredentials
+{
+	// If we have a delegate, we'll see if it can handle proxyAuthenticationNeededForRequest:.
+	// Otherwise, we'll try the queue (if this request is part of one) and it will pass the message on to its own delegate
+	id authenticationDelegate = [self delegate];
+	if (!authenticationDelegate) {
+		authenticationDelegate = [self queue];
+	}
+	
+	BOOL delegateOrBlockWillHandleAuthentication = NO;
+
+	if ([authenticationDelegate respondsToSelector:@selector(proxyAuthenticationNeededForRequest:)]) {
+		delegateOrBlockWillHandleAuthentication = YES;
+	}
+
+	#if NS_BLOCKS_AVAILABLE
+	if(proxyAuthenticationNeededBlock){
+		delegateOrBlockWillHandleAuthentication = YES;
+	}
+	#endif
+
+	if (delegateOrBlockWillHandleAuthentication) {
+		[self performSelectorOnMainThread:@selector(askDelegateForProxyCredentials) withObject:nil waitUntilDone:NO];
+	}
+	
+	return delegateOrBlockWillHandleAuthentication;
+}
+
+/* ALWAYS CALLED ON MAIN THREAD! */
+- (void)askDelegateForProxyCredentials
+{
+	id authenticationDelegate = [self delegate];
+	if (!authenticationDelegate) {
+		authenticationDelegate = [self queue];
+	}
+	if ([authenticationDelegate respondsToSelector:@selector(proxyAuthenticationNeededForRequest:)]) {
+		[authenticationDelegate performSelector:@selector(proxyAuthenticationNeededForRequest:) withObject:self];
+		return;
+	}
+	#if NS_BLOCKS_AVAILABLE
+	if(proxyAuthenticationNeededBlock){
+		__block ASIHTTPRequest *blockCopy = self;
+		proxyAuthenticationNeededBlock(blockCopy);
+	}
+	#endif
+}
+
+
+- (BOOL)willAskDelegateForCredentials
 {
 	// If we have a delegate, we'll see if it can handle proxyAuthenticationNeededForRequest:.
 	// Otherwise, we'll try the queue (if this request is part of one) and it will pass the message on to its own delegate
@@ -2387,19 +2461,42 @@ static NSOperationQueue *sharedQueue = nil;
 		authenticationDelegate = [self queue];
 	}
 
-	if ([authenticationDelegate respondsToSelector:@selector(proxyAuthenticationNeededForRequest:)]) {
-		[authenticationDelegate performSelectorOnMainThread:@selector(proxyAuthenticationNeededForRequest:) withObject:self waitUntilDone:[NSThread isMainThread]];
-		return YES;
+	BOOL delegateOrBlockWillHandleAuthentication = NO;
+
+	if ([authenticationDelegate respondsToSelector:@selector(authenticationNeededForRequest:)]) {
+		delegateOrBlockWillHandleAuthentication = YES;
 	}
 
 	#if NS_BLOCKS_AVAILABLE
-	if(proxyAuthenticationNeededBlock){
-		__block ASIHTTPRequest *blockCopy = self;
-		proxyAuthenticationNeededBlock(blockCopy);
+	if (authenticationNeededBlock) {
+		delegateOrBlockWillHandleAuthentication = YES;
 	}
 	#endif
 
-	return NO;
+	if (delegateOrBlockWillHandleAuthentication) {
+		[self performSelectorOnMainThread:@selector(askDelegateForCredentials) withObject:nil waitUntilDone:NO];
+	}
+	return delegateOrBlockWillHandleAuthentication;
+}
+
+/* ALWAYS CALLED ON MAIN THREAD! */
+- (void)askDelegateForCredentials
+{
+	id authenticationDelegate = [self delegate];
+	if (!authenticationDelegate) {
+		authenticationDelegate = [self queue];
+	}
+	
+	if ([authenticationDelegate respondsToSelector:@selector(authenticationNeededForRequest:)]) {
+		[authenticationDelegate performSelector:@selector(authenticationNeededForRequest:) withObject:self];
+		return;
+	}
+	
+	#if NS_BLOCKS_AVAILABLE
+	if (authenticationNeededBlock) {
+		authenticationNeededBlock(self);
+	}
+	#endif	
 }
 
 - (void)attemptToApplyProxyCredentialsAndResume
@@ -2467,7 +2564,7 @@ static NSOperationQueue *sharedQueue = nil;
 			
 			[self setLastActivityTime:nil];
 			
-			if ([self askDelegateForProxyCredentials]) {
+			if ([self willAskDelegateForProxyCredentials]) {
 				[self attemptToApplyProxyCredentialsAndResume];
 				[delegateAuthenticationLock unlock];
 				return;
@@ -2539,7 +2636,7 @@ static NSOperationQueue *sharedQueue = nil;
 			return;
 		}
 		
-		if ([self askDelegateForProxyCredentials]) {
+		if ([self willAskDelegateForProxyCredentials]) {
 			[delegateAuthenticationLock unlock];
 			return;
 		}
@@ -2571,27 +2668,7 @@ static NSOperationQueue *sharedQueue = nil;
 #endif
 }
 
-- (BOOL)askDelegateForCredentials
-{
-	// If we have a delegate, we'll see if it can handle proxyAuthenticationNeededForRequest:.
-	// Otherwise, we'll try the queue (if this request is part of one) and it will pass the message on to its own delegate
-	id authenticationDelegate = [self delegate];
-	if (!authenticationDelegate) {
-		authenticationDelegate = [self queue];
-	}
-	#if NS_BLOCKS_AVAILABLE
-	if (authenticationNeededBlock) {
-		authenticationNeededBlock(self);
-	}
-	#endif
 
-	if ([authenticationDelegate respondsToSelector:@selector(authenticationNeededForRequest:)]) {
-		[authenticationDelegate performSelectorOnMainThread:@selector(authenticationNeededForRequest:) withObject:self waitUntilDone:[NSThread isMainThread]];
-		return YES;
-	}
-
-	return NO;
-}
 
 - (void)attemptToApplyCredentialsAndResume
 {
@@ -2661,7 +2738,7 @@ static NSOperationQueue *sharedQueue = nil;
 			
 			[self setLastActivityTime:nil];
 			
-			if ([self askDelegateForCredentials]) {
+			if ([self willAskDelegateForCredentials]) {
 				[delegateAuthenticationLock unlock];
 				return;
 			}
@@ -2728,7 +2805,7 @@ static NSOperationQueue *sharedQueue = nil;
 			}
 			return;
 		}
-		if ([self askDelegateForCredentials]) {
+		if ([self willAskDelegateForCredentials]) {
 			[delegateAuthenticationLock unlock];
 			return;
 		}

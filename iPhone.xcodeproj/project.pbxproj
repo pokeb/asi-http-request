@@ -10,6 +10,7 @@
 		B50C1823121C26DB0055FCAB /* ClientCertificateTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B50C1822121C26DB0055FCAB /* ClientCertificateTests.m */; };
 		B50C182C121C26FA0055FCAB /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B50C182B121C26FA0055FCAB /* Security.framework */; };
 		B50C1848121C27510055FCAB /* client.p12 in Resources */ = {isa = PBXBuildFile; fileRef = B50C1847121C27510055FCAB /* client.p12 */; };
+		B50D532C126C87ED0022EA6F /* BlocksTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B50D532B126C87ED0022EA6F /* BlocksTests.m */; };
 		B51791A31024C3E800583567 /* AuthenticationViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B51791A21024C3E800583567 /* AuthenticationViewController.m */; };
 		B51A1A9B11DDF85100ED75CF /* ASIDownloadCacheTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B51A1A7A11DDF7BF00ED75CF /* ASIDownloadCacheTests.m */; };
 		B522DACE1030B2AB009A2D22 /* ASIInputStream.m in Sources */ = {isa = PBXBuildFile; fileRef = B522DACD1030B2AB009A2D22 /* ASIInputStream.m */; };
@@ -145,6 +146,8 @@
 		B50C1822121C26DB0055FCAB /* ClientCertificateTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ClientCertificateTests.m; sourceTree = "<group>"; };
 		B50C182B121C26FA0055FCAB /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
 		B50C1847121C27510055FCAB /* client.p12 */ = {isa = PBXFileReference; lastKnownFileType = file; name = client.p12; path = "iPhone Sample/Resources/client.p12"; sourceTree = "<group>"; };
+		B50D532A126C87ED0022EA6F /* BlocksTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BlocksTests.h; sourceTree = "<group>"; };
+		B50D532B126C87ED0022EA6F /* BlocksTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BlocksTests.m; sourceTree = "<group>"; };
 		B51791A11024C3E800583567 /* AuthenticationViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AuthenticationViewController.h; path = "iPhone Sample/AuthenticationViewController.h"; sourceTree = "<group>"; };
 		B51791A21024C3E800583567 /* AuthenticationViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AuthenticationViewController.m; path = "iPhone Sample/AuthenticationViewController.m"; sourceTree = "<group>"; };
 		B51A1A7911DDF7BF00ED75CF /* ASIDownloadCacheTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIDownloadCacheTests.h; sourceTree = "<group>"; };
@@ -515,6 +518,8 @@
 				B52D4A2E10DA4ED5008E8365 /* PerformanceTests.m */,
 				B50C1821121C26DB0055FCAB /* ClientCertificateTests.h */,
 				B50C1822121C26DB0055FCAB /* ClientCertificateTests.m */,
+				B50D532A126C87ED0022EA6F /* BlocksTests.h */,
+				B50D532B126C87ED0022EA6F /* BlocksTests.m */,
 			);
 			path = Tests;
 			sourceTree = "<group>";
@@ -818,6 +823,7 @@
 				B53E6D951257B45800C1E79A /* ASIDataDecompressor.m in Sources */,
 				B53E6D961257B45800C1E79A /* ASIDataCompressor.m in Sources */,
 				B53E6D9D1257B46100C1E79A /* ASIWebPageRequest.m in Sources */,
+				B50D532C126C87ED0022EA6F /* BlocksTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
