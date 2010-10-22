@@ -3649,7 +3649,7 @@ static NSOperationQueue *sharedQueue = nil;
 	NSMutableArray *sessionCredentialsList = [[self class] sessionCredentialsStore];
 	// Find an exact match (same url)
 	for (NSDictionary *theCredentials in sessionCredentialsList) {
-		if ([[theCredentials objectForKey:@"URL"] isEqual:[self url]]) {
+		if ([(NSURL*)[theCredentials objectForKey:@"URL"] isEqual:[self url]]) {
 			// /Just a sanity check to ensure we never choose credentials from a different realm. Can't really do more than that, as either this request or the stored credentials may not have a realm when the other does
 			if (![self responseStatusCode] || (![theCredentials objectForKey:@"AuthenticationRealm"] || [[theCredentials objectForKey:@"AuthenticationRealm"] isEqualToString:[self authenticationRealm]])) {
 				[sessionCredentialsLock unlock];
