@@ -24,7 +24,7 @@
 #import "ASIDataCompressor.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.7-119 2010-10-18";
+NSString *ASIHTTPRequestVersion = @"v1.7-120 2010-10-23";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -1433,8 +1433,6 @@ static NSOperationQueue *sharedQueue = nil;
 			[self removeTemporaryDownloadFile];
 		}
 		[self removeTemporaryUncompressedDownloadFile];
-		
-
 	}
 	
 	// Clean up any temporary file used to store request body for streaming
@@ -1576,23 +1574,21 @@ static NSOperationQueue *sharedQueue = nil;
 
 	#if NS_BLOCKS_AVAILABLE
     if (bytesReceivedBlock) {
-		__block ASIHTTPRequest *blockCopy = self;
-		bytesReceivedBlock(blockCopy, value, blockCopy->contentLength + blockCopy->partialDownloadSize);
+		[ASIHTTPRequest performSelector:@selector(callBytesReceivedBlockWithLength:) onTarget:&self withObject:nil amount:&value];
     }
 	#endif
 	[self setLastBytesRead:bytesReadSoFar];
 }
 
 #if NS_BLOCKS_AVAILABLE
-- (void)callBytesReceivedBlockWithBytes:(unsigned long long)bytes ofTotal:(unsigned long long)total
+- (void)callBytesReceivedBlockWithLength:(unsigned long long)value
 {
-    if (bytesReceivedBlock) {
+	if (bytesReceivedBlock) {
 		__block ASIHTTPRequest *blockCopy = self;
-		bytesReceivedBlock(blockCopy, bytes, blockCopy->contentLength + blockCopy->partialDownloadSize);
-    }
+		bytesReceivedBlock(blockCopy, value, blockCopy->contentLength + blockCopy->partialDownloadSize);
+	}
 }
 #endif
-
 
 - (void)updateUploadProgress
 {
@@ -1631,11 +1627,20 @@ static NSOperationQueue *sharedQueue = nil;
 
 	#if NS_BLOCKS_AVAILABLE
     if(bytesSentBlock){
-		__block ASIHTTPRequest *blockCopy = self;
-		bytesSentBlock(blockCopy, value, blockCopy->postLength);
+		[ASIHTTPRequest performSelector:@selector(callBytesSentBlockWithLength:) onTarget:&self withObject:nil amount:&value];
 	}
 	#endif
 }
+
+#if NS_BLOCKS_AVAILABLE
+- (void)callBytesSentBlockWithLength:(unsigned long long)value
+{
+	if (bytesSentBlock) {
+		__block ASIHTTPRequest *blockCopy = self;
+		bytesSentBlock(blockCopy, value, blockCopy->postLength);
+	}
+}
+#endif
 
 
 - (void)incrementDownloadSizeBy:(long long)length
@@ -1645,11 +1650,21 @@ static NSOperationQueue *sharedQueue = nil;
 
 	#if NS_BLOCKS_AVAILABLE
     if(downloadSizeIncrementedBlock){
-		__block ASIHTTPRequest *blockCopy = self;
-		downloadSizeIncrementedBlock(blockCopy, length);
+		[ASIHTTPRequest performSelector:@selector(callDownloadSizeIncrementedBlockWithLength:) onTarget:&self withObject:nil amount:&length];
     }
 	#endif
 }
+
+#if NS_BLOCKS_AVAILABLE
+- (void)callDownloadSizeIncrementedBlockWithLength:(unsigned long long)length
+{
+	if (downloadSizeIncrementedBlock) {
+		__block ASIHTTPRequest *blockCopy = self;
+		downloadSizeIncrementedBlock(blockCopy, length);
+	}
+}
+#endif
+
 
 
 - (void)incrementUploadSizeBy:(long long)length
@@ -1659,11 +1674,20 @@ static NSOperationQueue *sharedQueue = nil;
 
 	#if NS_BLOCKS_AVAILABLE
     if(uploadSizeIncrementedBlock){
-        __block ASIHTTPRequest *blockCopy = self;
-        uploadSizeIncrementedBlock(blockCopy, length);
+		[ASIHTTPRequest performSelector:@selector(callUploadSizeIncrementedBlockWithLength:) onTarget:&self withObject:nil amount:&length];
     }
 	#endif
 }
+
+#if NS_BLOCKS_AVAILABLE
+- (void)callUploadSizeIncrementedBlockWithLength:(unsigned long long)length
+{
+    if(uploadSizeIncrementedBlock){
+        __block ASIHTTPRequest *blockCopy = self;
+        uploadSizeIncrementedBlock(blockCopy, length);
+    }
+}
+#endif
 
 
 -(void)removeUploadProgressSoFar
@@ -1675,11 +1699,12 @@ static NSOperationQueue *sharedQueue = nil;
 
 	#if NS_BLOCKS_AVAILABLE
     if(bytesSentBlock){
-		__block ASIHTTPRequest *blockCopy = self;
-		bytesSentBlock(blockCopy, progressToRemove, blockCopy->postLength);
+		[ASIHTTPRequest performSelector:@selector(callBytesSentBlockWithLength:) onTarget:&self withObject:nil amount:&progressToRemove];
+
 	}
 	#endif
 }
+
 
 + (void)performSelector:(SEL)selector onTarget:(id *)target withObject:(id)object amount:(void *)amount
 {
@@ -1826,13 +1851,6 @@ static NSOperationQueue *sharedQueue = nil;
 	if (queue && [queue respondsToSelector:@selector(request:willRedirectToURL:)]) {
 		[queue performSelector:@selector(request:willRedirectToURL:) withObject:self withObject:newURL];
 	}
-
-	#if NS_BLOCKS_AVAILABLE
-	if(startedBlock){
-		__block ASIHTTPRequest *blockCopy = self;
-		startedBlock(blockCopy);
-	}
-	#endif
 }
 
 /* ALWAYS CALLED ON MAIN THREAD! */
@@ -1938,12 +1956,6 @@ static NSOperationQueue *sharedQueue = nil;
 	}
 
 	[failedRequest performSelectorOnMainThread:@selector(reportFailure) withObject:nil waitUntilDone:[NSThread isMainThread]];
-
-	#if NS_BLOCKS_AVAILABLE
-    if (failureBlock) {
-        failureBlock(self);
-    }
-	#endif
 	
     if (!inProgress)
     {

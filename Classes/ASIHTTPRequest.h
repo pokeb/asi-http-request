@@ -529,7 +529,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 - (void)setHeadersReceivedBlock:(ASIHTTPRequestBlock)aReceivedBlock;
 - (void)setCompletionBlock:(ASIHTTPRequestBlock)aCompletionBlock;
 - (void)setFailedBlock:(ASIHTTPRequestBlock)aFailedBlock;
-- (void)setBytesReceivedBlock:(ASIHTTPRequestProgressBlock) aBytesReceivedBlock;
+- (void)setBytesReceivedBlock:(ASIHTTPRequestProgressBlock)aBytesReceivedBlock;
 - (void)setBytesSentBlock:(ASIHTTPRequestProgressBlock)aBytesSentBlock;
 - (void)setDownloadSizeIncrementedBlock:(ASIHTTPRequestSizeBlock) aDownloadSizeIncrementedBlock;
 - (void)setUploadSizeIncrementedBlock:(ASIHTTPRequestSizeBlock) anUploadSizeIncrementedBlock;
