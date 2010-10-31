@@ -24,7 +24,7 @@
 #import "ASIDataCompressor.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.7-121 2010-10-31";
+NSString *ASIHTTPRequestVersion = @"v1.7-122 2010-10-31";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -3324,10 +3324,11 @@ static NSOperationQueue *sharedQueue = nil;
 		if ([self readStreamIsScheduled]) {
 			runningRequestCount--;
 			if (shouldUpdateNetworkActivityIndicator && runningRequestCount == 0) {
-				// Wait half a second before turning off the indicator
+				// This call will wait half a second before turning off the indicator
 				// This can prevent flicker when you have a single request finish and then immediately start another request
-				// We will cancel hiding the activity indicator if we start again
-				[[self class] performSelector:@selector(hideNetworkActivityIndicator) withObject:nil afterDelay:0.5];
+				// We run this on the main thread because we have no guarantee this thread will have a runloop in 0.5 seconds time
+				// We don't bother the cancel this call if we start a new request, because we'll check if requests are running before we hide it
+				[[self class] performSelectorOnMainThread:@selector(hideNetworkActivityIndicatorAfterDelay) withObject:nil waitUntilDone:[NSThread isMainThread]];
 			}
 		}
 
@@ -3349,7 +3350,6 @@ static NSOperationQueue *sharedQueue = nil;
 		[connectionsLock lock];
 		runningRequestCount++;
 		if (shouldUpdateNetworkActivityIndicator) {
-			[NSObject cancelPreviousPerformRequestsWithTarget:[self class] selector:@selector(hideNetworkActivityIndicator) object:nil];
 			[[self class] showNetworkActivityIndicator];
 		}
 		[connectionsLock unlock];
@@ -3369,10 +3369,8 @@ static NSOperationQueue *sharedQueue = nil;
 		[connectionsLock lock];
 		runningRequestCount--;
 		if (shouldUpdateNetworkActivityIndicator && runningRequestCount == 0) {
-			// Wait half a second before turning off the indicator
-			// This can prevent flicker when you have a single request finish and then immediately start another request
-			// We will cancel hiding the activity indicator if we start again
-			[[self class] performSelector:@selector(hideNetworkActivityIndicator) withObject:nil afterDelay:0.5];
+			// See comment in destroyReadStream for more info
+			[[self class] performSelectorOnMainThread:@selector(hideNetworkActivityIndicatorAfterDelay) withObject:nil waitUntilDone:[NSThread isMainThread]];
 		}
 		[connectionsLock unlock];
 
@@ -4142,6 +4140,22 @@ static NSOperationQueue *sharedQueue = nil;
 #if TARGET_OS_IPHONE
 	[[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];	
 #endif
+}
+
+
+/* Always called on main thread */
++ (void)hideNetworkActivityIndicatorAfterDelay
+{
+	[self performSelector:@selector(hideNetworkActivityIndicatorIfNeeeded) withObject:nil afterDelay:0.5];
+}
+
++ (void)hideNetworkActivityIndicatorIfNeeeded
+{
+	[connectionsLock lock];
+	if (runningRequestCount == 0) {
+		[self hideNetworkActivityIndicator];
+	}
+	[connectionsLock unlock];
 }
 
 
