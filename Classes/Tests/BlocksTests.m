@@ -69,9 +69,9 @@
 	GHAssertTrue(receivedHeaders,@"Failed to call received headers block");
 	GHAssertTrue(complete,@"Failed to call completed block");
 	
-	BOOL success = (totalBytesReceived == 130050);
+	BOOL success = (totalBytesReceived == 457);
 	GHAssertTrue(success,@"Failed to call bytes received block, or got wrong amount of data");
-	success = (totalDownloadSize == 130050);
+	success = (totalDownloadSize == 457);
 	GHAssertTrue(success,@"Failed to call download size increment block");
 	
 	success = (totalBytesSent == [dataToSend length]);
