@@ -134,6 +134,7 @@
 - (void)dealloc
 {
 	[request setDelegate:nil];
+	[request setDownloadProgressDelegate:nil];
 	[request cancel];
 	[request release];
 	[webView setDelegate:nil];

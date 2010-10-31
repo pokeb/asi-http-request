@@ -62,6 +62,7 @@ typedef enum _ASINetworkErrorType {
 } ASINetworkErrorType;
 
 #if NS_BLOCKS_AVAILABLE
+typedef void (^ASIBasicBlock)(void);
 typedef void (^ASIHTTPRequestBlock)(ASIHTTPRequest *request);
 typedef void (^ASIHTTPRequestSizeBlock)(ASIHTTPRequest *request, long long size);
 typedef void (^ASIHTTPRequestProgressBlock)(ASIHTTPRequest *request, unsigned long long size, unsigned long long total);
@@ -613,7 +614,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 + (void)updateProgressIndicator:(id *)indicator withProgress:(unsigned long long)progress ofTotal:(unsigned long long)total;
 
 // Helper method used for performing invocations on the main thread (used for progress)
-+ (void)performSelector:(SEL)selector onTarget:(id *)target withObject:(id)object amount:(void *)amount;
++ (void)performSelector:(SEL)selector onTarget:(id *)target withObject:(id)object amount:(void *)amount callerToRetain:(id)caller;
 
 #pragma mark talking to delegates
 

@@ -96,18 +96,18 @@
 	SEL selector = @selector(setMaxValue:);
 	if ([*progressDelegate respondsToSelector:selector]) {
 		double max = 1.0;
-		[ASIHTTPRequest performSelector:selector onTarget:progressDelegate withObject:nil amount:&max];
+		[ASIHTTPRequest performSelector:selector onTarget:progressDelegate withObject:nil amount:&max callerToRetain:nil];
 	}
 	selector = @selector(setDoubleValue:);
 	if ([*progressDelegate respondsToSelector:selector]) {
 		double value = 0.0;
-		[ASIHTTPRequest performSelector:selector onTarget:progressDelegate withObject:nil amount:&value];
+		[ASIHTTPRequest performSelector:selector onTarget:progressDelegate withObject:nil amount:&value callerToRetain:nil];
 	}
 #else
 	SEL selector = @selector(setProgress:);
 	if ([*progressDelegate respondsToSelector:selector]) {
 		float value = 0.0f;
-		[ASIHTTPRequest performSelector:selector onTarget:progressDelegate withObject:nil amount:&value];
+		[ASIHTTPRequest performSelector:selector onTarget:progressDelegate withObject:nil amount:&value callerToRetain:nil];
 	}
 #endif
 }

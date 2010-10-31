@@ -79,6 +79,8 @@
 
 - (void)dealloc
 {
+	[request setDelegate:nil];
+	[request setUploadProgressDelegate:nil];
 	[request cancel];
 	[request release];
 	[progressIndicator release];

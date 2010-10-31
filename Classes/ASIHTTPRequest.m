@@ -24,7 +24,7 @@
 #import "ASIDataCompressor.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.7-120 2010-10-23";
+NSString *ASIHTTPRequestVersion = @"v1.7-121 2010-10-31";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -173,9 +173,11 @@ static NSOperationQueue *sharedQueue = nil;
 + (void)unsubscribeFromNetworkReachabilityNotifications;
 // Called when the status of the network changes
 + (void)reachabilityChanged:(NSNotification *)note;
-
 - (void)failAuthentication;
+#endif
 
+#if NS_BLOCKS_AVAILABLE
+- (void)performBlockOnMainThread:(ASIBasicBlock)block;
 #endif
 
 @property (assign) BOOL complete;
@@ -1518,7 +1520,7 @@ static NSOperationQueue *sharedQueue = nil;
 	#if !TARGET_OS_IPHONE
 	// If the uploadProgressDelegate is an NSProgressIndicator, we set its MaxValue to 1.0 so we can update it as if it were a UIProgressView
 	double max = 1.0;
-	[ASIHTTPRequest performSelector:@selector(setMaxValue:) onTarget:&uploadProgressDelegate withObject:nil amount:&max];
+	[ASIHTTPRequest performSelector:@selector(setMaxValue:) onTarget:&uploadProgressDelegate withObject:nil amount:&max callerToRetain:nil];
 	#endif
 	[[self cancelledLock] unlock];
 }
@@ -1539,7 +1541,7 @@ static NSOperationQueue *sharedQueue = nil;
 	#if !TARGET_OS_IPHONE
 	// If the downloadProgressDelegate is an NSProgressIndicator, we set its MaxValue to 1.0 so we can update it as if it were a UIProgressView
 	double max = 1.0;
-	[ASIHTTPRequest performSelector:@selector(setMaxValue:) onTarget:&downloadProgressDelegate withObject:nil amount:&max];	
+	[ASIHTTPRequest performSelector:@selector(setMaxValue:) onTarget:&downloadProgressDelegate withObject:nil amount:&max callerToRetain:nil];	
 	#endif
 	[[self cancelledLock] unlock];
 }
@@ -1568,27 +1570,19 @@ static NSOperationQueue *sharedQueue = nil;
 		return;
 	}
 
-	[ASIHTTPRequest performSelector:@selector(request:didReceiveBytes:) onTarget:&queue withObject:self amount:&value];
-	[ASIHTTPRequest performSelector:@selector(request:didReceiveBytes:) onTarget:&downloadProgressDelegate withObject:self amount:&value];
+	[ASIHTTPRequest performSelector:@selector(request:didReceiveBytes:) onTarget:&queue withObject:self amount:&value callerToRetain:self];
+	[ASIHTTPRequest performSelector:@selector(request:didReceiveBytes:) onTarget:&downloadProgressDelegate withObject:self amount:&value callerToRetain:self];
+
 	[ASIHTTPRequest updateProgressIndicator:&downloadProgressDelegate withProgress:[self totalBytesRead]+[self partialDownloadSize] ofTotal:[self contentLength]+[self partialDownloadSize]];
 
 	#if NS_BLOCKS_AVAILABLE
     if (bytesReceivedBlock) {
-		[ASIHTTPRequest performSelector:@selector(callBytesReceivedBlockWithLength:) onTarget:&self withObject:nil amount:&value];
+		__block ASIHTTPRequest *blockCopy = self;
+		[self performBlockOnMainThread:^{ bytesReceivedBlock(blockCopy, value, [self contentLength] + [self partialDownloadSize]); }];
     }
 	#endif
 	[self setLastBytesRead:bytesReadSoFar];
 }
-
-#if NS_BLOCKS_AVAILABLE
-- (void)callBytesReceivedBlockWithLength:(unsigned long long)value
-{
-	if (bytesReceivedBlock) {
-		__block ASIHTTPRequest *blockCopy = self;
-		bytesReceivedBlock(blockCopy, value, blockCopy->contentLength + blockCopy->partialDownloadSize);
-	}
-}
-#endif
 
 - (void)updateUploadProgress
 {
@@ -1621,92 +1615,75 @@ static NSOperationQueue *sharedQueue = nil;
 		return;
 	}
 	
-	[ASIHTTPRequest performSelector:@selector(request:didSendBytes:) onTarget:&queue withObject:self amount:&value];
-	[ASIHTTPRequest performSelector:@selector(request:didSendBytes:) onTarget:&uploadProgressDelegate withObject:self amount:&value];
+	[ASIHTTPRequest performSelector:@selector(request:didSendBytes:) onTarget:&queue withObject:self amount:&value callerToRetain:self];
+	[ASIHTTPRequest performSelector:@selector(request:didSendBytes:) onTarget:&uploadProgressDelegate withObject:self amount:&value callerToRetain:self];
 	[ASIHTTPRequest updateProgressIndicator:&uploadProgressDelegate withProgress:[self totalBytesSent]-[self uploadBufferSize] ofTotal:[self postLength]-[self uploadBufferSize]];
 
 	#if NS_BLOCKS_AVAILABLE
     if(bytesSentBlock){
-		[ASIHTTPRequest performSelector:@selector(callBytesSentBlockWithLength:) onTarget:&self withObject:nil amount:&value];
+		__block ASIHTTPRequest *blockCopy = self;
+		[self performBlockOnMainThread:^{ bytesSentBlock(blockCopy, value, blockCopy->postLength); }];
 	}
 	#endif
 }
-
-#if NS_BLOCKS_AVAILABLE
-- (void)callBytesSentBlockWithLength:(unsigned long long)value
-{
-	if (bytesSentBlock) {
-		__block ASIHTTPRequest *blockCopy = self;
-		bytesSentBlock(blockCopy, value, blockCopy->postLength);
-	}
-}
-#endif
 
 
 - (void)incrementDownloadSizeBy:(long long)length
 {
-	[ASIHTTPRequest performSelector:@selector(request:incrementDownloadSizeBy:) onTarget:&queue withObject:self amount:&length];
-	[ASIHTTPRequest performSelector:@selector(request:incrementDownloadSizeBy:) onTarget:&downloadProgressDelegate withObject:self amount:&length];
+	[ASIHTTPRequest performSelector:@selector(request:incrementDownloadSizeBy:) onTarget:&queue withObject:self amount:&length callerToRetain:self];
+	[ASIHTTPRequest performSelector:@selector(request:incrementDownloadSizeBy:) onTarget:&downloadProgressDelegate withObject:self amount:&length callerToRetain:self];
 
 	#if NS_BLOCKS_AVAILABLE
     if(downloadSizeIncrementedBlock){
-		[ASIHTTPRequest performSelector:@selector(callDownloadSizeIncrementedBlockWithLength:) onTarget:&self withObject:nil amount:&length];
+		__block ASIHTTPRequest *blockCopy = self;
+		[self performBlockOnMainThread:^{ downloadSizeIncrementedBlock(blockCopy, length); }];
     }
 	#endif
 }
-
-#if NS_BLOCKS_AVAILABLE
-- (void)callDownloadSizeIncrementedBlockWithLength:(unsigned long long)length
-{
-	if (downloadSizeIncrementedBlock) {
-		__block ASIHTTPRequest *blockCopy = self;
-		downloadSizeIncrementedBlock(blockCopy, length);
-	}
-}
-#endif
-
-
 
 - (void)incrementUploadSizeBy:(long long)length
 {
-	[ASIHTTPRequest performSelector:@selector(request:incrementUploadSizeBy:) onTarget:&queue withObject:self amount:&length];
-	[ASIHTTPRequest performSelector:@selector(request:incrementUploadSizeBy:) onTarget:&uploadProgressDelegate withObject:self amount:&length];
+	[ASIHTTPRequest performSelector:@selector(request:incrementUploadSizeBy:) onTarget:&queue withObject:self amount:&length callerToRetain:self];
+	[ASIHTTPRequest performSelector:@selector(request:incrementUploadSizeBy:) onTarget:&uploadProgressDelegate withObject:self amount:&length callerToRetain:self];
 
 	#if NS_BLOCKS_AVAILABLE
     if(uploadSizeIncrementedBlock){
-		[ASIHTTPRequest performSelector:@selector(callUploadSizeIncrementedBlockWithLength:) onTarget:&self withObject:nil amount:&length];
+		__block ASIHTTPRequest *blockCopy = self;
+		[self performBlockOnMainThread:^{ uploadSizeIncrementedBlock(blockCopy, length); }];
     }
 	#endif
 }
-
-#if NS_BLOCKS_AVAILABLE
-- (void)callUploadSizeIncrementedBlockWithLength:(unsigned long long)length
-{
-    if(uploadSizeIncrementedBlock){
-        __block ASIHTTPRequest *blockCopy = self;
-        uploadSizeIncrementedBlock(blockCopy, length);
-    }
-}
-#endif
 
 
 -(void)removeUploadProgressSoFar
 {
 	long long progressToRemove = -[self totalBytesSent];
-	[ASIHTTPRequest performSelector:@selector(request:didSendBytes:) onTarget:&queue withObject:self amount:&progressToRemove];
-	[ASIHTTPRequest performSelector:@selector(request:didSendBytes:) onTarget:&uploadProgressDelegate withObject:self amount:&progressToRemove];
+	[ASIHTTPRequest performSelector:@selector(request:didSendBytes:) onTarget:&queue withObject:self amount:&progressToRemove callerToRetain:self];
+	[ASIHTTPRequest performSelector:@selector(request:didSendBytes:) onTarget:&uploadProgressDelegate withObject:self amount:&progressToRemove callerToRetain:self];
 	[ASIHTTPRequest updateProgressIndicator:&uploadProgressDelegate withProgress:0 ofTotal:[self postLength]];
 
 	#if NS_BLOCKS_AVAILABLE
     if(bytesSentBlock){
-		[ASIHTTPRequest performSelector:@selector(callBytesSentBlockWithLength:) onTarget:&self withObject:nil amount:&progressToRemove];
-
+		__block ASIHTTPRequest *blockCopy = self;
+		[self performBlockOnMainThread:^{  bytesSentBlock(blockCopy, progressToRemove, blockCopy->postLength); }];
 	}
 	#endif
 }
 
+#if NS_BLOCKS_AVAILABLE
+- (void)performBlockOnMainThread:(ASIBasicBlock)block
+{
+	[self performSelectorOnMainThread:@selector(callBlock:) withObject:[[block copy] autorelease] waitUntilDone:NO];
+}
 
-+ (void)performSelector:(SEL)selector onTarget:(id *)target withObject:(id)object amount:(void *)amount
+- (void)callBlock:(ASIBasicBlock)block
+{
+	block();
+}
+#endif
+
+
++ (void)performSelector:(SEL)selector onTarget:(id *)target withObject:(id)object amount:(void *)amount callerToRetain:(id)callerToRetain
 {
 	if ([*target respondsToSelector:selector]) {
 		NSMethodSignature *signature = nil;
@@ -1720,7 +1697,7 @@ static NSOperationQueue *sharedQueue = nil;
 		// If we got an object parameter, we pass a pointer to the object pointer
 		if (object) {
 			[invocation setArgument:&object atIndex:argumentNumber];
-			argumentNumber++;	
+			argumentNumber++;
 		}
 		
 		// For the amount we'll just pass the pointer directly so NSInvocation will call the method using the number itself rather than a pointer to it
@@ -1728,28 +1705,37 @@ static NSOperationQueue *sharedQueue = nil;
 			[invocation setArgument:amount atIndex:argumentNumber];
 		}
 
-        SEL callback = @selector(performInvocation:onTarget:);
+        SEL callback = @selector(performInvocation:onTarget:releasingObject:);
         NSMethodSignature *cbSignature = [ASIHTTPRequest methodSignatureForSelector:callback];
         NSInvocation *cbInvocation = [NSInvocation invocationWithMethodSignature:cbSignature];
         [cbInvocation setSelector:callback];
         [cbInvocation setTarget:self];
         [cbInvocation setArgument:&invocation atIndex:2];
         [cbInvocation setArgument:&target atIndex:3];
-        
-		// Ensure both of these stay around for the duration of the callback. Don't worry - we get CFReleased in the very next method!
+		if (callerToRetain) {
+			[cbInvocation setArgument:&callerToRetain atIndex:4];
+		}
+
 		CFRetain(invocation);
-        CFRetain(self);
+
+		// Used to pass in a request that we must retain until after the call
+		// We're using CFRetain rather than [callerToRetain retain] so things to avoid earthquakes when using garbage collection
+		if (callerToRetain) {
+			CFRetain(callerToRetain);
+		}
         [cbInvocation performSelectorOnMainThread:@selector(invoke) withObject:nil waitUntilDone:[NSThread isMainThread]];
     }
 }
 
-+ (void)performInvocation:(NSInvocation *)invocation onTarget:(id *)target
++ (void)performInvocation:(NSInvocation *)invocation onTarget:(id *)target releasingObject:(id)objectToRelease
 {
     if (*target && [*target respondsToSelector:[invocation selector]]) {
         [invocation invokeWithTarget:*target];
     }
 	CFRelease(invocation);
-    CFRelease(self);
+	if (objectToRelease) {
+		CFRelease(objectToRelease);
+	}
 }
 	
 	
@@ -1771,7 +1757,7 @@ static NSOperationQueue *sharedQueue = nil;
 	}
 	
 	[progressLock lock];
-	[ASIHTTPRequest performSelector:selector onTarget:indicator withObject:nil amount:&progressAmount];
+	[ASIHTTPRequest performSelector:selector onTarget:indicator withObject:nil amount:&progressAmount callerToRetain:nil];
 	[progressLock unlock];
 }
 

@@ -17,16 +17,6 @@
 
 - (IBAction)fetchThreeImages:(id)sender
 {
-    ASIHTTPRequestSizeBlock sizeBlock = ^(ASIHTTPRequest *request, long long size){
-        NSDictionary *userInfo = [request userInfo];
-        NSLog(@"request - %@ named = %@ download size incremented %lld", request, [userInfo valueForKey:@"name"], size);
-    };
-    
-    ASIHTTPRequestProgressBlock bytesBlock = ^(ASIHTTPRequest *request, unsigned long long size, unsigned long long total){
-        NSDictionary *userInfo = [request userInfo];
-        NSLog(@"request - %@ named - %@ downloaded bytes size %llu of total: %llu", request, [userInfo valueForKey:@"name"], size, total);
-    };
-    
 	[imageView1 setImage:nil];
 	[imageView2 setImage:nil];
 	[imageView3 setImage:nil];
@@ -44,24 +34,18 @@
 	
 	ASIHTTPRequest *request;
 	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/images/small-image.jpg"]];
-    [request setDownloadSizeIncrementedBlock:sizeBlock];
-    [request setBytesReceivedBlock:bytesBlock];
 	[request setDownloadDestinationPath:[[NSHomeDirectory() stringByAppendingPathComponent:@"Documents"] stringByAppendingPathComponent:@"1.png"]];
 	[request setDownloadProgressDelegate:imageProgressIndicator1];
     [request setUserInfo:[NSDictionary dictionaryWithObject:@"request1" forKey:@"name"]];
 	[networkQueue addOperation:request];
 	
 	request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/images/medium-image.jpg"]] autorelease];
-    [request setDownloadSizeIncrementedBlock:sizeBlock];
-    [request setBytesReceivedBlock:bytesBlock];
 	[request setDownloadDestinationPath:[[NSHomeDirectory() stringByAppendingPathComponent:@"Documents"] stringByAppendingPathComponent:@"2.png"]];
 	[request setDownloadProgressDelegate:imageProgressIndicator2];
     [request setUserInfo:[NSDictionary dictionaryWithObject:@"request2" forKey:@"name"]];
 	[networkQueue addOperation:request];
 	
 	request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/images/large-image.jpg"]] autorelease];
-    [request setDownloadSizeIncrementedBlock:sizeBlock];
-    [request setBytesReceivedBlock:bytesBlock];
 	[request setDownloadDestinationPath:[[NSHomeDirectory() stringByAppendingPathComponent:@"Documents"] stringByAppendingPathComponent:@"3.png"]];
 	[request setDownloadProgressDelegate:imageProgressIndicator3];
     [request setUserInfo:[NSDictionary dictionaryWithObject:@"request3" forKey:@"name"]];
