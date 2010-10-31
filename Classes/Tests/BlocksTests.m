@@ -31,7 +31,7 @@
 	__block unsigned long long totalUploadSize = 0;	
 	NSMutableData *dataReceived = [NSMutableData data];
 	
-	ASIHTTPRequest *request = [[ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/blocks"]] retain];
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/blocks"]];
 	[request setStartedBlock:^(ASIHTTPRequest *request) {
 		started = YES;
 	}];
@@ -70,14 +70,14 @@
 	GHAssertTrue(complete,@"Failed to call completed block");
 	
 	BOOL success = (totalBytesReceived == 130050);
-	GHAssertTrue(complete,@"Failed to call bytes received block, or got wrong amount of data");
+	GHAssertTrue(success,@"Failed to call bytes received block, or got wrong amount of data");
 	success = (totalDownloadSize == 130050);
-	GHAssertTrue(complete,@"Failed to call download size increment block");
+	GHAssertTrue(success,@"Failed to call download size increment block");
 	
 	success = (totalBytesSent == [dataToSend length]);
-	GHAssertTrue(complete,@"Failed to call bytes sent block");
+	GHAssertTrue(success,@"Failed to call bytes sent block");
 	success = (totalUploadSize == [dataToSend length]);
-	GHAssertTrue(complete,@"Failed to call upload size increment block");
+	GHAssertTrue(success,@"Failed to call upload size increment block");
 	
 	
 	request = [ASIHTTPRequest requestWithURL:nil];

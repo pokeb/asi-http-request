@@ -148,7 +148,7 @@ static NSString *intro = @"Demonstrates POSTing content to a URL, showing upload
 		
 	} else if ([indexPath section] == 1) {
 		return nil;
-	} else if ([indexPath section] == 2) {
+	} else {
 		cell = [tableView dequeueReusableCellWithIdentifier:@"Response"];
 		if (!cell) {
 			cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"Response"] autorelease];

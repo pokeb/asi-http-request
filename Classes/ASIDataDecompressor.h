@@ -28,7 +28,7 @@
 + (NSData *)uncompressData:(NSData*)compressedData error:(NSError **)err;
 
 // Convenience method - pass it a file containing deflated data in sourcePath, and it will write inflated data to destinationPath
-+ (void)uncompressDataFromFile:(NSString *)sourcePath toFile:(NSString *)destinationPath error:(NSError **)err;
++ (BOOL)uncompressDataFromFile:(NSString *)sourcePath toFile:(NSString *)destinationPath error:(NSError **)err;
 
 // Sets up zlib to handle the inflating. You only need to call this yourself if you aren't using the convenience constructor 'decompressor'
 - (NSError *)setupStream;

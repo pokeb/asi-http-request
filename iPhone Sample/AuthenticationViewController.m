@@ -171,7 +171,7 @@ static NSString *intro = @"Demonstrates fetching content from an area that requi
 			}
 		}
 
-	} else if ([indexPath section] == 2) {
+	} else {
 		
 		cell = [tableView dequeueReusableCellWithIdentifier:@"Response"];
 		if (!cell) {

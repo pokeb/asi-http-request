@@ -220,7 +220,7 @@ static NSString *intro = @"ASIWebPageRequest lets you download complete webpages
 			[[cell accessoryView] setHidden:NO];
 		}
 
-	} else if ([indexPath section] == 3) {
+	} else {
 		
 		cell = [tableView dequeueReusableCellWithIdentifier:@"Response"];
 		if (!cell) {

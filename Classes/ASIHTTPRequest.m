@@ -24,7 +24,7 @@
 #import "ASIDataCompressor.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.7-122 2010-10-31";
+NSString *ASIHTTPRequestVersion = @"v1.7-125 2010-10-31";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -413,8 +413,7 @@ static NSOperationQueue *sharedQueue = nil;
 				[self setCompressedPostBodyFilePath:[NSTemporaryDirectory() stringByAppendingPathComponent:[[NSProcessInfo processInfo] globallyUniqueString]]];
 				
 				NSError *err = nil;
-				[ASIDataCompressor compressDataFromFile:[self postBodyFilePath] toFile:[self compressedPostBodyFilePath] error:&err];
-				if (err) {
+				if (![ASIDataCompressor compressDataFromFile:[self postBodyFilePath] toFile:[self compressedPostBodyFilePath] error:&err]) {
 					[self failWithError:err];
 					return;
 				}
@@ -3435,7 +3434,9 @@ static NSOperationQueue *sharedQueue = nil;
 		NSError *removeError = nil;
 		[[NSFileManager defaultManager] removeItemAtPath:path error:&removeError];
 		if (removeError) {
-			*err = [NSError errorWithDomain:NetworkRequestErrorDomain code:ASIFileManagementError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Failed to delete file at path '%@'",path],NSLocalizedDescriptionKey,removeError,NSUnderlyingErrorKey,nil]];
+			if (err) {
+				*err = [NSError errorWithDomain:NetworkRequestErrorDomain code:ASIFileManagementError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Failed to delete file at path '%@'",path],NSLocalizedDescriptionKey,removeError,NSUnderlyingErrorKey,nil]];
+			}
 			return NO;
 		}
 	}

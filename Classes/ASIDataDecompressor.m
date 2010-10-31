@@ -97,7 +97,9 @@
 				break;
 			}
 		} else if (status != Z_OK) {
-			theError = [[self class] inflateErrorWithCode:status];
+			if (err) {
+				*err = [[self class] inflateErrorWithCode:status];
+			}
 			[self closeStream];
 			return nil;
 		}
@@ -129,14 +131,14 @@
 	return outputData;
 }
 
-+ (void)uncompressDataFromFile:(NSString *)sourcePath toFile:(NSString *)destinationPath error:(NSError **)err
++ (BOOL)uncompressDataFromFile:(NSString *)sourcePath toFile:(NSString *)destinationPath error:(NSError **)err
 {
 	// Create an empty file at the destination path
 	if (![[NSFileManager defaultManager] createFileAtPath:destinationPath contents:[NSData data] attributes:nil]) {
 		if (err) {
 			*err = [NSError errorWithDomain:NetworkRequestErrorDomain code:ASICompressionError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Decompression of %@ failed because we were to create a file at %@",sourcePath,destinationPath],NSLocalizedDescriptionKey,nil]];
 		}
-		return;
+		return NO;
 	}
 	
 	// Ensure the source file exists
@@ -144,7 +146,7 @@
 		if (err) {
 			*err = [NSError errorWithDomain:NetworkRequestErrorDomain code:ASICompressionError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Decompression of %@ failed the file does not exist",sourcePath],NSLocalizedDescriptionKey,nil]];
 		}
-		return;
+		return NO;
 	}
 	
 	UInt8 inputData[DATA_CHUNK_SIZE];
@@ -171,7 +173,7 @@
 			if (err) {
 				*err = [NSError errorWithDomain:NetworkRequestErrorDomain code:ASICompressionError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Decompression of %@ failed because we were unable to read from the source data file",sourcePath],NSLocalizedDescriptionKey,[inputStream streamError],NSUnderlyingErrorKey,nil]];
 			}
-			return;
+			return NO;
 		}
 
 		// Attempt to inflate the chunk of data
@@ -180,7 +182,7 @@
 			if (err) {
 				*err = theError;
 			}
-			return;
+			return NO;
 		}
 		
 		// Write the inflated data out to the destination file
@@ -192,13 +194,14 @@
 			if (err) {
 				*err = [NSError errorWithDomain:NetworkRequestErrorDomain code:ASICompressionError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Decompression of %@ failed because we were unable to write to the destination data file at &@",sourcePath,destinationPath],NSLocalizedDescriptionKey,[outputStream streamError],NSUnderlyingErrorKey,nil]];
             }
-			return;
+			return NO;
 		}
 		
     }
 	
 	[inputStream close];
 	[outputStream close];
+	return YES;
 }
 
 

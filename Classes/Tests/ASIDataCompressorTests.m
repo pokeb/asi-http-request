@@ -63,8 +63,7 @@
 		GHFail(@"Failed to remove old file, cannot proceed with test");
 	}
 	
-	[ASIDataDecompressor uncompressDataFromFile:gzippedFilePath toFile:inflatedFilePath error:&error];
-	if (error) {
+	if (![ASIDataDecompressor uncompressDataFromFile:gzippedFilePath toFile:inflatedFilePath error:&error]) {
 		GHFail(@"Inflate failed because %@",error);
 	}
 	
@@ -124,8 +123,7 @@
 	// Test file to file deflate
 	[ASIHTTPRequest removeFileAtPath:gzippedFilePath error:&error];
 	
-	[ASIDataCompressor compressDataFromFile:filePath toFile:gzippedFilePath error:&error];
-	if (error) {
+	if (![ASIDataCompressor compressDataFromFile:filePath toFile:gzippedFilePath error:&error]) {
 		GHFail(@"Deflate failed because %@",error);
 	}
 	[ASIHTTPRequest removeFileAtPath:filePath error:&error];

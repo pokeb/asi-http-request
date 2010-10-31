@@ -111,7 +111,7 @@ static NSString *intro = @"Demonstrates fetching a web page synchronously, the H
 			}
 		}
 		
-	} else if ([indexPath section] == 3) {
+	} else {
 		cell = [tableView dequeueReusableCellWithIdentifier:@"HeaderCell"];
 		if (!cell) {
 			cell = [DetailCell cell];
