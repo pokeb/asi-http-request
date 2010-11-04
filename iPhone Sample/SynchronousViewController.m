@@ -34,15 +34,15 @@
         NSLog(@"headers recieved");
     }];
     
-    [request setBytesReceivedBlock:^(ASIHTTPRequest *aRequest, unsigned long long length, unsigned long long total){
+    [request setBytesReceivedBlock:^(unsigned long long length, unsigned long long total){
         NSLog(@"bytes received:%llu of total: %llu", length, total);
     }];
     
-    [request setDownloadSizeIncrementedBlock:^(ASIHTTPRequest *aRequest, long long length){
+    [request setDownloadSizeIncrementedBlock:^(long long length){
         NSLog(@"download size incremented:%lld", length);
     }];
     
-    [request setDataReceivedBlock:^(ASIHTTPRequest *aRequest, NSData *data){
+    [request setDataReceivedBlock:^(NSData *data){
         [recievedData appendData:data];
         NSLog(@"data - %@", recievedData);
     }];

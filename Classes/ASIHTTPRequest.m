@@ -1582,7 +1582,7 @@ static NSOperationQueue *sharedQueue = nil;
 #if NS_BLOCKS_AVAILABLE    
     if(bytesReceivedBlock){
         __block ASIHTTPRequest *blockCopy = self;
-        bytesReceivedBlock(blockCopy, bytesReadSoFar, blockCopy->contentLength + blockCopy->partialDownloadSize);
+        bytesReceivedBlock(bytesReadSoFar, blockCopy->contentLength + blockCopy->partialDownloadSize);
     }
 #endif
 	[self setLastBytesRead:bytesReadSoFar];
@@ -1626,7 +1626,7 @@ static NSOperationQueue *sharedQueue = nil;
 #if NS_BLOCKS_AVAILABLE
     if(bytesSentBlock){
         __block ASIHTTPRequest *blockCopy = self;
-        bytesSentBlock(blockCopy, value, blockCopy->postLength);
+        bytesSentBlock(value, blockCopy->postLength);
     }
 #endif
 }
@@ -1638,8 +1638,7 @@ static NSOperationQueue *sharedQueue = nil;
 	[ASIHTTPRequest performSelector:@selector(request:incrementDownloadSizeBy:) onTarget:&downloadProgressDelegate withObject:self amount:&length];
 #if NS_BLOCKS_AVAILABLE
     if(downloadSizeIncrementedBlock){
-        __block ASIHTTPRequest *blockCopy = self;
-        downloadSizeIncrementedBlock(blockCopy, length);
+        downloadSizeIncrementedBlock(length);
     }
 #endif
 }
@@ -1651,8 +1650,7 @@ static NSOperationQueue *sharedQueue = nil;
 	[ASIHTTPRequest performSelector:@selector(request:incrementUploadSizeBy:) onTarget:&uploadProgressDelegate withObject:self amount:&length];
 #if NS_BLOCKS_AVAILABLE
     if(uploadSizeIncrementedBlock){
-        __block ASIHTTPRequest *blockCopy = self;
-        uploadSizeIncrementedBlock(blockCopy, length);
+        uploadSizeIncrementedBlock(length);
     }
 #endif
 }
@@ -1667,7 +1665,7 @@ static NSOperationQueue *sharedQueue = nil;
 #if NS_BLOCKS_AVAILABLE
     if(bytesSentBlock){
         __block ASIHTTPRequest *blockCopy = self;
-        bytesSentBlock(blockCopy, progressToRemove, blockCopy->postLength);
+        bytesSentBlock(progressToRemove, blockCopy->postLength);
     }
 #endif
 }
@@ -2870,8 +2868,7 @@ static NSOperationQueue *sharedQueue = nil;
 #if NS_BLOCKS_AVAILABLE
         if(dataReceivedBlock){
             NSData *data = [NSData dataWithBytes:buffer length:bytesRead];
-            __block ASIHTTPRequest *blockCopy = self;
-            dataReceivedBlock(blockCopy, data);
+            dataReceivedBlock(data);
         }
 #endif
 		

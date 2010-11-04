@@ -20,17 +20,17 @@
 	[request setPostValue:@"test" forKey:@"value2"];
 	[request setPostValue:@"test" forKey:@"value3"];
 	[request setTimeOutSeconds:20];
-    [request setBytesSentBlock:^(ASIHTTPRequest *request, unsigned long long length, unsigned long long total){
+    [request setBytesSentBlock:^(unsigned long long length, unsigned long long total){
         NSLog(@"sent %llu bytes of %llu total", length, total);
     }];
     
-    [request setUploadSizeIncrementedBlock:^(ASIHTTPRequest *request, long long length){
+    [request setUploadSizeIncrementedBlock:^(long long length){
         NSLog(@"upload size incremented = %lld",length);
     }];
-	/*[request setUploadProgressDelegate:progressIndicator];
+	[request setUploadProgressDelegate:progressIndicator];
 	[request setDelegate:self];
 	[request setDidFailSelector:@selector(uploadFailed:)];
-	[request setDidFinishSelector:@selector(uploadFinished:)];*/
+	[request setDidFinishSelector:@selector(uploadFinished:)];
 	
 	//Create a 256KB file
 	NSData *data = [[[NSMutableData alloc] initWithLength:256*1024] autorelease];

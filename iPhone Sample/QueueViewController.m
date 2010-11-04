@@ -17,14 +17,12 @@
 
 - (IBAction)fetchThreeImages:(id)sender
 {
-    ASIHTTPRequestSizeBlock sizeBlock = ^(ASIHTTPRequest *request, long long size){
-        NSDictionary *userInfo = [request userInfo];
-        NSLog(@"request - %@ named = %@ download size incremented %lld", request, [userInfo valueForKey:@"name"], size);
+    ASIHTTPRequestSizeBlock sizeBlock = ^(long long size){
+        NSLog(@"download size incremented %lld", size);
     };
     
-    ASIHTTPRequestProgressBlock bytesBlock = ^(ASIHTTPRequest *request, unsigned long long size, unsigned long long total){
-        NSDictionary *userInfo = [request userInfo];
-        NSLog(@"request - %@ named - %@ downloaded bytes size %llu of total: %llu", request, [userInfo valueForKey:@"name"], size, total);
+    ASIHTTPRequestProgressBlock bytesBlock = ^(unsigned long long size, unsigned long long total){
+        NSLog(@"downloaded bytes size %llu of total: %llu", size, total);
     };
     
 	[imageView1 setImage:nil];

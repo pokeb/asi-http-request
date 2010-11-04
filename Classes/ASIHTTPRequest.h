@@ -66,11 +66,11 @@ extern NSString* const NetworkRequestErrorDomain;
 extern unsigned long const ASIWWANBandwidthThrottleAmount;
 
 #if NS_BLOCKS_AVAILABLE
-typedef void (^ASIHTTPRequestBlock)(ASIHTTPRequest *request);
+typedef void (^ASIHTTPRequestBlock)();
 //typedef BOOL (^ASIHTTPRequestAuthenticationBlock)(ASIHTTPRequest *request);
-typedef void (^ASIHTTPRequestSizeBlock)(ASIHTTPRequest *request, long long size);
-typedef void (^ASIHTTPRequestProgressBlock)(ASIHTTPRequest *request, unsigned long long size, unsigned long long total);
-typedef void (^ASIHTTPRequestDataReceivedBlock)(ASIHTTPRequest *request, NSData *data);
+typedef void (^ASIHTTPRequestSizeBlock)(long long size);
+typedef void (^ASIHTTPRequestProgressBlock)(unsigned long long size, unsigned long long total);
+typedef void (^ASIHTTPRequestDataReceivedBlock)(NSData *data);
 #endif
 
 @interface ASIHTTPRequest : NSOperation <NSCopying> {
