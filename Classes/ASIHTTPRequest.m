@@ -24,7 +24,7 @@
 #import "ASIDataCompressor.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.7-126 2010-10-31";
+NSString *ASIHTTPRequestVersion = @"v1.7-129 2010-11-07";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -3231,7 +3231,7 @@ static NSOperationQueue *sharedQueue = nil;
 		if ([theRequest downloadDestinationPath]) {
 			[theRequest setDownloadDestinationPath:dataPath];
 		} else {
-			[theRequest setRawResponseData:[NSMutableData dataWithContentsOfFile:dataPath]];
+			[theRequest setRawResponseData:[NSMutableData dataWithData:[[self downloadCache] cachedResponseDataForURL:[self url]]]];
 		}
 		[theRequest setContentLength:[[[self responseHeaders] objectForKey:@"Content-Length"] longLongValue]];
 		[theRequest setTotalBytesRead:[self contentLength]];
@@ -3243,6 +3243,11 @@ static NSOperationQueue *sharedQueue = nil;
 	[theRequest setComplete:YES];
 	[theRequest setDownloadComplete:YES];
 	
+	// If we're pulling data from the cache without contacting the server at all, we won't have set originalURL yet
+	if ([self redirectCount] == 0) {
+		[theRequest setOriginalURL:[theRequest url]];
+	}
+
 	[theRequest updateProgressIndicators];
 	[theRequest performSelectorOnMainThread:@selector(requestFinished) withObject:nil waitUntilDone:[NSThread isMainThread]];
 	[theRequest markAsFinished];	
