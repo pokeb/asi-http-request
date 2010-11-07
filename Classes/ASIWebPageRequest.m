@@ -42,6 +42,9 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 
 - (void)dealloc
 {
+	[externalResourceQueue cancelAllOperations];
+	[externalResourceQueue release];
+	[resourceList release];
 	[parentRequest release];
 	[super dealloc];
 }
@@ -158,7 +161,6 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 		doc = htmlReadMemory([data bytes], (int)[data length], "", NULL, HTML_PARSE_NONET | HTML_PARSE_NOWARNING | HTML_PARSE_NOERROR);
 	}
     if (doc == NULL) {
-		xmlFreeDoc(doc);
 		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:101 userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Error: unable to parse reponse XML",NSLocalizedDescriptionKey,nil]]];
 		return;
     }
@@ -168,9 +170,17 @@ static NSMutableArray *requestsUsingXMLParser = nil;
     // Populate the list of URLS to download
     [self readResourceURLs];
 
+	if ([self error] || ![[self resourceList] count]) {
+		[requestsUsingXMLParser removeObject:self];
+		xmlFreeDoc(doc);
+		doc = NULL;
+	}
+
 	[xmlParsingLock unlock];
 
-	if (![[self resourceList] count]) {
+	if ([self error]) {
+		return;
+	} else if (![[self resourceList] count]) {
 		[super requestFinished];
 		[super markAsFinished];
 		return;
@@ -268,36 +278,38 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 
 			[self updateResourceURLs];
 
+			if (![self error]) {
 
-			// We'll use the xmlsave API so we can strip the xml declaration
-			xmlSaveCtxtPtr saveContext;
+				// We'll use the xmlsave API so we can strip the xml declaration
+				xmlSaveCtxtPtr saveContext;
 
-			if ([self downloadDestinationPath]) {
-				saveContext = xmlSaveToFd([[NSFileHandle fileHandleForWritingAtPath:[self downloadDestinationPath]] fileDescriptor],NULL,2); // 2 == XML_SAVE_NO_DECL, this isn't declared on Mac OS 10.5
-				xmlSaveDoc(saveContext, doc);
-				xmlSaveClose(saveContext);
+				if ([self downloadDestinationPath]) {
+					saveContext = xmlSaveToFd([[NSFileHandle fileHandleForWritingAtPath:[self downloadDestinationPath]] fileDescriptor],NULL,2); // 2 == XML_SAVE_NO_DECL, this isn't declared on Mac OS 10.5
+					xmlSaveDoc(saveContext, doc);
+					xmlSaveClose(saveContext);
 
-			} else {
-#if TARGET_OS_MAC && MAC_OS_X_VERSION_MAX_ALLOWED <= __MAC_10_5
-				// xmlSaveToBuffer() is not implemented in the 10.5 version of libxml
-				NSString *tempPath = [NSTemporaryDirectory() stringByAppendingPathComponent:[[NSProcessInfo processInfo] globallyUniqueString]];
-				[[NSFileManager defaultManager] createFileAtPath:tempPath contents:nil attributes:nil];
-				saveContext = xmlSaveToFd([[NSFileHandle fileHandleForWritingAtPath:tempPath] fileDescriptor],NULL,2); // 2 == XML_SAVE_NO_DECL, this isn't declared on Mac OS 10.5
-				xmlSaveDoc(saveContext, doc);
-				xmlSaveClose(saveContext);
-				[self setRawResponseData:[NSMutableData dataWithContentsOfFile:tempPath]];
-#else
-				xmlBufferPtr buffer = xmlBufferCreate();
-				saveContext = xmlSaveToBuffer(buffer,NULL,2); // 2 == XML_SAVE_NO_DECL, this isn't declared on Mac OS 10.5
-				xmlSaveDoc(saveContext, doc);
-				xmlSaveClose(saveContext);
-				[self setRawResponseData:[[[NSMutableData alloc] initWithBytes:buffer->content length:buffer->use] autorelease]];
-				xmlBufferFree(buffer);
-#endif
+				} else {
+	#if TARGET_OS_MAC && MAC_OS_X_VERSION_MAX_ALLOWED <= __MAC_10_5
+					// xmlSaveToBuffer() is not implemented in the 10.5 version of libxml
+					NSString *tempPath = [NSTemporaryDirectory() stringByAppendingPathComponent:[[NSProcessInfo processInfo] globallyUniqueString]];
+					[[NSFileManager defaultManager] createFileAtPath:tempPath contents:nil attributes:nil];
+					saveContext = xmlSaveToFd([[NSFileHandle fileHandleForWritingAtPath:tempPath] fileDescriptor],NULL,2); // 2 == XML_SAVE_NO_DECL, this isn't declared on Mac OS 10.5
+					xmlSaveDoc(saveContext, doc);
+					xmlSaveClose(saveContext);
+					[self setRawResponseData:[NSMutableData dataWithContentsOfFile:tempPath]];
+	#else
+					xmlBufferPtr buffer = xmlBufferCreate();
+					saveContext = xmlSaveToBuffer(buffer,NULL,2); // 2 == XML_SAVE_NO_DECL, this isn't declared on Mac OS 10.5
+					xmlSaveDoc(saveContext, doc);
+					xmlSaveClose(saveContext);
+					[self setRawResponseData:[[[NSMutableData alloc] initWithBytes:buffer->content length:buffer->use] autorelease]];
+					xmlBufferFree(buffer);
+	#endif
+				}
+
+				// libxml will generate UTF-8
+				[self setResponseEncoding:NSUTF8StringEncoding];
 			}
-
-			// libxml will generate UTF-8
-			[self setResponseEncoding:NSUTF8StringEncoding];
 
 			xmlFreeDoc(doc);
 			doc = nil;
@@ -339,7 +351,6 @@ static NSMutableArray *requestsUsingXMLParser = nil;
     xmlXPathObjectPtr xpathObj = xmlXPathEvalExpression(xpathExpr, xpathCtx);
     if(xpathObj == NULL) {
         xmlXPathFreeContext(xpathCtx); 
-        xmlFreeDoc(doc); 
 		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:101 userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Error: unable to evaluate XPath expression!",NSLocalizedDescriptionKey,nil]]];
 		return;
     }
@@ -353,14 +364,21 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 		assert(nodes->nodeTab[i]);
 		NSString *parentName  = [NSString stringWithCString:(char *)nodes->nodeTab[i]->parent->name encoding:[self responseEncoding]];
 		NSString *nodeName = [NSString stringWithCString:(char *)nodes->nodeTab[i]->name encoding:[self responseEncoding]];
-		NSString *value = [NSString stringWithCString:(char *)xmlNodeGetContent(nodes->nodeTab[i]) encoding:[self responseEncoding]];
+
+		xmlChar *nodeValue = xmlNodeGetContent(nodes->nodeTab[i]);
+		NSString *value = [NSString stringWithCString:(char *)nodeValue encoding:[self responseEncoding]];
+		xmlFree(nodeValue);
 
 		// Our xpath query matched all <link> elements, but we're only interested in stylesheets
 		// We do the work here rather than in the xPath query because the query is case-sensitive, and we want to match on 'stylesheet', 'StyleSHEEt' etc
 		if ([[parentName lowercaseString] isEqualToString:@"link"]) {
-			NSString *rel = [NSString stringWithCString:(char *)xmlGetNoNsProp(nodes->nodeTab[i]->parent,(xmlChar *)"rel") encoding:[self responseEncoding]];
-			if ([[rel lowercaseString] isEqualToString:@"stylesheet"]) {
-				[self addURLToFetch:value];
+			xmlChar *relAttribute = xmlGetNoNsProp(nodes->nodeTab[i]->parent,(xmlChar *)"rel");
+			if (relAttribute) {
+				NSString *rel = [NSString stringWithCString:(char *)relAttribute encoding:[self responseEncoding]];
+				xmlFree(relAttribute);
+				if ([[rel lowercaseString] isEqualToString:@"stylesheet"]) {
+					[self addURLToFetch:value];
+				}
 			}
 
 		// Parse the content of <style> tags and style attributes to find external image urls or external css files
@@ -414,7 +432,6 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 	// Create xpath evaluation context
 	xmlXPathContextPtr xpathCtx = xmlXPathNewContext(doc);
 	if(xpathCtx == NULL) {
-		xmlFreeDoc(doc);
 		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:101 userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Error: unable to create new XPath context",NSLocalizedDescriptionKey,nil]]];
 		return;
 	}
@@ -423,7 +440,6 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 	xmlXPathObjectPtr xpathObj = xmlXPathEvalExpression(xpathExpr, xpathCtx);
 	if(xpathObj == NULL) {
 		xmlXPathFreeContext(xpathCtx);
-		xmlFreeDoc(doc);
 		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:101 userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Error: unable to evaluate XPath expression!",NSLocalizedDescriptionKey,nil]]];
 		return;
 	}
@@ -436,7 +452,10 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 		assert(nodes->nodeTab[i]);
 		NSString *parentName  = [NSString stringWithCString:(char *)nodes->nodeTab[i]->parent->name encoding:[self responseEncoding]];
 		NSString *nodeName  = [NSString stringWithCString:(char *)nodes->nodeTab[i]->name encoding:[self responseEncoding]];
-		NSString *value = [NSString stringWithCString:(char *)xmlNodeGetContent(nodes->nodeTab[i]) encoding:[self responseEncoding]];
+
+		xmlChar *nodeValue = xmlNodeGetContent(nodes->nodeTab[i]);
+		NSString *value = [NSString stringWithCString:(char *)nodeValue encoding:[self responseEncoding]];
+		xmlFree(nodeValue);
 
 		// Replace external urls in <style> tags or in style attributes
 		if ([[nodeName lowercaseString] isEqualToString:@"style"]) {
