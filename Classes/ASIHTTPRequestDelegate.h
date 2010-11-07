@@ -24,6 +24,11 @@
 // You can have the request call a different method by setting didReceiveDataSelector
 - (void)request:(ASIHTTPRequest *)request didReceiveData:(NSData *)data;
 
+// If the delegate implements this method, the will call this method on a time out
+// This method is useful when the didReceiveData method was implemented on the delegate and the data 
+// is required to be refreshed on before a retry
+- (void)requestTimedOut:(ASIHTTPRequest *)request;
+
 // If a delegate implements one of these, it will be asked to supply credentials when none are available
 // The delegate can then either restart the request ([request retryUsingSuppliedCredentials]) once credentials have been set
 // or cancel it ([request cancelAuthentication])

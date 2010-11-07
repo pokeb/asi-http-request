@@ -187,7 +187,6 @@ static NSOperationQueue *sharedQueue = nil;
 @property (assign) int responseStatusCode;
 @property (retain, nonatomic) NSDate *lastActivityTime;
 @property (assign) unsigned long long contentLength;
-@property (assign) unsigned long long partialDownloadSize;
 @property (assign, nonatomic) unsigned long long uploadBufferSize;
 @property (assign) NSStringEncoding responseEncoding;
 @property (retain, nonatomic) NSOutputStream *postBodyWriteStream;
@@ -282,6 +281,7 @@ static NSOperationQueue *sharedQueue = nil;
 	[self setDidFinishSelector:@selector(requestFinished:)];
 	[self setDidFailSelector:@selector(requestFailed:)];
 	[self setDidReceiveDataSelector:@selector(request:didReceiveData:)];
+	[self setDidTimeOutSelector:@selector(requestTimedOut:)];
 	[self setURL:newURL];
 	[self setCancelledLock:[[[NSRecursiveLock alloc] init] autorelease]];
 	[self setDownloadCache:[[self class] defaultCache]];
@@ -856,7 +856,10 @@ static NSOperationQueue *sharedQueue = nil;
 	
 	// Should this request resume an existing download?
 	[self updatePartialDownloadSize];
-	if ([self partialDownloadSize]) {
+	if ([self endByte]) {
+		[self addRequestHeader:@"Range" value:[NSString stringWithFormat:@"bytes=%llu-%llu",[self partialDownloadSize],[self endByte] ] ];
+		
+	}else if ([self partialDownloadSize]) {
 		[self addRequestHeader:@"Range" value:[NSString stringWithFormat:@"bytes=%llu-",[self partialDownloadSize]]];
 	}
 }
@@ -1264,13 +1267,17 @@ static NSOperationQueue *sharedQueue = nil;
 	
 	[self performThrottling];
 	
-	if ([self shouldTimeOut]) {			
+	if ([self shouldTimeOut]) {	
+		[self requestTimedOut];
 		// Do we need to auto-retry this request?
 		if ([self numberOfTimesToRetryOnTimeout] > [self retryCount]) {
 
 			// If we are resuming a download, we may need to update the Range header to take account of data we've just downloaded
 			[self updatePartialDownloadSize];
-			if ([self partialDownloadSize]) {
+			if ([self endByte]) {
+				CFHTTPMessageSetHeaderFieldValue(request, (CFStringRef)@"Range", (CFStringRef)[NSString stringWithFormat:@"bytes=%llu-%llu",[self partialDownloadSize],[self endByte] ]);
+				
+			}else if ([self partialDownloadSize]) {
 				CFHTTPMessageSetHeaderFieldValue(request, (CFStringRef)@"Range", (CFStringRef)[NSString stringWithFormat:@"bytes=%llu-",[self partialDownloadSize]]);
 			}
 			[self setRetryCount:[self retryCount]+1];
@@ -1698,6 +1705,11 @@ static NSOperationQueue *sharedQueue = nil;
 	
 	// Let the queue know we have started
 	[self callSelectorOnMainThread:&queueRequestStartedSelector forDelegate:&queue];
+}
+
+- (void)requestTimedOut
+{
+	[self callSelectorOnMainThread:&didTimeOutSelector forDelegate:&delegate];
 }
 
 // Subclasses might override this method to process the result in the same thread
@@ -3125,6 +3137,8 @@ static NSOperationQueue *sharedQueue = nil;
 {
 	// Don't forget - this will return a retained copy!
 	ASIHTTPRequest *newRequest = [[[self class] alloc] initWithURL:[self url]];
+	[newRequest setPartialDownloadSize:[self partialDownloadSize]];
+	[newRequest setEndByte:[self endByte]];
 	[newRequest setDelegate:[self delegate]];
 	[newRequest setRequestMethod:[self requestMethod]];
 	[newRequest setPostBody:[self postBody]];
@@ -3156,6 +3170,8 @@ static NSOperationQueue *sharedQueue = nil;
 	[newRequest setDidStartSelector:[self didStartSelector]];
 	[newRequest setDidFinishSelector:[self didFinishSelector]];
 	[newRequest setDidFailSelector:[self didFailSelector]];
+	[newRequest setDidReceiveDataSelector:[self didReceiveDataSelector]];
+	[newRequest setDidTimeOutSelector:[self didTimeOutSelector]];
 	[newRequest setTimeOutSeconds:[self timeOutSeconds]];
 	[newRequest setShouldResetDownloadProgress:[self shouldResetDownloadProgress]];
 	[newRequest setShouldResetUploadProgress:[self shouldResetUploadProgress]];
@@ -4177,6 +4193,7 @@ static NSOperationQueue *sharedQueue = nil;
 @synthesize didFinishSelector;
 @synthesize didFailSelector;
 @synthesize didReceiveDataSelector;
+@synthesize didTimeOutSelector;
 @synthesize authenticationRealm;
 @synthesize proxyAuthenticationRealm;
 @synthesize error;
@@ -4195,6 +4212,7 @@ static NSOperationQueue *sharedQueue = nil;
 @synthesize compressedPostBody;
 @synthesize contentLength;
 @synthesize partialDownloadSize;
+@synthesize endByte;
 @synthesize postLength;
 @synthesize shouldResetDownloadProgress;
 @synthesize shouldResetUploadProgress;
