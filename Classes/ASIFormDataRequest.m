@@ -98,9 +98,33 @@
 - (void)buildPostBody
 {
 	if (![self postData] && ![self fileData]) {
-		[super buildPostBody];
-		return;
+        [super buildPostBody];
+        return;
 	}
+    if ([self postData] && ![self fileData]) {
+        // The request does not need to be multi-part if we have only post data
+        [self addRequestHeader:@"Content-Type" value:@"application/x-www-form-urlencoded"];
+
+        NSArray *postDataKeys = [[self postData] allKeys];
+        NSMutableString *urlParameterString = [NSMutableString string];
+        BOOL appendAmpersand = NO;
+        for (NSString *key in postDataKeys) {
+            if (appendAmpersand) {
+                [urlParameterString appendString:@"&"];
+            } else {
+                appendAmpersand = YES;
+            }
+
+            NSString *urlEncodedKey = (NSString *)CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef)key, NULL, CFSTR("!*'();:@&=+$,/?%#[]%"), kCFStringEncodingUTF8);
+            NSString *urlEncodedValue = (NSString *)CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef)[[self postData] objectForKey:key], NULL, CFSTR("!*'();:@&=+$,/?%#[]%"), kCFStringEncodingUTF8);
+            [urlParameterString appendFormat:@"%@=%@", urlEncodedKey, urlEncodedValue];
+        }
+        [self appendPostData:[urlParameterString dataUsingEncoding:NSUTF8StringEncoding]];
+
+        [super buildPostBody];
+        return;
+    }
+
 	if ([[self fileData] count] > 0) {
 		[self setShouldStreamPostDataFromDisk:YES];
 	}
