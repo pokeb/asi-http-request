@@ -11,6 +11,7 @@
 #import "ASINetworkQueue.h"
 #import "ASIFormDataRequest.h"
 #import <SystemConfiguration/SystemConfiguration.h>
+#import <unistd.h>
 
 // Used for subclass test
 @interface ASIHTTPRequestSubclass : ASIHTTPRequest {}
@@ -680,7 +681,7 @@
 	finished = NO;
 	[self setResponseData:[NSMutableData data]];
 
-	NSURL *url = [[[NSURL alloc] initWithString:@"http://asi/ASIHTTPRequest/tests/the_hound_of_the_baskervilles.text"] autorelease];
+	NSURL *url = [[[NSURL alloc] initWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_hound_of_the_baskervilles.text"] autorelease];
 
 	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request startSynchronous];
@@ -1610,7 +1611,7 @@
 	GHAssertTrue(success,@"Should not be able to re-use a request sent with Connection:close");
 	
 	// Ensure we close the connection when authentication is needed
-	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/close-connection-auth-needed"]];
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/close-connection-auth-needed"]];
 	[request startSynchronous];
 	
 	success = ![request connectionCanBeReused];

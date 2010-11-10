@@ -25,7 +25,6 @@
 	[request setShouldContinueWhenAppEntersBackground:YES];
 	#endif
 	[request setUploadProgressDelegate:progressIndicator];
-
 	[request setDelegate:self];
 	[request setDidFailSelector:@selector(uploadFailed:)];
 	[request setDidFinishSelector:@selector(uploadFinished:)];

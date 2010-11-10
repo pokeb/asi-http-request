@@ -24,7 +24,7 @@
 #import "ASIDataCompressor.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.7-135 2010-11-10";
+NSString *ASIHTTPRequestVersion = @"v1.7-137 2010-11-10";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -1614,8 +1614,8 @@ static NSOperationQueue *sharedQueue = nil;
 
 	#if NS_BLOCKS_AVAILABLE
     if (bytesReceivedBlock) {
-		__block ASIHTTPRequest *blockCopy = self;
-		[self performBlockOnMainThread:^{ if (bytesReceivedBlock) { bytesReceivedBlock(blockCopy, value, [self contentLength] + [self partialDownloadSize]); }}];
+		unsigned long long totalSize = [self contentLength] + [self partialDownloadSize];
+		[self performBlockOnMainThread:^{ if (bytesReceivedBlock) { bytesReceivedBlock(value, totalSize); }}];
     }
 	#endif
 	[self setLastBytesRead:bytesReadSoFar];
@@ -1658,8 +1658,8 @@ static NSOperationQueue *sharedQueue = nil;
 
 	#if NS_BLOCKS_AVAILABLE
     if(bytesSentBlock){
-		__block ASIHTTPRequest *blockCopy = self;
-		[self performBlockOnMainThread:^{ if (bytesSentBlock) { bytesSentBlock(blockCopy, value, blockCopy->postLength); }}];
+		unsigned long long totalSize = [self postLength];
+		[self performBlockOnMainThread:^{ if (bytesSentBlock) { bytesSentBlock(value, totalSize); }}];
 	}
 	#endif
 }
@@ -1672,8 +1672,7 @@ static NSOperationQueue *sharedQueue = nil;
 
 	#if NS_BLOCKS_AVAILABLE
     if(downloadSizeIncrementedBlock){
-		__block ASIHTTPRequest *blockCopy = self;
-		[self performBlockOnMainThread:^{ if (downloadSizeIncrementedBlock) { downloadSizeIncrementedBlock(blockCopy, length); }}];
+		[self performBlockOnMainThread:^{ if (downloadSizeIncrementedBlock) { downloadSizeIncrementedBlock(length); }}];
     }
 	#endif
 }
@@ -1684,9 +1683,8 @@ static NSOperationQueue *sharedQueue = nil;
 	[ASIHTTPRequest performSelector:@selector(request:incrementUploadSizeBy:) onTarget:&uploadProgressDelegate withObject:self amount:&length callerToRetain:self];
 
 	#if NS_BLOCKS_AVAILABLE
-    if(uploadSizeIncrementedBlock){
-		__block ASIHTTPRequest *blockCopy = self;
-		[self performBlockOnMainThread:^{ if (uploadSizeIncrementedBlock) { uploadSizeIncrementedBlock(blockCopy, length); }}];
+    if(uploadSizeIncrementedBlock) {
+		[self performBlockOnMainThread:^{ if (uploadSizeIncrementedBlock) { uploadSizeIncrementedBlock(length); }}];
     }
 	#endif
 }
@@ -1701,8 +1699,8 @@ static NSOperationQueue *sharedQueue = nil;
 
 	#if NS_BLOCKS_AVAILABLE
     if(bytesSentBlock){
-		__block ASIHTTPRequest *blockCopy = self;
-		[self performBlockOnMainThread:^{  if (bytesSentBlock) { bytesSentBlock(blockCopy, progressToRemove, blockCopy->postLength); }}];
+		unsigned long long totalSize = [self postLength];
+		[self performBlockOnMainThread:^{  if (bytesSentBlock) { bytesSentBlock(progressToRemove, totalSize); }}];
 	}
 	#endif
 }
@@ -1815,8 +1813,7 @@ static NSOperationQueue *sharedQueue = nil;
 	}
 	#if NS_BLOCKS_AVAILABLE
 	if(startedBlock){
-		__block ASIHTTPRequest *blockCopy = self;
-		startedBlock(blockCopy);
+		startedBlock();
 	}
 	#endif
 }
@@ -1833,8 +1830,7 @@ static NSOperationQueue *sharedQueue = nil;
 	}
 	#if NS_BLOCKS_AVAILABLE
 	if(requestRedirectedBlock){
-		__block ASIHTTPRequest *blockCopy = self;
-		requestRedirectedBlock(blockCopy);
+		requestRedirectedBlock();
 	}
 	#endif
 }
@@ -1856,8 +1852,7 @@ static NSOperationQueue *sharedQueue = nil;
     
 	#if NS_BLOCKS_AVAILABLE
 	if(headersReceivedBlock){
-		__block ASIHTTPRequest *blockCopy = self;
-		headersReceivedBlock(blockCopy);
+		headersReceivedBlock(newResponseHeaders);
     }
 	#endif
 }
@@ -1897,7 +1892,7 @@ static NSOperationQueue *sharedQueue = nil;
 	#if NS_BLOCKS_AVAILABLE
 	if(completionBlock){
 		__block ASIHTTPRequest *blockCopy = self;
-		completionBlock(blockCopy);
+		completionBlock();
 	}
 	#endif
 }
@@ -1913,8 +1908,7 @@ static NSOperationQueue *sharedQueue = nil;
 	}
 	#if NS_BLOCKS_AVAILABLE
     if(failureBlock){
-        __block ASIHTTPRequest *blockCopy = self;
-        failureBlock(blockCopy);
+        failureBlock();
     }
 	#endif
 }
@@ -1928,8 +1922,7 @@ static NSOperationQueue *sharedQueue = nil;
 
 	#if NS_BLOCKS_AVAILABLE
 	if (dataReceivedBlock) {
-		__block ASIHTTPRequest *blockCopy = self;
-		dataReceivedBlock(blockCopy, data);
+		dataReceivedBlock(data);
 	}
 	#endif
 }
@@ -2480,8 +2473,7 @@ static NSOperationQueue *sharedQueue = nil;
 	}
 	#if NS_BLOCKS_AVAILABLE
 	if(proxyAuthenticationNeededBlock){
-		__block ASIHTTPRequest *blockCopy = self;
-		proxyAuthenticationNeededBlock(blockCopy);
+		proxyAuthenticationNeededBlock();
 	}
 	#endif
 }
@@ -2529,7 +2521,7 @@ static NSOperationQueue *sharedQueue = nil;
 	
 	#if NS_BLOCKS_AVAILABLE
 	if (authenticationNeededBlock) {
-		authenticationNeededBlock(self);
+		authenticationNeededBlock();
 	}
 	#endif	
 }
@@ -4326,70 +4318,70 @@ static NSOperationQueue *sharedQueue = nil;
 #pragma mark -
 #pragma mark blocks
 #if NS_BLOCKS_AVAILABLE
-- (void)setStartedBlock:(ASIHTTPRequestBlock)aStartedBlock
+- (void)setStartedBlock:(ASIBasicBlock)aStartedBlock
 {
 	[startedBlock release];
 	startedBlock = [aStartedBlock copy];
 }
 
-- (void)setHeadersReceivedBlock:(ASIHTTPRequestBlock)aReceivedBlock
+- (void)setHeadersReceivedBlock:(ASIHeadersBlock)aReceivedBlock
 {
 	[headersReceivedBlock release];
 	headersReceivedBlock = [aReceivedBlock copy];
 }
 
-- (void)setCompletionBlock:(ASIHTTPRequestBlock)aCompletionBlock
+- (void)setCompletionBlock:(ASIBasicBlock)aCompletionBlock
 {
 	[completionBlock release];
 	completionBlock = [aCompletionBlock copy];
 }
 
-- (void)setFailedBlock:(ASIHTTPRequestBlock)aFailedBlock
+- (void)setFailedBlock:(ASIBasicBlock)aFailedBlock
 {
 	[failureBlock release];
 	failureBlock = [aFailedBlock copy];
 }
 
-- (void)setBytesReceivedBlock:(ASIHTTPRequestProgressBlock) aBytesReceivedBlock
+- (void)setBytesReceivedBlock:(ASIProgressBlock)aBytesReceivedBlock
 {
 	[bytesReceivedBlock release];
 	bytesReceivedBlock = [aBytesReceivedBlock copy];
 }
 
-- (void)setBytesSentBlock:(ASIHTTPRequestProgressBlock)aBytesSentBlock
+- (void)setBytesSentBlock:(ASIProgressBlock)aBytesSentBlock
 {
 	[bytesSentBlock release];
 	bytesSentBlock = [aBytesSentBlock copy];
 }
 
-- (void)setDownloadSizeIncrementedBlock:(ASIHTTPRequestSizeBlock) aDownloadSizeIncrementedBlock{
+- (void)setDownloadSizeIncrementedBlock:(ASISizeBlock)aDownloadSizeIncrementedBlock{
 	[downloadSizeIncrementedBlock release];
 	downloadSizeIncrementedBlock = [aDownloadSizeIncrementedBlock copy];
 }
 
-- (void)setUploadSizeIncrementedBlock:(ASIHTTPRequestSizeBlock) anUploadSizeIncrementedBlock
+- (void)setUploadSizeIncrementedBlock:(ASISizeBlock)anUploadSizeIncrementedBlock
 {
 	[uploadSizeIncrementedBlock release];
 	uploadSizeIncrementedBlock = [anUploadSizeIncrementedBlock copy];
 }
 
-- (void)setDataReceivedBlock:(ASIHTTPRequestDataReceivedBlock)aReceivedBlock
+- (void)setDataReceivedBlock:(ASIDataBlock)aReceivedBlock
 {
 	[dataReceivedBlock release];
 	dataReceivedBlock = [aReceivedBlock copy];
 }
 
-- (void)setAuthenticationNeededBlock:(ASIHTTPRequestBlock)anAuthenticationBlock
+- (void)setAuthenticationNeededBlock:(ASIBasicBlock)anAuthenticationBlock
 {
 	[authenticationNeededBlock release];
 	authenticationNeededBlock = [anAuthenticationBlock copy];
 }
-- (void)setProxyAuthenticationNeededBlock:(ASIHTTPRequestBlock)aProxyAuthenticationBlock
+- (void)setProxyAuthenticationNeededBlock:(ASIBasicBlock)aProxyAuthenticationBlock
 {
 	[proxyAuthenticationNeededBlock release];
 	proxyAuthenticationNeededBlock = [aProxyAuthenticationBlock copy];
 }
-- (void)setRequestRedirectedBlock:(ASIHTTPRequestBlock)aRedirectBlock
+- (void)setRequestRedirectedBlock:(ASIBasicBlock)aRedirectBlock
 {
 	[requestRedirectedBlock release];
 	requestRedirectedBlock = [aRedirectBlock copy];

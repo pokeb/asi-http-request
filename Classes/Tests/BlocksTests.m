@@ -23,8 +23,8 @@
 {
 	NSURL *url = [NSURL URLWithString:@"http://allseeing-i.com"];
 	UIWebView *webView = [[[UIWebView alloc] initWithFrame:CGRectMake(0,0,200,200)] autorelease];
-	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:url];
-	[request setCompletionBlock:^(ASIHTTPRequest *request) {[webView loadHTMLString:[request responseString] baseURL:url]; }];
+	__block ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:url];
+	[request setCompletionBlock:^ {[webView loadHTMLString:[request responseString] baseURL:url]; }];
 	[request startAsynchronous];
 }
 #endif
@@ -43,32 +43,33 @@
 	__block unsigned long long totalUploadSize = 0;	
 	NSMutableData *dataReceived = [NSMutableData data];
 	
-	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/blocks"]];
-	[request setStartedBlock:^(ASIHTTPRequest *request) {
+	// There's actually no need for us to use '__block' here, because we aren't using the request inside any of our blocks, but it's good to get into the habit of doing this anyway.
+	__block ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/blocks"]];
+	[request setStartedBlock:^{
 		started = YES;
 	}];
-	[request setHeadersReceivedBlock:^(ASIHTTPRequest *request) {
+	[request setHeadersReceivedBlock:^(NSDictionary *headers) {
 		receivedHeaders = YES;
 	}];
-	[request setCompletionBlock:^(ASIHTTPRequest *request) {
+	[request setCompletionBlock:^{
 		complete = YES;
 	}];
-	[request setFailedBlock:^(ASIHTTPRequest *request) {
+	[request setFailedBlock:^{
 		failed = YES;
 	}];
-	[request setBytesReceivedBlock:^(ASIHTTPRequest *aRequest, unsigned long long length, unsigned long long total) {
+	[request setBytesReceivedBlock:^(unsigned long long length, unsigned long long total) {
 		totalBytesReceived += length;
 	}];
-	[request setDownloadSizeIncrementedBlock:^(ASIHTTPRequest *aRequest, long long length){
+	[request setDownloadSizeIncrementedBlock:^(long long length){
 		totalDownloadSize += length;
 	}];
-	[request setBytesSentBlock:^(ASIHTTPRequest *aRequest, unsigned long long length, unsigned long long total) {
+	[request setBytesSentBlock:^(unsigned long long length, unsigned long long total) {
 		totalBytesSent += length;
 	}];
-	[request setUploadSizeIncrementedBlock:^(ASIHTTPRequest *aRequest, long long length){
+	[request setUploadSizeIncrementedBlock:^(long long length){
 		totalUploadSize += length;
 	}];
-	[request setDataReceivedBlock:^(ASIHTTPRequest *aRequest, NSData *data){
+	[request setDataReceivedBlock:^(NSData *data){
         [dataReceived appendData:data];
     }];
 	
@@ -93,7 +94,7 @@
 	
 	
 	request = [ASIHTTPRequest requestWithURL:nil];
-	[request setFailedBlock:^(ASIHTTPRequest *request) {
+	[request setFailedBlock:^{
 		failed = YES;
 	}];
 	[request startSynchronous];

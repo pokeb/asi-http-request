@@ -4,10 +4,6 @@
 
 // See: https://devforums.apple.com/thread/66169?start=25&tstart=0
 #import <TargetConditionals.h>
-#if TARGET_IPHONE_SIMULATOR
-#define __IPHONE_OS_VERSION_MIN_REQUIRED 040100
-#warning "Remove This in SDK 4.2, needed because of a bug in SDK 4.1"
-#endif
 
 #ifdef __OBJC__
     #import <Foundation/Foundation.h>
