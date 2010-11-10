@@ -931,7 +931,7 @@
 				);
 				PRODUCT_NAME = Tests;
 				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
-				SDKROOT = iphoneos4.1;
+				SDKROOT = iphoneos;
 				WARNING_CFLAGS = "";
 			};
 			name = Debug;
@@ -967,7 +967,7 @@
 				PREBINDING = NO;
 				PRODUCT_NAME = Tests;
 				PROVISIONING_PROFILE = "";
-				SDKROOT = iphoneos4.1;
+				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 			};
 			name = Release;

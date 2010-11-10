@@ -24,7 +24,7 @@
 #import "ASIDataCompressor.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.7-131 2010-11-07";
+NSString *ASIHTTPRequestVersion = @"v1.7-132 2010-11-10";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -178,6 +178,7 @@ static NSOperationQueue *sharedQueue = nil;
 
 #if NS_BLOCKS_AVAILABLE
 - (void)performBlockOnMainThread:(ASIBasicBlock)block;
+- (void)releaseBlocksOnMainThread;
 #endif
 
 @property (assign) BOOL complete;
@@ -362,20 +363,58 @@ static NSOperationQueue *sharedQueue = nil;
 	[dataDecompressor release];
 
 	#if NS_BLOCKS_AVAILABLE
-	[completionBlock release];
-	[failureBlock release];
-	[startedBlock release];
-	[headersReceivedBlock release];
-	[bytesReceivedBlock release];
-	[bytesSentBlock release];
-	[downloadSizeIncrementedBlock release];
-	[uploadSizeIncrementedBlock release];
-	[dataReceivedBlock release];
-	[proxyAuthenticationNeededBlock release];
-	[authenticationNeededBlock release];
+	[self releaseBlocksOnMainThread];
 	#endif
+
 	[super dealloc];
 }
+
+#if NS_BLOCKS_AVAILABLE
+- (void)releaseBlocksOnMainThread
+{
+	NSMutableArray *blocks = [NSMutableArray array];
+	if (completionBlock) {
+		[blocks addObject:completionBlock];
+	}
+	if (failureBlock) {
+		[blocks addObject:failureBlock];
+	}
+	if (startedBlock) {
+		[blocks addObject:startedBlock];
+	}
+	if (headersReceivedBlock) {
+		[blocks addObject:headersReceivedBlock];
+	}
+	if (bytesReceivedBlock) {
+		[blocks addObject:bytesReceivedBlock];
+	}
+	if (bytesSentBlock) {
+		[blocks addObject:bytesSentBlock];
+	}
+	if (downloadSizeIncrementedBlock) {
+		[blocks addObject:downloadSizeIncrementedBlock];
+	}
+	if (uploadSizeIncrementedBlock) {
+		[blocks addObject:uploadSizeIncrementedBlock];
+	}
+	if (dataReceivedBlock) {
+		[blocks addObject:dataReceivedBlock];
+	}
+	if (proxyAuthenticationNeededBlock) {
+		[blocks addObject:proxyAuthenticationNeededBlock];
+	}
+	if (authenticationNeededBlock) {
+		[blocks addObject:authenticationNeededBlock];
+	}
+	[[self class] performSelectorOnMainThread:@selector(releaseBlocks:) withObject:blocks waitUntilDone:[NSThread isMainThread]];
+}
+// Always called on main thread
++ (void)releaseBlocks:(NSArray *)blocks
+{
+	// Blocks will be released when this method exits
+}
+#endif
+
 
 #pragma mark setup request
 

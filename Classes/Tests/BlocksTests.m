@@ -17,6 +17,18 @@
 - (BOOL)shouldRunOnMainThread { return YES; }
 
 #if NS_BLOCKS_AVAILABLE
+#if TARGET_OS_IPHONE
+// It isn't safe to allow the view to deallocate on a thread other than the main thread / web thread, so this test is designed to cause a crash semi-reliably
+- (void)testBlockMainThreadSafety
+{
+	NSURL *url = [NSURL URLWithString:@"http://allseeing-i.com"];
+	UIWebView *webView = [[[UIWebView alloc] initWithFrame:CGRectMake(0,0,200,200)] autorelease];
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:url];
+	[request setCompletionBlock:^(ASIHTTPRequest *request) {[webView loadHTMLString:[request responseString] baseURL:url]; }];
+	[request startAsynchronous];
+}
+#endif
+
 - (void)testBlocks
 {
 	NSData *dataToSend = [@"This is my post body" dataUsingEncoding:NSUTF8StringEncoding];
