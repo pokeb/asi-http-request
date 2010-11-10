@@ -24,7 +24,7 @@
 #import "ASIDataCompressor.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.7-133 2010-11-10";
+NSString *ASIHTTPRequestVersion = @"v1.7-134 2010-11-10";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -3076,7 +3076,7 @@ static NSOperationQueue *sharedQueue = nil;
 #if DEBUG_REQUEST_STATUS
 	NSLog(@"Request %@ finished downloading data (%qu bytes)",self, [self totalBytesRead]);
 #endif
-	
+	[self setStatusTimer:nil];
 	[self setDownloadComplete:YES];
 	
 	if (![self responseHeaders]) {
@@ -3194,7 +3194,6 @@ static NSOperationQueue *sharedQueue = nil;
 		
 	// If request has asked delegate or ASIAuthenticationDialog for credentials
 	} else if ([self authenticationNeeded]) {
-		[self setStatusTimer:nil];
 		CFRunLoopStop(CFRunLoopGetCurrent());
 	}
 
@@ -3225,7 +3224,6 @@ static NSOperationQueue *sharedQueue = nil;
         [self willChangeValueForKey:@"isExecuting"];
 
 	[self setInProgress:NO];
-	[self setStatusTimer:nil];
     finished = YES;
 
     if (wasInProgress)
