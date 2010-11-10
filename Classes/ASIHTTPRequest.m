@@ -24,7 +24,7 @@
 #import "ASIDataCompressor.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.7-132 2010-11-10";
+NSString *ASIHTTPRequestVersion = @"v1.7-133 2010-11-10";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -3355,33 +3355,15 @@ static NSOperationQueue *sharedQueue = nil;
 
 #pragma mark managing the read stream
 
-
-
 - (void)destroyReadStream
 {
     if ([self readStream]) {
-		CFReadStreamSetClient((CFReadStreamRef)[self readStream], kCFStreamEventNone, NULL, NULL);
-		[connectionsLock lock];
-
-		if ([self readStreamIsScheduled]) {
-			runningRequestCount--;
-			if (shouldUpdateNetworkActivityIndicator && runningRequestCount == 0) {
-				// This call will wait half a second before turning off the indicator
-				// This can prevent flicker when you have a single request finish and then immediately start another request
-				// We run this on the main thread because we have no guarantee this thread will have a runloop in 0.5 seconds time
-				// We don't bother the cancel this call if we start a new request, because we'll check if requests are running before we hide it
-				[[self class] performSelectorOnMainThread:@selector(hideNetworkActivityIndicatorAfterDelay) withObject:nil waitUntilDone:[NSThread isMainThread]];
-			}
-		}
-
-		[self setReadStreamIsScheduled:NO];
-
+		[self unscheduleReadStream];
 		if (![self connectionCanBeReused]) {
 			[[self readStream] removeFromRunLoop:[NSRunLoop currentRunLoop] forMode:[self runLoopMode]];
 			[[self readStream] close];
 		}
 		[self setReadStream:nil];
-		[connectionsLock unlock];
     }	
 }
 
@@ -3398,6 +3380,8 @@ static NSOperationQueue *sharedQueue = nil;
 
 		// Reset the timeout
 		[self setLastActivityTime:[NSDate date]];
+		CFStreamClientContext ctxt = {0, self, NULL, NULL, NULL};
+		CFReadStreamSetClient((CFReadStreamRef)[self readStream], kNetworkEvents, ReadStreamClientCallBack, &ctxt);
 		[[self readStream] scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:[self runLoopMode]];
 		[self setReadStreamIsScheduled:YES];
 	}
@@ -3411,11 +3395,15 @@ static NSOperationQueue *sharedQueue = nil;
 		[connectionsLock lock];
 		runningRequestCount--;
 		if (shouldUpdateNetworkActivityIndicator && runningRequestCount == 0) {
-			// See comment in destroyReadStream for more info
+			// This call will wait half a second before turning off the indicator
+			// This can prevent flicker when you have a single request finish and then immediately start another request
+			// We run this on the main thread because we have no guarantee this thread will have a runloop in 0.5 seconds time
+			// We don't bother the cancel this call if we start a new request, because we'll check if requests are running before we hide it
 			[[self class] performSelectorOnMainThread:@selector(hideNetworkActivityIndicatorAfterDelay) withObject:nil waitUntilDone:[NSThread isMainThread]];
 		}
 		[connectionsLock unlock];
 
+		CFReadStreamSetClient((CFReadStreamRef)[self readStream], kCFStreamEventNone, NULL, NULL);
 		[[self readStream] removeFromRunLoop:[NSRunLoop currentRunLoop] forMode:[self runLoopMode]];
 		[self setReadStreamIsScheduled:NO];
 	}
