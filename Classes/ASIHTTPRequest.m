@@ -1615,7 +1615,7 @@ static NSOperationQueue *sharedQueue = nil;
 	#if NS_BLOCKS_AVAILABLE
     if (bytesReceivedBlock) {
 		__block ASIHTTPRequest *blockCopy = self;
-		[self performBlockOnMainThread:^{ bytesReceivedBlock(blockCopy, value, [self contentLength] + [self partialDownloadSize]); }];
+		[self performBlockOnMainThread:^{ if (bytesReceivedBlock) { bytesReceivedBlock(blockCopy, value, [self contentLength] + [self partialDownloadSize]); }}];
     }
 	#endif
 	[self setLastBytesRead:bytesReadSoFar];
@@ -1659,7 +1659,7 @@ static NSOperationQueue *sharedQueue = nil;
 	#if NS_BLOCKS_AVAILABLE
     if(bytesSentBlock){
 		__block ASIHTTPRequest *blockCopy = self;
-		[self performBlockOnMainThread:^{ bytesSentBlock(blockCopy, value, blockCopy->postLength); }];
+		[self performBlockOnMainThread:^{ if (bytesSentBlock) { bytesSentBlock(blockCopy, value, blockCopy->postLength); }}];
 	}
 	#endif
 }
@@ -1673,7 +1673,7 @@ static NSOperationQueue *sharedQueue = nil;
 	#if NS_BLOCKS_AVAILABLE
     if(downloadSizeIncrementedBlock){
 		__block ASIHTTPRequest *blockCopy = self;
-		[self performBlockOnMainThread:^{ downloadSizeIncrementedBlock(blockCopy, length); }];
+		[self performBlockOnMainThread:^{ if (downloadSizeIncrementedBlock) { downloadSizeIncrementedBlock(blockCopy, length); }}];
     }
 	#endif
 }
@@ -1686,7 +1686,7 @@ static NSOperationQueue *sharedQueue = nil;
 	#if NS_BLOCKS_AVAILABLE
     if(uploadSizeIncrementedBlock){
 		__block ASIHTTPRequest *blockCopy = self;
-		[self performBlockOnMainThread:^{ uploadSizeIncrementedBlock(blockCopy, length); }];
+		[self performBlockOnMainThread:^{ if (uploadSizeIncrementedBlock) { uploadSizeIncrementedBlock(blockCopy, length); }}];
     }
 	#endif
 }
@@ -1702,7 +1702,7 @@ static NSOperationQueue *sharedQueue = nil;
 	#if NS_BLOCKS_AVAILABLE
     if(bytesSentBlock){
 		__block ASIHTTPRequest *blockCopy = self;
-		[self performBlockOnMainThread:^{  bytesSentBlock(blockCopy, progressToRemove, blockCopy->postLength); }];
+		[self performBlockOnMainThread:^{  if (bytesSentBlock) { bytesSentBlock(blockCopy, progressToRemove, blockCopy->postLength); }}];
 	}
 	#endif
 }
