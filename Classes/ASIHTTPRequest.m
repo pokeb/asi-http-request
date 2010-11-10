@@ -24,7 +24,7 @@
 #import "ASIDataCompressor.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.7-134 2010-11-10";
+NSString *ASIHTTPRequestVersion = @"v1.7-135 2010-11-10";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -2875,6 +2875,8 @@ static NSOperationQueue *sharedQueue = nil;
 		return;
 	}
 	
+	CFRetain(self);
+
     // Dispatch the stream events.
     switch (type) {
         case kCFStreamEventHasBytesAvailable:
@@ -2919,6 +2921,8 @@ static NSOperationQueue *sharedQueue = nil;
 	} else if ([self downloadComplete] && [self authenticationNeeded]) {
 		[self attemptToApplyCredentialsAndResume];
 	}
+
+	CFRelease(self);
 }
 
 - (void)handleBytesAvailable
