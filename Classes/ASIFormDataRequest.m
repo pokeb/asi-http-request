@@ -118,6 +118,10 @@
             NSString *urlEncodedKey = (NSString *)CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef)key, NULL, CFSTR("!*'();:@&=+$,/?%#[]%"), kCFStringEncodingUTF8);
             NSString *urlEncodedValue = (NSString *)CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef)[[self postData] objectForKey:key], NULL, CFSTR("!*'();:@&=+$,/?%#[]%"), kCFStringEncodingUTF8);
             [urlParameterString appendFormat:@"%@=%@", urlEncodedKey, urlEncodedValue];
+            [urlEncodedKey release];
+            urlEncodedKey = nil;
+            [urlEncodedValue release];
+            urlEncodedValue = nil;
         }
         [self appendPostData:[urlParameterString dataUsingEncoding:NSUTF8StringEncoding]];
 
