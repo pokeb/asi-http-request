@@ -21,20 +21,20 @@ static NSLock *readLock = nil;
 	}
 }
 
-+ (id)inputStreamWithFileAtPath:(NSString *)path request:(ASIHTTPRequest *)request
++ (id)inputStreamWithFileAtPath:(NSString *)path request:(ASIHTTPRequest *)theRequest
 {
-	ASIInputStream *stream = [[[self alloc] init] autorelease];
-	[stream setRequest:request];
-	[stream setStream:[NSInputStream inputStreamWithFileAtPath:path]];
-	return stream;
+	ASIInputStream *theStream = [[[self alloc] init] autorelease];
+	[theStream setRequest:theRequest];
+	[theStream setStream:[NSInputStream inputStreamWithFileAtPath:path]];
+	return theStream;
 }
 
-+ (id)inputStreamWithData:(NSData *)data request:(ASIHTTPRequest *)request
++ (id)inputStreamWithData:(NSData *)data request:(ASIHTTPRequest *)theRequest
 {
-	ASIInputStream *stream = [[[self alloc] init] autorelease];
-	[stream setRequest:request];
-	[stream setStream:[NSInputStream inputStreamWithData:data]];
-	return stream;
+	ASIInputStream *theStream = [[[self alloc] init] autorelease];
+	[theStream setRequest:theRequest];
+	[theStream setStream:[NSInputStream inputStreamWithData:data]];
+	return theStream;
 }
 
 - (void)dealloc
