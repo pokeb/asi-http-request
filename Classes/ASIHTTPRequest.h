@@ -583,7 +583,8 @@ typedef void (^ASIDataBlock)(NSData *data);
 // Run request in the background
 - (void)startAsynchronous;
 
-
+// Clears all delegates and blocks, then cancels the request
+- (void)clearDelegatesAndCancel;
 
 #pragma mark HEAD request
 

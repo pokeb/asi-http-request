@@ -141,6 +141,7 @@
 	[webView release];
 	[responseField release];
 	[urlField release];
+	[requestsInProgress release];
 	[super dealloc];
 }
 

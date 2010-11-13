@@ -24,7 +24,7 @@
 #import "ASIDataCompressor.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.7-137 2010-11-10";
+NSString *ASIHTTPRequestVersion = @"v1.7-139 2010-11-13";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -375,36 +375,58 @@ static NSOperationQueue *sharedQueue = nil;
 	NSMutableArray *blocks = [NSMutableArray array];
 	if (completionBlock) {
 		[blocks addObject:completionBlock];
+		[completionBlock release];
+		completionBlock = nil;
 	}
 	if (failureBlock) {
 		[blocks addObject:failureBlock];
+		[failureBlock release];
+		failureBlock = nil;
 	}
 	if (startedBlock) {
 		[blocks addObject:startedBlock];
+		[startedBlock release];
+		startedBlock = nil;
 	}
 	if (headersReceivedBlock) {
 		[blocks addObject:headersReceivedBlock];
+		[headersReceivedBlock release];
+		headersReceivedBlock = nil;
 	}
 	if (bytesReceivedBlock) {
 		[blocks addObject:bytesReceivedBlock];
+		[bytesReceivedBlock release];
+		bytesReceivedBlock = nil;
 	}
 	if (bytesSentBlock) {
 		[blocks addObject:bytesSentBlock];
+		[bytesSentBlock release];
+		bytesSentBlock = nil;
 	}
 	if (downloadSizeIncrementedBlock) {
 		[blocks addObject:downloadSizeIncrementedBlock];
+		[downloadSizeIncrementedBlock release];
+		downloadSizeIncrementedBlock = nil;
 	}
 	if (uploadSizeIncrementedBlock) {
 		[blocks addObject:uploadSizeIncrementedBlock];
+		[uploadSizeIncrementedBlock release];
+		uploadSizeIncrementedBlock = nil;
 	}
 	if (dataReceivedBlock) {
 		[blocks addObject:dataReceivedBlock];
+		[dataReceivedBlock release];
+		dataReceivedBlock = nil;
 	}
 	if (proxyAuthenticationNeededBlock) {
 		[blocks addObject:proxyAuthenticationNeededBlock];
+		[proxyAuthenticationNeededBlock release];
+		proxyAuthenticationNeededBlock = nil;
 	}
 	if (authenticationNeededBlock) {
 		[blocks addObject:authenticationNeededBlock];
+		[authenticationNeededBlock release];
+		authenticationNeededBlock = nil;
 	}
 	[[self class] performSelectorOnMainThread:@selector(releaseBlocks:) withObject:blocks waitUntilDone:[NSThread isMainThread]];
 }
@@ -646,6 +668,23 @@ static NSOperationQueue *sharedQueue = nil;
 - (void)cancel
 {
     [self performSelector:@selector(cancelOnRequestThread) onThread:[[self class] threadForRequest:self] withObject:nil waitUntilDone:NO];    
+}
+
+- (void)clearDelegatesAndCancel
+{
+	[[self cancelledLock] lock];
+
+	// Clear delegates
+	[self setDelegate:nil];
+	[self setQueue:nil];
+	[self setDownloadProgressDelegate:nil];
+	[self setUploadProgressDelegate:nil];
+
+	// Clear blocks
+	[self releaseBlocksOnMainThread];
+
+	[[self cancelledLock] unlock];
+	[self cancel];
 }
 
 
@@ -1891,7 +1930,6 @@ static NSOperationQueue *sharedQueue = nil;
 	}
 	#if NS_BLOCKS_AVAILABLE
 	if(completionBlock){
-		__block ASIHTTPRequest *blockCopy = self;
 		completionBlock();
 	}
 	#endif
