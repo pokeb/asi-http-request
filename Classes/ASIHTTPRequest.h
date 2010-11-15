@@ -57,7 +57,8 @@ typedef enum _ASINetworkErrorType {
 	ASIFileManagementError = 8,
 	ASITooMuchRedirectionErrorType = 9,
 	ASIUnhandledExceptionError = 10,
-	ASICompressionError = 11
+	ASICompressionError = 11,
+	ASICertificateValidationErrorType = 12
 	
 } ASINetworkErrorType;
 
@@ -357,6 +358,8 @@ typedef void (^ASIDataBlock)(NSData *data);
 	
 	// When NO, requests will not check the secure certificate is valid (use for self-signed certificates during development, DO NOT USE IN PRODUCTION) Default is YES
 	BOOL validatesSecureCertificate;
+	BOOL hasPerformedServerCertificateValidation;
+	NSArray *additionalAnchorCertificates;
     
     // If not nil and the URL scheme is https, CFNetwork configured to supply a client certificate
     SecIdentityRef clientCertificateIdentity;
@@ -726,9 +729,10 @@ typedef void (^ASIDataBlock)(NSData *data);
 + (NSTimeInterval)defaultTimeOutSeconds;
 + (void)setDefaultTimeOutSeconds:(NSTimeInterval)newTimeOutSeconds;
 
-#pragma mark client certificate
+#pragma mark certificate handling
 
 - (void)setClientCertificateIdentity:(SecIdentityRef)anIdentity;
+- (void)validateServerCertificateWithAdditionalAnchorCertificates:(NSArray *)certificates;
 
 #pragma mark session credentials
 

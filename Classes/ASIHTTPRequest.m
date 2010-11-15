@@ -150,6 +150,8 @@ static NSOperationQueue *sharedQueue = nil;
 - (void)scheduleReadStream;
 - (void)unscheduleReadStream;
 
+- (void)performServerCertificateValidation;
+
 - (BOOL)willAskDelegateForCredentials;
 - (BOOL)willAskDelegateForProxyCredentials;
 + (void)measureBandwidthUsage;
@@ -1116,7 +1118,7 @@ static NSOperationQueue *sharedQueue = nil;
         NSMutableDictionary *sslProperties = [NSMutableDictionary dictionaryWithCapacity:1];
 
         // Tell CFNetwork not to validate SSL certificates
-        if (![self validatesSecureCertificate]) {
+        if (![self validatesSecureCertificate] || [additionalAnchorCertificates count]) {
             [sslProperties setObject:(NSString *)kCFBooleanFalse forKey:(NSString *)kCFStreamSSLValidatesCertificateChain];
         }
 
@@ -2959,6 +2961,10 @@ static NSOperationQueue *sharedQueue = nil;
 
 - (void)handleBytesAvailable
 {
+	if( !hasPerformedServerCertificateValidation ) {
+		[self performServerCertificateValidation];
+	}
+	
 	if (![self responseHeaders]) {
 		[self readResponseHeaders];
 	}
@@ -3609,7 +3615,7 @@ static NSOperationQueue *sharedQueue = nil;
 }
 
 
-#pragma mark client certificate
+#pragma mark certificate handling
 
 - (void)setClientCertificateIdentity:(SecIdentityRef)anIdentity {
     if(clientCertificateIdentity) {
@@ -3621,6 +3627,52 @@ static NSOperationQueue *sharedQueue = nil;
 	if (clientCertificateIdentity) {
 		CFRetain(clientCertificateIdentity);
 	}
+}
+
+- (void)validateServerCertificateWithAdditionalAnchorCertificates:(NSArray *)certificates {
+  [additionalAnchorCertificates release];
+  additionalAnchorCertificates = [certificates copy];
+  self.validatesSecureCertificate = YES;
+}
+
+- (void)performServerCertificateValidation {
+  BOOL success = NO;
+  SecTrustRef trust = NULL;
+  SecTrustResultType result;
+  OSStatus returnCode;
+  
+  if( ![self validatesSecureCertificate] ) {
+    return;
+  }
+  
+  // get the trust from the stream
+  trust = (SecTrustRef)CFReadStreamCopyProperty((CFReadStreamRef)[self readStream], kCFStreamPropertySSLPeerTrust);
+  
+  // add any additional anchor certificates that were provided
+  SecTrustSetAnchorCertificates(trust, (CFArrayRef)additionalAnchorCertificates);
+  
+  // evaluate trust on the server cert
+  returnCode = SecTrustEvaluate(trust, &result);
+  
+  if( returnCode == errSecSuccess ) {
+    success = (result == kSecTrustResultProceed || result == kSecTrustResultConfirm || result == kSecTrustResultUnspecified);
+    if( result == kSecTrustResultRecoverableTrustFailure ) {
+      // TODO: should try to recover here, per http://developer.apple.com/library/ios/documentation/Security/Reference/certifkeytrustservices/Reference/reference.html#//apple_ref/doc/uid/TP30000157-CH1g-CJBHFGHI
+    }
+  }
+  
+  CFRelease(trust);
+  
+  // did the trust evaluation succeed?
+  if( !success ) {
+    [self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain
+                                            code:ASICertificateValidationErrorType
+                                        userInfo:[NSDictionary dictionaryWithObjectsAndKeys:
+                                                  @"Could not validate server certificate", NSLocalizedDescriptionKey,
+                                                  nil]]];
+  }
+  
+  hasPerformedServerCertificateValidation = YES;
 }
 
 
