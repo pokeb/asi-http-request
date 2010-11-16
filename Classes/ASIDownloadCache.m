@@ -292,9 +292,9 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 		// Look for an Expires header to see if the content is out of date
 		NSString *expires = [cachedHeaders objectForKey:@"Expires"];
 		if (expires) {
-			if ([[ASIHTTPRequest dateFromRFC1123String:expires] timeIntervalSinceNow] < 0) {
+			if ([[ASIHTTPRequest dateFromRFC1123String:expires] timeIntervalSinceNow] >= 0) {
 				[[self accessLock] unlock];
-				return NO;
+				return YES;
 			}
 		}
 		// Look for a max-age header
@@ -309,13 +309,15 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 
 				NSDate *expiryDate = [[[NSDate alloc] initWithTimeInterval:maxAge sinceDate:fetchDate] autorelease];
 
-				if ([expiryDate timeIntervalSinceNow] < 0) {
+				if ([expiryDate timeIntervalSinceNow] >= 0) {
 					[[self accessLock] unlock];
-					return NO;
+					return YES;
 				}
 			}
 		}
 		
+		// No explicit expiration time sent by the server
+		return NO;
 	}
 	
 
