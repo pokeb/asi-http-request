@@ -450,7 +450,7 @@ static const NSUInteger kDomainSection = 1;
 	return cell;
 }
 
-- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
+- (NSInteger)tableView:(UITableView *)aTableView numberOfRowsInSection:(NSInteger)section
 {
 	if (section == 0) {
 		return 2;

@@ -11,10 +11,10 @@
 
 @implementation ASIS3BucketObject
 
-+ (id)objectWithBucket:(NSString *)bucket
++ (id)objectWithBucket:(NSString *)theBucket
 {
 	ASIS3BucketObject *object = [[[self alloc] init] autorelease];
-	[object setBucket:bucket];
+	[object setBucket:theBucket];
 	return object;
 }
 

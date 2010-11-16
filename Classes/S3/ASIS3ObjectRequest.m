@@ -21,62 +21,62 @@ NSString *const ASIS3StorageClassReducedRedundancy = @"REDUCED_REDUNDANCY";
 	return headRequest;
 }
 
-+ (id)requestWithBucket:(NSString *)bucket key:(NSString *)key
++ (id)requestWithBucket:(NSString *)theBucket key:(NSString *)theKey
 {
-	ASIS3ObjectRequest *request = [[[self alloc] initWithURL:nil] autorelease];
-	[request setBucket:bucket];
-	[request setKey:key];
-	return request;
+	ASIS3ObjectRequest *newRequest = [[[self alloc] initWithURL:nil] autorelease];
+	[newRequest setBucket:theBucket];
+	[newRequest setKey:theKey];
+	return newRequest;
 }
 
-+ (id)requestWithBucket:(NSString *)bucket key:(NSString *)key subResource:(NSString *)subResource
++ (id)requestWithBucket:(NSString *)theBucket key:(NSString *)theKey subResource:(NSString *)theSubResource
 {
-	ASIS3ObjectRequest *request = [[[self alloc] initWithURL:nil] autorelease];
-	[request setSubResource:subResource];
-	[request setBucket:bucket];
-	[request setKey:key];
-	return request;
+	ASIS3ObjectRequest *newRequest = [[[self alloc] initWithURL:nil] autorelease];
+	[newRequest setSubResource:theSubResource];
+	[newRequest setBucket:theBucket];
+	[newRequest setKey:theKey];
+	return newRequest;
 }
 
-+ (id)PUTRequestForData:(NSData *)data withBucket:(NSString *)bucket key:(NSString *)key
++ (id)PUTRequestForData:(NSData *)data withBucket:(NSString *)theBucket key:(NSString *)theKey
 {
-	ASIS3ObjectRequest *request = [self requestWithBucket:bucket key:key];
-	[request appendPostData:data];
-	[request setRequestMethod:@"PUT"];
-	return request;
+	ASIS3ObjectRequest *newRequest = [self requestWithBucket:theBucket key:theKey];
+	[newRequest appendPostData:data];
+	[newRequest setRequestMethod:@"PUT"];
+	return newRequest;
 }
 
-+ (id)PUTRequestForFile:(NSString *)filePath withBucket:(NSString *)bucket key:(NSString *)key
++ (id)PUTRequestForFile:(NSString *)filePath withBucket:(NSString *)theBucket key:(NSString *)theKey
 {
-	ASIS3ObjectRequest *request = [self requestWithBucket:bucket key:key];
-	[request setPostBodyFilePath:filePath];
-	[request setShouldStreamPostDataFromDisk:YES];
-	[request setRequestMethod:@"PUT"];
-	[request setMimeType:[ASIHTTPRequest mimeTypeForFileAtPath:filePath]];
-	return request;
+	ASIS3ObjectRequest *newRequest = [self requestWithBucket:theBucket key:theKey];
+	[newRequest setPostBodyFilePath:filePath];
+	[newRequest setShouldStreamPostDataFromDisk:YES];
+	[newRequest setRequestMethod:@"PUT"];
+	[newRequest setMimeType:[ASIHTTPRequest mimeTypeForFileAtPath:filePath]];
+	return newRequest;
 }
 
-+ (id)DELETERequestWithBucket:(NSString *)bucket key:(NSString *)key
++ (id)DELETERequestWithBucket:(NSString *)theBucket key:(NSString *)theKey
 {
-	ASIS3ObjectRequest *request = [self requestWithBucket:bucket key:key];
-	[request setRequestMethod:@"DELETE"];
-	return request;
+	ASIS3ObjectRequest *newRequest = [self requestWithBucket:theBucket key:theKey];
+	[newRequest setRequestMethod:@"DELETE"];
+	return newRequest;
 }
 
-+ (id)COPYRequestFromBucket:(NSString *)sourceBucket key:(NSString *)sourceKey toBucket:(NSString *)bucket key:(NSString *)key
++ (id)COPYRequestFromBucket:(NSString *)theSourceBucket key:(NSString *)theSourceKey toBucket:(NSString *)theBucket key:(NSString *)theKey
 {
-	ASIS3ObjectRequest *request = [self requestWithBucket:bucket key:key];
-	[request setRequestMethod:@"PUT"];
-	[request setSourceBucket:sourceBucket];
-	[request setSourceKey:sourceKey];
-	return request;
+	ASIS3ObjectRequest *newRequest = [self requestWithBucket:theBucket key:theKey];
+	[newRequest setRequestMethod:@"PUT"];
+	[newRequest setSourceBucket:theSourceBucket];
+	[newRequest setSourceKey:theSourceKey];
+	return newRequest;
 }
 
-+ (id)HEADRequestWithBucket:(NSString *)bucket key:(NSString *)key
++ (id)HEADRequestWithBucket:(NSString *)theBucket key:(NSString *)theKey
 {
-	ASIS3ObjectRequest *request = [self requestWithBucket:bucket key:key];
-	[request setRequestMethod:@"HEAD"];
-	return request;
+	ASIS3ObjectRequest *newRequest = [self requestWithBucket:theBucket key:theKey];
+	[newRequest setRequestMethod:@"HEAD"];
+	return newRequest;
 }
 
 - (id)copyWithZone:(NSZone *)zone
