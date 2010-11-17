@@ -493,7 +493,7 @@
 
 	// Cancel the request as soon as it has downloaded 64KB
 	while (1) {
-		sleep(0.5);
+		sleep((Float32)0.5);
 		if ([request totalBytesRead] > 32*1024) {
 			[request cancel];
 			break;
@@ -518,7 +518,7 @@
 	[request startAsynchronous];
 
 	while (1) {
-		sleep(0.5);
+		sleep((Float32)0.5);
 		if ([request isFinished]) {
 			break;
 		}
