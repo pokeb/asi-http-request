@@ -273,6 +273,7 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 
 		// New content is not different
 		if ([request responseStatusCode] == 304) {
+			[[self accessLock] unlock];
 			return YES;
 		}
 
