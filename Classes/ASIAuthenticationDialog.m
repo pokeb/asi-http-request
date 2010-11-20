@@ -55,20 +55,20 @@ static const NSUInteger kDomainSection = 1;
 	}
 }
 
-+ (void)presentAuthenticationDialogForRequest:(ASIHTTPRequest *)request
++ (void)presentAuthenticationDialogForRequest:(ASIHTTPRequest *)theRequest
 {
 	// No need for a lock here, this will always be called on the main thread
 	if (!sharedDialog) {
 		sharedDialog = [[self alloc] init];
-		[sharedDialog setRequest:request];
-		if ([request authenticationNeeded] == ASIProxyAuthenticationNeeded) {
+		[sharedDialog setRequest:theRequest];
+		if ([theRequest authenticationNeeded] == ASIProxyAuthenticationNeeded) {
 			[sharedDialog setType:ASIProxyAuthenticationType];
 		} else {
 			[sharedDialog setType:ASIStandardAuthenticationType];
 		}
 		[sharedDialog show];
 	} else {
-		[requestsNeedingAuthentication addObject:request];
+		[requestsNeedingAuthentication addObject:theRequest];
 	}
 }
 
@@ -454,7 +454,7 @@ static const NSUInteger kDomainSection = 1;
 	return cell;
 }
 
-- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
+- (NSInteger)tableView:(UITableView *)aTableView numberOfRowsInSection:(NSInteger)section
 {
 	if (section == 0) {
 		return 2;

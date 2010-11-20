@@ -28,32 +28,32 @@
 	return self;
 }
 
-+ (id)requestWithBucket:(NSString *)bucket
++ (id)requestWithBucket:(NSString *)theBucket
 {
 	ASIS3BucketRequest *request = [[[self alloc] initWithURL:nil] autorelease];
-	[request setBucket:bucket];
+	[request setBucket:theBucket];
 	return request;
 }
 
-+ (id)requestWithBucket:(NSString *)bucket subResource:(NSString *)subResource
++ (id)requestWithBucket:(NSString *)theBucket subResource:(NSString *)theSubResource
 {
 	ASIS3BucketRequest *request = [[[self alloc] initWithURL:nil] autorelease];
-	[request setBucket:bucket];
-	[request setSubResource:subResource];
+	[request setBucket:theBucket];
+	[request setSubResource:theSubResource];
 	return request;
 }
 
-+ (id)PUTRequestWithBucket:(NSString *)bucket
++ (id)PUTRequestWithBucket:(NSString *)theBucket
 {
-	ASIS3BucketRequest *request = [self requestWithBucket:bucket];
+	ASIS3BucketRequest *request = [self requestWithBucket:theBucket];
 	[request setRequestMethod:@"PUT"];
 	return request;
 }
 
 
-+ (id)DELETERequestWithBucket:(NSString *)bucket
++ (id)DELETERequestWithBucket:(NSString *)theBucket
 {
-	ASIS3BucketRequest *request = [self requestWithBucket:bucket];
+	ASIS3BucketRequest *request = [self requestWithBucket:theBucket];
 	[request setRequestMethod:@"DELETE"];
 	return request;
 }
