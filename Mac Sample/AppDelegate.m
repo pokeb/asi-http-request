@@ -24,6 +24,10 @@
 - (void)postFinished:(ASIHTTPRequest *)request;
 - (void)postFailed:(ASIHTTPRequest *)request;
 - (void)fetchURL:(NSURL *)url;
+- (void)tableViewDataFetchFinished:(ASIHTTPRequest *)request;
+- (void)rowImageDownloadFinished:(ASIHTTPRequest *)request;
+- (void)webPageFetchFailed:(ASIHTTPRequest *)request;
+- (void)webPageFetchSucceeded:(ASIHTTPRequest *)request;
 @end
 
 @implementation AppDelegate

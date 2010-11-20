@@ -26,6 +26,11 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 - (void)addURLToFetch:(NSString *)newURL;
 + (NSArray *)CSSURLsFromString:(NSString *)string;
 - (NSString *)relativePathTo:(NSString *)destinationPath fromPath:(NSString *)sourcePath;
+
+- (void)finishedFetchingExternalResources:(ASINetworkQueue *)queue;
+- (void)externalResourceFetchSucceeded:(ASIHTTPRequest *)externalResourceRequest;
+- (void)externalResourceFetchFailed:(ASIHTTPRequest *)externalResourceRequest;
+
 @property (retain, nonatomic) ASINetworkQueue *externalResourceQueue;
 @property (retain, nonatomic) NSMutableDictionary *resourceList;
 @end

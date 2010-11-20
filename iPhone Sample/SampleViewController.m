@@ -8,6 +8,13 @@
 
 #import "SampleViewController.h"
 
+// Private stuff
+@interface SampleViewController ()
+- (void)keyboardWillShow:(NSNotification *)notification;
+- (void)keyboardWillHide:(NSNotification *)notification;
+@end
+
+
 
 @implementation SampleViewController
 

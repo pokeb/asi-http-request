@@ -37,6 +37,10 @@ static const NSUInteger kDomainSection = 1;
 - (void)show;
 - (NSArray *)requestsRequiringTheseCredentials;
 - (void)presentNextDialog;
+- (void)keyboardWillShow:(NSNotification *)notification;
+- (void)orientationChanged:(NSNotification *)notification;
+- (void)cancelAuthenticationFromDialog:(id)sender;
+- (void)loginWithCredentialsFromDialog:(id)sender;
 @property (retain) UITableView *tableView;
 @end
 
@@ -149,7 +153,7 @@ static const NSUInteger kDomainSection = 1;
 	}
 
 	CGAffineTransform previousTransform = self.view.layer.affineTransform;
-	CGAffineTransform newTransform = CGAffineTransformMakeRotation(angle * M_PI / 180.0);
+	CGAffineTransform newTransform = CGAffineTransformMakeRotation((CGFloat)(angle * M_PI / 180.0));
 
 	// Reset the transform so we can set the size
 	self.view.layer.affineTransform = CGAffineTransformIdentity;

@@ -13,6 +13,12 @@
 #import "ToggleCell.h"
 #import "RequestProgressCell.h"
 
+// Private stuff
+@interface WebPageViewController ()
+- (void)webPageFetchFailed:(ASIHTTPRequest *)theRequest;
+- (void)webPageFetchSucceeded:(ASIHTTPRequest *)theRequest;
+@end
+
 @implementation WebPageViewController
 
 - (void)fetchWebPage:(id)sender
@@ -116,7 +122,7 @@
 	if (requestNumber != NSNotFound) {
 		RequestProgressCell *cell = (RequestProgressCell *)[[self tableView] cellForRowAtIndexPath:[NSIndexPath indexPathForRow:requestNumber inSection:2]];
 		if ([theRequest contentLength]+[theRequest partialDownloadSize] > 0) {
-			float progressAmount = ([theRequest totalBytesRead]*1.0f)/(([theRequest contentLength]+[theRequest partialDownloadSize])*1.0f);
+			float progressAmount = (float)(([theRequest totalBytesRead]*1.0)/(([theRequest contentLength]+[theRequest partialDownloadSize])*1.0));
 			[[cell progressView] setProgress:progressAmount];
 		}
 	}
@@ -216,7 +222,7 @@ static NSString *intro = @"ASIWebPageRequest lets you download complete webpages
 		} else {
 			[[cell textLabel] setText:[[theRequest url] absoluteString]];
 			if ([theRequest contentLength] > 0) {
-				[[(RequestProgressCell *)cell progressView] setProgress:[theRequest totalBytesRead]/([theRequest contentLength]+[theRequest partialDownloadSize])];
+				[[(RequestProgressCell *)cell progressView] setProgress:(float)(([theRequest totalBytesRead]*1.0)/(([theRequest contentLength]+[theRequest partialDownloadSize])*1.0))];
 			}
 			[[cell accessoryView] setHidden:NO];
 		}

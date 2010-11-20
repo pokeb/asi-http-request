@@ -18,6 +18,12 @@
 - (UITextField *) textFieldAtIndex:(NSUInteger) index;
 @end
 
+// Private stuff
+@interface AuthenticationViewController ()
+- (IBAction)topSecretFetchFailed:(ASIHTTPRequest *)theRequest;
+- (IBAction)topSecretFetchComplete:(ASIHTTPRequest *)theRequest;
+@end
+
 @implementation AuthenticationViewController
 
 - (IBAction)fetchTopSecretInformation:(id)sender

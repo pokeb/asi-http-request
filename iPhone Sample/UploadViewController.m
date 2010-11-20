@@ -10,6 +10,12 @@
 #import "ASIFormDataRequest.h"
 #import "InfoCell.h"
 
+// Private stuff
+@interface UploadViewController ()
+- (void)uploadFailed:(ASIHTTPRequest *)theRequest;
+- (void)uploadFinished:(ASIHTTPRequest *)theRequest;
+@end
+
 @implementation UploadViewController
 
 - (IBAction)performLargeUpload:(id)sender

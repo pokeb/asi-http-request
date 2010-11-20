@@ -12,8 +12,13 @@
 #import "InfoCell.h"
 #import "ToggleCell.h"
 
-@implementation QueueViewController
+// Private stuff
+@interface QueueViewController ()
+- (void)imageFetchComplete:(ASIHTTPRequest *)request;
+- (void)imageFetchFailed:(ASIHTTPRequest *)request;
+@end
 
+@implementation QueueViewController
 
 - (IBAction)fetchThreeImages:(id)sender
 {
@@ -222,7 +227,7 @@ static NSString *intro = @"Demonstrates a fetching 3 items at once, using an ASI
 			
 		}
 		NSUInteger imageWidth = (tableWidth-tablePadding-20)/3;
-		NSUInteger imageHeight = imageWidth*0.66;
+		NSUInteger imageHeight = imageWidth*0.66f;
 		
 		
 		[imageView1 setFrame:CGRectMake(tablePadding/2,10,imageWidth,imageHeight)];
@@ -265,7 +270,7 @@ static NSString *intro = @"Demonstrates a fetching 3 items at once, using an ASI
 			tablePadding = 110;
 		}
 		NSUInteger imageWidth = (tableWidth-tablePadding-20)/3;
-		NSUInteger imageHeight = imageWidth*0.66;
+		NSUInteger imageHeight = imageWidth*0.66f;
 		return imageHeight+50;
 	} else {
 		return 42;

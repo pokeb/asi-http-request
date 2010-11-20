@@ -19,7 +19,7 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    self.contentSizeForViewInPopover = CGSizeMake(310.0, self.tableView.rowHeight*5.0);
+    self.contentSizeForViewInPopover = CGSizeMake(310.0f, self.tableView.rowHeight*5.0f);
 }
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {

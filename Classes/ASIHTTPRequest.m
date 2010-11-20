@@ -24,7 +24,7 @@
 #import "ASIDataCompressor.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.7-140 2010-11-13";
+NSString *ASIHTTPRequestVersion = @"v1.8-4 2010-11-20";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -152,15 +152,24 @@ static NSOperationQueue *sharedQueue = nil;
 
 - (BOOL)willAskDelegateForCredentials;
 - (BOOL)willAskDelegateForProxyCredentials;
+- (void)askDelegateForProxyCredentials;
+- (void)askDelegateForCredentials;
+- (void)failAuthentication;
+
 + (void)measureBandwidthUsage;
 + (void)recordBandwidthUsage;
+
 - (void)startRequest;
 - (void)updateStatus:(NSTimer *)timer;
 - (void)checkRequestStatus;
-
 - (void)markAsFinished;
 - (void)performRedirect;
 - (BOOL)shouldTimeOut;
+
++ (void)performInvocation:(NSInvocation *)invocation onTarget:(id *)target releasingObject:(id)objectToRelease;
++ (void)hideNetworkActivityIndicatorAfterDelay;
++ (void)hideNetworkActivityIndicatorIfNeeeded;
++ (void)runRequests;
 
 
 - (void)useDataFromCache;
@@ -173,13 +182,18 @@ static NSOperationQueue *sharedQueue = nil;
 + (void)unsubscribeFromNetworkReachabilityNotifications;
 // Called when the status of the network changes
 + (void)reachabilityChanged:(NSNotification *)note;
-- (void)failAuthentication;
 #endif
 
 #if NS_BLOCKS_AVAILABLE
 - (void)performBlockOnMainThread:(ASIBasicBlock)block;
 - (void)releaseBlocksOnMainThread;
++ (void)releaseBlocks:(NSArray *)blocks;
+- (void)callBlock:(ASIBasicBlock)block;
 #endif
+
+
+
+
 
 @property (assign) BOOL complete;
 @property (retain) NSArray *responseCookies;
@@ -1820,7 +1834,7 @@ static NSOperationQueue *sharedQueue = nil;
 	#if TARGET_OS_IPHONE
 		// Cocoa Touch: UIProgressView
 		SEL selector = @selector(setProgress:);
-		float progressAmount = (progress*1.0f)/(total*1.0f);
+		float progressAmount = (float)((progress*1.0)/(total*1.0));
 		
 	#else
 		// Cocoa: NSProgressIndicator
