@@ -317,6 +317,7 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 		}
 		
 		// No explicit expiration time sent by the server
+		[[self accessLock] unlock];
 		return NO;
 	}
 	
