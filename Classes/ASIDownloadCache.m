@@ -357,7 +357,7 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 
 	BOOL isDirectory = NO;
 	BOOL exists = [[NSFileManager defaultManager] fileExistsAtPath:path isDirectory:&isDirectory];
-	if (exists && !isDirectory || !exists) {
+	if (!exists || !isDirectory) {
 		[[self accessLock] unlock];
 		return;
 	}
