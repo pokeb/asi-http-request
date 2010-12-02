@@ -297,7 +297,7 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 	#if TARGET_OS_MAC && MAC_OS_X_VERSION_MAX_ALLOWED <= __MAC_10_5
 					// xmlSaveToBuffer() is not implemented in the 10.5 version of libxml
 					NSString *tempPath = [NSTemporaryDirectory() stringByAppendingPathComponent:[[NSProcessInfo processInfo] globallyUniqueString]];
-					[[NSFileManager defaultManager] createFileAtPath:tempPath contents:nil attributes:nil];
+					[[[[NSFileManager alloc] init] autorelease] createFileAtPath:tempPath contents:nil attributes:nil];
 					saveContext = xmlSaveToFd([[NSFileHandle fileHandleForWritingAtPath:tempPath] fileDescriptor],NULL,2); // 2 == XML_SAVE_NO_DECL, this isn't declared on Mac OS 10.5
 					xmlSaveDoc(saveContext, doc);
 					xmlSaveClose(saveContext);

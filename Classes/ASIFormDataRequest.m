@@ -102,7 +102,7 @@
 	// If data is a path to a local file
 	if ([data isKindOfClass:[NSString class]]) {
 		BOOL isDirectory = NO;
-		BOOL fileExists = [[NSFileManager defaultManager] fileExistsAtPath:(NSString *)data isDirectory:&isDirectory];
+		BOOL fileExists = [[[[NSFileManager alloc] init] autorelease] fileExistsAtPath:(NSString *)data isDirectory:&isDirectory];
 		if (!fileExists || isDirectory) {
 			[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIInternalErrorWhileBuildingRequestType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"No file exists at %@",data],NSLocalizedDescriptionKey,nil]]];
 		}
@@ -316,7 +316,7 @@
 - (void)appendPostDataFromFile:(NSString *)file
 {
 	NSError *err = nil;
-	unsigned long long fileSize = [[[[NSFileManager defaultManager] attributesOfItemAtPath:file error:&err] objectForKey:NSFileSize] unsignedLongLongValue];
+	unsigned long long fileSize = [[[[[[NSFileManager alloc] init] autorelease] attributesOfItemAtPath:file error:&err] objectForKey:NSFileSize] unsignedLongLongValue];
 	if (err) {
 		[self addToDebugBody:[NSString stringWithFormat:@"[Error: Failed to obtain the size of the file at '%@']",file]];
 	} else {
