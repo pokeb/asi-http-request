@@ -299,14 +299,6 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 
 	if ([self shouldRespectCacheControlHeaders]) {
 
-		// Look for an Expires header to see if the content is out of date
-		NSString *expires = [cachedHeaders objectForKey:@"Expires"];
-		if (expires) {
-			if ([[ASIHTTPRequest dateFromRFC1123String:expires] timeIntervalSinceNow] >= 0) {
-				[[self accessLock] unlock];
-				return YES;
-			}
-		}
 		// Look for a max-age header
 		NSString *cacheControl = [[cachedHeaders objectForKey:@"Cache-Control"] lowercaseString];
 		if (cacheControl) {
@@ -315,17 +307,29 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 				[scanner scanString:@"=" intoString:NULL];
 				NSTimeInterval maxAge = 0;
 				[scanner scanDouble:&maxAge];
-				NSDate *fetchDate = [ASIHTTPRequest dateFromRFC1123String:[cachedHeaders objectForKey:@"X-ASIHTTPRequest-Fetch-date"]];
 
+				NSDate *fetchDate = [ASIHTTPRequest dateFromRFC1123String:[cachedHeaders objectForKey:@"X-ASIHTTPRequest-Fetch-date"]];
 				NSDate *expiryDate = [[[NSDate alloc] initWithTimeInterval:maxAge sinceDate:fetchDate] autorelease];
 
 				if ([expiryDate timeIntervalSinceNow] >= 0) {
 					[[self accessLock] unlock];
 					return YES;
 				}
+				// RFC 2612 says max-age must override any Expires header
+				[[self accessLock] unlock];
+				return NO;
 			}
 		}
-		
+
+		// Look for an Expires header to see if the content is out of date
+		NSString *expires = [cachedHeaders objectForKey:@"Expires"];
+		if (expires) {
+			if ([[ASIHTTPRequest dateFromRFC1123String:expires] timeIntervalSinceNow] >= 0) {
+				[[self accessLock] unlock];
+				return YES;
+			}
+		}
+
 		// No explicit expiration time sent by the server
 		[[self accessLock] unlock];
 		return NO;
