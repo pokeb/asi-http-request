@@ -24,7 +24,7 @@
 #import "ASIDataCompressor.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.8-19 2010-12-04";
+NSString *ASIHTTPRequestVersion = @"v1.8-21 2010-12-04";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -2918,13 +2918,16 @@ static NSOperationQueue *sharedQueue = nil;
 
 - (void)handleNetworkEvent:(CFStreamEventType)type
 {	
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+
 	[[self cancelledLock] lock];
 	
 	if ([self complete] || [self isCancelled]) {
 		[[self cancelledLock] unlock];
+		[pool release];
 		return;
 	}
-	
+
 	CFRetain(self);
 
     // Dispatch the stream events.
@@ -2973,6 +2976,7 @@ static NSOperationQueue *sharedQueue = nil;
 	}
 
 	CFRelease(self);
+	[pool release];
 }
 
 - (void)handleBytesAvailable
