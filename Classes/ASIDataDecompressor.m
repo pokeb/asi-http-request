@@ -93,9 +93,7 @@
 		
 		if (status == Z_STREAM_END) {
 			theError = [self closeStream];
-			if (theError) {
-				break;
-			}
+			break;
 		} else if (status != Z_OK) {
 			if (err) {
 				*err = [[self class] inflateErrorWithCode:status];
