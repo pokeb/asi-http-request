@@ -303,6 +303,7 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 		NSString *cacheControl = [[cachedHeaders objectForKey:@"Cache-Control"] lowercaseString];
 		if (cacheControl) {
 			NSScanner *scanner = [NSScanner scannerWithString:cacheControl];
+			[scanner scanUpToString:@"max-age" intoString:NULL];
 			if ([scanner scanString:@"max-age" intoString:NULL]) {
 				[scanner scanString:@"=" intoString:NULL];
 				NSTimeInterval maxAge = 0;
