@@ -241,11 +241,11 @@
 {
 	[[ASIDownloadCache sharedCache] clearCachedResponsesForStoragePolicy:ASICacheForSessionDurationCacheStoragePolicy];
 	[[ASIDownloadCache sharedCache] setDefaultCachePolicy:ASIUseDefaultCachePolicy];
-	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/cache-control-max-age-parsing"]];
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/cache-control-max-age-parsing"]];
 	[request setDownloadCache:[ASIDownloadCache sharedCache]];
 	[request startSynchronous];
 
-	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/cache-control-max-age-parsing"]];
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/cache-control-max-age-parsing"]];
 	[request setDownloadCache:[ASIDownloadCache sharedCache]];
 	[request startSynchronous];
 	BOOL success = [request didUseCachedResponse];
