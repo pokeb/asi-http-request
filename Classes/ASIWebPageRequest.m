@@ -289,6 +289,10 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 				xmlSaveCtxtPtr saveContext;
 
 				if ([self downloadDestinationPath]) {
+
+					// Truncate the file first
+					[[[[NSFileManager alloc] init] autorelease] createFileAtPath:[self downloadDestinationPath] contents:nil attributes:nil];
+
 					saveContext = xmlSaveToFd([[NSFileHandle fileHandleForWritingAtPath:[self downloadDestinationPath]] fileDescriptor],NULL,2); // 2 == XML_SAVE_NO_DECL, this isn't declared on Mac OS 10.5
 					xmlSaveDoc(saveContext, doc);
 					xmlSaveClose(saveContext);
