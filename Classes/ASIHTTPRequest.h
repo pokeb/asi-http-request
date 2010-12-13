@@ -13,6 +13,9 @@
 #import <Foundation/Foundation.h>
 #if TARGET_OS_IPHONE
 	#import <CFNetwork/CFNetwork.h>
+	#if __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_4_0
+	#import <UIKit/UIKit.h> // Necessary for background task support
+	#endif
 #endif
 
 #import <stdio.h>

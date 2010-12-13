@@ -24,7 +24,7 @@
 #import "ASIDataCompressor.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.8-22 2010-12-13";
+NSString *ASIHTTPRequestVersion = @"v1.8-23 2010-12-13";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -162,6 +162,8 @@ static NSOperationQueue *sharedQueue = nil;
 - (void)startRequest;
 - (void)updateStatus:(NSTimer *)timer;
 - (void)checkRequestStatus;
+- (void)reportFailure;
+- (void)reportFinished;
 - (void)markAsFinished;
 - (void)performRedirect;
 - (BOOL)shouldTimeOut;
