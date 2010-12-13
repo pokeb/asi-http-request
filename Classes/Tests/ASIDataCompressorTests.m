@@ -14,17 +14,25 @@
 
 @implementation ASIDataCompressorTests
 
+- (void)setUp
+{
+	NSFileManager *fileManager = [[[NSFileManager alloc] init] autorelease];
+
+	// Download a 1.7MB text file
+	NSString *filePath = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:@"story.txt"];
+	if (![fileManager fileExistsAtPath:filePath] || [[[fileManager attributesOfItemAtPath:filePath error:NULL] objectForKey:NSFileSize] unsignedLongLongValue] < 1693961) {
+		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_hound_of_the_baskervilles.text"]];
+		[request setDownloadDestinationPath:[[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:@"story.txt"]];
+		[request startSynchronous];
+	}
+}
 
 - (void)testInflateData
 {
+
+	NSString *originalString = [NSString stringWithContentsOfFile:[[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:@"story.txt"] encoding:NSUTF8StringEncoding error:NULL];
+	
 	// Test in-memory inflate using uncompressData:error:
-	NSUInteger i;
-	
-	NSString *originalString = [NSString string];
-	for (i=0; i<1000; i++) {
-		originalString = [originalString stringByAppendingFormat:@"This is line %i\r\n",i];
-	}
-	
 	NSError *error = nil;
 	NSString *filePath = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:@"uncompressed_file.txt"];
 	NSString *gzippedFilePath = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:@"uncompressed_file.txt.gz"];
@@ -79,13 +87,10 @@
 
 - (void)testDeflateData
 {
-	// Test in-memory deflate using compressData:error:
-	NSUInteger i;
+
+	NSString *originalString = [NSString stringWithContentsOfFile:[[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:@"story.txt"] encoding:NSUTF8StringEncoding error:NULL];
 	
-	NSString *originalString = [NSString string];
-	for (i=0; i<1000; i++) {
-		originalString = [originalString stringByAppendingFormat:@"This is line %i\r\n",i];
-	}
+	// Test in-memory deflate using compressData:error:
 	NSError *error = nil;
 	NSData *deflatedData = [ASIDataCompressor compressData:[originalString dataUsingEncoding:NSUTF8StringEncoding] error:&error];
 	if (error) {
@@ -104,6 +109,10 @@
 	}
 	
 	NSString *filePath = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:@"uncompressed_file.txt"];
+	[ASIHTTPRequest removeFileAtPath:filePath error:&error];
+	if (error) {
+		GHFail(@"Failed to remove old file, cannot proceed with test");
+	}
 	
 	NSTask *task = [[[NSTask alloc] init] autorelease];
 	[task setLaunchPath:@"/usr/bin/gzip"];

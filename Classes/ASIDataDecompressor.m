@@ -89,16 +89,14 @@
 		zStream.next_out = [outputData mutableBytes] + zStream.total_out-bytesProcessedAlready;
 		zStream.avail_out = (unsigned int)([outputData length] - (zStream.total_out-bytesProcessedAlready));
 		
-		status = inflate(&zStream, Z_SYNC_FLUSH);
+		status = inflate(&zStream, Z_NO_FLUSH);
 		
 		if (status == Z_STREAM_END) {
-			theError = [self closeStream];
 			break;
 		} else if (status != Z_OK) {
 			if (err) {
 				*err = [[self class] inflateErrorWithCode:status];
 			}
-			[self closeStream];
 			return nil;
 		}
 	}
@@ -169,11 +167,15 @@
 		
 		// Make sure nothing went wrong
 		if ([inputStream streamStatus] == NSStreamEventErrorOccurred) {
-            [decompressor closeStream];
 			if (err) {
 				*err = [NSError errorWithDomain:NetworkRequestErrorDomain code:ASICompressionError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Decompression of %@ failed because we were unable to read from the source data file",sourcePath],NSLocalizedDescriptionKey,[inputStream streamError],NSUnderlyingErrorKey,nil]];
 			}
+            [decompressor closeStream];
 			return NO;
+		}
+		// Have we reached the end of the input data?
+		if (!readLength) {
+			break;
 		}
 
 		// Attempt to inflate the chunk of data
@@ -182,6 +184,7 @@
 			if (err) {
 				*err = theError;
 			}
+			[decompressor closeStream];
 			return NO;
 		}
 		
@@ -190,10 +193,10 @@
 		
 		// Make sure nothing went wrong
 		if ([inputStream streamStatus] == NSStreamEventErrorOccurred) {
-			[decompressor closeStream];
 			if (err) {
 				*err = [NSError errorWithDomain:NetworkRequestErrorDomain code:ASICompressionError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Decompression of %@ failed because we were unable to write to the destination data file at &@",sourcePath,destinationPath],NSLocalizedDescriptionKey,[outputStream streamError],NSUnderlyingErrorKey,nil]];
             }
+			[decompressor closeStream];
 			return NO;
 		}
 		
@@ -201,6 +204,15 @@
 	
 	[inputStream close];
 	[outputStream close];
+
+	NSError *error = [decompressor closeStream];
+	if (error) {
+		if (err) {
+			*err = error;
+		}
+		return NO;
+	}
+
 	return YES;
 }
 
