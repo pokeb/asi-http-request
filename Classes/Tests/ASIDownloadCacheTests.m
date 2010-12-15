@@ -128,12 +128,12 @@
 
 	// Test ASIFallbackToCacheIfLoadFailsCachePolicy
 	// Store something in the cache
-	[request setURL:[NSURL URLWithString:@"http://inva.lid"]];
+	[request setURL:[NSURL URLWithString:@"http://"]];
 	[request setResponseHeaders:[NSDictionary dictionaryWithObject:@"test" forKey:@"test"]];
 	[request setRawResponseData:(NSMutableData *)[@"test" dataUsingEncoding:NSUTF8StringEncoding]];
 	[[ASIDownloadCache sharedCache] storeResponseForRequest:request maxAge:0];
 
-	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://inva.lid"]];
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://"]];
 	[request setCachePolicy:ASIFallbackToCacheIfLoadFailsCachePolicy];
 	[request startSynchronous];
 
