@@ -7,6 +7,7 @@
 //
 
 #import "ASIFormDataRequest.h"
+#import "NSDictionary-CCAdditions.h"
 
 
 // Private stuff
@@ -105,26 +106,7 @@
         // The request does not need to be multi-part if we have only post data
         [self addRequestHeader:@"Content-Type" value:@"application/x-www-form-urlencoded"];
 
-        NSArray *postDataKeys = [[self postData] allKeys];
-        NSMutableString *urlParameterString = [NSMutableString string];
-        BOOL appendAmpersand = NO;
-        for (NSString *key in postDataKeys) {
-            if (appendAmpersand) {
-                [urlParameterString appendString:@"&"];
-            } else {
-                appendAmpersand = YES;
-            }
-
-            NSString *urlEncodedKey = (NSString *)CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef)key, NULL, CFSTR("!*'();:@&=+$,/?%#[]%"), kCFStringEncodingUTF8);
-            NSString *urlEncodedValue = (NSString *)CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef)[[self postData] objectForKey:key], NULL, CFSTR("!*'();:@&=+$,/?%#[]%"), kCFStringEncodingUTF8);
-            [urlParameterString appendFormat:@"%@=%@", urlEncodedKey, urlEncodedValue];
-            [urlEncodedKey release];
-            urlEncodedKey = nil;
-            [urlEncodedValue release];
-            urlEncodedValue = nil;
-        }
-        [self appendPostData:[urlParameterString dataUsingEncoding:NSUTF8StringEncoding]];
-
+        [self appendPostData:[[[self postData] URLEncodedStringValue] dataUsingEncoding:NSUTF8StringEncoding]];
         [super buildPostBody];
         return;
     }
