@@ -106,7 +106,7 @@
         // The request does not need to be multi-part if we have only post data
         [self addRequestHeader:@"Content-Type" value:@"application/x-www-form-urlencoded"];
 
-        [self appendPostData:[[[self postData] URLEncodedStringValue] dataUsingEncoding:NSUTF8StringEncoding]];
+        [self appendPostData:[[[self postData] URLEncodedStringValue:nil] dataUsingEncoding:NSUTF8StringEncoding]];
         [super buildPostBody];
         return;
     }
