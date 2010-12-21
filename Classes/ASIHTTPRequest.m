@@ -932,8 +932,8 @@ static NSOperationQueue *sharedQueue = nil;
 	// Are any credentials set on this request that might be used for basic authentication?
 	if ([self username] && [self password] && ![self domain]) {
 		
-		// If we have stored credentials, is this server asking for basic authentication? If we don't have credentials, we'll assume basic
-		if (!credentials || (CFStringRef)[credentials objectForKey:@"AuthenticationScheme"] == kCFHTTPAuthenticationSchemeBasic) {
+		// If we have stored credentials, is this server asking for basic authentication?
+		if ((CFStringRef)[credentials objectForKey:@"AuthenticationScheme"] == kCFHTTPAuthenticationSchemeBasic) {
 			[self addBasicAuthenticationHeaderWithUsername:[self username] andPassword:[self password]];
 		}
 	}
