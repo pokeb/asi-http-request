@@ -106,7 +106,9 @@
         // The request does not need to be multi-part if we have only post data
         [self addRequestHeader:@"Content-Type" value:@"application/x-www-form-urlencoded"];
 
-        [self appendPostData:[[[self postData] URLEncodedStringValue:nil] dataUsingEncoding:NSUTF8StringEncoding]];
+        NSString *postString = [[self postData] URLEncodedStringValueWithParentKey:nil];
+        CCLog(@"%@", postString);
+        [self appendPostData:[postString dataUsingEncoding:NSUTF8StringEncoding]];
         [super buildPostBody];
         return;
     }
