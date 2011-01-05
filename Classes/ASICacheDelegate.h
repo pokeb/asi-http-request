@@ -41,7 +41,7 @@ typedef enum _ASICachePolicy {
 	ASIFallbackToCacheIfLoadFailsCachePolicy = 64
 } ASICachePolicy;
 
-// Cache storage policies control whether cached data persists between application launches (ASICachePermanentlyCacheStoragePolicy) or not (ASICachePermanentlyCacheStoragePolicy)
+// Cache storage policies control whether cached data persists between application launches (ASICachePermanentlyCacheStoragePolicy) or not (ASICacheForSessionDurationCacheStoragePolicy)
 // Calling [ASIHTTPRequest clearSession] will remove any data stored using ASICacheForSessionDurationCacheStoragePolicy
 typedef enum _ASICacheStoragePolicy {
 	ASICacheForSessionDurationCacheStoragePolicy = 0,
@@ -79,7 +79,7 @@ typedef enum _ASICacheStoragePolicy {
 - (NSString *)pathToCachedResponseDataForURL:(NSURL *)url;
 
 // Returns a path to the cached response headers, if they url
-- (NSString *)pathToCachedResponseHeadersForURL:(NSURL *)request;
+- (NSString *)pathToCachedResponseHeadersForURL:(NSURL *)url;
 
 // Returns the location to use to store cached response headers for a particular request
 - (NSString *)pathToStoreCachedResponseHeadersForRequest:(ASIHTTPRequest *)request;
