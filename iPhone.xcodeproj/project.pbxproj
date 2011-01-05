@@ -29,16 +29,12 @@
 		B53E6D981257B45800C1E79A /* ASIDataCompressor.m in Sources */ = {isa = PBXBuildFile; fileRef = B53E6D931257B45800C1E79A /* ASIDataCompressor.m */; };
 		B53E6D991257B45800C1E79A /* ASIDataDecompressor.m in Sources */ = {isa = PBXBuildFile; fileRef = B53E6D911257B45800C1E79A /* ASIDataDecompressor.m */; };
 		B53E6D9A1257B45800C1E79A /* ASIDataCompressor.m in Sources */ = {isa = PBXBuildFile; fileRef = B53E6D931257B45800C1E79A /* ASIDataCompressor.m */; };
-		B53E6DD41257B5C900C1E79A /* libxml2.2.7.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B53E6DD31257B5C900C1E79A /* libxml2.2.7.3.dylib */; };
-		B53E6DEB1257B64100C1E79A /* libxml2.2.7.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B53E6DEA1257B64100C1E79A /* libxml2.2.7.3.dylib */; };
 		B540400B115114BA00D8BE63 /* ASIS3Bucket.m in Sources */ = {isa = PBXBuildFile; fileRef = B5404000115114BA00D8BE63 /* ASIS3Bucket.m */; };
 		B540400C115114BA00D8BE63 /* ASIS3BucketRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5404002115114BA00D8BE63 /* ASIS3BucketRequest.m */; };
 		B540400D115114BA00D8BE63 /* ASIS3ObjectRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5404004115114BA00D8BE63 /* ASIS3ObjectRequest.m */; };
 		B540400E115114BA00D8BE63 /* ASIS3ServiceRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5404006115114BA00D8BE63 /* ASIS3ServiceRequest.m */; };
 		B54043B11151542C00D8BE63 /* GHUnitIPhoneTestMain.m in Sources */ = {isa = PBXBuildFile; fileRef = B54043AB1151542C00D8BE63 /* GHUnitIPhoneTestMain.m */; };
 		B54043BB1151546F00D8BE63 /* libGHUnitIPhone3_0.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B54043BA1151546F00D8BE63 /* libGHUnitIPhone3_0.a */; };
-		B552511411D20FC200F9B170 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B552511311D20FC200F9B170 /* CoreGraphics.framework */; };
-		B55251A111D2174C00F9B170 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B55251A011D2174C00F9B170 /* CoreGraphics.framework */; };
 		B55252B411D22E2200F9B170 /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = B55252B311D22E2200F9B170 /* Reachability.m */; };
 		B55252B511D22E2200F9B170 /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = B55252B311D22E2200F9B170 /* Reachability.m */; };
 		B55252B611D22E2200F9B170 /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = B55252B311D22E2200F9B170 /* Reachability.m */; };
@@ -65,13 +61,7 @@
 		B576D4C711C7CC9F0059B815 /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D4C611C7CC9F0059B815 /* MobileCoreServices.framework */; };
 		B576D4CA11C7CCA60059B815 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D4C911C7CCA60059B815 /* SystemConfiguration.framework */; };
 		B576D4D111C7CCBC0059B815 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D4D011C7CCBC0059B815 /* CoreGraphics.framework */; };
-		B576D51411C7CE6D0059B815 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D51311C7CE6D0059B815 /* Foundation.framework */; };
-		B576D51F11C7CEB20059B815 /* CFNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D51E11C7CEB20059B815 /* CFNetwork.framework */; };
-		B576D52111C7CEB70059B815 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D52011C7CEB70059B815 /* SystemConfiguration.framework */; };
-		B576D52311C7CEBC0059B815 /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D52211C7CEBC0059B815 /* MobileCoreServices.framework */; };
-		B576D52511C7CEC00059B815 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D52411C7CEC00059B815 /* UIKit.framework */; };
 		B576D52D11C7CEFA0059B815 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D52C11C7CEFA0059B815 /* Foundation.framework */; };
-		B576D53E11C7CF350059B815 /* libz.1.2.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D53D11C7CF350059B815 /* libz.1.2.3.dylib */; };
 		B576D70411C7F34D0059B815 /* iphone-icon.png in Resources */ = {isa = PBXBuildFile; fileRef = B55B60730F765A990064029C /* iphone-icon.png */; };
 		B576D70B11C7F34D0059B815 /* ASIFormDataRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B60460F765A320064029C /* ASIFormDataRequest.m */; };
 		B576D70C11C7F34D0059B815 /* ASIHTTPRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B60480F765A320064029C /* ASIHTTPRequest.m */; };
@@ -84,15 +74,8 @@
 		B576D71411C7F34D0059B815 /* AuthenticationViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B51791A21024C3E800583567 /* AuthenticationViewController.m */; };
 		B576D71511C7F34D0059B815 /* ASIInputStream.m in Sources */ = {isa = PBXBuildFile; fileRef = B522DACD1030B2AB009A2D22 /* ASIInputStream.m */; };
 		B576D71611C7F34D0059B815 /* ASIAuthenticationDialog.m in Sources */ = {isa = PBXBuildFile; fileRef = B59A87C1103EC6F200300252 /* ASIAuthenticationDialog.m */; };
-		B576D71911C7F34D0059B815 /* CFNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D51E11C7CEB20059B815 /* CFNetwork.framework */; };
-		B576D71A11C7F34D0059B815 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D52011C7CEB70059B815 /* SystemConfiguration.framework */; };
-		B576D71B11C7F34D0059B815 /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D52211C7CEBC0059B815 /* MobileCoreServices.framework */; };
-		B576D71C11C7F34D0059B815 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D52411C7CEC00059B815 /* UIKit.framework */; };
 		B576D71D11C7F34D0059B815 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D52C11C7CEFA0059B815 /* Foundation.framework */; };
 		B576D76611C7F4D90059B815 /* iPhoneMainWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = B576D76511C7F4D90059B815 /* iPhoneMainWindow.xib */; };
-		B576D77611C7F5810059B815 /* libz.1.2.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D53D11C7CF350059B815 /* libz.1.2.3.dylib */; };
-		B576D77711C7F5810059B815 /* libz.1.2.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D53D11C7CF350059B815 /* libz.1.2.3.dylib */; };
-		B57AF06A125873F4002A1F0C /* libxml2.2.7.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B57AF069125873F4002A1F0C /* libxml2.2.7.3.dylib */; };
 		B57AF5921258B3F1002A1F0C /* WebPageViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B57AF5911258B3F1002A1F0C /* WebPageViewController.m */; };
 		B57AF5931258B3F1002A1F0C /* WebPageViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B57AF5911258B3F1002A1F0C /* WebPageViewController.m */; };
 		B57AF5961258B401002A1F0C /* RequestProgressCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B57AF5951258B401002A1F0C /* RequestProgressCell.m */; };
@@ -128,6 +111,23 @@
 		B5FE752711DBBA6400F898C8 /* ASIDownloadCache.m in Sources */ = {isa = PBXBuildFile; fileRef = B5FE752511DBBA6400F898C8 /* ASIDownloadCache.m */; };
 		B5FE752811DBBA6400F898C8 /* ASIDownloadCache.m in Sources */ = {isa = PBXBuildFile; fileRef = B5FE752511DBBA6400F898C8 /* ASIDownloadCache.m */; };
 		B5FE752911DBBA6400F898C8 /* ASIDownloadCache.m in Sources */ = {isa = PBXBuildFile; fileRef = B5FE752511DBBA6400F898C8 /* ASIDownloadCache.m */; };
+		DADCEB8512D5039F00958557 /* CFNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D4C011C7CC970059B815 /* CFNetwork.framework */; };
+		DADCEB8612D503AD00958557 /* CFNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D4C011C7CC970059B815 /* CFNetwork.framework */; };
+		DADCEB8A12D503F500958557 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D4D011C7CCBC0059B815 /* CoreGraphics.framework */; };
+		DADCEB8B12D5040C00958557 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D4D011C7CCBC0059B815 /* CoreGraphics.framework */; };
+		DADCEB8C12D5046A00958557 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D52C11C7CEFA0059B815 /* Foundation.framework */; };
+		DADCEB8D12D504D100958557 /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D4C611C7CC9F0059B815 /* MobileCoreServices.framework */; };
+		DADCEB8E12D504D800958557 /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D4C611C7CC9F0059B815 /* MobileCoreServices.framework */; };
+		DADCEB8F12D5050300958557 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D4C911C7CCA60059B815 /* SystemConfiguration.framework */; };
+		DADCEB9012D5050600958557 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D4C311C7CC9C0059B815 /* UIKit.framework */; };
+		DADCEB9112D5050D00958557 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D4C911C7CCA60059B815 /* SystemConfiguration.framework */; };
+		DADCEB9212D5051200958557 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D4C311C7CC9C0059B815 /* UIKit.framework */; };
+		DADCEB9912D5057700958557 /* libxml2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = DADCEB9812D5057700958557 /* libxml2.dylib */; };
+		DADCEB9A12D5058500958557 /* libxml2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = DADCEB9812D5057700958557 /* libxml2.dylib */; };
+		DADCEB9B12D5058C00958557 /* libxml2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = DADCEB9812D5057700958557 /* libxml2.dylib */; };
+		DADCEB9F12D505AB00958557 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = DADCEB9E12D505AB00958557 /* libz.dylib */; };
+		DADCEBA012D505B900958557 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = DADCEB9E12D505AB00958557 /* libz.dylib */; };
+		DADCEBA112D505C700958557 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = DADCEB9E12D505AB00958557 /* libz.dylib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -168,8 +168,6 @@
 		B53E6D921257B45800C1E79A /* ASIDataDecompressor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIDataDecompressor.h; sourceTree = "<group>"; };
 		B53E6D931257B45800C1E79A /* ASIDataCompressor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIDataCompressor.m; sourceTree = "<group>"; };
 		B53E6D941257B45800C1E79A /* ASIDataCompressor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIDataCompressor.h; sourceTree = "<group>"; };
-		B53E6DD31257B5C900C1E79A /* libxml2.2.7.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxml2.2.7.3.dylib; path = usr/lib/libxml2.2.7.3.dylib; sourceTree = SDKROOT; };
-		B53E6DEA1257B64100C1E79A /* libxml2.2.7.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxml2.2.7.3.dylib; path = /usr/lib/libxml2.2.7.3.dylib; sourceTree = "<absolute>"; };
 		B5403FFF115114BA00D8BE63 /* ASIS3Bucket.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIS3Bucket.h; sourceTree = "<group>"; };
 		B5404000115114BA00D8BE63 /* ASIS3Bucket.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIS3Bucket.m; sourceTree = "<group>"; };
 		B5404001115114BA00D8BE63 /* ASIS3BucketRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIS3BucketRequest.h; sourceTree = "<group>"; };
@@ -178,7 +176,7 @@
 		B5404004115114BA00D8BE63 /* ASIS3ObjectRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIS3ObjectRequest.m; sourceTree = "<group>"; };
 		B5404005115114BA00D8BE63 /* ASIS3ServiceRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIS3ServiceRequest.h; sourceTree = "<group>"; };
 		B5404006115114BA00D8BE63 /* ASIS3ServiceRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIS3ServiceRequest.m; sourceTree = "<group>"; };
-		B54043751151538A00D8BE63 /* libGHUnitIPhone3_0.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libGHUnitIPhone3_0.a; path = "External/GHUnit/Project-IPhone/build/CombinedDebug3_0/libGHUnitIPhone3_0.a"; sourceTree = SOURCE_ROOT; };
+		B54043751151538A00D8BE63 /* libGHUnitIPhone3_0.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libGHUnitIPhone3_0.a; path = "External/GHUnit/Project-IPhone/build/CombinedDebug3_0/libGHUnitIPhone3_0.a"; sourceTree = "<group>"; };
 		B54043A11151542C00D8BE63 /* GHAsyncTestCase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GHAsyncTestCase.h; path = "External/GHUnit/Project-IPhone/build/Debug-iphonesimulator/GHAsyncTestCase.h"; sourceTree = SOURCE_ROOT; };
 		B54043A21151542C00D8BE63 /* GHTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GHTest.h; path = "External/GHUnit/Project-IPhone/build/Debug-iphonesimulator/GHTest.h"; sourceTree = SOURCE_ROOT; };
 		B54043A31151542C00D8BE63 /* GHTestCase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GHTestCase.h; path = "External/GHUnit/Project-IPhone/build/Debug-iphonesimulator/GHTestCase.h"; sourceTree = SOURCE_ROOT; };
@@ -195,8 +193,6 @@
 		B54043B01151542C00D8BE63 /* NSValue+GHValueFormatter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSValue+GHValueFormatter.h"; path = "External/GHUnit/Project-IPhone/build/Debug-iphonesimulator/NSValue+GHValueFormatter.h"; sourceTree = SOURCE_ROOT; };
 		B54043BA1151546F00D8BE63 /* libGHUnitIPhone3_0.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libGHUnitIPhone3_0.a; path = "External/GHUnit/Project-IPhone/build/CombinedDebug3_0/libGHUnitIPhone3_0.a"; sourceTree = SOURCE_ROOT; };
 		B551DB4610D6938500EC1CBF /* ASIHTTPRequestConfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIHTTPRequestConfig.h; sourceTree = "<group>"; };
-		B552511311D20FC200F9B170 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
-		B55251A011D2174C00F9B170 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		B55252B211D22E2200F9B170 /* Reachability.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Reachability.h; sourceTree = "<group>"; };
 		B55252B311D22E2200F9B170 /* Reachability.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Reachability.m; sourceTree = "<group>"; };
 		B558B58911C7F637009B4627 /* iPhoneInfo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = iPhoneInfo.plist; path = "iPhone Sample/iPhoneInfo.plist"; sourceTree = "<group>"; };
@@ -236,17 +232,10 @@
 		B576D4C611C7CC9F0059B815 /* MobileCoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MobileCoreServices.framework; path = System/Library/Frameworks/MobileCoreServices.framework; sourceTree = SDKROOT; };
 		B576D4C911C7CCA60059B815 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
 		B576D4D011C7CCBC0059B815 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
-		B576D51311C7CE6D0059B815 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
-		B576D51E11C7CEB20059B815 /* CFNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CFNetwork.framework; path = System/Library/Frameworks/CFNetwork.framework; sourceTree = SDKROOT; };
-		B576D52011C7CEB70059B815 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
-		B576D52211C7CEBC0059B815 /* MobileCoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MobileCoreServices.framework; path = System/Library/Frameworks/MobileCoreServices.framework; sourceTree = SDKROOT; };
-		B576D52411C7CEC00059B815 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		B576D52C11C7CEFA0059B815 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
-		B576D53D11C7CF350059B815 /* libz.1.2.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.1.2.3.dylib; path = usr/lib/libz.1.2.3.dylib; sourceTree = SDKROOT; };
 		B576D72311C7F34D0059B815 /* ASIHTTPRequest iPad.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "ASIHTTPRequest iPad.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B576D76311C7F4D40059B815 /* iPadMainWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = iPadMainWindow.xib; path = "iPhone Sample/Resources/iPadMainWindow.xib"; sourceTree = "<group>"; };
 		B576D76511C7F4D90059B815 /* iPhoneMainWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = iPhoneMainWindow.xib; path = "iPhone Sample/Resources/iPhoneMainWindow.xib"; sourceTree = "<group>"; };
-		B57AF069125873F4002A1F0C /* libxml2.2.7.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxml2.2.7.3.dylib; path = usr/lib/libxml2.2.7.3.dylib; sourceTree = SDKROOT; };
 		B57AF5901258B3F1002A1F0C /* WebPageViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = WebPageViewController.h; path = "iPhone Sample/WebPageViewController.h"; sourceTree = "<group>"; };
 		B57AF5911258B3F1002A1F0C /* WebPageViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = WebPageViewController.m; path = "iPhone Sample/WebPageViewController.m"; sourceTree = "<group>"; };
 		B57AF5941258B401002A1F0C /* RequestProgressCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RequestProgressCell.h; path = "iPhone Sample/RequestProgressCell.h"; sourceTree = "<group>"; };
@@ -294,6 +283,8 @@
 		B5FE752511DBBA6400F898C8 /* ASIDownloadCache.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIDownloadCache.m; sourceTree = "<group>"; };
 		B5FE752611DBBA6400F898C8 /* ASIDownloadCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIDownloadCache.h; sourceTree = "<group>"; };
 		B5FE752A11DBBA6A00F898C8 /* ASICacheDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASICacheDelegate.h; sourceTree = "<group>"; };
+		DADCEB9812D5057700958557 /* libxml2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxml2.dylib; path = /usr/lib/libxml2.dylib; sourceTree = "<absolute>"; };
+		DADCEB9E12D505AB00958557 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = /usr/lib/libz.dylib; sourceTree = "<absolute>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -301,14 +292,14 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B576D51F11C7CEB20059B815 /* CFNetwork.framework in Frameworks */,
-				B576D52111C7CEB70059B815 /* SystemConfiguration.framework in Frameworks */,
-				B576D52311C7CEBC0059B815 /* MobileCoreServices.framework in Frameworks */,
-				B576D52511C7CEC00059B815 /* UIKit.framework in Frameworks */,
+				DADCEB8512D5039F00958557 /* CFNetwork.framework in Frameworks */,
+				DADCEB8A12D503F500958557 /* CoreGraphics.framework in Frameworks */,
 				B576D52D11C7CEFA0059B815 /* Foundation.framework in Frameworks */,
-				B576D77711C7F5810059B815 /* libz.1.2.3.dylib in Frameworks */,
-				B552511411D20FC200F9B170 /* CoreGraphics.framework in Frameworks */,
-				B53E6DD41257B5C900C1E79A /* libxml2.2.7.3.dylib in Frameworks */,
+				DADCEB8D12D504D100958557 /* MobileCoreServices.framework in Frameworks */,
+				DADCEB8F12D5050300958557 /* SystemConfiguration.framework in Frameworks */,
+				DADCEB9012D5050600958557 /* UIKit.framework in Frameworks */,
+				DADCEB9912D5057700958557 /* libxml2.dylib in Frameworks */,
+				DADCEB9F12D505AB00958557 /* libz.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -316,16 +307,16 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B54043BB1151546F00D8BE63 /* libGHUnitIPhone3_0.a in Frameworks */,
 				B576D4C111C7CC970059B815 /* CFNetwork.framework in Frameworks */,
-				B576D4C411C7CC9C0059B815 /* UIKit.framework in Frameworks */,
-				B576D4C711C7CC9F0059B815 /* MobileCoreServices.framework in Frameworks */,
-				B576D4CA11C7CCA60059B815 /* SystemConfiguration.framework in Frameworks */,
 				B576D4D111C7CCBC0059B815 /* CoreGraphics.framework in Frameworks */,
-				B576D51411C7CE6D0059B815 /* Foundation.framework in Frameworks */,
-				B576D53E11C7CF350059B815 /* libz.1.2.3.dylib in Frameworks */,
+				DADCEB8C12D5046A00958557 /* Foundation.framework in Frameworks */,
+				B576D4C711C7CC9F0059B815 /* MobileCoreServices.framework in Frameworks */,
 				B50C182C121C26FA0055FCAB /* Security.framework in Frameworks */,
-				B53E6DEB1257B64100C1E79A /* libxml2.2.7.3.dylib in Frameworks */,
+				B576D4CA11C7CCA60059B815 /* SystemConfiguration.framework in Frameworks */,
+				B576D4C411C7CC9C0059B815 /* UIKit.framework in Frameworks */,
+				B54043BB1151546F00D8BE63 /* libGHUnitIPhone3_0.a in Frameworks */,
+				DADCEB9A12D5058500958557 /* libxml2.dylib in Frameworks */,
+				DADCEBA012D505B900958557 /* libz.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -333,14 +324,14 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B576D71911C7F34D0059B815 /* CFNetwork.framework in Frameworks */,
-				B576D71A11C7F34D0059B815 /* SystemConfiguration.framework in Frameworks */,
-				B576D71B11C7F34D0059B815 /* MobileCoreServices.framework in Frameworks */,
-				B576D71C11C7F34D0059B815 /* UIKit.framework in Frameworks */,
+				DADCEB8612D503AD00958557 /* CFNetwork.framework in Frameworks */,
+				DADCEB8B12D5040C00958557 /* CoreGraphics.framework in Frameworks */,
 				B576D71D11C7F34D0059B815 /* Foundation.framework in Frameworks */,
-				B576D77611C7F5810059B815 /* libz.1.2.3.dylib in Frameworks */,
-				B55251A111D2174C00F9B170 /* CoreGraphics.framework in Frameworks */,
-				B57AF06A125873F4002A1F0C /* libxml2.2.7.3.dylib in Frameworks */,
+				DADCEB8E12D504D800958557 /* MobileCoreServices.framework in Frameworks */,
+				DADCEB9112D5050D00958557 /* SystemConfiguration.framework in Frameworks */,
+				DADCEB9212D5051200958557 /* UIKit.framework in Frameworks */,
+				DADCEB9B12D5058C00958557 /* libxml2.dylib in Frameworks */,
+				DADCEBA112D505C700958557 /* libz.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -397,25 +388,6 @@
 				29B97317FDCFA39411CA2CEA /* Resources */,
 				29B97323FDCFA39411CA2CEA /* Frameworks */,
 				19C28FACFE9D520D11CA2CBB /* Products */,
-				B54043751151538A00D8BE63 /* libGHUnitIPhone3_0.a */,
-				B576D4C011C7CC970059B815 /* CFNetwork.framework */,
-				B576D4C311C7CC9C0059B815 /* UIKit.framework */,
-				B576D4C611C7CC9F0059B815 /* MobileCoreServices.framework */,
-				B576D4C911C7CCA60059B815 /* SystemConfiguration.framework */,
-				B576D4D011C7CCBC0059B815 /* CoreGraphics.framework */,
-				B576D51311C7CE6D0059B815 /* Foundation.framework */,
-				B576D51E11C7CEB20059B815 /* CFNetwork.framework */,
-				B576D52011C7CEB70059B815 /* SystemConfiguration.framework */,
-				B576D52211C7CEBC0059B815 /* MobileCoreServices.framework */,
-				B576D52411C7CEC00059B815 /* UIKit.framework */,
-				B576D52C11C7CEFA0059B815 /* Foundation.framework */,
-				B576D53D11C7CF350059B815 /* libz.1.2.3.dylib */,
-				B552511311D20FC200F9B170 /* CoreGraphics.framework */,
-				B55251A011D2174C00F9B170 /* CoreGraphics.framework */,
-				B50C182B121C26FA0055FCAB /* Security.framework */,
-				B53E6DD31257B5C900C1E79A /* libxml2.2.7.3.dylib */,
-				B53E6DEA1257B64100C1E79A /* libxml2.2.7.3.dylib */,
-				B57AF069125873F4002A1F0C /* libxml2.2.7.3.dylib */,
 			);
 			name = iPhone;
 			sourceTree = "<group>";
@@ -465,6 +437,16 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				B576D4C011C7CC970059B815 /* CFNetwork.framework */,
+				B576D4D011C7CCBC0059B815 /* CoreGraphics.framework */,
+				B576D52C11C7CEFA0059B815 /* Foundation.framework */,
+				B576D4C611C7CC9F0059B815 /* MobileCoreServices.framework */,
+				B50C182B121C26FA0055FCAB /* Security.framework */,
+				B576D4C911C7CCA60059B815 /* SystemConfiguration.framework */,
+				B576D4C311C7CC9C0059B815 /* UIKit.framework */,
+				B54043751151538A00D8BE63 /* libGHUnitIPhone3_0.a */,
+				DADCEB9812D5057700958557 /* libxml2.dylib */,
+				DADCEB9E12D505AB00958557 /* libz.dylib */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
