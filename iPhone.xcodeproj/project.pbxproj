@@ -1008,7 +1008,7 @@
 				INFOPLIST_FILE = "iPhone Sample/iPadInfo.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 3.2;
 				PRODUCT_NAME = "ASIHTTPRequest iPad";
-				SDKROOT = iphonesimulator3.2;
+				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = 2;
 			};
 			name = Debug;
@@ -1028,7 +1028,7 @@
 				INFOPLIST_FILE = "iPhone Sample/iPadInfo.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 3.2;
 				PRODUCT_NAME = "ASIHTTPRequest iPad";
-				SDKROOT = iphonesimulator3.2;
+				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = 2;
 			};
 			name = Release;
