@@ -466,6 +466,10 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 	if ([request cachePolicy] & ASIOnlyLoadIfNotCachedCachePolicy) {
 		return YES;
 
+	// If we want to fallback to the cache after an error
+	} else if ([request complete] && [request cachePolicy] & ASIFallbackToCacheIfLoadFailsCachePolicy) {
+		return YES;
+
 	// If we have cached data that is current, we can use it
 	} else if ([request cachePolicy] & ASIAskServerIfModifiedWhenStaleCachePolicy) {
 		if ([self isCachedDataCurrentForRequest:request]) {

@@ -367,8 +367,12 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 	#endif
 				}
 
-				// libxml will generate UTF-8
-				[self setResponseEncoding:NSUTF8StringEncoding];
+				// Strip the content encoding if the original response was gzipped
+				if ([self isResponseCompressed]) {
+					NSMutableDictionary *headers = [[self responseHeaders] mutableCopy];
+					[headers removeObjectForKey:@"Content-Encoding"];
+					[self setResponseHeaders:headers];
+				}
 			}
 
 			xmlFreeDoc(doc);

@@ -24,7 +24,7 @@
 #import "ASIDataCompressor.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.8-26 2010-12-15";
+NSString *ASIHTTPRequestVersion = @"v1.8-33 2011-01-06";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -333,6 +333,9 @@ static NSOperationQueue *sharedQueue = nil;
 		CFRelease(clientCertificateIdentity);
 	}
 	[self cancelLoad];
+	[redirectURL release];
+	[statusTimer invalidate];
+	[statusTimer release];
 	[queue release];
 	[userInfo release];
 	[postBody release];
@@ -2019,9 +2022,12 @@ static NSOperationQueue *sharedQueue = nil;
 		return;
 	}
 	
+	// If we have cached data, use it and ignore the error when using ASIFallbackToCacheIfLoadFailsCachePolicy
 	if ([self downloadCache] && ([self cachePolicy] & ASIFallbackToCacheIfLoadFailsCachePolicy)) {
-		[self useDataFromCache];
-		return;
+		if ([[self downloadCache] canUseCachedDataForRequest:self]) {
+			[self useDataFromCache];
+			return;
+		}
 	}
 	
 	
@@ -2167,7 +2173,6 @@ static NSOperationQueue *sharedQueue = nil;
 			}
 
 			// Force the redirected request to rebuild the request headers (if not a 303, it will re-use old ones, and add any new ones)
-			
 			[self setRedirectURL:[[NSURL URLWithString:[responseHeaders valueForKey:@"Location"] relativeToURL:[self url]] absoluteURL]];
 			[self setNeedsRedirect:YES];
 			
