@@ -2403,6 +2403,30 @@ static NSOperationQueue *sharedQueue = nil;
 	
 	// If we have a username and password, let's apply them to the request and continue
 	if (user && pass) {
+		// --- BEGIN adib 7-Jan-2011
+		// set domain for NTLM
+		{
+			NSString* authScheme = [self proxyAuthenticationScheme];
+			if ([authScheme isEqualToString:(NSString*) kCFHTTPAuthenticationSchemeNTLM]) {
+				NSString* ntlmDomain = [self proxyDomain];
+				if (!ntlmDomain || [ntlmDomain length] == 0) {
+					// try to extract the domain from the user name if its in the form DOMAIN\username
+					NSArray* ntlmComponents = [user componentsSeparatedByString:@"\\"];
+					if (ntlmComponents.count == 2) {
+						NSString* domainName = [ntlmComponents objectAtIndex:0];
+						NSString* userName = [ntlmComponents objectAtIndex:1];
+						
+						user = userName;
+						ntlmDomain = domainName;
+					}
+				}
+				if (ntlmDomain) {
+					[newCredentials setObject:ntlmDomain forKey: (NSString*) kCFHTTPAuthenticationAccountDomain];
+				}
+			}
+			
+		}
+		// --- END adib 7-Jan-2011
 		
 		[newCredentials setObject:user forKey:(NSString *)kCFHTTPAuthenticationUsername];
 		[newCredentials setObject:pass forKey:(NSString *)kCFHTTPAuthenticationPassword];
