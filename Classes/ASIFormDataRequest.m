@@ -16,6 +16,8 @@
 
 @implementation ASIFormDataRequest
 
+@synthesize requestContentType;
+
 #pragma mark init / dealloc
 
 + (id)requestWithURL:(NSURL *)newURL
@@ -102,21 +104,26 @@
         [super buildPostBody];
         return;
 	}
-    if ([self postData] && ![self fileData]) {
-        // The request does not need to be multi-part if we have only post data
-        [self addRequestHeader:@"Content-Type" value:@"application/x-www-form-urlencoded"];
+    NSAssert(self.requestContentType == ASIRequestContentTypeMultiPart || self.requestContentType == ASIRequestContentTypeURLEncoded || self.requestContentType == ASIRequestContentTypeJSON, @"This content type is not supported. Did you add a new content type?");
+    if (self.requestContentType != ASIRequestContentTypeMultiPart && [self postData] && ![self fileData]) {
+        if (self.requestContentType == ASIRequestContentTypeURLEncoded) {
+            [self addRequestHeader:@"Content-Type" value:@"application/x-www-form-urlencoded"];
 
-        NSString *postString = [[self postData] URLEncodedStringValueWithParentKey:nil];
-        CCLog(@"%@", postString);
-        [self appendPostData:[postString dataUsingEncoding:NSUTF8StringEncoding]];
-        [super buildPostBody];
-        return;
+            [self appendPostData:[[[self postData] URLEncodedStringValue] dataUsingEncoding:NSUTF8StringEncoding]];
+            [super buildPostBody];
+            return;
+        } else {
+            [self addRequestHeader:@"Content-Type" value:@"application/json"];
+
+            [self appendPostData:[[[self postData] JSONEncodedPostStringValue] dataUsingEncoding:NSUTF8StringEncoding]];
+            [super buildPostBody];
+            return;
+        }
     }
 
 	if ([[self fileData] count] > 0) {
 		[self setShouldStreamPostDataFromDisk:YES];
 	}
-
 
 	// Set your own boundary string only if really obsessive. We don't bother to check if post data contains the boundary, since it's pretty unlikely that it does.
 	NSString *stringBoundary = @"0xKhTmLbOuNdArY";

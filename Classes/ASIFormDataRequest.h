@@ -9,18 +9,28 @@
 #import <Foundation/Foundation.h>
 #import "ASIHTTPRequest.h"
 
-@interface ASIFormDataRequest : ASIHTTPRequest {
 
+typedef enum {
+    ASIRequestContentTypeMultiPart, // default
+    ASIRequestContentTypeURLEncoded,
+    ASIRequestContentTypeJSON
+} ASIRequestContentType;
+
+
+@interface ASIFormDataRequest : ASIHTTPRequest {
 	// Parameters that will be POSTed to the url
 	NSMutableDictionary *postData;
-	
+
 	// Files that will be POSTed to the url
 	NSMutableDictionary *fileData;
-	
+
+    // Set the content type
+    ASIRequestContentType requestContentType;
 }
 
 @property (retain) NSMutableDictionary *postData;
 @property (retain) NSMutableDictionary *fileData;
+@property (nonatomic) ASIRequestContentType requestContentType;
 
 #pragma mark setup request
 
