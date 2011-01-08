@@ -104,21 +104,21 @@
         [super buildPostBody];
         return;
 	}
+
     NSAssert(self.requestContentType == ASIRequestContentTypeMultiPart || self.requestContentType == ASIRequestContentTypeURLEncoded || self.requestContentType == ASIRequestContentTypeJSON, @"This content type is not supported. Did you add a new content type?");
     if (self.requestContentType != ASIRequestContentTypeMultiPart && [self postData] && ![self fileData]) {
         if (self.requestContentType == ASIRequestContentTypeURLEncoded) {
             [self addRequestHeader:@"Content-Type" value:@"application/x-www-form-urlencoded"];
 
             [self appendPostData:[[[self postData] URLEncodedStringValue] dataUsingEncoding:NSUTF8StringEncoding]];
-            [super buildPostBody];
-            return;
         } else {
             [self addRequestHeader:@"Content-Type" value:@"application/json"];
 
             [self appendPostData:[[[self postData] JSONEncodedPostStringValue] dataUsingEncoding:NSUTF8StringEncoding]];
-            [super buildPostBody];
-            return;
         }
+
+        [super buildPostBody];
+        return;
     }
 
 	if ([[self fileData] count] > 0) {
