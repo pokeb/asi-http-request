@@ -53,7 +53,7 @@ typedef enum _ASICacheStoragePolicy {
 
 @required
 
-// Should return the cache policy that will be used when requests have their cache policy set to ASIDefaultCachePolicy
+// Should return the cache policy that will be used when requests have their cache policy set to ASIUseDefaultCachePolicy
 - (ASICachePolicy)defaultCachePolicy;
 
 - (BOOL)canUseCachedDataForRequest:(ASIHTTPRequest *)request;
