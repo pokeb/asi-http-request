@@ -3648,20 +3648,25 @@ static NSOperationQueue *sharedQueue = nil;
   // get the trust from the stream
   trust = (SecTrustRef)CFReadStreamCopyProperty((CFReadStreamRef)[self readStream], kCFStreamPropertySSLPeerTrust);
   
-  // add any additional anchor certificates that were provided
-  SecTrustSetAnchorCertificates(trust, (CFArrayRef)additionalAnchorCertificates);
-  
-  // evaluate trust on the server cert
-  returnCode = SecTrustEvaluate(trust, &result);
-  
-  if( returnCode == errSecSuccess ) {
-    success = (result == kSecTrustResultProceed || result == kSecTrustResultConfirm || result == kSecTrustResultUnspecified);
-    if( result == kSecTrustResultRecoverableTrustFailure ) {
-      // TODO: should try to recover here, per http://developer.apple.com/library/ios/documentation/Security/Reference/certifkeytrustservices/Reference/reference.html#//apple_ref/doc/uid/TP30000157-CH1g-CJBHFGHI
+  if( trust ) {
+    // add any additional anchor certificates that were provided
+    SecTrustSetAnchorCertificates(trust, (CFArrayRef)additionalAnchorCertificates);
+    
+    // evaluate trust on the server cert
+    returnCode = SecTrustEvaluate(trust, &result);
+    
+    if( returnCode == errSecSuccess ) {
+      success = (result == kSecTrustResultProceed || result == kSecTrustResultConfirm || result == kSecTrustResultUnspecified);
+      if( result == kSecTrustResultRecoverableTrustFailure ) {
+        // TODO: should try to recover here, per http://developer.apple.com/library/ios/documentation/Security/Reference/certifkeytrustservices/Reference/reference.html#//apple_ref/doc/uid/TP30000157-CH1g-CJBHFGHI
+      }
     }
+    
+    CFRelease(trust);
   }
-  
-  CFRelease(trust);
+  else {
+    success = YES;
+  }
   
   // did the trust evaluation succeed?
   if( !success ) {
