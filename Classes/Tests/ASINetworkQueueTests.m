@@ -26,6 +26,36 @@ IMPORTANT
 @implementation ASINetworkQueueSubclass
 @end
 
+// Stop clang complaining about undeclared selectors
+@interface ASINetworkQueueTests ()
+- (void)queueFinished:(ASINetworkQueue *)request;
+- (void)addedRequestComplete:(ASIHTTPRequest *)request;
+- (void)addAnotherRequest;
+- (void)immediateCancelFail:(ASIHTTPRequest *)request;
+- (void)immediateCancelFinish:(ASIHTTPRequest *)request;
+- (void)finish:(ASIHTTPRequest *)request;
+- (void)throttleFail:(ASIHTTPRequest *)request;
+- (void)postDone:(ASIHTTPRequest *)request;
+- (void)ntlmDone:(ASIHTTPRequest *)request;
+- (void)ntlmFailed:(ASIHTTPRequest *)request;
+- (void)runHEADFailureTest;
+- (void)queueFailureFinish:(ASINetworkQueue *)request;
+- (void)queueFailureFinishCallOnce:(ASINetworkQueue *)request;
+- (void)request:(ASIHTTPRequest *)request isGoingToRedirectToURL:(NSURL *)url;
+- (void)redirectURLTestFailed:(ASIHTTPRequest *)request;
+- (void)redirectURLTestSucceeded:(ASIHTTPRequest *)request;
+- (void)runDelegateMethodsTest;
+- (void)delegateTestStarted:(ASIHTTPRequest *)request;
+- (void)delegateTestFinished:(ASIHTTPRequest *)request;
+- (void)delegateTestFailed:(ASIHTTPRequest *)request;
+- (void)delegateTestRequest:(ASIHTTPRequest *)request receivedResponseHeaders:(NSDictionary *)headers;
+- (void)addMoreRequestsQueueFinished:(ASINetworkQueue *)request;
+- (void)requestFailedCancellingOthers:(ASINetworkQueue *)request;
+- (void)fail:(ASIHTTPRequest *)request;
+- (void)HEADFail:(ASIHTTPRequest *)request;
+- (void)runTestQueueFinishedCalledOnFailureTest;
+@end
+
 @implementation ASINetworkQueueTests
 
 - (void)testDelegateAuthenticationCredentialsReuse

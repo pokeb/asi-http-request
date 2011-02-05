@@ -16,6 +16,13 @@ static int proxyPort = 0;
 static NSString *proxyUsername = @"";
 static NSString *proxyPassword = @"";
 
+// Stop clang complaining about undeclared selectors
+@interface ProxyTests ()
+- (void)requestDone:(ASIHTTPRequest *)request;
+- (void)requestFailed:(ASIHTTPRequest *)request;
+@end
+
+
 @implementation ProxyTests
 
 - (void)testProxyForHTTPS

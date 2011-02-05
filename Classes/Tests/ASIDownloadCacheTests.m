@@ -10,6 +10,13 @@
 #import "ASIDownloadCache.h"
 #import "ASIHTTPRequest.h"
 
+// Stop clang complaining about undeclared selectors
+@interface ASIDownloadCacheTests ()
+- (void)runCacheOnlyCallsRequestFinishedOnceTest;
+- (void)finishCached:(ASIHTTPRequest *)request;
+@end
+
+
 @implementation ASIDownloadCacheTests
 
 - (void)testDownloadCache

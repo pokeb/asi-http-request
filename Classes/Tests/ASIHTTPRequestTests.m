@@ -25,6 +25,33 @@
 }
 @end
 
+
+// Stop clang complaining about undeclared selectors
+@interface ASIHTTPRequestTests ()
+- (void)runCancelTest;
+- (void)performDelegateMethodsTest;
+- (void)requestStarted:(ASIHTTPRequest *)request;
+- (void)requestFinished:(ASIHTTPRequest *)request;
+- (void)requestFailed:(ASIHTTPRequest *)request;
+- (void)delegateTestStarted:(ASIHTTPRequest *)request;
+- (void)delegateTestResponseHeaders:(ASIHTTPRequest *)request;
+- (void)delegateTestFinished:(ASIHTTPRequest *)request;
+- (void)delegateTestFailed:(ASIHTTPRequest *)request;
+- (void)runRemoveUploadProgressTest;
+- (void)runRedirectedResume;
+- (void)performDownloadProgressTest;
+- (void)theTestRequest:(ASIHTTPRequest *)request didReceiveData:(NSData *)data;
+- (void)theTestRequestFinished:(ASIHTTPRequest *)request;
+- (void)performUploadProgressTest;
+- (void)performPostBodyStreamedFromDiskTest;
+- (void)performPartialFetchTest;
+- (void)asyncFail:(ASIHTTPRequest *)request;
+- (void)asyncSuccess:(ASIHTTPRequest *)request;
+- (void)request:(ASIHTTPRequest *)request isGoingToRedirectToURL:(NSURL *)url;
+- (void)redirectURLTestFailed:(ASIHTTPRequest *)request;
+- (void)redirectURLTestSucceeded:(ASIHTTPRequest *)request;
+@end
+
 @implementation ASIHTTPRequestTests
 
 - (void)testBasicDownload
