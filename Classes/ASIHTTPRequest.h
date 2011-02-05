@@ -287,7 +287,7 @@ typedef void (^ASIDataBlock)(NSData *data);
 	// Called on the delegate (if implemented) when the request starts. Default is requestStarted:
 	SEL didStartSelector;
 	
-	// Called on the delegate (if implemented) when the request receives response headers. Default is requestDidReceiveResponseHeaders:
+	// Called on the delegate (if implemented) when the request receives response headers. Default is request:didReceiveResponseHeaders:
 	SEL didReceiveResponseHeadersSelector;
 
 	// Called on the delegate (if implemented) when the request receives a Location header and shouldRedirect is YES
