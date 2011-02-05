@@ -9,7 +9,7 @@
 #import <Foundation/Foundation.h>
 
 #if TARGET_OS_IPHONE
-#import "GHUnit.h"
+#import <GHUnitIOS/GHUnit.h>
 #else
 #import <GHUnit/GHUnit.h>
 #endif

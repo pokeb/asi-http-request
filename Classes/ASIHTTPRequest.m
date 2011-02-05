@@ -24,7 +24,7 @@
 #import "ASIDataCompressor.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.8-49 2011-02-05";
+NSString *ASIHTTPRequestVersion = @"v1.8-50 2011-02-05";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -3684,7 +3684,7 @@ static NSOperationQueue *sharedQueue = nil;
 		}
 		// If your PAC file is larger than 16KB, you're just being cruel.
 		uint8_t buf[16384];
-		unsigned int len = [(NSInputStream *)stream read:buf maxLength:16384];
+		NSInteger len = [(NSInputStream *)stream read:buf maxLength:16384];
 		if (len) {
 			[[self PACFileData] appendBytes:(const void *)buf length:len];
 		}
