@@ -224,7 +224,7 @@ static const NSUInteger kDomainSection = 1;
 	[self retain];
 	[sharedDialog release];
 	sharedDialog = nil;
-	[self presentNextDialog];
+	[self performSelector:@selector(presentNextDialog) withObject:nil afterDelay:0];
 	[self release];
 }
 

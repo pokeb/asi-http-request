@@ -385,13 +385,10 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 		[NSException raise:@"FailedToTraverseCacheDirectory" format:@"Listing cache directory failed at path '%@'",path];	
 	}
 	for (NSString *file in cacheFiles) {
-		NSString *extension = [file pathExtension];
-		if ([extension isEqualToString:@"cacheddata"] || [extension isEqualToString:@"cachedheaders"]) {
-			[fileManager removeItemAtPath:[path stringByAppendingPathComponent:file] error:&error];
-			if (error) {
-				[[self accessLock] unlock];
-				[NSException raise:@"FailedToRemoveCacheFile" format:@"Failed to remove cached data at path '%@'",path];	
-			}
+		[fileManager removeItemAtPath:[path stringByAppendingPathComponent:file] error:&error];
+		if (error) {
+			[[self accessLock] unlock];
+			[NSException raise:@"FailedToRemoveCacheFile" format:@"Failed to remove cached data at path '%@'",path];
 		}
 	}
 	[[self accessLock] unlock];
@@ -467,6 +464,10 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 
 	// If we have cached data, we can use it
 	if ([request cachePolicy] & ASIOnlyLoadIfNotCachedCachePolicy) {
+		return YES;
+
+	// If we want to fallback to the cache after an error
+	} else if ([request complete] && [request cachePolicy] & ASIFallbackToCacheIfLoadFailsCachePolicy) {
 		return YES;
 
 	// If we have cached data that is current, we can use it

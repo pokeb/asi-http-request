@@ -1097,7 +1097,7 @@ IMPORTANT
 	[queue setShowAccurateProgress:YES];
 	
 	[queue setDelegate:self];
-	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://999.123"]];
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://"]];
 	[request setDelegate:self];
 	[request setDidFailSelector:@selector(HEADFail:)];
 	[queue addOperation:request];

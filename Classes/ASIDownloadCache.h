@@ -12,8 +12,8 @@
 @interface ASIDownloadCache : NSObject <ASICacheDelegate> {
 	
 	// The default cache policy for this cache
-	// Requests that store data in the cache will use this cache policy if their cache policy is set to ASIDefaultCachePolicy
-	// Defaults to ASIReloadIfDifferentCachePolicy
+	// Requests that store data in the cache will use this cache policy if their cache policy is set to ASIUseDefaultCachePolicy
+	// Defaults to ASIAskServerIfModifiedWhenStaleCachePolicy
 	ASICachePolicy defaultCachePolicy;
 	
 	// The directory in which cached data will be stored

@@ -128,12 +128,12 @@
 
 	// Test ASIFallbackToCacheIfLoadFailsCachePolicy
 	// Store something in the cache
-	[request setURL:[NSURL URLWithString:@"http://inva.lid"]];
+	[request setURL:[NSURL URLWithString:@"http://"]];
 	[request setResponseHeaders:[NSDictionary dictionaryWithObject:@"test" forKey:@"test"]];
 	[request setRawResponseData:(NSMutableData *)[@"test" dataUsingEncoding:NSUTF8StringEncoding]];
 	[[ASIDownloadCache sharedCache] storeResponseForRequest:request maxAge:0];
 
-	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://inva.lid"]];
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://"]];
 	[request setCachePolicy:ASIFallbackToCacheIfLoadFailsCachePolicy];
 	[request startSynchronous];
 
@@ -145,6 +145,21 @@
 
 	success = [[[request responseHeaders] valueForKey:@"test"] isEqualToString:@"test"];
 	GHAssertTrue(success,@"Failed to read cached response headers");
+
+	// Remove the stuff from the cache, and try again
+	[request setURL:[NSURL URLWithString:@"http://"]];
+	[[ASIDownloadCache sharedCache] removeCachedDataForRequest:request];
+
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://"]];
+	[request setCachePolicy:ASIFallbackToCacheIfLoadFailsCachePolicy];
+	[request startSynchronous];
+
+	success = ![request didUseCachedResponse];
+	GHAssertTrue(success,@"Request says it used a cached response, but there wasn't one to use");
+
+	success = !![request error];
+	GHAssertTrue(success,@"Request had no error set");
+
 
 	// Test ASIDontLoadCachePolicy
 	[[ASIDownloadCache sharedCache] clearCachedResponsesForStoragePolicy:ASICacheForSessionDurationCacheStoragePolicy];

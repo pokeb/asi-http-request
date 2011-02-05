@@ -24,7 +24,7 @@
 #import "ASIDataCompressor.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.8-25 2010-12-14";
+NSString *ASIHTTPRequestVersion = @"v1.8-46 2011-02-05";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -346,6 +346,9 @@ static NSOperationQueue *sharedQueue = nil;
 		CFRelease(clientCertificateIdentity);
 	}
 	[self cancelLoad];
+	[redirectURL release];
+	[statusTimer invalidate];
+	[statusTimer release];
 	[queue release];
 	[userInfo release];
 	[postBody release];
@@ -2008,9 +2011,12 @@ static NSOperationQueue *sharedQueue = nil;
 		return;
 	}
 	
+	// If we have cached data, use it and ignore the error when using ASIFallbackToCacheIfLoadFailsCachePolicy
 	if ([self downloadCache] && ([self cachePolicy] & ASIFallbackToCacheIfLoadFailsCachePolicy)) {
-		[self useDataFromCache];
-		return;
+		if ([[self downloadCache] canUseCachedDataForRequest:self]) {
+			[self useDataFromCache];
+			return;
+		}
 	}
 	
 	
@@ -2160,7 +2166,6 @@ static NSOperationQueue *sharedQueue = nil;
 			}
 
 			// Force the redirected request to rebuild the request headers (if not a 303, it will re-use old ones, and add any new ones)
-			
 			[self setRedirectURL:[[NSURL URLWithString:[responseHeaders valueForKey:@"Location"] relativeToURL:[self url]] absoluteURL]];
 			[self setNeedsRedirect:YES];
 			
@@ -2354,14 +2359,6 @@ static NSOperationQueue *sharedQueue = nil;
 {
 	NSMutableDictionary *newCredentials = [[[NSMutableDictionary alloc] init] autorelease];
 	
-	// Is an account domain needed? (used currently for NTLM only)
-	if (CFHTTPAuthenticationRequiresAccountDomain(proxyAuthentication)) {
-		if (![self proxyDomain]) {
-			[self setProxyDomain:@""];
-		}
-		[newCredentials setObject:[self proxyDomain] forKey:(NSString *)kCFHTTPAuthenticationAccountDomain];
-	}
-	
 	NSString *user = nil;
 	NSString *pass = nil;
 	
@@ -2388,10 +2385,27 @@ static NSOperationQueue *sharedQueue = nil;
 		}
 		
 	}
-	
+
+	// Handle NTLM, which requires a domain to be set too
+	if (CFHTTPAuthenticationRequiresAccountDomain(proxyAuthentication)) {
+
+		NSString *ntlmDomain = [self proxyDomain];
+
+		// If we have no domain yet, let's try to extract it from the username
+		if (!ntlmDomain || [ntlmDomain length] == 0) {
+			ntlmDomain = @"";
+			NSArray* ntlmComponents = [user componentsSeparatedByString:@"\\"];
+			if ([ntlmComponents count] == 2) {
+				ntlmDomain = [ntlmComponents objectAtIndex:0];
+				user = [ntlmComponents objectAtIndex:1];
+			}
+		}
+		[newCredentials setObject:ntlmDomain forKey:(NSString *)kCFHTTPAuthenticationAccountDomain];
+	}
+
+
 	// If we have a username and password, let's apply them to the request and continue
 	if (user && pass) {
-		
 		[newCredentials setObject:user forKey:(NSString *)kCFHTTPAuthenticationUsername];
 		[newCredentials setObject:pass forKey:(NSString *)kCFHTTPAuthenticationPassword];
 		return newCredentials;
@@ -2404,13 +2418,6 @@ static NSOperationQueue *sharedQueue = nil;
 {
 	NSMutableDictionary *newCredentials = [[[NSMutableDictionary alloc] init] autorelease];
 	
-	// Is an account domain needed? (used currently for NTLM only)
-	if (CFHTTPAuthenticationRequiresAccountDomain(requestAuthentication)) {
-		if (!domain) {
-			[self setDomain:@""];
-		}
-		[newCredentials setObject:domain forKey:(NSString *)kCFHTTPAuthenticationAccountDomain];
-	}
 	
 	// First, let's look at the url to see if the username and password were included
 	NSString *user = [[self url] user];
@@ -2441,10 +2448,26 @@ static NSOperationQueue *sharedQueue = nil;
 		}
 		
 	}
-	
+
+	// Handle NTLM, which requires a domain to be set too
+	if (CFHTTPAuthenticationRequiresAccountDomain(requestAuthentication)) {
+
+		NSString *ntlmDomain = [self domain];
+
+		// If we have no domain yet, let's try to extract it from the username
+		if (!ntlmDomain || [ntlmDomain length] == 0) {
+			ntlmDomain = @"";
+			NSArray* ntlmComponents = [user componentsSeparatedByString:@"\\"];
+			if ([ntlmComponents count] == 2) {
+				ntlmDomain = [ntlmComponents objectAtIndex:0];
+				user = [ntlmComponents objectAtIndex:1];
+			}
+		}
+		[newCredentials setObject:ntlmDomain forKey:(NSString *)kCFHTTPAuthenticationAccountDomain];
+	}
+
 	// If we have a username and password, let's apply them to the request and continue
 	if (user && pass) {
-		
 		[newCredentials setObject:user forKey:(NSString *)kCFHTTPAuthenticationUsername];
 		[newCredentials setObject:pass forKey:(NSString *)kCFHTTPAuthenticationPassword];
 		return newCredentials;
