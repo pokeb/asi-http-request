@@ -1083,7 +1083,7 @@
 	[request setUseSessionPersistence:YES];
 	[request startSynchronous];
 	success = [request authenticationRetryCount] == 0;
-	GHAssertTrue(success,@"Didn't supply credentials before being asked for them when talking to the same server with shouldPresentCredentialsBeforeChallenge == YES");	
+	GHAssertTrue(success,@"Didn't supply credentials before being asked for them when talking to the same server with shouldPresentCredentialsBeforeChallenge == YES");
 	
 	// Ensure credentials stored in the session were not presented to the server before it asked for them
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
@@ -1095,15 +1095,26 @@
 	
 	[ASIHTTPRequest clearSession];
 	
-	// Test credentials set on the request are sent before the server asks for them
+	// Test credentials set on the request are not sent before the server asks for them unless they are cached credentials from a previous request to this server
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUseSessionPersistence:NO];
 	[request setUsername:@"secret_username"];
 	[request setPassword:@"secret_password"];
 	[request setShouldPresentCredentialsBeforeChallenge:YES];
 	[request startSynchronous];
+	BOOL fail = [request authenticationRetryCount] == 0;
+	GHAssertFalse(fail,@"Sent Basic credentials even though request did not have kCFHTTPAuthenticationSchemeBasic set as authenticationScheme.");
+
+	// Test basic credentials set on the request are sent before the server asks for them if we've explictly set the authentication scheme to basic
+	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
+	[request setUseSessionPersistence:NO];
+	[request setUsername:@"secret_username"];
+	[request setPassword:@"secret_password"];
+	[request setShouldPresentCredentialsBeforeChallenge:YES];
+	[request setAuthenticationScheme:(NSString *)kCFHTTPAuthenticationSchemeBasic];
+	[request startSynchronous];
 	success = [request authenticationRetryCount] == 0;
-	GHAssertTrue(success,@"Didn't supply credentials before being asked for them, even though they were set on the request and shouldPresentCredentialsBeforeChallenge == YES");	
+	GHAssertTrue(success,@"Didn't supply credentials before being asked for them, even though they were set on the request and shouldPresentCredentialsBeforeChallenge == YES");
 	
 	// Test credentials set on the request aren't sent before the server asks for them
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];

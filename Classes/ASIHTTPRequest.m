@@ -24,7 +24,7 @@
 #import "ASIDataCompressor.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.8-53 2011-02-06";
+NSString *ASIHTTPRequestVersion = @"v1.8-56 2011-02-06";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -953,8 +953,8 @@ static NSOperationQueue *sharedQueue = nil;
 	// Are any credentials set on this request that might be used for basic authentication?
 	if ([self username] && [self password] && ![self domain]) {
 		
-		// If we have stored credentials, is this server asking for basic authentication?
-		if ((CFStringRef)[credentials objectForKey:@"AuthenticationScheme"] == kCFHTTPAuthenticationSchemeBasic) {
+		// If we know this request should use Basic auth, we'll add an Authorization header with basic credentials
+		if ([[self authenticationScheme] isEqualToString:(NSString *)kCFHTTPAuthenticationSchemeBasic]) {
 			[self addBasicAuthenticationHeaderWithUsername:[self username] andPassword:[self password]];
 		}
 	}
