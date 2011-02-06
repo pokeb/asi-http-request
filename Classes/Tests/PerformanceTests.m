@@ -20,6 +20,15 @@
 @synthesize tag;
 @end
 
+// Stop clang complaining about undeclared selectors
+@interface PerformanceTests ()
+- (void)runSynchronousASIHTTPRequests;
+- (void)runSynchronousNSURLConnections;
+- (void)startASIHTTPRequests;
+- (void)startASIHTTPRequestsWithQueue;
+- (void)startNSURLConnections;
+@end
+
 
 @implementation PerformanceTests
 

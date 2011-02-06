@@ -34,6 +34,16 @@ static NSString *bucket = @"";
 @implementation ASIS3BucketObjectSubclass;
 @end
 
+// Stop clang complaining about undeclared selectors
+@interface ASIS3RequestTests ()
+- (void)GETRequestDone:(ASIHTTPRequest *)request;
+- (void)GETRequestFailed:(ASIHTTPRequest *)request;
+- (void)PUTRequestDone:(ASIHTTPRequest *)request;
+- (void)PUTRequestFailed:(ASIHTTPRequest *)request;
+- (void)DELETERequestDone:(ASIHTTPRequest *)request;
+- (void)DELETERequestFailed:(ASIHTTPRequest *)request;
+@end
+
 @implementation ASIS3RequestTests
 
 // All these tests are based on Amazon's examples at: http://docs.amazonwebservices.com/AmazonS3/2006-03-01/
@@ -101,16 +111,16 @@ static NSString *bucket = @"";
 	GHAssertTrue(success,@"Failed to generate the correct authorisation header for a list request");	
 	
 	// Test Unicode keys
-	exampleBucket = @"dictionary";
-	key = @"français/préfère";
-	dateString = @"Wed, 28 Mar 2007 01:49:49 +0000";
-	request = [ASIS3ObjectRequest requestWithBucket:exampleBucket key:key];
-	[request setDateString:dateString];
-	[request setSecretAccessKey:exampleSecretAccessKey];
-	[request setAccessKey:exampleAccessKey];
-	[request buildRequestHeaders];
-	success = [[[request requestHeaders] valueForKey:@"Authorization"] isEqualToString:@"AWS 0PN5J17HBGZHT7JJ3X82:dxhSBHoI6eVSPcXJqEghlUzZMnY="];
 	// Comment out this test for now, as the S3 example is relying on mixed-case hex-encoded characters in the url, which isn't going to be easy to replicate
+//	exampleBucket = @"dictionary";
+//	key = @"français/préfère";
+//	dateString = @"Wed, 28 Mar 2007 01:49:49 +0000";
+//	request = [ASIS3ObjectRequest requestWithBucket:exampleBucket key:key];
+//	[request setDateString:dateString];
+//	[request setSecretAccessKey:exampleSecretAccessKey];
+//	[request setAccessKey:exampleAccessKey];
+//	[request buildRequestHeaders];
+//	success = [[[request requestHeaders] valueForKey:@"Authorization"] isEqualToString:@"AWS 0PN5J17HBGZHT7JJ3X82:dxhSBHoI6eVSPcXJqEghlUzZMnY="];
 	//GHAssertTrue(success,@"Failed to generate the correct authorisation header for a list request");		
 }
 

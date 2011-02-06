@@ -29,6 +29,13 @@ IMPORTANT
 @synthesize request;
 @end
 
+// Stop clang complaining about undeclared selectors
+@interface StressTests ()
+- (void)cancelRedirectRequest;
+- (void)cancelSetDelegateRequest;
+@end
+
+
 
 @implementation StressTests
 

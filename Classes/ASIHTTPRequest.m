@@ -24,7 +24,7 @@
 #import "ASIDataCompressor.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.8-33 2011-01-06";
+NSString *ASIHTTPRequestVersion = @"v1.8-56 2011-02-06";
 
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
@@ -173,6 +173,12 @@ static NSOperationQueue *sharedQueue = nil;
 + (void)hideNetworkActivityIndicatorIfNeeeded;
 + (void)runRequests;
 
+// Handling Proxy autodetection and PAC file downloads
+- (BOOL)configureProxies;
+- (void)fetchPACFile;
+- (void)finishedDownloadingPACFile:(ASIHTTPRequest *)theRequest;
+- (void)runPACScript:(NSString *)script;
+- (void)timeOutPACRead;
 
 - (void)useDataFromCache;
 
@@ -234,6 +240,13 @@ static NSOperationQueue *sharedQueue = nil;
 @property (retain, nonatomic) NSTimer *statusTimer;
 @property (assign) BOOL didUseCachedResponse;
 @property (retain, nonatomic) NSURL *redirectURL;
+
+@property (assign, nonatomic) BOOL isPACFileRequest;
+@property (retain, nonatomic) ASIHTTPRequest *PACFileRequest;
+@property (retain, nonatomic) NSInputStream *PACFileReadStream;
+@property (retain, nonatomic) NSMutableData *PACFileData;
+
+@property (assign, nonatomic, setter=setSynchronous:) BOOL isSynchronous;
 @end
 
 
@@ -754,6 +767,7 @@ static NSOperationQueue *sharedQueue = nil;
 #if DEBUG_REQUEST_STATUS || DEBUG_THROTTLING
 	NSLog(@"Starting synchronous request %@",self);
 #endif
+	[self setSynchronous:YES];
 	[self setRunLoopMode:ASIHTTPRequestRunLoopMode];
 	[self setInProgress:YES];
 
@@ -906,9 +920,13 @@ static NSOperationQueue *sharedQueue = nil;
 		for (header in [self requestHeaders]) {
 			CFHTTPMessageSetHeaderFieldValue(request, (CFStringRef)header, (CFStringRef)[[self requestHeaders] objectForKey:header]);
 		}
-			
-		[self startRequest];
-		
+
+		// If we immediately have access to proxy settings, start the request
+		// Otherwise, we'll start downloading the proxy PAC file, and call startRequest once that process is complete
+		if ([self configureProxies]) {
+			[self startRequest];
+		}
+
 	} @catch (NSException *exception) {
 		NSError *underlyingError = [NSError errorWithDomain:NetworkRequestErrorDomain code:ASIUnhandledExceptionError userInfo:[exception userInfo]];
 		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIUnhandledExceptionError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[exception name],NSLocalizedDescriptionKey,[exception reason],NSLocalizedFailureReasonErrorKey,underlyingError,NSUnderlyingErrorKey,nil]]];
@@ -935,8 +953,8 @@ static NSOperationQueue *sharedQueue = nil;
 	// Are any credentials set on this request that might be used for basic authentication?
 	if ([self username] && [self password] && ![self domain]) {
 		
-		// If we have stored credentials, is this server asking for basic authentication? If we don't have credentials, we'll assume basic
-		if (!credentials || (CFStringRef)[credentials objectForKey:@"AuthenticationScheme"] == kCFHTTPAuthenticationSchemeBasic) {
+		// If we know this request should use Basic auth, we'll add an Authorization header with basic credentials
+		if ([[self authenticationScheme] isEqualToString:(NSString *)kCFHTTPAuthenticationSchemeBasic]) {
 			[self addBasicAuthenticationHeaderWithUsername:[self username] andPassword:[self password]];
 		}
 	}
@@ -1161,57 +1179,11 @@ static NSOperationQueue *sharedQueue = nil;
         CFReadStreamSetProperty((CFReadStreamRef)[self readStream], kCFStreamPropertySSLSettings, sslProperties);
     }
 
-    
-	
 	//
 	// Handle proxy settings
 	//
-	
-	// Have details of the proxy been set on this request
-	if (![self proxyHost] && ![self proxyPort]) {
-		
-		// If not, we need to figure out what they'll be
-		
-		NSArray *proxies = nil;
-		
-		// Have we been given a proxy auto config file?
-		if ([self PACurl]) {
-			
-			proxies = [ASIHTTPRequest proxiesForURL:[self url] fromPAC:[self PACurl]];
-			
-			// Detect proxy settings and apply them	
-		} else {
-			
-#if TARGET_OS_IPHONE
-			NSDictionary *proxySettings = NSMakeCollectable([(NSDictionary *)CFNetworkCopySystemProxySettings() autorelease]);
-#else
-			NSDictionary *proxySettings = NSMakeCollectable([(NSDictionary *)SCDynamicStoreCopyProxies(NULL) autorelease]);
-#endif
-			
-			proxies = NSMakeCollectable([(NSArray *)CFNetworkCopyProxiesForURL((CFURLRef)[self url], (CFDictionaryRef)proxySettings) autorelease]);
-			
-			// Now check to see if the proxy settings contained a PAC url, we need to run the script to get the real list of proxies if so
-			NSDictionary *settings = [proxies objectAtIndex:0];
-			if ([settings objectForKey:(NSString *)kCFProxyAutoConfigurationURLKey]) {
-				proxies = [ASIHTTPRequest proxiesForURL:[self url] fromPAC:[settings objectForKey:(NSString *)kCFProxyAutoConfigurationURLKey]];
-			}
-		}
-		
-		if (!proxies) {
-			[self setReadStream:nil];
-			[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIInternalErrorWhileBuildingRequestType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Unable to obtain information on proxy servers needed for request",NSLocalizedDescriptionKey,nil]]];
-			return;			
-		}
-		// I don't really understand why the dictionary returned by CFNetworkCopyProxiesForURL uses different key names from CFNetworkCopySystemProxySettings/SCDynamicStoreCopyProxies
-		// and why its key names are documented while those we actually need to use don't seem to be (passing the kCF* keys doesn't seem to work)
-		if ([proxies count] > 0) {
-			NSDictionary *settings = [proxies objectAtIndex:0];
-			[self setProxyHost:[settings objectForKey:(NSString *)kCFProxyHostNameKey]];
-			[self setProxyPort:[[settings objectForKey:(NSString *)kCFProxyPortNumberKey] intValue]];
-			[self setProxyType:[settings objectForKey:(NSString *)kCFProxyTypeKey]];
-		}
-	}
-	if ([self proxyHost] && [self proxyPort]) {
+
+ 	if ([self proxyHost] && [self proxyPort]) {
 		NSString *hostKey;
 		NSString *portKey;
 
@@ -1238,6 +1210,7 @@ static NSOperationQueue *sharedQueue = nil;
 			CFReadStreamSetProperty((CFReadStreamRef)[self readStream], kCFStreamPropertyHTTPProxy, proxyToUse);
 		}
 	}
+
 
 	//
 	// Handle persistent connections
@@ -1515,6 +1488,18 @@ static NSOperationQueue *sharedQueue = nil;
 // Cancel loading and clean up. DO NOT USE THIS TO CANCEL REQUESTS - use [request cancel] instead
 - (void)cancelLoad
 {
+	// If we're in the middle of downloading a PAC file, let's stop that first
+	if (PACFileReadStream) {
+		[PACFileReadStream setDelegate:nil];
+		[PACFileReadStream close];
+		[self setPACFileReadStream:nil];
+		[self setPACFileData:nil];
+	} else if (PACFileRequest) {
+		[PACFileRequest setDelegate:nil];
+		[PACFileRequest cancel];
+		[self setPACFileRequest:nil];
+	}
+
     [self destroyReadStream];
 	
 	[[self postBodyReadStream] close];
@@ -1945,7 +1930,11 @@ static NSOperationQueue *sharedQueue = nil;
 	if ([self error] || [self mainRequest]) {
 		return;
 	}
-	[self performSelectorOnMainThread:@selector(reportFinished) withObject:nil waitUntilDone:[NSThread isMainThread]];
+	if ([self isPACFileRequest]) {
+		[self reportFinished];
+	} else {
+		[self performSelectorOnMainThread:@selector(reportFinished) withObject:nil waitUntilDone:[NSThread isMainThread]];
+	}
 }
 
 /* ALWAYS CALLED ON MAIN THREAD! */
@@ -2041,7 +2030,11 @@ static NSOperationQueue *sharedQueue = nil;
 		[failedRequest setError:theError];
 	}
 
-	[failedRequest performSelectorOnMainThread:@selector(reportFailure) withObject:nil waitUntilDone:[NSThread isMainThread]];
+	if ([self isPACFileRequest]) {
+		[failedRequest reportFailure];
+	} else {
+		[failedRequest performSelectorOnMainThread:@selector(reportFailure) withObject:nil waitUntilDone:[NSThread isMainThread]];
+	}
 	
     if (!inProgress)
     {
@@ -2366,14 +2359,6 @@ static NSOperationQueue *sharedQueue = nil;
 {
 	NSMutableDictionary *newCredentials = [[[NSMutableDictionary alloc] init] autorelease];
 	
-	// Is an account domain needed? (used currently for NTLM only)
-	if (CFHTTPAuthenticationRequiresAccountDomain(proxyAuthentication)) {
-		if (![self proxyDomain]) {
-			[self setProxyDomain:@""];
-		}
-		[newCredentials setObject:[self proxyDomain] forKey:(NSString *)kCFHTTPAuthenticationAccountDomain];
-	}
-	
 	NSString *user = nil;
 	NSString *pass = nil;
 	
@@ -2400,10 +2385,27 @@ static NSOperationQueue *sharedQueue = nil;
 		}
 		
 	}
-	
+
+	// Handle NTLM, which requires a domain to be set too
+	if (CFHTTPAuthenticationRequiresAccountDomain(proxyAuthentication)) {
+
+		NSString *ntlmDomain = [self proxyDomain];
+
+		// If we have no domain yet, let's try to extract it from the username
+		if (!ntlmDomain || [ntlmDomain length] == 0) {
+			ntlmDomain = @"";
+			NSArray* ntlmComponents = [user componentsSeparatedByString:@"\\"];
+			if ([ntlmComponents count] == 2) {
+				ntlmDomain = [ntlmComponents objectAtIndex:0];
+				user = [ntlmComponents objectAtIndex:1];
+			}
+		}
+		[newCredentials setObject:ntlmDomain forKey:(NSString *)kCFHTTPAuthenticationAccountDomain];
+	}
+
+
 	// If we have a username and password, let's apply them to the request and continue
 	if (user && pass) {
-		
 		[newCredentials setObject:user forKey:(NSString *)kCFHTTPAuthenticationUsername];
 		[newCredentials setObject:pass forKey:(NSString *)kCFHTTPAuthenticationPassword];
 		return newCredentials;
@@ -2416,13 +2418,6 @@ static NSOperationQueue *sharedQueue = nil;
 {
 	NSMutableDictionary *newCredentials = [[[NSMutableDictionary alloc] init] autorelease];
 	
-	// Is an account domain needed? (used currently for NTLM only)
-	if (CFHTTPAuthenticationRequiresAccountDomain(requestAuthentication)) {
-		if (!domain) {
-			[self setDomain:@""];
-		}
-		[newCredentials setObject:domain forKey:(NSString *)kCFHTTPAuthenticationAccountDomain];
-	}
 	
 	// First, let's look at the url to see if the username and password were included
 	NSString *user = [[self url] user];
@@ -2453,10 +2448,26 @@ static NSOperationQueue *sharedQueue = nil;
 		}
 		
 	}
-	
+
+	// Handle NTLM, which requires a domain to be set too
+	if (CFHTTPAuthenticationRequiresAccountDomain(requestAuthentication)) {
+
+		NSString *ntlmDomain = [self domain];
+
+		// If we have no domain yet, let's try to extract it from the username
+		if (!ntlmDomain || [ntlmDomain length] == 0) {
+			ntlmDomain = @"";
+			NSArray* ntlmComponents = [user componentsSeparatedByString:@"\\"];
+			if ([ntlmComponents count] == 2) {
+				ntlmDomain = [ntlmComponents objectAtIndex:0];
+				user = [ntlmComponents objectAtIndex:1];
+			}
+		}
+		[newCredentials setObject:ntlmDomain forKey:(NSString *)kCFHTTPAuthenticationAccountDomain];
+	}
+
 	// If we have a username and password, let's apply them to the request and continue
 	if (user && pass) {
-		
 		[newCredentials setObject:user forKey:(NSString *)kCFHTTPAuthenticationUsername];
 		[newCredentials setObject:pass forKey:(NSString *)kCFHTTPAuthenticationPassword];
 		return newCredentials;
@@ -3543,6 +3554,212 @@ static NSOperationQueue *sharedQueue = nil;
 	return YES;
 }
 
+#pragma mark Proxies
+
+- (BOOL)configureProxies
+{
+	// Have details of the proxy been set on this request
+	if (![self isPACFileRequest] && (![self proxyHost] && ![self proxyPort])) {
+
+		// If not, we need to figure out what they'll be
+		NSArray *proxies = nil;
+
+		// Have we been given a proxy auto config file?
+		if ([self PACurl]) {
+
+			// If yes, we'll need to fetch the PAC file asynchronously, so we stop this request to wait until we have the proxy details.
+			[self fetchPACFile];
+			return NO;
+
+			// Detect proxy settings and apply them
+		} else {
+
+#if TARGET_OS_IPHONE
+			NSDictionary *proxySettings = NSMakeCollectable([(NSDictionary *)CFNetworkCopySystemProxySettings() autorelease]);
+#else
+			NSDictionary *proxySettings = NSMakeCollectable([(NSDictionary *)SCDynamicStoreCopyProxies(NULL) autorelease]);
+#endif
+
+			proxies = NSMakeCollectable([(NSArray *)CFNetworkCopyProxiesForURL((CFURLRef)[self url], (CFDictionaryRef)proxySettings) autorelease]);
+
+			// Now check to see if the proxy settings contained a PAC url, we need to run the script to get the real list of proxies if so
+			NSDictionary *settings = [proxies objectAtIndex:0];
+			if ([settings objectForKey:(NSString *)kCFProxyAutoConfigurationURLKey]) {
+				[self setPACurl:[settings objectForKey:(NSString *)kCFProxyAutoConfigurationURLKey]];
+				[self fetchPACFile];
+				return NO;
+			}
+		}
+
+		if (!proxies) {
+			[self setReadStream:nil];
+			[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIInternalErrorWhileBuildingRequestType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Unable to obtain information on proxy servers needed for request",NSLocalizedDescriptionKey,nil]]];
+			return NO;
+		}
+		// I don't really understand why the dictionary returned by CFNetworkCopyProxiesForURL uses different key names from CFNetworkCopySystemProxySettings/SCDynamicStoreCopyProxies
+		// and why its key names are documented while those we actually need to use don't seem to be (passing the kCF* keys doesn't seem to work)
+		if ([proxies count] > 0) {
+			NSDictionary *settings = [proxies objectAtIndex:0];
+			[self setProxyHost:[settings objectForKey:(NSString *)kCFProxyHostNameKey]];
+			[self setProxyPort:[[settings objectForKey:(NSString *)kCFProxyPortNumberKey] intValue]];
+			[self setProxyType:[settings objectForKey:(NSString *)kCFProxyTypeKey]];
+		}
+	}
+	return YES;
+}
+
+
+
+// Attempts to download a PAC (Proxy Auto-Configuration) file
+// PAC files at file://, http:// and https:// addresses are supported
+- (void)fetchPACFile
+{
+	// For file:// urls, we'll use an async NSInputStream (ASIHTTPRequest does not support file:// urls)
+	if ([[self PACurl] isFileURL]) {
+		NSInputStream *stream = [[[NSInputStream alloc] initWithFileAtPath:[[self PACurl] path]] autorelease];
+		[self setPACFileReadStream:stream];
+		[stream setDelegate:(id)self];
+		[stream scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:[self runLoopMode]];
+		[stream open];
+		// If it takes more than timeOutSeconds to read the PAC, we'll just give up and assume no proxies
+		// We won't bother to handle cases where the first part of the PAC is read within timeOutSeconds, but the whole thing takes longer
+		// Either our PAC file is in easy reach, or it's going to slow things down to the point that it's probably better requests fail
+		[self performSelector:@selector(timeOutPACRead) withObject:nil afterDelay:[self timeOutSeconds]];
+		return;
+	}
+
+	NSString *scheme = [[[self PACurl] scheme] lowercaseString];
+	if (![scheme isEqualToString:@"http"] && ![scheme isEqualToString:@"https"]) {
+		// Don't know how to read data from this URL, we'll have to give up
+		// We'll simply assume no proxies, and start the request as normal
+		[self startRequest];
+		return;
+	}
+
+	// Create an ASIHTTPRequest to fetch the PAC file
+	ASIHTTPRequest *PACRequest = [ASIHTTPRequest requestWithURL:[self PACurl]];
+
+	// Will prevent this request attempting to configure proxy settings for itself
+	[PACRequest setIsPACFileRequest:YES];
+
+	[PACRequest setTimeOutSeconds:[self timeOutSeconds]];
+
+	// If we're a synchronous request, we'll download the PAC file synchronously
+	if ([self isSynchronous]) {
+		[PACRequest startSynchronous];
+		if (![PACRequest error] && [PACRequest responseString]) {
+			[self runPACScript:[PACRequest responseString]];
+		}
+		[self startRequest];
+		return;
+	}
+
+	[self setPACFileRequest:PACRequest];
+
+	// Force this request to run before others in the shared queue
+	[PACRequest setQueuePriority:NSOperationQueuePriorityHigh];
+
+	// We'll treat failure to download the PAC file the same as success - if we were unable to fetch a PAC file, we proceed as if we have no proxy server and let this request fail itself if necessary
+	[PACRequest setDelegate:self];
+	[PACRequest setDidFinishSelector:@selector(finishedDownloadingPACFile:)];
+	[PACRequest setDidFailSelector:@selector(finishedDownloadingPACFile:)];
+	[PACRequest startAsynchronous];
+
+	// Temporarily increase the number of operations in the shared queue to give our request a chance to run
+	[connectionsLock lock];
+	[sharedQueue setMaxConcurrentOperationCount:[sharedQueue maxConcurrentOperationCount]+1];
+	[connectionsLock unlock];
+}
+
+// Called as we read the PAC file from a file:// url
+- (void)stream:(NSStream *)stream handleEvent:(NSStreamEvent)eventCode
+{
+	if (![self PACFileReadStream]) {
+		return;
+	}
+	if (eventCode == NSStreamEventHasBytesAvailable) {
+
+		if (![self PACFileData]) {
+			[self setPACFileData:[NSMutableData data]];
+		}
+		// If your PAC file is larger than 16KB, you're just being cruel.
+		uint8_t buf[16384];
+		NSInteger len = [(NSInputStream *)stream read:buf maxLength:16384];
+		if (len) {
+			[[self PACFileData] appendBytes:(const void *)buf length:len];
+		}
+
+	} else if (eventCode == NSStreamEventErrorOccurred || eventCode == NSStreamEventEndEncountered) {
+
+		[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(timeOutPACRead) object:nil];
+
+		[stream close];
+		[stream removeFromRunLoop:[NSRunLoop currentRunLoop] forMode:[self runLoopMode]];
+		[self setPACFileReadStream:nil];
+
+		if (eventCode == NSStreamEventEndEncountered) {
+			// It sounds as though we have no idea what encoding a PAC file will use
+			static NSStringEncoding encodingsToTry[2] = {NSUTF8StringEncoding,NSISOLatin1StringEncoding};
+			NSUInteger i;
+			for (i=0; i<2; i++) {
+				NSString *pacScript =  [[[NSString alloc] initWithBytes:[[self PACFileData] bytes] length:[[self PACFileData] length] encoding:encodingsToTry[i]] autorelease];
+				if (pacScript) {
+					[self runPACScript:pacScript];
+					break;
+				}
+			}
+		}
+		[self setPACFileData:nil];
+		[self startRequest];
+	}
+}
+
+// Called if it takes longer than timeOutSeconds to read the whole PAC file (when reading from a file:// url)
+- (void)timeOutPACRead
+{
+	[self stream:[self PACFileReadStream] handleEvent:NSStreamEventErrorOccurred];
+}
+
+// Runs the downloaded PAC script
+- (void)runPACScript:(NSString *)script
+{
+	if (script) {
+		// From: http://developer.apple.com/samplecode/CFProxySupportTool/listing1.html
+		// Work around <rdar://problem/5530166>.  This dummy call to 
+		// CFNetworkCopyProxiesForURL initialise some state within CFNetwork 
+		// that is required by CFNetworkCopyProxiesForAutoConfigurationScript.
+		CFRelease(CFNetworkCopyProxiesForURL((CFURLRef)[self url], NULL));
+
+		// Obtain the list of proxies by running the autoconfiguration script
+		CFErrorRef err = NULL;
+		NSArray *proxies = NSMakeCollectable([(NSArray *)CFNetworkCopyProxiesForAutoConfigurationScript((CFStringRef)script,(CFURLRef)[self url], &err) autorelease]);
+		if (!err && [proxies count] > 0) {
+			NSDictionary *settings = [proxies objectAtIndex:0];
+			[self setProxyHost:[settings objectForKey:(NSString *)kCFProxyHostNameKey]];
+			[self setProxyPort:[[settings objectForKey:(NSString *)kCFProxyPortNumberKey] intValue]];
+			[self setProxyType:[settings objectForKey:(NSString *)kCFProxyTypeKey]];
+		}
+	}
+}
+
+// Called if we successfully downloaded a PAC file from a webserver
+- (void)finishedDownloadingPACFile:(ASIHTTPRequest *)theRequest
+{
+	if (![theRequest error] && [theRequest responseString]) {
+		[self runPACScript:[theRequest responseString]];
+	}
+
+	// Set the shared queue's maxConcurrentOperationCount back to normal
+	[connectionsLock lock];
+	[sharedQueue setMaxConcurrentOperationCount:[sharedQueue maxConcurrentOperationCount]-1];
+	[connectionsLock unlock];
+
+	// We no longer need our PAC file request
+	[self setPACFileRequest:nil];
+
+	// Start the request
+	[self startRequest];
+}
 
 
 #pragma mark persistent connections
@@ -3927,34 +4144,6 @@ static NSOperationQueue *sharedQueue = nil;
 #endif
 	// Takes the form "My Application 1.0 (Macintosh; Mac OS X 10.5.7; en_GB)"
 	return [NSString stringWithFormat:@"%@ %@ (%@; %@ %@; %@)", appName, appVersion, deviceName, OSName, OSVersion, locale];
-}
-
-#pragma mark proxy autoconfiguration
-
-// Returns an array of proxies to use for a particular url, given the url of a PAC script
-+ (NSArray *)proxiesForURL:(NSURL *)theURL fromPAC:(NSURL *)pacScriptURL
-{
-	// From: http://developer.apple.com/samplecode/CFProxySupportTool/listing1.html
-	// Work around <rdar://problem/5530166>.  This dummy call to 
-	// CFNetworkCopyProxiesForURL initialise some state within CFNetwork 
-	// that is required by CFNetworkCopyProxiesForAutoConfigurationScript.
-	CFRelease(CFNetworkCopyProxiesForURL((CFURLRef)theURL, NULL));
-	
-	NSStringEncoding encoding;
-	NSError *err = nil;
-	NSString *script = [NSString stringWithContentsOfURL:pacScriptURL usedEncoding:&encoding error:&err];
-	if (err) {
-		// If we can't fetch the PAC, we'll assume no proxies
-		// Some people have a PAC configured that is not always available, so I think this is the best behaviour
-		return [NSArray array];
-	}
-	// Obtain the list of proxies by running the autoconfiguration script
-	CFErrorRef err2 = NULL;
-	NSArray *proxies = NSMakeCollectable([(NSArray *)CFNetworkCopyProxiesForAutoConfigurationScript((CFStringRef)script,(CFURLRef)theURL, &err2) autorelease]);
-	if (err2) {
-		return nil;
-	}
-	return proxies;
 }
 
 #pragma mark mime-type detection
@@ -4580,4 +4769,11 @@ static NSOperationQueue *sharedQueue = nil;
 #endif
 @synthesize dataDecompressor;
 @synthesize shouldWaitToInflateCompressedResponses;
+
+@synthesize isPACFileRequest;
+@synthesize PACFileRequest;
+@synthesize PACFileReadStream;
+@synthesize PACFileData;
+
+@synthesize isSynchronous;
 @end
