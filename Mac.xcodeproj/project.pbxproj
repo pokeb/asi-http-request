@@ -62,6 +62,7 @@
 		B5B513860FBEE515002C74D0 /* GHUnitTestMain.m in Sources */ = {isa = PBXBuildFile; fileRef = B5B513850FBEE515002C74D0 /* GHUnitTestMain.m */; };
 		B5BF64E612FDE9CA00CBC324 /* GHUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B5BF64E512FDE9C900CBC324 /* GHUnit.framework */; };
 		B5C664BC100A6220004F3C96 /* ASIS3RequestTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B5C664BB100A6220004F3C96 /* ASIS3RequestTests.m */; };
+		B5ED5A9412FEBAEC00A12511 /* GHUnit.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = B5BF64E512FDE9C900CBC324 /* GHUnit.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -71,6 +72,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				B5ED5A9412FEBAEC00A12511 /* GHUnit.framework in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
