@@ -7,7 +7,11 @@
 //
 
 #import "ASIFormDataRequest.h"
+#import "CCUserAgent.h"
+#import "NSDate-CCAdditions.h"
 #import "NSDictionary-CCAdditions.h"
+#import "NSString-CCAdditions.h"
+#import "SQLogController.h"
 
 
 // Private stuff
@@ -105,15 +109,25 @@
         return;
 	}
 
-    NSAssert(self.requestContentType == ASIRequestContentTypeMultiPart || self.requestContentType == ASIRequestContentTypeURLEncoded || self.requestContentType == ASIRequestContentTypeJSON, @"This content type is not supported. Did you add a new content type?");
-    if (self.requestContentType != ASIRequestContentTypeMultiPart && [self postData] && ![self fileData]) {
-        if (self.requestContentType == ASIRequestContentTypeURLEncoded) {
-            [self addRequestHeader:@"Content-Type" value:@"application/x-www-form-urlencoded"];
+    // Set the content type
+	NSString *stringBoundary = @"0xKhTmLbOuNdArY";
+    if (self.requestContentType == ASIRequestContentTypeURLEncoded) {
+        [self addRequestHeader:@"Content-Type" value:@"application/x-www-form-urlencoded"];
+    } else if (self.requestContentType == ASIRequestContentTypeJSON) {
+        [self addRequestHeader:@"Content-Type" value:@"application/json"];
+    } else if (self.requestContentType == ASIRequestContentTypeMultiPart) {
+        [self addRequestHeader:@"Content-Type" value:[NSString stringWithFormat:@"multipart/form-data; boundary=\"%@\"", stringBoundary]];
+    } else if (self.requestContentType == ASIRequestContentTypeMultipartMixedSquare) {
+        [self addRequestHeader:@"Content-Type" value:[NSString stringWithFormat:@"multipart/vnd.square-mixed; boundary=\"%@\"", stringBoundary]];
+    } else {
+        NSAssert(false, @"This content type is not supported. Did you add a new content type?");
+    }
 
+    // Don't have to check for the presence of postData because the first conditional ensures that we have that if we don't have fileData
+    if (self.requestContentType != ASIRequestContentTypeMultiPart && self.requestContentType != ASIRequestContentTypeMultipartMixedSquare && ![self fileData]) {
+        if (self.requestContentType == ASIRequestContentTypeURLEncoded) {
             [self appendPostData:[[[self postData] URLEncodedStringValue] dataUsingEncoding:NSUTF8StringEncoding]];
         } else {
-            [self addRequestHeader:@"Content-Type" value:@"application/json"];
-
             [self appendPostData:[[[self postData] JSONEncodedPostStringValue] dataUsingEncoding:NSUTF8StringEncoding]];
         }
 
@@ -121,14 +135,10 @@
         return;
     }
 
+    // NOTE: We have very little flexibility here when using custom MIME types [sam@squareup.com]
 	if ([[self fileData] count] > 0) {
 		[self setShouldStreamPostDataFromDisk:YES];
 	}
-
-	// Set your own boundary string only if really obsessive. We don't bother to check if post data contains the boundary, since it's pretty unlikely that it does.
-	NSString *stringBoundary = @"0xKhTmLbOuNdArY";
-
-	[self addRequestHeader:@"Content-Type" value:[NSString stringWithFormat:@"multipart/form-data; boundary=%@",stringBoundary]];
 
 	[self appendPostData:[[NSString stringWithFormat:@"--%@\r\n",stringBoundary] dataUsingEncoding:NSUTF8StringEncoding]];
 
@@ -138,8 +148,23 @@
 	NSString *key;
 	int i=0;
 	while ((key = [e nextObject])) {
-		[self appendPostData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"\r\n\r\n",key] dataUsingEncoding:NSUTF8StringEncoding]];
-		[self appendPostData:[[[self postData] objectForKey:key] dataUsingEncoding:NSUTF8StringEncoding]];
+        id object = [[self postData] objectForKey:key];
+        // !!!: This is a hack to properly support log create
+        if (self.requestContentType == ASIRequestContentTypeMultipartMixedSquare) {
+            if ([object isKindOfClass:[NSDictionary class]]) {
+                [self appendPostData:[[NSString stringWithFormat:@"User-Agent: %@\r\n", [CCUserAgent userAgent]] dataUsingEncoding:NSUTF8StringEncoding]];
+                [self appendPostData:[[NSString stringWithFormat:@"Content-Type: %@\r\n", [object objectForKey:SQLogContentTypeKey]] dataUsingEncoding:NSUTF8StringEncoding]];
+                [self appendPostData:[[NSString stringWithFormat:@"X-Category: %@\r\n", [object objectForKey:SQLogCategoryKey]] dataUsingEncoding:NSUTF8StringEncoding]];
+                [self appendPostData:[[NSString stringWithFormat:@"X-UUID: %@\r\n", key] dataUsingEncoding:NSUTF8StringEncoding]];
+                [self appendPostData:[[NSString stringWithFormat:@"X-Timestamp: %@\r\n\r\n", [object objectForKey:SQLogTimestampKey]] dataUsingEncoding:NSUTF8StringEncoding]];
+                [self appendPostData:[[object JSONEncodedPostStringValue] dataUsingEncoding:NSUTF8StringEncoding]];
+            } else {
+                [self appendPostData:[object dataUsingEncoding:NSUTF8StringEncoding]];
+            }
+        } else {
+            [self appendPostData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"\r\n\r\n", key] dataUsingEncoding:NSUTF8StringEncoding]];
+            [self appendPostData:[object dataUsingEncoding:NSUTF8StringEncoding]];
+        }
 		i++;
 		if (i != [[self postData] count] || [[self fileData] count] > 0) { //Only add the boundary if this is not the last item in the post body
 			[self appendPostData:endItemBoundary];

@@ -13,7 +13,8 @@
 typedef enum {
     ASIRequestContentTypeMultiPart, // default
     ASIRequestContentTypeURLEncoded,
-    ASIRequestContentTypeJSON
+    ASIRequestContentTypeJSON,
+    ASIRequestContentTypeMultipartMixedSquare
 } ASIRequestContentType;
 
 
