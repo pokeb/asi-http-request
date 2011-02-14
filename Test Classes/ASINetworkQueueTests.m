@@ -511,7 +511,7 @@ IMPORTANT
 }
 
  
-- (void)requestFailedCancellingOthers:(ASIHTTPRequest *)request
+- (void)requestFailedCancellingOthers:(ASINetworkQueue *)request
 {
 	complete = YES;
 }
