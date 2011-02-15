@@ -113,6 +113,9 @@ typedef void (^ASIDataBlock)(NSData *data);
 	// Automatically set to true in ASIFormDataRequests when using setFile:forKey:
 	BOOL shouldStreamPostDataFromDisk;
 	
+	// When true, the destination path will be created if it doesn't exist
+	BOOL shouldCreateDestinationPath;
+	
 	// Path to file used to store post body (when shouldStreamPostDataFromDisk is true)
 	// You can set this yourself - useful if you want to PUT a file from local disk 
 	NSString *postBodyFilePath;
@@ -911,6 +914,7 @@ typedef void (^ASIDataBlock)(NSData *data);
 @property (retain) NSString *downloadDestinationPath;
 @property (retain) NSString *temporaryFileDownloadPath;
 @property (retain) NSString *temporaryUncompressedDataDownloadPath;
+@property (assign) BOOL shouldCreateDestinationPath;
 @property (assign) SEL didStartSelector;
 @property (assign) SEL didReceiveResponseHeadersSelector;
 @property (assign) SEL willRedirectSelector;
