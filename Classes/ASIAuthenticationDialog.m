@@ -11,7 +11,7 @@
 #import <QuartzCore/QuartzCore.h>
 
 static ASIAuthenticationDialog *sharedDialog = nil;
-BOOL isDismissing = NO;
+//BOOL isDismissing = NO;
 static NSMutableArray *requestsNeedingAuthentication = nil;
 
 static const NSUInteger kUsernameRow = 0;

@@ -126,13 +126,12 @@ enum {
 	NotReachable     = kNotReachable,
 	ReachableViaWiFi = kReachableViaWiFi,
 	ReachableViaWWAN = kReachableViaWWAN
-	
 };
 
 
-extern NSString *const kInternetConnection;
-extern NSString *const kLocalWiFiConnection;
-extern NSString *const kReachabilityChangedNotification;
+extern NSString *const ReachabilityInternetConnection;
+extern NSString *const ReachabilityLocalWiFiConnection;
+extern NSString *const ReachabilityChangedNotification;
 
 @interface Reachability: NSObject {
 	

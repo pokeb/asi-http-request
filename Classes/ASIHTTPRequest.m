@@ -2166,7 +2166,13 @@ static NSOperationQueue *sharedQueue = nil;
 			}
 
 			// Force the redirected request to rebuild the request headers (if not a 303, it will re-use old ones, and add any new ones)
-			[self setRedirectURL:[[NSURL URLWithString:[responseHeaders valueForKey:@"Location"] relativeToURL:[self url]] absoluteURL]];
+			// Hack for URL with invalid characters, based on Christians hack for v1.7
+            NSString* urlString = [responseHeaders valueForKey:@"Location"];
+            NSURL* tempRedirectURL = [NSURL URLWithString:urlString relativeToURL:[self url]];
+            if (!tempRedirectURL) {
+                tempRedirectURL = [NSURL URLWithString:[urlString stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding] relativeToURL:[self url]];
+            }
+            [self setRedirectURL:[tempRedirectURL absoluteURL]];
 			[self setNeedsRedirect:YES];
 			
 			// Clear the request cookies
@@ -4357,13 +4363,13 @@ static NSOperationQueue *sharedQueue = nil;
 + (void)registerForNetworkReachabilityNotifications
 {
 	[[Reachability reachabilityForInternetConnection] startNotifier];
-	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reachabilityChanged:) name:kReachabilityChangedNotification object:nil];
+	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reachabilityChanged:) name:ReachabilityChangedNotification object:nil];
 }
 
 
 + (void)unsubscribeFromNetworkReachabilityNotifications
 {
-	[[NSNotificationCenter defaultCenter] removeObserver:self name:kReachabilityChangedNotification object:nil];
+	[[NSNotificationCenter defaultCenter] removeObserver:self name:ReachabilityChangedNotification object:nil];
 }
 
 + (BOOL)isNetworkReachableViaWWAN
