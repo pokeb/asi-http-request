@@ -77,7 +77,6 @@
 	zStream.next_in = bytes;
 	zStream.avail_in = (unsigned int)length;
 	zStream.avail_out = 0;
-	NSError *theError = nil;
 	
 	NSInteger bytesProcessedAlready = zStream.total_out;
 	while (zStream.avail_in != 0) {
@@ -101,13 +100,6 @@
 		}
 	}
 	
-	if (theError) {
-		if (err) {
-			*err = theError;
-		}
-		return nil;
-	}
-
 	// Set real length
 	[outputData setLength: zStream.total_out-bytesProcessedAlready];
 	return outputData;
