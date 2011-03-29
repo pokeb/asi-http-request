@@ -200,42 +200,42 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = A61A01AC1309797C0039330C /* ASIHTTPRequest */;
+			remoteGlobalIDString = A61A01AC1309797C0039330C;
 			remoteInfo = ASIHTTPRequest;
 		};
 		A65122BE132614B700B5DA52 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = A61A01AC1309797C0039330C /* ASIHTTPRequest */;
+			remoteGlobalIDString = A61A01AC1309797C0039330C;
 			remoteInfo = ASIHTTPRequest;
 		};
 		A65122C0132614B900B5DA52 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = A61A01AC1309797C0039330C /* ASIHTTPRequest */;
+			remoteGlobalIDString = A61A01AC1309797C0039330C;
 			remoteInfo = ASIHTTPRequest;
 		};
 		A651233A13261EF200B5DA52 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = A65121ED1326144500B5DA52 /* ASIHTTPRequestWebPageRequest */;
+			remoteGlobalIDString = A65121ED1326144500B5DA52;
 			remoteInfo = ASIHTTPRequestWebPageRequest;
 		};
 		A65123731326204800B5DA52 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = A651222F1326145700B5DA52 /* ASIHTTPRequestS3 */;
+			remoteGlobalIDString = A651222F1326145700B5DA52;
 			remoteInfo = ASIHTTPRequestS3;
 		};
 		A65123751326204800B5DA52 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = A65122711326146400B5DA52 /* ASIHTTPRequestCloudFiles */;
+			remoteGlobalIDString = A65122711326146400B5DA52;
 			remoteInfo = ASIHTTPRequestCloudFiles;
 		};
 /* End PBXContainerItemProxy section */
@@ -1479,7 +1479,7 @@
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				ONLY_ACTIVE_ARCH = YES;
+				ONLY_ACTIVE_ARCH = NO;
 				PREBINDING = NO;
 				SDKROOT = iphoneos;
 			};
