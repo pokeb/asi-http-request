@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		A8C61822132E3A52004B153D /* CFNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A8C6167D132E2DCF004B153D /* CFNetwork.framework */; };
-		A8C61823132E3A52004B153D /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A8C6167E132E2DCF004B153D /* CoreGraphics.framework */; };
 		A8C61824132E3A52004B153D /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A8C61680132E2DCF004B153D /* MobileCoreServices.framework */; };
 		A8C61825132E3A52004B153D /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A8C61681132E2DCF004B153D /* Security.framework */; };
 		A8C61826132E3A52004B153D /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A8C61682132E2DCF004B153D /* SystemConfiguration.framework */; };
@@ -70,7 +69,6 @@
 
 /* Begin PBXFileReference section */
 		A8C6167D132E2DCF004B153D /* CFNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CFNetwork.framework; path = System/Library/Frameworks/CFNetwork.framework; sourceTree = SDKROOT; };
-		A8C6167E132E2DCF004B153D /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		A8C61680132E2DCF004B153D /* MobileCoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MobileCoreServices.framework; path = System/Library/Frameworks/MobileCoreServices.framework; sourceTree = SDKROOT; };
 		A8C61681132E2DCF004B153D /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
 		A8C61682132E2DCF004B153D /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
@@ -137,7 +135,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				A8C61822132E3A52004B153D /* CFNetwork.framework in Frameworks */,
-				A8C61823132E3A52004B153D /* CoreGraphics.framework in Frameworks */,
 				A8C61824132E3A52004B153D /* MobileCoreServices.framework in Frameworks */,
 				A8C61825132E3A52004B153D /* Security.framework in Frameworks */,
 				A8C61826132E3A52004B153D /* SystemConfiguration.framework in Frameworks */,
@@ -175,7 +172,6 @@
 			isa = PBXGroup;
 			children = (
 				A8C6167D132E2DCF004B153D /* CFNetwork.framework */,
-				A8C6167E132E2DCF004B153D /* CoreGraphics.framework */,
 				A8C61680132E2DCF004B153D /* MobileCoreServices.framework */,
 				A8C61681132E2DCF004B153D /* Security.framework */,
 				A8C61682132E2DCF004B153D /* SystemConfiguration.framework */,
