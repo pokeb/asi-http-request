@@ -441,9 +441,12 @@
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				HEADER_SEARCH_PATHS = "${SDK_DIR}/usr/include/libxml2";
+				INSTALL_PATH = "$(BUILT_PRODUCTS_DIR)";
 				PREBINDING = NO;
 				PRODUCT_NAME = asihttp;
+				PUBLIC_HEADERS_FOLDER_PATH = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
 			};
 			name = Debug;
 		};
@@ -455,9 +458,12 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				HEADER_SEARCH_PATHS = "${SDK_DIR}/usr/include/libxml2";
+				INSTALL_PATH = "$(BUILT_PRODUCTS_DIR)";
 				PREBINDING = NO;
 				PRODUCT_NAME = asihttp;
+				PUBLIC_HEADERS_FOLDER_PATH = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
 				ZERO_LINK = NO;
 			};
 			name = Release;
