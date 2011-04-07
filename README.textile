@@ -30,3 +30,13 @@ It provides:
 ASIHTTPRequest is compatible with Mac OS 10.5 or later, and iOS 3.0 or later.
 
 Documentation is available "here":http://allseeing-i.com/ASIHTTPRequest.
+
+Xcode 4 installation
+
+# Create a workspace containing your app's project.
+# Add the libasihttp project to your workspace.
+# Add libasihttp.a to your target's "Link Binary With Libraries" build phase.
+# Add "$(BUILT_PRODUCTS_DIR)/asihttp" to your target's "User Header Search Paths" build setting.
+# Add the libasihttp build target to your scheme before your application's target.
+
+See "Using Open Source Static Libraries in Xcode 4":http://blog.carbonfive.com/2011/04/04/using-open-source-static-libraries-in-xcode-4/#using_a_static_library for a description of how to work with cross project dependencies within a workspace.
