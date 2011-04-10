@@ -2096,7 +2096,7 @@ static NSOperationQueue *sharedQueue = nil;
 	if (![self authenticationNeeded]) {
 
 		// Did we get here without an authentication challenge? (which can happen when shouldPresentCredentialsBeforeChallenge is YES and basic auth was successful)
-		if (!requestAuthentication && [self username] && [self password] && [self useSessionPersistence]) {
+		if (!requestAuthentication && [[self authenticationScheme] isEqualToString:(NSString *)kCFHTTPAuthenticationSchemeBasic] && [self username] && [self password] && [self useSessionPersistence]) {
 			
 			NSMutableDictionary *newCredentials = [NSMutableDictionary dictionaryWithCapacity:2];
 			[newCredentials setObject:[self username] forKey:(NSString *)kCFHTTPAuthenticationUsername];
