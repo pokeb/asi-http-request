@@ -26,6 +26,8 @@
 // Automatically set on build
 NSString *ASIHTTPRequestVersion = @"v1.8-56 2011-02-06";
 
+static NSString *defaultUserAgent = nil;
+
 NSString* const NetworkRequestErrorDomain = @"ASIHTTPRequestErrorDomain";
 
 static NSString *ASIHTTPRequestRunLoopMode = @"ASIHTTPRequestRunLoopMode";
@@ -63,7 +65,6 @@ static NSError *ASITooMuchRedirectionError;
 
 static NSMutableArray *bandwidthUsageTracker = nil;
 static unsigned long averageBandwidthUsedPerSecond = 0;
-
 
 // These are used for queuing persistent connections on the same connection
 
@@ -122,18 +123,13 @@ static NSDate *throttleWakeUpTime = nil;
 
 static id <ASICacheDelegate> defaultCache = nil;
 
-
 // Used for tracking when requests are using the network
 static unsigned int runningRequestCount = 0;
-
 
 // You can use [ASIHTTPRequest setShouldUpdateNetworkActivityIndicator:NO] if you want to manage it yourself
 // Alternatively, override showNetworkActivityIndicator / hideNetworkActivityIndicator
 // By default this does nothing on Mac OS X, but again override the above methods for a different behaviour
 static BOOL shouldUpdateNetworkActivityIndicator = YES;
-
-
-//**Queue stuff**/
 
 // The thread all requests will run on
 // Hangs around forever, but will be blocked unless there are requests underway
@@ -1038,7 +1034,10 @@ static NSOperationQueue *sharedQueue = nil;
 	
 	// Build and set the user agent string if the request does not already have a custom user agent specified
 	if (![[self requestHeaders] objectForKey:@"User-Agent"]) {
-		NSString *userAgentString = [ASIHTTPRequest defaultUserAgentString];
+		NSString *userAgentString = [self userAgent];
+		if (!userAgentString) {
+			userAgentString = [ASIHTTPRequest defaultUserAgentString];
+		}
 		if (userAgentString) {
 			[self addRequestHeader:@"User-Agent" value:userAgentString];
 		}
@@ -4088,6 +4087,13 @@ static NSOperationQueue *sharedQueue = nil;
 
 + (NSString *)defaultUserAgentString
 {
+	// If we already have a default user agent set, return that
+	if (defaultUserAgent) {
+		return defaultUserAgent;
+	}
+	
+	// Otherwise, create a new user agent string (we'll save it for later reuse)
+	
 	NSBundle *bundle = [NSBundle bundleForClass:[self class]];
 
 	// Attempt to find a name for this application
@@ -4143,8 +4149,16 @@ static NSOperationQueue *sharedQueue = nil;
 	
 #endif
 	// Takes the form "My Application 1.0 (Macintosh; Mac OS X 10.5.7; en_GB)"
-	return [NSString stringWithFormat:@"%@ %@ (%@; %@ %@; %@)", appName, appVersion, deviceName, OSName, OSVersion, locale];
+	[self setDefaultUserAgentString:[NSString stringWithFormat:@"%@ %@ (%@; %@ %@; %@)", appName, appVersion, deviceName, OSName, OSVersion, locale]];	
+	return defaultUserAgent;
 }
+
++ (void)setDefaultUserAgentString:(NSString *)agent
+{
+	[defaultUserAgent release];
+	defaultUserAgent = [agent copy];
+}
+
 
 #pragma mark mime-type detection
 
@@ -4306,7 +4320,6 @@ static NSOperationQueue *sharedQueue = nil;
 	
 + (unsigned long)maxUploadReadLength
 {
-	
 	[bandwidthThrottlingLock lock];
 	
 	// We'll split our bandwidth allowance into 4 (which is the default for an ASINetworkQueue's max concurrent operations count) to give all running requests a fighting chance of reading data this cycle
@@ -4656,6 +4669,7 @@ static NSOperationQueue *sharedQueue = nil;
 
 @synthesize username;
 @synthesize password;
+@synthesize userAgent;
 @synthesize domain;
 @synthesize proxyUsername;
 @synthesize proxyPassword;

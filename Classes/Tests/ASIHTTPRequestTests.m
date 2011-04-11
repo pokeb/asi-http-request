@@ -380,14 +380,41 @@
 		BOOL success = [[request responseString] isEqualToString:[ASIHTTPRequest defaultUserAgentString]];
 		GHAssertTrue(success,@"Failed to set the correct user agent");
 	}
-	
-	// Now test specifying a custom user agent
+
+	NSString *customUserAgent = @"Ferdinand Fuzzworth's Magic Tent of Mystery";
+
+	// Test specifying a custom user-agent for a single request
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/user-agent"]];
-	[request addRequestHeader:@"User-Agent" value:@"Ferdinand Fuzzworth's Magic Tent of Mystery"];
+	[request addRequestHeader:@"User-Agent" value:customUserAgent];
 	[request startSynchronous];
-	BOOL success = [[request responseString] isEqualToString:@"Ferdinand Fuzzworth's Magic Tent of Mystery"];
-	GHAssertTrue(success,@"Failed to set the correct user agent");
-	
+	BOOL success = [[request responseString] isEqualToString:customUserAgent];
+	GHAssertTrue(success,@"Failed to set the correct user-agent for a single request");
+
+	// Test again using userAgent
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/user-agent"]];
+	[request setUserAgent:customUserAgent];
+	[request startSynchronous];
+	success = [[request responseString] isEqualToString:customUserAgent];
+	GHAssertTrue(success,@"Failed to set the correct user-agent for a single request");
+
+	// Test again to ensure user-agent not reused
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/user-agent"]];
+	[request startSynchronous];
+	success = ![[request responseString] isEqualToString:customUserAgent];
+	GHAssertTrue(success,@"Re-used a user agent when we shouldn't have done so");
+
+	// Test setting a custom default user-agent string
+	[ASIHTTPRequest setDefaultUserAgentString:customUserAgent];
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/user-agent"]];
+	[request startSynchronous];
+	success = [[request responseString] isEqualToString:customUserAgent];
+	GHAssertTrue(success,@"Failed to set the correct user-agent when using a custom default");
+
+	[ASIHTTPRequest setDefaultUserAgentString:nil];
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/user-agent"]];
+	[request startSynchronous];
+	success = ![[request responseString] isEqualToString:customUserAgent];
+	GHAssertTrue(success,@"Failed to clear a custom default user-agent");
 }
 
 - (void)testAutomaticRedirection

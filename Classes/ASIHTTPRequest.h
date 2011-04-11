@@ -192,6 +192,9 @@ typedef void (^ASIDataBlock)(NSData *data);
 	NSString *username;
 	NSString *password;
 	
+	// Global User-Agent for requests unless one is provided for a specific request
+	NSString *userAgent;
+	
 	// Domain used for NTLM authentication
 	NSString *domain;
 	
@@ -794,6 +797,7 @@ typedef void (^ASIDataBlock)(NSData *data);
 // Will be used as a user agent if requests do not specify a custom user agent
 // Is only used when you have specified a Bundle Display Name (CFDisplayBundleName) or Bundle Name (CFBundleName) in your plist
 + (NSString *)defaultUserAgentString;
++ (void)setDefaultUserAgentString:(NSString *)agent;
 
 #pragma mark mime-type detection
 
@@ -890,6 +894,7 @@ typedef void (^ASIDataBlock)(NSData *data);
 
 @property (retain) NSString *username;
 @property (retain) NSString *password;
+@property (retain) NSString *userAgent;
 @property (retain) NSString *domain;
 
 @property (retain) NSString *proxyUsername;
