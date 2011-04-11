@@ -1857,14 +1857,14 @@ static NSOperationQueue *sharedQueue = nil;
 	if (delegate && [delegate respondsToSelector:didStartSelector]) {
 		[delegate performSelector:didStartSelector withObject:self];
 	}
-	if (queue && [queue respondsToSelector:@selector(requestStarted:)]) {
-		[queue performSelector:@selector(requestStarted:) withObject:self];
-	}
 	#if NS_BLOCKS_AVAILABLE
 	if(startedBlock){
 		startedBlock();
 	}
 	#endif
+	if (queue && [queue respondsToSelector:@selector(requestStarted:)]) {
+		[queue performSelector:@selector(requestStarted:) withObject:self];
+	}
 }
 
 /* ALWAYS CALLED ON MAIN THREAD! */
@@ -1877,6 +1877,7 @@ static NSOperationQueue *sharedQueue = nil;
 	if([[self delegate] respondsToSelector:@selector(requestRedirected:)]){
 		[[self delegate] performSelector:@selector(requestRedirected:) withObject:self];
 	}
+
 	#if NS_BLOCKS_AVAILABLE
 	if(requestRedirectedBlock){
 		requestRedirectedBlock();
@@ -1895,15 +1896,16 @@ static NSOperationQueue *sharedQueue = nil;
 	if (delegate && [delegate respondsToSelector:didReceiveResponseHeadersSelector]) {
 		[delegate performSelector:didReceiveResponseHeadersSelector withObject:self withObject:newResponseHeaders];
 	}
-	if (queue && [queue respondsToSelector:@selector(request:didReceiveResponseHeaders:)]) {
-		[queue performSelector:@selector(request:didReceiveResponseHeaders:) withObject:self withObject:newResponseHeaders];
-	}
-    
+
 	#if NS_BLOCKS_AVAILABLE
 	if(headersReceivedBlock){
 		headersReceivedBlock(newResponseHeaders);
     }
 	#endif
+
+	if (queue && [queue respondsToSelector:@selector(request:didReceiveResponseHeaders:)]) {
+		[queue performSelector:@selector(request:didReceiveResponseHeaders:) withObject:self withObject:newResponseHeaders];
+	}
 }
 
 /* ALWAYS CALLED ON MAIN THREAD! */
@@ -1943,14 +1945,16 @@ static NSOperationQueue *sharedQueue = nil;
 	if (delegate && [delegate respondsToSelector:didFinishSelector]) {
 		[delegate performSelector:didFinishSelector withObject:self];
 	}
-	if (queue && [queue respondsToSelector:@selector(requestFinished:)]) {
-		[queue performSelector:@selector(requestFinished:) withObject:self];
-	}
-#if NS_BLOCKS_AVAILABLE
+
+	#if NS_BLOCKS_AVAILABLE
 	if(completionBlock){
 		completionBlock();
 	}
-#endif
+	#endif
+
+	if (queue && [queue respondsToSelector:@selector(requestFinished:)]) {
+		[queue performSelector:@selector(requestFinished:) withObject:self];
+	}
 }
 
 /* ALWAYS CALLED ON MAIN THREAD! */
@@ -1959,14 +1963,16 @@ static NSOperationQueue *sharedQueue = nil;
 	if (delegate && [delegate respondsToSelector:didFailSelector]) {
 		[delegate performSelector:didFailSelector withObject:self];
 	}
-	if (queue && [queue respondsToSelector:@selector(requestFailed:)]) {
-		[queue performSelector:@selector(requestFailed:) withObject:self];
-	}
+
 	#if NS_BLOCKS_AVAILABLE
     if(failureBlock){
         failureBlock();
     }
 	#endif
+
+	if (queue && [queue respondsToSelector:@selector(requestFailed:)]) {
+		[queue performSelector:@selector(requestFailed:) withObject:self];
+	}
 }
 
 /* ALWAYS CALLED ON MAIN THREAD! */
