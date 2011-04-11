@@ -192,7 +192,7 @@ typedef void (^ASIDataBlock)(NSData *data);
 	NSString *username;
 	NSString *password;
 	
-	// Global User-Agent for requests unless one is provided for a specific request
+	// User-Agent for this request
 	NSString *userAgent;
 	
 	// Domain used for NTLM authentication

@@ -389,6 +389,7 @@ static NSOperationQueue *sharedQueue = nil;
 	[connectionInfo release];
 	[requestID release];
 	[dataDecompressor release];
+	[userAgent release];
 
 	#if NS_BLOCKS_AVAILABLE
 	[self releaseBlocksOnMainThread];
