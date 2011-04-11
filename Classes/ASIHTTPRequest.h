@@ -240,7 +240,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	unsigned long long contentLength;
 	
 	// Name of the file to download
-	NSString *bp_destFileName;
+	NSString *defaultFilename;
 	
 	// Size of the partially downloaded content
 	unsigned long long partialDownloadSize;
@@ -823,7 +823,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 @property (retain) NSString *requestMethod;
 @property (retain) NSMutableData *postBody;
 @property (assign,readonly) unsigned long long contentLength;
-@property (retain,readonly) NSString *bp_destFileName;
+@property (retain,readonly) NSString *defaultFilename;
 @property (assign) unsigned long long postLength;
 @property (assign) BOOL shouldResetDownloadProgress;
 @property (assign) BOOL shouldResetUploadProgress;

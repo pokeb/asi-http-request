@@ -187,7 +187,7 @@ static NSOperationQueue *sharedQueue = nil;
 @property (assign) int responseStatusCode;
 @property (retain, nonatomic) NSDate *lastActivityTime;
 @property (assign) unsigned long long contentLength;
-@property (retain) NSString *bp_destFileName;
+@property (retain) NSString *defaultFilename;
 @property (assign, nonatomic) unsigned long long uploadBufferSize;
 @property (assign) NSStringEncoding responseEncoding;
 @property (retain, nonatomic) NSOutputStream *postBodyWriteStream;
@@ -1935,18 +1935,12 @@ static NSOperationQueue *sharedQueue = nil;
 	if (![self needsRedirect]) {
 		// See if we got a Content-length header
 		NSString *cLength = [responseHeaders valueForKey:@"Content-Length"];
+		// See if we got a Content-Disposition header
 		NSString *cDisposition = [responseHeaders valueForKey:@"Content-Disposition"];
-		for (NSString *aKey in responseHeaders) {
-			NSString *rawValue = [responseHeaders valueForKey:aKey];
-			NSLog(@"%@ : %@\n",aKey,rawValue);
-		}
+		
 		ASIHTTPRequest *theRequest = self;
 		if ([self mainRequest]) {
 			theRequest = [self mainRequest];
-		}
-		
-		if (cDisposition) {
-			[self setBp_destFileName:[NSString stringWithCString:[cDisposition UTF8String] encoding:NSUTF8StringEncoding]];
 		}
 
 		if (cLength) {
@@ -1967,6 +1961,16 @@ static NSOperationQueue *sharedQueue = nil;
 		} else if ([self showAccurateProgress] && [self shouldResetDownloadProgress]) {
 			[theRequest setShowAccurateProgress:NO];
 			[theRequest incrementDownloadSizeBy:1];
+		}
+		
+		if (cDisposition) {
+			NSString *cDispositionTokens = [NSString stringWithCString:[cDisposition UTF8String] encoding:NSUTF8StringEncoding];
+			NSScanner *cDScanner = [NSScanner scannerWithString:cDispositionTokens];
+			[cDScanner scanUpToString:@"filename=\"" intoString:NULL];
+			[cDScanner scanString:@"filename=\"" intoString:NULL];
+			NSString *defaultFilenameSuggested;
+			[cDScanner scanUpToString:@"\";" intoString:&defaultFilenameSuggested];
+			[self setDefaultFilename:defaultFilenameSuggested];
 		}
 	}
 
@@ -4221,7 +4225,7 @@ static NSOperationQueue *sharedQueue = nil;
 @synthesize postBody;
 @synthesize compressedPostBody;
 @synthesize contentLength;
-@synthesize bp_destFileName;
+@synthesize defaultFilename;
 @synthesize partialDownloadSize;
 @synthesize endByte;
 @synthesize postLength;
