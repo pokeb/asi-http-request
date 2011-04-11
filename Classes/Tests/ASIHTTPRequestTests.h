@@ -20,6 +20,7 @@
 }
 
 - (void)testBasicDownload;
+- (void)testBase64Encode;
 - (void)testDelegateMethods;
 - (void)testConditionalGET;
 - (void)testException;

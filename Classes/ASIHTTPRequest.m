@@ -4525,15 +4525,13 @@ static NSOperationQueue *sharedQueue = nil;
     NSMutableData* data = [NSMutableData dataWithLength:((length + 2) / 3) * 4];
     uint8_t* output = (uint8_t*)data.mutableBytes;
 	
-	NSInteger i;
+	NSInteger i,i2;
     for (i=0; i < length; i += 3) {
         NSInteger value = 0;
-		NSInteger j;
-        for (j = i; j < (i + 3); j++) {
+		for (i2=0; i2<3; i2++) {
             value <<= 8;
-			
-            if (j < length) {
-                value |= (0xFF & input[j]);
+            if (i+i2 < length) {
+                value |= (0xFF & input[i+i2]);
             }
         }
 		

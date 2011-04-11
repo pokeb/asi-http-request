@@ -92,6 +92,14 @@
 	GHAssertTrue(success,@"Failed to generate an error for a bad host");
 }
 
+- (void)testBase64Encode
+{
+	NSData *data = [@"Hello, world" dataUsingEncoding:NSUTF8StringEncoding];
+	NSString *base64 = [ASIHTTPRequest base64forData:data];
+	BOOL success = [base64 isEqualToString:@"SGVsbG8sIHdvcmxk"];
+	GHAssertTrue(success,@"Failed to encode data using base64 data correctly");
+}
+
 - (void)testCancel
 {
 	// We run this test on the main thread because otherwise we can't depend on the  delegate being notified before we need to test it's working
