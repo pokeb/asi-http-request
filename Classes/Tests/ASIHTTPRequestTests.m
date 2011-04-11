@@ -1036,10 +1036,10 @@
 
 - (void)testBasicAuthentication
 {
-	[ASIHTTPRequest removeCredentialsForHost:@"asi" port:0 protocol:@"http" realm:@"SECRET_STUFF"];
+	[ASIHTTPRequest removeCredentialsForHost:@"allseeing-i.com" port:0 protocol:@"http" realm:@"SECRET_STUFF"];
 	[ASIHTTPRequest clearSession];
 
-	NSURL *url = [NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/basic-authentication"];
+	NSURL *url = [NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/basic-authentication"];
 	ASIHTTPRequest *request;
 	BOOL success;
 	NSError *err;
@@ -1088,7 +1088,7 @@
 	GHAssertNil(err,@"Failed to reuse credentials");
 	
 	// Ensure new credentials are used in place of those in the session
-	request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/basic-authentication-new-credentials"]] autorelease];
+	request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/basic-authentication-new-credentials"]] autorelease];
 	[request setUsername:@"secret_username_2"];
 	[request setPassword:@"secret_password_2"];
 	[request setUseSessionPersistence:YES];
@@ -1434,7 +1434,7 @@
 {
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/redirect_to_new_domain"]];
 	[request startSynchronous];
-	BOOL success = [[[request url] absoluteString] isEqualToString:@"http://www.apple.com/"];
+	BOOL success = [[[request url] absoluteString] isEqualToString:@"http://www.apple.com"];
 	GHAssertTrue(success,@"Failed to redirect to a different domain");		
 }
 
