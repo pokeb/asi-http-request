@@ -1036,10 +1036,10 @@
 
 - (void)testBasicAuthentication
 {
-	[ASIHTTPRequest removeCredentialsForHost:@"allseeing-i.com" port:0 protocol:@"http" realm:@"SECRET_STUFF"];
+	[ASIHTTPRequest removeCredentialsForHost:@"asi" port:0 protocol:@"http" realm:@"SECRET_STUFF"];
 	[ASIHTTPRequest clearSession];
 
-	NSURL *url = [NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/basic-authentication"];
+	NSURL *url = [NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/basic-authentication"];
 	ASIHTTPRequest *request;
 	BOOL success;
 	NSError *err;
@@ -1087,6 +1087,16 @@
 	err = [request error];
 	GHAssertNil(err,@"Failed to reuse credentials");
 	
+	// Ensure new credentials are used in place of those in the session
+	request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/basic-authentication-new-credentials"]] autorelease];
+	[request setUsername:@"secret_username_2"];
+	[request setPassword:@"secret_password_2"];
+	[request setUseSessionPersistence:YES];
+	[request setUseKeychainPersistence:NO];
+	[request startSynchronous];
+	err = [request error];
+	GHAssertNil(err,@"Failed to reuse credentials");
+	
 	[ASIHTTPRequest clearSession];
 	
 	// Ensure credentials stored in the session were wiped
@@ -1103,7 +1113,7 @@
 	err = [request error];
 	GHAssertNil(err,@"Failed to use stored credentials");
 	
-	[ASIHTTPRequest removeCredentialsForHost:@"allseeing-i.com" port:0 protocol:@"http" realm:@"SECRET_STUFF"];
+	[ASIHTTPRequest removeCredentialsForHost:@"asi" port:0 protocol:@"http" realm:@"SECRET_STUFF"];
 	
 	// Ensure credentials stored in the keychain were wiped
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
