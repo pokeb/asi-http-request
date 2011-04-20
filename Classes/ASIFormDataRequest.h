@@ -50,4 +50,7 @@ typedef enum {
 // Same as above, but you can specify the content-type and file name
 - (void)setData:(id)data withFileName:(NSString *)fileName andContentType:(NSString *)contentType forKey:(NSString *)key;
 
+// Same as above, but you can specify any form part headers you want
+- (void)setData:(id)data withFileName:(NSString *)fileName formPartHeaders:(NSDictionary *)formPartHeaders forKey:(NSString *)key;
+
 @end

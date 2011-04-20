@@ -7,12 +7,15 @@
 //
 
 #import "ASIFormDataRequest.h"
+#import "CCJSONSerialization.h"
 #import "CCUserAgent.h"
 #import "NSDate-CCAdditions.h"
 #import "NSDictionary-CCAdditions.h"
 #import "NSString-CCAdditions.h"
 #import "SQLogController.h"
 
+
+static NSString *const ASIFormDataContentTypeHeader = @"Content-Type";
 
 // Private stuff
 @interface ASIFormDataRequest ()
@@ -78,7 +81,8 @@
 		}
 	}
 
-	NSDictionary *fileInfo = [NSDictionary dictionaryWithObjectsAndKeys:data, @"data", contentType, @"contentType", fileName, @"fileName", nil];
+    NSDictionary *formPartHeaders = [NSDictionary dictionaryWithObjectsAndKeys:contentType, ASIFormDataContentTypeHeader, nil];
+	NSDictionary *fileInfo = [NSDictionary dictionaryWithObjectsAndKeys:data, @"data", formPartHeaders, @"formPartHeaders", fileName, @"fileName", nil];
 	[[self fileData] setObject:fileInfo forKey:key];
 	[self setRequestMethod: @"POST"];
 }
@@ -90,14 +94,27 @@
 
 - (void)setData:(id)data withFileName:(NSString *)fileName andContentType:(NSString *)contentType forKey:(NSString *)key
 {
+    NSDictionary *formPartHeaders = [NSDictionary dictionaryWithObjectsAndKeys:contentType, ASIFormDataContentTypeHeader, nil];
+    [self setData:data withFileName:fileName formPartHeaders:formPartHeaders forKey:key];
+}
+
+- (void)setData:(id)data withFileName:(NSString *)fileName formPartHeaders:(NSDictionary *)formPartHeaders forKey:(NSString *)key
+{
+    CCAssert(data,, @"Cannot attach a nil data object to form data request");
+
 	if (![self fileData]) {
 		[self setFileData:[NSMutableDictionary dictionary]];
 	}
-	if (!contentType) {
-		contentType = @"application/octet-stream";
+    
+	if (![formPartHeaders objectForKey:ASIFormDataContentTypeHeader]) {
+        formPartHeaders = [[formPartHeaders mutableCopy] autorelease];
+        if (!formPartHeaders) {
+            formPartHeaders = [NSMutableDictionary dictionary];
+        }
+        [(NSMutableDictionary *)formPartHeaders setObject:@"application/octet-stream" forKey:ASIFormDataContentTypeHeader];
 	}
 
-	NSDictionary *fileInfo = [NSDictionary dictionaryWithObjectsAndKeys:data, @"data", contentType, @"contentType", fileName, @"fileName", nil];
+	NSDictionary *fileInfo = [NSDictionary dictionaryWithObjectsAndKeys:data, @"data", formPartHeaders, @"formPartHeaders", fileName, @"fileName", nil];
 	[[self fileData] setObject:fileInfo forKey:key];
 	[self setRequestMethod: @"POST"];
 }
@@ -112,13 +129,13 @@
     // Set the content type
 	NSString *stringBoundary = @"0xKhTmLbOuNdArY";
     if (self.requestContentType == ASIRequestContentTypeURLEncoded) {
-        [self addRequestHeader:@"Content-Type" value:@"application/x-www-form-urlencoded"];
+        [self addRequestHeader:ASIFormDataContentTypeHeader value:@"application/x-www-form-urlencoded"];
     } else if (self.requestContentType == ASIRequestContentTypeJSON) {
-        [self addRequestHeader:@"Content-Type" value:@"application/json"];
+        [self addRequestHeader:ASIFormDataContentTypeHeader value:@"application/json"];
     } else if (self.requestContentType == ASIRequestContentTypeMultiPart) {
-        [self addRequestHeader:@"Content-Type" value:[NSString stringWithFormat:@"multipart/form-data; boundary=\"%@\"", stringBoundary]];
+        [self addRequestHeader:ASIFormDataContentTypeHeader value:[NSString stringWithFormat:@"multipart/form-data; boundary=\"%@\"", stringBoundary]];
     } else if (self.requestContentType == ASIRequestContentTypeMultipartMixedSquare) {
-        [self addRequestHeader:@"Content-Type" value:[NSString stringWithFormat:@"multipart/vnd.square-mixed; boundary=\"%@\"", stringBoundary]];
+        [self addRequestHeader:ASIFormDataContentTypeHeader value:[NSString stringWithFormat:@"multipart/vnd.square-mixed; boundary=\"%@\"", stringBoundary]];
     } else {
         NSAssert(false, @"This content type is not supported. Did you add a new content type?");
     }
@@ -128,7 +145,7 @@
         if (self.requestContentType == ASIRequestContentTypeURLEncoded) {
             [self appendPostData:[[[self postData] URLEncodedStringValue] dataUsingEncoding:NSUTF8StringEncoding]];
         } else {
-            [self appendPostData:[[[self postData] JSONEncodedPostStringValue] dataUsingEncoding:NSUTF8StringEncoding]];
+            [self appendPostData:[[[self postData] JSONRepresentation] dataUsingEncoding:NSUTF8StringEncoding]];
         }
 
         [super buildPostBody];
@@ -146,6 +163,7 @@
 	NSData *endItemBoundary = [[NSString stringWithFormat:@"\r\n--%@\r\n",stringBoundary] dataUsingEncoding:NSUTF8StringEncoding];
 	NSEnumerator *e = [[self postData] keyEnumerator];
 	NSString *key;
+
 	int i=0;
 	while ((key = [e nextObject])) {
         id object = [[self postData] objectForKey:key];
@@ -157,7 +175,7 @@
                 [self appendPostData:[[NSString stringWithFormat:@"X-Category: %@\r\n", [object objectForKey:SQLogCategoryKey]] dataUsingEncoding:NSUTF8StringEncoding]];
                 [self appendPostData:[[NSString stringWithFormat:@"X-UUID: %@\r\n", key] dataUsingEncoding:NSUTF8StringEncoding]];
                 [self appendPostData:[[NSString stringWithFormat:@"X-Timestamp: %@\r\n\r\n", [object objectForKey:SQLogTimestampKey]] dataUsingEncoding:NSUTF8StringEncoding]];
-                [self appendPostData:[[object JSONEncodedPostStringValue] dataUsingEncoding:NSUTF8StringEncoding]];
+                [self appendPostData:[[object JSONRepresentation] dataUsingEncoding:NSUTF8StringEncoding]];
             } else {
                 [self appendPostData:[object dataUsingEncoding:NSUTF8StringEncoding]];
             }
@@ -177,11 +195,15 @@
 	while ((key = [e nextObject])) {
 		NSDictionary *fileInfo = [[self fileData] objectForKey:key];
 		id file = [fileInfo objectForKey:@"data"];
-		NSString *contentType = [fileInfo objectForKey:@"contentType"];
+        NSDictionary *formPartHeaders = [fileInfo objectForKey:@"formPartHeaders"];
 		NSString *fileName = [fileInfo objectForKey:@"fileName"];
 
 		[self appendPostData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"; filename=\"%@\"\r\n", key, fileName] dataUsingEncoding:NSUTF8StringEncoding]];
-		[self appendPostData:[[NSString stringWithFormat:@"Content-Type: %@\r\n\r\n", contentType] dataUsingEncoding:NSUTF8StringEncoding]];
+        for (NSString *formPartHeaderKey in [formPartHeaders allKeys]) {
+            NSString *formPartHeaderValue = [formPartHeaders objectForKey:formPartHeaderKey];
+      		[self appendPostData:[[NSString stringWithFormat:@"%@: %@\r\n", formPartHeaderKey, formPartHeaderValue] dataUsingEncoding:NSUTF8StringEncoding]];
+        }
+        [self appendPostData:[@"\r\n" dataUsingEncoding:NSUTF8StringEncoding]];
 
 		if ([file isKindOfClass:[NSString class]]) {
 			[self appendPostDataFromFile:file];

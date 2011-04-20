@@ -12,6 +12,7 @@
 
 #import "ASIHTTPRequest.h"
 #import <zlib.h>
+#import <netdb.h>
 #if TARGET_OS_IPHONE
 #import "CCReachability.h"
 #import "ASIAuthenticationDialog.h"
@@ -399,7 +400,12 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 
 	[self setComplete:NO];
 
-	if (![self url]) {
+#if DEBUG
+    NSAssert(self.url, @"Cannot send a request with no URL");
+    NSAssert(self.requestMethod, @"Cannot send a request with no request method");
+#endif
+
+	if (![self url] || ![self requestMethod]) {
 		[self failWithError:ASIUnableToCreateRequestError];
 		return;
 	}
@@ -620,8 +626,11 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 		// and why its key names are documented while those we actually need to use don't seem to be (passing the kCF* keys doesn't seem to work)
 		if ([proxies count] > 0) {
 			NSDictionary *settings = [proxies objectAtIndex:0];
-			[self setProxyHost:[settings objectForKey:(NSString *)kCFProxyHostNameKey]];
-			[self setProxyPort:[[settings objectForKey:(NSString *)kCFProxyPortNumberKey] intValue]];
+            NSString *proxyType = [settings objectForKey:(NSString *)kCFProxyTypeKey];
+            if (proxyType && ![proxyType isEqual:(NSString *)kCFProxyTypeNone]) {
+                [self setProxyHost:[settings objectForKey:(NSString *)kCFProxyHostNameKey]];
+                [self setProxyPort:[[settings objectForKey:(NSString *)kCFProxyPortNumberKey] intValue]];
+            }
 		}
 	}
 	if ([self proxyHost] && [self proxyPort]) {
@@ -2030,7 +2039,6 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 
 	if (![self error]) { // We may already have handled this error
 
-
 		NSString *reason = @"A connection failure occurred";
 
 		// We'll use a custom error message for SSL errors, but you should always check underlying error if you want more details
@@ -2040,7 +2048,17 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 			if ([underlyingError code] <= -9800 && [underlyingError code] >= -9818) {
 				reason = [NSString stringWithFormat:@"%@: SSL problem (possibily a bad/expired/self-signed certificate)",reason];
 			}
-		}
+		} else if ([underlyingError.domain isEqual:(NSString *)kCFErrorDomainCFNetwork]) {
+            if (underlyingError.code == kCFHostErrorUnknown) {
+                switch ([[underlyingError.userInfo valueForKey:(NSString *)kCFGetAddrInfoFailureKey] integerValue]) {
+                    case EAI_NONAME:
+                        reason = @"The host name cannot be reached.";
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
 
 		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIConnectionFailureErrorType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:reason,NSLocalizedDescriptionKey,underlyingError,NSUnderlyingErrorKey,nil]]];
 	}
