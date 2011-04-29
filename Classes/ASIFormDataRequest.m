@@ -100,7 +100,7 @@ static NSString *const ASIFormDataContentTypeHeader = @"Content-Type";
 
 - (void)setData:(id)data withFileName:(NSString *)fileName formPartHeaders:(NSDictionary *)formPartHeaders forKey:(NSString *)key
 {
-    CCAssert(data,, @"Cannot attach a nil data object to form data request");
+    CCCheckCondition(data,, @"Cannot attach a nil data object to form data request");
 
 	if (![self fileData]) {
 		[self setFileData:[NSMutableDictionary dictionary]];
