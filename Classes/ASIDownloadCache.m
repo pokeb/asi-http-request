@@ -21,6 +21,64 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 
 @implementation ASIDownloadCache
 
+
+
+#pragma mark Singleton
+
++ (ASIDownloadCache*) sharedCache{
+    return sharedCache;
+}
+
+
+//called by atexit on exit, to ensure all resources are freed properly (not just memory)  
+static void singleton_remover()
+{
+    //free resources here
+}
+
+// see initialize in docs:
+//http://developer.apple.com/library/mac/#DOCUMENTATION/Cocoa/Reference/Foundation/Classes/NSObject_Class/Reference/Reference.html
++ (void)initialize {
+    if (self == [ASIDownloadCache class]) {
+        //initialization
+        sharedCache = [[super allocWithZone:NULL] init];        
+        [sharedCache setStoragePath:[[NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) objectAtIndex:0] stringByAppendingPathComponent:@"ASIHTTPRequestCache"]];
+        //atexit( singleton_remover );    
+    }
+}
+
++ (id)allocWithZone:(NSZone *)zone
+{
+    return [self sharedCache];   
+}
+
+- (id)copyWithZone:(NSZone *)zone
+{
+    return self;    
+}
+
+- (id)retain
+{
+    return self;    
+}
+
+- (NSUInteger)retainCount
+{
+    return NSUIntegerMax;  //denotes an object that cannot be released  
+}
+
+- (void)release
+{
+    //do nothing    
+}
+
+- (id)autorelease
+{
+    return self;    
+}
+
+#pragma mark -
+
 - (id)init
 {
 	self = [super init];
@@ -28,16 +86,6 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 	[self setDefaultCachePolicy:ASIUseDefaultCachePolicy];
 	[self setAccessLock:[[[NSRecursiveLock alloc] init] autorelease]];
 	return self;
-}
-
-+ (id)sharedCache
-{
-	if (!sharedCache) {
-		sharedCache = [[self alloc] init];
-		[sharedCache setStoragePath:[[NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) objectAtIndex:0] stringByAppendingPathComponent:@"ASIHTTPRequestCache"]];
-
-	}
-	return sharedCache;
 }
 
 - (void)dealloc
