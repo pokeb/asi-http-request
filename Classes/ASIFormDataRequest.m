@@ -153,9 +153,13 @@ static NSString *const ASIFormDataContentTypeHeader = @"Content-Type";
     }
 
     // NOTE: We have very little flexibility here when using custom MIME types [sam@squareup.com]
-	if ([[self fileData] count] > 0) {
-		[self setShouldStreamPostDataFromDisk:YES];
-	}
+    for (NSDictionary *fileInfo in [fileData allValues]) {
+        id fileObject = [fileInfo valueForKey:@"data"];
+        if ([fileObject isKindOfClass:[NSString class]]) {
+            [self setShouldStreamPostDataFromDisk:YES];
+            break;
+        }
+    }
 
 	[self appendPostData:[[NSString stringWithFormat:@"--%@\r\n",stringBoundary] dataUsingEncoding:NSUTF8StringEncoding]];
 

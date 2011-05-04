@@ -672,6 +672,13 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 		[self resetUploadProgress:amount];
 	}
 
+    
+#if DEBUG
+    if (!strcmp(getenv("SQLogNetworkActivity"), "YES")) {
+        [self logRequestToFileSystem];
+    }
+#endif
+
     // Notify delegates we're actually starting the connection
     [self requestStarted];
 
@@ -2027,6 +2034,12 @@ static NSRecursiveLock *delegateAuthenticationLock = nil;
 	} else {
 		[self requestFinished];
 	}
+    
+#if DEBUG
+    if (!strcmp(getenv("SQLogNetworkActivity"), "YES")) {
+        [self logResponseToFileSystem];
+    }
+#endif
 }
 
 
