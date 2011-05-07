@@ -164,9 +164,32 @@
 	success = ![request didUseCachedResponse];
 	GHAssertTrue(success,@"Request says it used a cached response, but there wasn't one to use");
 
-	success = !![request error];
+	success = ([request error] != nil);
 	GHAssertTrue(success,@"Request had no error set");
 
+	// Cache some data
+	NSURL *url = [NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/cache-away"];
+	request = [ASIHTTPRequest requestWithURL:url];
+	[request startSynchronous];
+
+	NSString *path = [[ASIDownloadCache sharedCache] pathToStoreCachedResponseDataForRequest:request];
+	success = (path != nil);
+	GHAssertTrue(success,@"Cache failed to store data");
+
+	path = [[ASIDownloadCache sharedCache] pathToStoreCachedResponseHeadersForRequest:request];
+	success = (path != nil);
+	GHAssertTrue(success,@"Cache failed to store data");
+
+	// Make sure data gets removed
+	[[ASIDownloadCache sharedCache] removeCachedDataForURL:url];
+
+	path = [[ASIDownloadCache sharedCache] pathToCachedResponseDataForURL:url];
+	success = (path == nil);
+	GHAssertTrue(success,@"Cache failed to remove data");
+
+	path = [[ASIDownloadCache sharedCache] pathToCachedResponseHeadersForURL:url];
+	success = (path == nil);
+	GHAssertTrue(success,@"Cache failed to remove data");
 
 	// Test ASIDontLoadCachePolicy
 	[[ASIDownloadCache sharedCache] clearCachedResponsesForStoragePolicy:ASICacheForSessionDurationCacheStoragePolicy];

@@ -17,6 +17,7 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 
 @interface ASIDownloadCache ()
 + (NSString *)keyForURL:(NSURL *)url;
+- (NSString *)pathToFile:(NSString *)file;
 @end
 
 @implementation ASIDownloadCache
@@ -142,38 +143,20 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 
 - (NSString *)pathToCachedResponseDataForURL:(NSURL *)url
 {
-	[[self accessLock] lock];
-	if (![self storagePath]) {
-		[[self accessLock] unlock];
-		return nil;
-	}
 	// Grab the file extension, if there is one. We do this so we can save the cached response with the same file extension - this is important if you want to display locally cached data in a web view 
 	NSString *extension = [[url path] pathExtension];
 	if (![extension length]) {
 		extension = @"html";
 	}
-
-	NSFileManager *fileManager = [[[NSFileManager alloc] init] autorelease];
-
-	// Look in the session store
-	NSString *path = [[self storagePath] stringByAppendingPathComponent:sessionCacheFolder];
-	NSString *dataPath = [path stringByAppendingPathComponent:[[[self class] keyForURL:url] stringByAppendingPathExtension:extension]];
-	if ([fileManager fileExistsAtPath:dataPath]) {
-		[[self accessLock] unlock];
-		return dataPath;
-	}
-	// Look in the permanent store
-	path = [[self storagePath] stringByAppendingPathComponent:permanentCacheFolder];
-	dataPath = [path stringByAppendingPathComponent:[[[self class] keyForURL:url] stringByAppendingPathExtension:extension]];
-	if ([fileManager fileExistsAtPath:dataPath]) {
-		[[self accessLock] unlock];
-		return dataPath;
-	}
-	[[self accessLock] unlock];
-	return nil;
+	return [self pathToFile:[[[self class] keyForURL:url] stringByAppendingPathExtension:extension]];
 }
 
 - (NSString *)pathToCachedResponseHeadersForURL:(NSURL *)url
+{
+	return [self pathToFile:[[[self class] keyForURL:url] stringByAppendingPathExtension:@"cachedheaders"]];
+}
+
+- (NSString *)pathToFile:(NSString *)file
 {
 	[[self accessLock] lock];
 	if (![self storagePath]) {
@@ -184,15 +167,13 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 	NSFileManager *fileManager = [[[NSFileManager alloc] init] autorelease];
 
 	// Look in the session store
-	NSString *path = [[self storagePath] stringByAppendingPathComponent:sessionCacheFolder];
-	NSString *dataPath = [path stringByAppendingPathComponent:[[[self class] keyForURL:url] stringByAppendingPathExtension:@"cachedheaders"]];
+	NSString *dataPath = [[[self storagePath] stringByAppendingPathComponent:sessionCacheFolder] stringByAppendingPathComponent:file];
 	if ([fileManager fileExistsAtPath:dataPath]) {
 		[[self accessLock] unlock];
 		return dataPath;
 	}
 	// Look in the permanent store
-	path = [[self storagePath] stringByAppendingPathComponent:permanentCacheFolder];
-	dataPath = [path stringByAppendingPathComponent:[[[self class] keyForURL:url] stringByAppendingPathExtension:@"cachedheaders"]];
+	dataPath = [[[self storagePath] stringByAppendingPathComponent:permanentCacheFolder] stringByAppendingPathComponent:file];
 	if ([fileManager fileExistsAtPath:dataPath]) {
 		[[self accessLock] unlock];
 		return dataPath;
@@ -200,6 +181,7 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 	[[self accessLock] unlock];
 	return nil;
 }
+
 
 - (NSString *)pathToStoreCachedResponseDataForRequest:(ASIHTTPRequest *)request
 {
@@ -234,30 +216,30 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 	return path;
 }
 
-
-- (void)removeCachedDataForRequest:(ASIHTTPRequest *)request
+- (void)removeCachedDataForURL:(NSURL *)url
 {
 	[[self accessLock] lock];
 	if (![self storagePath]) {
 		[[self accessLock] unlock];
 		return;
 	}
-
-	NSString *cachedHeadersPath = [self pathToCachedResponseHeadersForURL:[request url]];
-	if (!cachedHeadersPath) {
-		[[self accessLock] unlock];
-		return;
-	}
-	NSString *dataPath = [self pathToCachedResponseDataForURL:[request url]];
-	if (!dataPath) {
-		[[self accessLock] unlock];
-		return;
-	}
-
 	NSFileManager *fileManager = [[[NSFileManager alloc] init] autorelease];
-	[fileManager removeItemAtPath:cachedHeadersPath error:NULL];
-	[fileManager removeItemAtPath:dataPath error:NULL];
+
+	NSString *path = [self pathToCachedResponseHeadersForURL:url];
+	if (path) {
+		[fileManager removeItemAtPath:path error:NULL];
+	}
+
+	path = [self pathToCachedResponseDataForURL:url];
+	if (path) {
+		[fileManager removeItemAtPath:path error:NULL];
+	}
 	[[self accessLock] unlock];
+}
+
+- (void)removeCachedDataForRequest:(ASIHTTPRequest *)request
+{
+	[self removeCachedDataForURL:[request url]];
 }
 
 - (BOOL)isCachedDataCurrentForRequest:(ASIHTTPRequest *)request
@@ -410,6 +392,7 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 	}
 	return YES;
 }
+
 
 // Borrowed from: http://stackoverflow.com/questions/652300/using-md5-hash-on-a-string-in-cocoa
 + (NSString *)keyForURL:(NSURL *)url
