@@ -101,17 +101,39 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 
 	NSString *headerPath = [self pathToStoreCachedResponseHeadersForRequest:request];
 	NSString *dataPath = [self pathToStoreCachedResponseDataForRequest:request];
-	
+
 	NSMutableDictionary *responseHeaders = [NSMutableDictionary dictionaryWithDictionary:[request responseHeaders]];
 	if ([request isResponseCompressed]) {
 		[responseHeaders removeObjectForKey:@"Content-Encoding"];
 	}
-	if (maxAge != 0) {
-		[responseHeaders removeObjectForKey:@"Expires"];
-		[responseHeaders setObject:[NSString stringWithFormat:@"max-age=%i",(int)maxAge] forKey:@"Cache-Control"];
+
+	// Create a special 'X-ASIHTTPRequest-Expires' header
+	// This is what we use for deciding if cached data is current, rather than parsing the expires / max-age headers individually each time
+	// We store this as a timestamp to make reading it easier as NSDateFormatter is quite expensive
+
+	// If we weren't given a custom max-age, lets look for one in the response headers
+	if (!maxAge) {
+		NSString *cacheControl = [[responseHeaders objectForKey:@"Cache-Control"] lowercaseString];
+		if (cacheControl) {
+			NSScanner *scanner = [NSScanner scannerWithString:cacheControl];
+			[scanner scanUpToString:@"max-age" intoString:NULL];
+			if ([scanner scanString:@"max-age" intoString:NULL]) {
+				[scanner scanString:@"=" intoString:NULL];
+				[scanner scanDouble:&maxAge];
+			}
+		}
 	}
-	// We use this special key to help expire the request when we get a max-age header
-	[responseHeaders setObject:[[[self class] rfc1123DateFormatter] stringFromDate:[NSDate date]] forKey:@"X-ASIHTTPRequest-Fetch-date"];
+
+	// RFC 2612 says max-age must override any Expires header
+	if (maxAge) {
+		[responseHeaders setObject:[NSNumber numberWithDouble:[[[NSDate date] addTimeInterval:maxAge] timeIntervalSince1970]] forKey:@"X-ASIHTTPRequest-Expires"];
+	} else {
+		NSString *expires = [responseHeaders objectForKey:@"Expires"];
+		if (expires) {
+			[responseHeaders setObject:[NSNumber numberWithDouble:[[ASIHTTPRequest dateFromRFC1123String:expires] timeIntervalSince1970]] forKey:@"X-ASIHTTPRequest-Expires"];
+		}
+	}
+
 	[responseHeaders writeToFile:headerPath atomically:NO];
 	
 	if ([request responseData]) {
@@ -281,33 +303,10 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 
 	if ([self shouldRespectCacheControlHeaders]) {
 
-		// Look for a max-age header
-		NSString *cacheControl = [[cachedHeaders objectForKey:@"Cache-Control"] lowercaseString];
-		if (cacheControl) {
-			NSScanner *scanner = [NSScanner scannerWithString:cacheControl];
-			[scanner scanUpToString:@"max-age" intoString:NULL];
-			if ([scanner scanString:@"max-age" intoString:NULL]) {
-				[scanner scanString:@"=" intoString:NULL];
-				NSTimeInterval maxAge = 0;
-				[scanner scanDouble:&maxAge];
-
-				NSDate *fetchDate = [ASIHTTPRequest dateFromRFC1123String:[cachedHeaders objectForKey:@"X-ASIHTTPRequest-Fetch-date"]];
-				NSDate *expiryDate = [[[NSDate alloc] initWithTimeInterval:maxAge sinceDate:fetchDate] autorelease];
-
-				if ([expiryDate timeIntervalSinceNow] >= 0) {
-					[[self accessLock] unlock];
-					return YES;
-				}
-				// RFC 2612 says max-age must override any Expires header
-				[[self accessLock] unlock];
-				return NO;
-			}
-		}
-
-		// Look for an Expires header to see if the content is out of date
-		NSString *expires = [cachedHeaders objectForKey:@"Expires"];
+		// Look for X-ASIHTTPRequest-Expires header to see if the content is out of date
+		NSNumber *expires = [cachedHeaders objectForKey:@"X-ASIHTTPRequest-Expires"];
 		if (expires) {
-			if ([[ASIHTTPRequest dateFromRFC1123String:expires] timeIntervalSinceNow] >= 0) {
+			if ([[NSDate dateWithTimeIntervalSince1970:[expires doubleValue]] timeIntervalSinceNow] >= 0) {
 				[[self accessLock] unlock];
 				return YES;
 			}
@@ -407,21 +406,6 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 	CC_MD5(cStr, (CC_LONG)strlen(cStr), result);
 	return [NSString stringWithFormat:@"%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X",result[0], result[1], result[2], result[3], result[4], result[5], result[6], result[7],result[8], result[9], result[10], result[11],result[12], result[13], result[14], result[15]]; 	
 }
-
-+ (NSDateFormatter *)rfc1123DateFormatter
-{
-	NSMutableDictionary *threadDict = [[NSThread currentThread] threadDictionary];
-	NSDateFormatter *dateFormatter = [threadDict objectForKey:@"ASIDownloadCacheDateFormatter"];
-	if (dateFormatter == nil) {
-		dateFormatter = [[[NSDateFormatter alloc] init] autorelease];
-		[dateFormatter setLocale:[[[NSLocale alloc] initWithLocaleIdentifier:@"en_US_POSIX"] autorelease]];
-		[dateFormatter setTimeZone:[NSTimeZone timeZoneForSecondsFromGMT:0]];
-		[dateFormatter setDateFormat:@"EEE, dd MMM yyyy HH:mm:ss 'GMT'"];
-		[threadDict setObject:dateFormatter forKey:@"ASIDownloadCacheDateFormatter"];
-	}
-	return dateFormatter;
-}
-
 
 - (BOOL)canUseCachedDataForRequest:(ASIHTTPRequest *)request
 {
