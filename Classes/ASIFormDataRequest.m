@@ -47,7 +47,10 @@ static NSString *const ASIFormDataContentTypeHeader = @"Content-Type";
 		[self setPostData:[NSMutableDictionary dictionary]];
 	}
 	[[self postData] setValue:[value description] forKey:key];
-	[self setRequestMethod:@"POST"];
+    
+    if (!([self.requestMethod isEqual:@"POST"] || [self.requestMethod isEqual:@"PUT"])) {
+        [self setRequestMethod:@"POST"];
+    }
 }
 
 - (void)setFile:(NSString *)filePath forKey:(NSString *)key
@@ -84,7 +87,9 @@ static NSString *const ASIFormDataContentTypeHeader = @"Content-Type";
     NSDictionary *formPartHeaders = [NSDictionary dictionaryWithObjectsAndKeys:contentType, ASIFormDataContentTypeHeader, nil];
 	NSDictionary *fileInfo = [NSDictionary dictionaryWithObjectsAndKeys:data, @"data", formPartHeaders, @"formPartHeaders", fileName, @"fileName", nil];
 	[[self fileData] setObject:fileInfo forKey:key];
-	[self setRequestMethod: @"POST"];
+    if (!([self.requestMethod isEqual:@"POST"] || [self.requestMethod isEqual:@"PUT"])) {
+        [self setRequestMethod:@"POST"];
+    }    
 }
 
 - (void)setData:(NSData *)data forKey:(NSString *)key
@@ -116,7 +121,9 @@ static NSString *const ASIFormDataContentTypeHeader = @"Content-Type";
 
 	NSDictionary *fileInfo = [NSDictionary dictionaryWithObjectsAndKeys:data, @"data", formPartHeaders, @"formPartHeaders", fileName, @"fileName", nil];
 	[[self fileData] setObject:fileInfo forKey:key];
-	[self setRequestMethod: @"POST"];
+    if (!([self.requestMethod isEqual:@"POST"] || [self.requestMethod isEqual:@"PUT"])) {
+        [self setRequestMethod:@"POST"];
+    }    
 }
 
 - (void)buildPostBody
