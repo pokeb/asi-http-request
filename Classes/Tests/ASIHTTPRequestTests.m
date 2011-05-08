@@ -1389,7 +1389,7 @@
 	GHAssertNotNil([request error],@"Failed to generate an error for a self-signed certificate (Will fail on the second run in the same session!)");		
 	
 	// Just for testing the request generated a custom error description - don't do this! You should look at the domain / code of the underlyingError in your own programs.
-	BOOL success = ([[[request error] localizedDescription] isEqualToString:@"A connection failure occurred: SSL problem (possibly a bad/expired/self-signed certificate)"]);
+	BOOL success = ([[[request error] localizedDescription] rangeOfString:@"SSL problem"].location != NSNotFound);
 	GHAssertTrue(success,@"Generated the wrong error for a self signed cert");
 	
 	// Turn off certificate validation, and try again
@@ -1561,28 +1561,28 @@
 - (void)testAsynchronous
 {
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/first"]];
-	[request setUserInfo:[NSDictionary dictionaryWithObject:[NSNumber numberWithInt:1] forKey:@"RequestNumber"]];
+	[request setTag:1];
 	[request setDidFailSelector:@selector(asyncFail:)];
 	[request setDidFinishSelector:@selector(asyncSuccess:)];
 	[request setDelegate:self];
 	[request startAsynchronous];
 	
 	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/second"]];
-	[request setUserInfo:[NSDictionary dictionaryWithObject:[NSNumber numberWithInt:2] forKey:@"RequestNumber"]];
+	[request setTag:2];
 	[request setDidFailSelector:@selector(asyncFail:)];
 	[request setDidFinishSelector:@selector(asyncSuccess:)];
 	[request setDelegate:self];
 	[request startAsynchronous];
 	
 	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/third"]];
-	[request setUserInfo:[NSDictionary dictionaryWithObject:[NSNumber numberWithInt:3] forKey:@"RequestNumber"]];
+	[request setTag:3];
 	[request setDidFailSelector:@selector(asyncFail:)];
 	[request setDidFinishSelector:@selector(asyncSuccess:)];
 	[request setDelegate:self];
 	[request startAsynchronous];	
 	
 	request = [ASIHTTPRequest requestWithURL:nil];
-	[request setUserInfo:[NSDictionary dictionaryWithObject:[NSNumber numberWithInt:4] forKey:@"RequestNumber"]];
+	[request setTag:4];
 	[request setDidFailSelector:@selector(asyncFail:)];
 	[request setDidFinishSelector:@selector(asyncSuccess:)];
 	[request setDelegate:self];
@@ -1592,18 +1592,16 @@
 
 - (void)asyncFail:(ASIHTTPRequest *)request
 {
-	int requestNumber = [[[request userInfo] objectForKey:@"RequestNumber"] intValue];
-	BOOL success = (requestNumber == 4);
+	BOOL success = ([request tag] == 4);
 	GHAssertTrue(success,@"Wrong request failed");
 }
 
 - (void)asyncSuccess:(ASIHTTPRequest *)request
 {
-	int requestNumber = [[[request userInfo] objectForKey:@"RequestNumber"] intValue];
-	BOOL success = (requestNumber != 4);
+	BOOL success = ([request tag] != 4);
 	GHAssertTrue(success,@"Request succeeded when it should have failed");
 	
-	switch (requestNumber) {
+	switch ([request tag]) {
 		case 1:
 			success = [[request responseString] isEqualToString:@"This is the expected content for the first string"];
 			break;

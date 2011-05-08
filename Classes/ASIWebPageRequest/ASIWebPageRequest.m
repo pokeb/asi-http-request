@@ -369,7 +369,7 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 
 				// Strip the content encoding if the original response was gzipped
 				if ([self isResponseCompressed]) {
-					NSMutableDictionary *headers = [[self responseHeaders] mutableCopy];
+					NSMutableDictionary *headers = [[[self responseHeaders] mutableCopy] autorelease];
 					[headers removeObjectForKey:@"Content-Encoding"];
 					[self setResponseHeaders:headers];
 				}

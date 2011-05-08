@@ -346,8 +346,9 @@ typedef void (^ASIDataBlock)(NSData *data);
 	// Tells ASIHTTPRequest not to delete partial downloads, and allows it to use an existing file to resume a download. Defaults to NO.
 	BOOL allowResumeForFileDownloads;
 	
-	// Custom user information associated with the request
+	// Custom user information associated with the request (not sent to the server)
 	NSDictionary *userInfo;
+	NSInteger tag;
 	
 	// Use HTTP 1.0 rather than 1.1 (defaults to false)
 	BOOL useHTTPVersionOne;
@@ -952,6 +953,7 @@ typedef void (^ASIDataBlock)(NSData *data);
 @property (assign) BOOL allowCompressedResponse;
 @property (assign) BOOL allowResumeForFileDownloads;
 @property (retain) NSDictionary *userInfo;
+@property (assign) NSInteger tag;
 @property (retain) NSString *postBodyFilePath;
 @property (assign) BOOL shouldStreamPostDataFromDisk;
 @property (assign) BOOL didCreateTemporaryPostDataFile;

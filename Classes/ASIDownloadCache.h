@@ -35,11 +35,6 @@
 // A helper function that determines if the server has requested data should not be cached by looking at the request's response headers
 + (BOOL)serverAllowsResponseCachingForRequest:(ASIHTTPRequest *)request;
 
-// A date formatter that can be used to construct an RFC 1123 date
-// The returned formatter is safe to use on the calling thread
-// Do not use this formatter for parsing dates because the format can vary slightly - use ASIHTTPRequest's dateFromRFC1123String: class method instead
-+ (NSDateFormatter *)rfc1123DateFormatter;
-
 @property (assign, nonatomic) ASICachePolicy defaultCachePolicy;
 @property (retain, nonatomic) NSString *storagePath;
 @property (retain) NSRecursiveLock *accessLock;
