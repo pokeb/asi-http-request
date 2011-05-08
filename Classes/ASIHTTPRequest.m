@@ -24,7 +24,7 @@
 #import "ASIDataCompressor.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.8-76 2011-05-08";
+NSString *ASIHTTPRequestVersion = @"v1.8-77 2011-05-08";
 
 static NSString *defaultUserAgent = nil;
 
@@ -4142,10 +4142,15 @@ static NSOperationQueue *sharedQueue = nil;
 	if (!appName) {
 		appName = [bundle objectForInfoDictionaryKey:@"CFBundleName"];	
 	}
+
+	NSData *latin1Data = [appName dataUsingEncoding:NSUTF8StringEncoding];
+	appName = [[NSString alloc] initWithData:latin1Data encoding:NSISOLatin1StringEncoding];
+
 	// If we couldn't find one, we'll give up (and ASIHTTPRequest will use the standard CFNetwork user agent)
 	if (!appName) {
 		return nil;
 	}
+
 	NSString *appVersion = nil;
 	NSString *marketingVersionNumber = [bundle objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
     NSString *developmentVersionNumber = [bundle objectForInfoDictionaryKey:@"CFBundleVersion"];
