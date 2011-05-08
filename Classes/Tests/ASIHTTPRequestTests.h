@@ -57,7 +57,7 @@
 #endif
 - (void)testAutomaticRetry;
 - (void)testCloseConnection;
-- (void)testPersistentConnectionTimeout;
+- (void)testPersistentConnections;
 - (void)testNilPortCredentialsMatching;
 
 @property (retain, nonatomic) NSMutableData *responseData;

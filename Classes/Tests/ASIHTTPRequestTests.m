@@ -1690,29 +1690,62 @@
 	
 }
 
-- (void)testPersistentConnectionTimeout
+- (void)testPersistentConnections
 {
+	// allseeing-i.com is configured to keep persistent connections alive for 2 seconds
+
+	// Ensure we parse a keep-alive header
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
-	
+
 	BOOL success = ([request persistentConnectionTimeoutSeconds] == 60);
 	GHAssertTrue(success,@"Request failed to default to 60 seconds for connection timeout");
-	
+
 	[request startSynchronous];
-	
+
 	NSNumber *connectionId = [request connectionID];
-	
+
 	success = ([request persistentConnectionTimeoutSeconds] == 2);
 	GHAssertTrue(success,@"Request failed to use time out set by server");
-	
+
 	// Wait 3 seconds - connection should have timed out
 	sleep(3);
-	
+
 	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
 	[request startSynchronous];
-	
+
 	success = ([[request connectionID] intValue] != [connectionId intValue]);
 	GHAssertTrue(success,@"Reused a connection that should have timed out");
-	
+
+	// Ensure persistent connections are turned off by default with POST/PUT and/or a request body
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
+	[request appendPostData:[@"Foo" dataUsingEncoding:NSUTF8StringEncoding]];
+	[request startSynchronous];
+
+	success = ![request shouldAttemptPersistentConnection];
+	GHAssertTrue(success,@"Used a persistent connection with a body");
+
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
+	[request setRequestMethod:@"PUT"];
+	[request startSynchronous];
+
+	success = ![request shouldAttemptPersistentConnection];
+	GHAssertTrue(success,@"Used a persistent connection with PUT");
+
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
+	[request setRequestMethod:@"POST"];
+	[request startSynchronous];
+
+	success = ![request shouldAttemptPersistentConnection];
+	GHAssertTrue(success,@"Used a persistent connection with POST");
+
+	// Ensure we can force a persistent connection
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
+	[request setRequestMethod:@"POST"];
+	[request setShouldAttemptPersistentConnection:YES];
+	[request startSynchronous];
+
+	success = [request shouldAttemptPersistentConnection];
+	GHAssertTrue(success,@"Failed to use a persistent connection");
 }
 
 - (void)testRemoveUploadProgress

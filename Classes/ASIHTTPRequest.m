@@ -2,7 +2,7 @@
 //  ASIHTTPRequest.m
 //
 //  Created by Ben Copsey on 04/10/2007.
-//  Copyright 2007-2010 All-Seeing Interactive. All rights reserved.
+//  Copyright 2007-2011 All-Seeing Interactive. All rights reserved.
 //
 //  A guide to the main features is available at:
 //  http://allseeing-i.com/ASIHTTPRequest
@@ -24,7 +24,7 @@
 #import "ASIDataCompressor.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.8-56 2011-02-06";
+NSString *ASIHTTPRequestVersion = @"v1.8-76 2011-05-08";
 
 static NSString *defaultUserAgent = nil;
 
@@ -225,6 +225,7 @@ static NSOperationQueue *sharedQueue = nil;
 @property (retain) NSString *responseStatusMessage;
 @property (assign) BOOL inProgress;
 @property (assign) int retryCount;
+@property (assign) BOOL willRetryRequest;
 @property (assign) BOOL connectionCanBeReused;
 @property (retain, nonatomic) NSMutableDictionary *connectionInfo;
 @property (retain, nonatomic) NSInputStream *readStream;
@@ -596,6 +597,27 @@ static NSOperationQueue *sharedQueue = nil;
 		}
 	}
 	[stream close];
+}
+
+- (NSString *)requestMethod
+{
+	[[self cancelledLock] lock];
+	NSString *m = requestMethod;
+	[[self cancelledLock] unlock];
+	return m;
+}
+
+- (void)setRequestMethod:(NSString *)newRequestMethod
+{
+	[[self cancelledLock] lock];
+	if (requestMethod != newRequestMethod) {
+		[requestMethod release];
+		requestMethod = [newRequestMethod retain];
+		if ([requestMethod isEqualToString:@"POST"] || [requestMethod isEqualToString:@"PUT"] || [postBody length] || postBodyFilePath) {
+			[self setShouldAttemptPersistentConnection:NO];
+		}
+	}
+	[[self cancelledLock] unlock];
 }
 
 - (NSURL *)url
@@ -1296,6 +1318,10 @@ static NSOperationQueue *sharedQueue = nil;
 		
 		CFReadStreamSetProperty((CFReadStreamRef)[self readStream], CFSTR("ASIStreamID"), [[self connectionInfo] objectForKey:@"id"]);
 	
+	} else {
+		#if DEBUG_PERSISTENT_CONNECTIONS
+		NSLog(@"Request %@ will not use a persistent connection",self);
+		#endif
 	}
 	
 	[connectionsLock unlock];
@@ -1524,7 +1550,7 @@ static NSOperationQueue *sharedQueue = nil;
 	}
 	
 	// Clean up any temporary file used to store request body for streaming
-	if (![self authenticationNeeded] && [self didCreateTemporaryPostDataFile]) {
+	if (![self authenticationNeeded] && ![self willRetryRequest] && [self didCreateTemporaryPostDataFile]) {
 		[self removeTemporaryUploadFile];
 		[self removeTemporaryCompressedUploadFile];
 		[self setDidCreateTemporaryPostDataFile:NO];
@@ -3257,7 +3283,9 @@ static NSOperationQueue *sharedQueue = nil;
 		[self unscheduleReadStream];
 	}
 	#if DEBUG_PERSISTENT_CONNECTIONS
-	NSLog(@"Request #%@ finished using connection #%@",[self requestID], [[self connectionInfo] objectForKey:@"id"]);
+	if ([self requestID]) {
+		NSLog(@"Request #%@ finished using connection #%@",[self requestID], [[self connectionInfo] objectForKey:@"id"]);
+	}
 	#endif
 	[[self connectionInfo] removeObjectForKey:@"request"];
 	[[self connectionInfo] setObject:[NSDate dateWithTimeIntervalSinceNow:[self persistentConnectionTimeoutSeconds]] forKey:@"expires"];
@@ -3382,6 +3410,11 @@ static NSOperationQueue *sharedQueue = nil;
 - (BOOL)retryUsingNewConnection
 {
 	if ([self retryCount] == 0) {
+
+		[self setWillRetryRequest:YES];
+		[self cancelLoad];
+		[self setWillRetryRequest:NO];
+
 		#if DEBUG_PERSISTENT_CONNECTIONS
 			NSLog(@"Request attempted to use connection #%@, but it has been closed - will retry with a new connection", [[self connectionInfo] objectForKey:@"id"]);
 		#endif
@@ -3405,8 +3438,6 @@ static NSOperationQueue *sharedQueue = nil;
 {
 	NSError *underlyingError = NSMakeCollectable([(NSError *)CFReadStreamCopyError((CFReadStreamRef)[self readStream]) autorelease]);
 
-	[self cancelLoad];
-	
 	if (![self error]) { // We may already have handled this error
 		
 		// First, check for a 'socket not connected', 'broken pipe' or 'connection lost' error
@@ -3431,8 +3462,10 @@ static NSOperationQueue *sharedQueue = nil;
 				reason = [NSString stringWithFormat:@"%@: SSL problem (Possible causes may include a bad/expired/self-signed certificate, clock set to wrong date)",reason];
 			}
 		}
-		
+		[self cancelLoad];
 		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIConnectionFailureErrorType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:reason,NSLocalizedDescriptionKey,underlyingError,NSUnderlyingErrorKey,nil]]];
+	} else {
+		[self cancelLoad];
 	}
 	[self checkRequestStatus];
 }
@@ -4767,6 +4800,7 @@ static NSOperationQueue *sharedQueue = nil;
 @synthesize inProgress;
 @synthesize numberOfTimesToRetryOnTimeout;
 @synthesize retryCount;
+@synthesize willRetryRequest;
 @synthesize shouldAttemptPersistentConnection;
 @synthesize persistentConnectionTimeoutSeconds;
 @synthesize connectionCanBeReused;
