@@ -94,8 +94,28 @@ static NSLock *bandwidthThrottlingLock = nil;
 // the maximum number of bytes that can be transmitted in one second
 static unsigned long maxBandwidthPerSecond = 0;
 
-// A default figure for throttling bandwidth on mobile devices
-unsigned long const ASIWWANBandwidthThrottleAmount = 14800;
+// A default figure for throttling bandwidth on slower mobile devices
+// Docs suggest 5MB/5Min for entire device, this allows for some overhead
+// And some additional device traffic. This is absolutely not perfect, just
+// a good approximation.
+unsigned long const ASIWWANLowBandwidthThrottleAmount = 14800;
+
+// A default figure for throttling bandwidth on faster mobile connections
+unsigned long const ASIWWANHighBandwidthThrottleAmount = 148000;
+
+// If we don't get enough traffic during a bandwidthMeasurement cycle this is incremented
+// If we do get good bandwidth this is set back to 0
+static unsigned long wwanBandwidthStrikes = 0;
+
+// If bandwidth in a measurement cycle is less than this value we ignore the cycle
+unsigned long const ASIWWANMinBandwidthThreashold = 1024;
+
+// If bandwidth in a cycle is less than this value we increment wwanBandwidthStrikes
+unsigned long const ASIWWANMaxBandwidthThreashold = 65537;
+
+// When wwanBandwidthStrikes reaches this number, the WWAN throttle is downgraded
+unsigned long const ASIWWANBandwidthStrikesForFallback = 2;
+
 
 #if TARGET_OS_IPHONE
 // YES when bandwidth throttling is active
@@ -4304,8 +4324,23 @@ static NSOperationQueue *sharedQueue = nil;
 		}
 	}
 	#if DEBUG_THROTTLING
-	NSLog(@"===Used: %u bytes of bandwidth in last measurement period===",bandwidthUsedInLastSecond);
+	NSLog(@"===Used: %lu bytes of bandwidth in last measurement period===",bandwidthUsedInLastSecond);
 	#endif
+
+    if (maxBandwidthPerSecond > ASIWWANLowBandwidthThrottleAmount && bandwidthUsedInLastSecond > ASIWWANMinBandwidthThreashold && wwanBandwidthStrikes < ASIWWANBandwidthStrikesForFallback) {
+        if (bandwidthUsedInLastSecond < ASIWWANMaxBandwidthThreashold) {
+            wwanBandwidthStrikes++;
+            if (wwanBandwidthStrikes >= ASIWWANBandwidthStrikesForFallback) {
+                #if DEBUG_THROTTLING
+                NSLog(@"Reducing WWAN throttle to %ld bytes/second because of low bandwidth in %lu measurement cycles, bandwidth used in last second was %lu", ASIWWANBandwidthThrottleAmount, wwanBandwidthStrikes, bandwidthUsedInLastSecond);
+                #endif
+                maxBandwidthPerSecond = ASIWWANLowBandwidthThrottleAmount;
+            }
+        } else {
+            wwanBandwidthStrikes = 0;
+        }
+    }
+
 	[bandwidthUsageTracker addObject:[NSNumber numberWithUnsignedLong:bandwidthUsedInLastSecond]];
 	[bandwidthMeasurementDate release];
 	bandwidthMeasurementDate = [[NSDate dateWithTimeIntervalSinceNow:1] retain];
@@ -4385,7 +4420,9 @@ static NSOperationQueue *sharedQueue = nil;
 + (void)setShouldThrottleBandwidthForWWAN:(BOOL)throttle
 {
 	if (throttle) {
-		[ASIHTTPRequest throttleBandwidthForWWANUsingLimit:ASIWWANBandwidthThrottleAmount];
+        // Reset throttle and fallback strikes counter
+        [ASIHTTPRequest throttleBandwidthForWWANUsingLimit:ASIWWANHighBandwidthThrottleAmount];
+        wwanBandwidthStrikes = 0;
 	} else {
 		[ASIHTTPRequest unsubscribeFromNetworkReachabilityNotifications];
 		[ASIHTTPRequest setMaxBandwidthPerSecond:0];
