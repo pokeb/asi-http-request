@@ -1113,7 +1113,7 @@
 	err = [request error];
 	GHAssertNil(err,@"Failed to use stored credentials");
 	
-	[ASIHTTPRequest removeCredentialsForHost:@"asi" port:0 protocol:@"http" realm:@"SECRET_STUFF"];
+	[ASIHTTPRequest removeCredentialsForHost:@"allseeing-i.com" port:0 protocol:@"http" realm:@"SECRET_STUFF"];
 	
 	// Ensure credentials stored in the keychain were wiped
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
@@ -1434,7 +1434,7 @@
 {
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/redirect_to_new_domain"]];
 	[request startSynchronous];
-	BOOL success = [[[request url] absoluteString] isEqualToString:@"http://www.apple.com"];
+	BOOL success = [[[[request url] absoluteString] stringByTrimmingCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"/"]] isEqualToString:@"http://www.apple.com"];
 	GHAssertTrue(success,@"Failed to redirect to a different domain");		
 }
 
