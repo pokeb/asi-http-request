@@ -24,7 +24,7 @@
 #import "ASIDataCompressor.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.8-83 2011-05-15";
+NSString *ASIHTTPRequestVersion = @"v1.8-84 2011-05-15";
 
 static NSString *defaultUserAgent = nil;
 
@@ -1554,8 +1554,9 @@ static NSOperationQueue *sharedQueue = nil;
 	[self setPostBodyReadStream:nil];
 	
     if ([self rawResponseData]) {
-		[self setRawResponseData:nil];
-	
+		if (![self complete]) {
+			[self setRawResponseData:nil];
+		}
 	// If we were downloading to a file
 	} else if ([self temporaryFileDownloadPath]) {
 		[[self fileDownloadOutputStream] close];
@@ -1565,10 +1566,12 @@ static NSOperationQueue *sharedQueue = nil;
 		[self setInflatedFileDownloadOutputStream:nil];
 		
 		// If we haven't said we might want to resume, let's remove the temporary file too
-		if (![self allowResumeForFileDownloads]) {
-			[self removeTemporaryDownloadFile];
+		if (![self complete]) {
+			if (![self allowResumeForFileDownloads]) {
+				[self removeTemporaryDownloadFile];
+			}
+			[self removeTemporaryUncompressedDownloadFile];
 		}
-		[self removeTemporaryUncompressedDownloadFile];
 	}
 	
 	// Clean up any temporary file used to store request body for streaming
@@ -1577,8 +1580,6 @@ static NSOperationQueue *sharedQueue = nil;
 		[self removeTemporaryCompressedUploadFile];
 		[self setDidCreateTemporaryPostDataFile:NO];
 	}
-	
-	[self setResponseHeaders:nil];
 }
 
 #pragma mark HEAD request

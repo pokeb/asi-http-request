@@ -1033,6 +1033,30 @@
 	
 }
 
+- (void)testPreserveResponseWhenDownloadComplete
+{
+	NSURL *url = [NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/basic-authentication"];
+	ASIHTTPRequest *request;
+	BOOL success;
+
+	request = [ASIHTTPRequest requestWithURL:url];
+	[request startSynchronous];
+
+	success = ([[request responseString] length]);
+	GHAssertTrue(success,@"Request removed the response body when we encountered an error, even though the download was complete");
+
+	NSString *downloadPath = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:@"test.txt"];
+	if ([[NSFileManager defaultManager] fileExistsAtPath:downloadPath]) {
+		[[NSFileManager defaultManager] removeItemAtPath:downloadPath error:NULL];
+	}
+
+	request = [ASIHTTPRequest requestWithURL:url];
+	[request setDownloadDestinationPath:downloadPath];
+	[request startSynchronous];
+
+	success = ([[[NSFileManager defaultManager] attributesOfItemAtPath:downloadPath error:NULL] fileSize]);
+	GHAssertTrue(success,@"Request removed or failed to copy the response to downloadDestinationPath");
+}
 
 - (void)testBasicAuthentication
 {
@@ -1050,7 +1074,7 @@
 	[request startSynchronous];
 	success = [[request error] code] == ASIAuthenticationErrorType;
 	GHAssertTrue(success,@"Failed to generate permission denied error with no credentials");
-	
+
 	// Test wrong credentials supplied
 	request = [[[ASIHTTPRequest alloc] initWithURL:url] autorelease];
 	[request setUseKeychainPersistence:NO];
