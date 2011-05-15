@@ -11,6 +11,7 @@
 
 @interface ASIDownloadCacheTests : ASITestCase {
 	NSUInteger requestsFinishedCount;
+	BOOL requestRedirectedWasCalled;
 }
 
 @end

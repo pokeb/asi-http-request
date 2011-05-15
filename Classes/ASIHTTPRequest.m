@@ -24,7 +24,7 @@
 #import "ASIDataCompressor.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.8-84 2011-05-15";
+NSString *ASIHTTPRequestVersion = @"v1.8-85 2011-05-15";
 
 static NSString *defaultUserAgent = nil;
 
@@ -163,6 +163,8 @@ static NSOperationQueue *sharedQueue = nil;
 - (void)markAsFinished;
 - (void)performRedirect;
 - (BOOL)shouldTimeOut;
+- (BOOL)willRedirect;
+- (BOOL)willAskDelegateToConfirmRedirect;
 
 + (void)performInvocation:(NSInvocation *)invocation onTarget:(id *)target releasingObject:(id)objectToRelease;
 + (void)hideNetworkActivityIndicatorAfterDelay;
@@ -2123,19 +2125,18 @@ static NSOperationQueue *sharedQueue = nil;
 	}
 	#endif		
 
-	CFDictionaryRef headerFields = CFHTTPMessageCopyAllHeaderFields(message);
-	[self setResponseHeaders:(NSDictionary *)headerFields];
-
-	CFRelease(headerFields);
-	
+	[self setResponseHeaders:[(NSDictionary *)CFHTTPMessageCopyAllHeaderFields(message) autorelease]];
 	[self setResponseStatusCode:(int)CFHTTPMessageGetResponseStatusCode(message)];
 	[self setResponseStatusMessage:[(NSString *)CFHTTPMessageCopyResponseStatusLine(message) autorelease]];
-	
+
 	if ([self downloadCache] && ([[self downloadCache] canUseCachedDataForRequest:self])) {
+
+		// Update the expiry date
+		[[self downloadCache] updateExpiryForRequest:self maxAge:[self secondsToCache]];
+
 		// Read the response from the cache
 		[self useDataFromCache];
-		// Update the response headers (this will usually move the expiry date into the future)
-		[[self downloadCache] storeResponseForRequest:self maxAge:[self secondsToCache]];
+
 		CFRelease(message);
 		return;
 	}
@@ -2146,11 +2147,11 @@ static NSOperationQueue *sharedQueue = nil;
 	} else if ([self responseStatusCode] == 407) {
 		[self setAuthenticationNeeded:ASIProxyAuthenticationNeeded];
 	} else {
-	#if DEBUG_HTTP_AUTHENTICATION
+		#if DEBUG_HTTP_AUTHENTICATION
 		if ([self authenticationScheme]) {
 			NSLog(@"[AUTH] Request %@ has passed %@ authentication",self,[self authenticationScheme]);
 		}
-	#endif
+		#endif
 	}
 		
 	// Authentication succeeded, or no authentication was required
@@ -2196,57 +2197,7 @@ static NSOperationQueue *sharedQueue = nil;
 	}
 	
 	// Do we need to redirect?
-	// Note that ASIHTTPRequest does not currently support 305 Use Proxy
-	if ([self shouldRedirect] && [responseHeaders valueForKey:@"Location"]) {
-		if (([self responseStatusCode] > 300 && [self responseStatusCode] < 304) || [self responseStatusCode] == 307) {
-            
-			[self performSelectorOnMainThread:@selector(requestRedirected) withObject:nil waitUntilDone:[NSThread isMainThread]];
-			
-			// By default, we redirect 301 and 302 response codes as GET requests
-			// According to RFC 2616 this is wrong, but this is what most browsers do, so it's probably what you're expecting to happen
-			// See also:
-			// http://allseeing-i.lighthouseapp.com/projects/27881/tickets/27-302-redirection-issue
-							
-			if ([self responseStatusCode] != 307 && (![self shouldUseRFC2616RedirectBehaviour] || [self responseStatusCode] == 303)) {
-				[self setRequestMethod:@"GET"];
-				[self setPostBody:nil];
-				[self setPostLength:0];
-
-				// Perhaps there are other headers we should be preserving, but it's hard to know what we need to keep and what to throw away.
-				NSString *userAgentHeader = [[self requestHeaders] objectForKey:@"User-Agent"];
-				NSString *acceptHeader = [[self requestHeaders] objectForKey:@"Accept"];
-				[self setRequestHeaders:nil];
-				if (userAgentHeader) {
-					[self addRequestHeader:@"User-Agent" value:userAgentHeader];
-				}
-				if (acceptHeader) {
-					[self addRequestHeader:@"Accept" value:acceptHeader];
-				}
-				[self setHaveBuiltRequestHeaders:NO];
-			} else {
-			
-				// Force rebuild the cookie header incase we got some new cookies from this request
-				// All other request headers will remain as they are for 301 / 302 redirects
-				[self applyCookieHeader];
-			}
-
-			// Force the redirected request to rebuild the request headers (if not a 303, it will re-use old ones, and add any new ones)
-			[self setRedirectURL:[[NSURL URLWithString:[responseHeaders valueForKey:@"Location"] relativeToURL:[self url]] absoluteURL]];
-			[self setNeedsRedirect:YES];
-			
-			// Clear the request cookies
-			// This means manually added cookies will not be added to the redirect request - only those stored in the global persistent store
-			// But, this is probably the safest option - we might be redirecting to a different domain
-			[self setRequestCookies:[NSMutableArray array]];
-			
-			#if DEBUG_REQUEST_STATUS
-				NSLog(@"[STATUS] Request will redirect (code: %i): %@",[self responseStatusCode],self);
-			#endif
-			
-		}
-	}
-
-	if (![self needsRedirect]) {
+	if (![self willRedirect]) {
 		// See if we got a Content-length header
 		NSString *cLength = [responseHeaders valueForKey:@"Content-Length"];
 		ASIHTTPRequest *theRequest = self;
@@ -2279,6 +2230,7 @@ static NSOperationQueue *sharedQueue = nil;
 	if ([self shouldAttemptPersistentConnection]) {
 		
 		NSString *connectionHeader = [[[self responseHeaders] objectForKey:@"Connection"] lowercaseString];
+
 		NSString *httpVersion = NSMakeCollectable([(NSString *)CFHTTPMessageCopyVersion(message) autorelease]);
 		
 		// Don't re-use the connection if the server is HTTP 1.0 and didn't send Connection: Keep-Alive
@@ -2320,6 +2272,65 @@ static NSOperationQueue *sharedQueue = nil;
 
 	CFRelease(message);
 	[self performSelectorOnMainThread:@selector(requestReceivedResponseHeaders:) withObject:[[[self responseHeaders] copy] autorelease] waitUntilDone:[NSThread isMainThread]];
+}
+
+- (BOOL)willRedirect
+{
+	// Do we need to redirect?
+	if (![self shouldRedirect] || ![responseHeaders valueForKey:@"Location"]) {
+		return NO;
+	}
+
+	// Note that ASIHTTPRequest does not currently support 305 Use Proxy
+	int responseCode = [self responseStatusCode];
+	if (responseCode != 301 && responseCode != 302 && responseCode != 303 && responseCode != 307) {
+		return NO;
+	}
+
+	[self performSelectorOnMainThread:@selector(requestRedirected) withObject:nil waitUntilDone:[NSThread isMainThread]];
+
+	// By default, we redirect 301 and 302 response codes as GET requests
+	// According to RFC 2616 this is wrong, but this is what most browsers do, so it's probably what you're expecting to happen
+	// See also:
+	// http://allseeing-i.lighthouseapp.com/projects/27881/tickets/27-302-redirection-issue
+
+	if (responseCode != 307 && (![self shouldUseRFC2616RedirectBehaviour] || responseCode == 303)) {
+		[self setRequestMethod:@"GET"];
+		[self setPostBody:nil];
+		[self setPostLength:0];
+
+		// Perhaps there are other headers we should be preserving, but it's hard to know what we need to keep and what to throw away.
+		NSString *userAgentHeader = [[self requestHeaders] objectForKey:@"User-Agent"];
+		NSString *acceptHeader = [[self requestHeaders] objectForKey:@"Accept"];
+		[self setRequestHeaders:nil];
+		if (userAgentHeader) {
+			[self addRequestHeader:@"User-Agent" value:userAgentHeader];
+		}
+		if (acceptHeader) {
+			[self addRequestHeader:@"Accept" value:acceptHeader];
+		}
+		[self setHaveBuiltRequestHeaders:NO];
+
+	} else {
+		// Force rebuild the cookie header incase we got some new cookies from this request
+		// All other request headers will remain as they are for 301 / 302 redirects
+		[self applyCookieHeader];
+	}
+
+	// Force the redirected request to rebuild the request headers (if not a 303, it will re-use old ones, and add any new ones)
+	[self setRedirectURL:[[NSURL URLWithString:[responseHeaders valueForKey:@"Location"] relativeToURL:[self url]] absoluteURL]];
+	[self setNeedsRedirect:YES];
+
+	// Clear the request cookies
+	// This means manually added cookies will not be added to the redirect request - only those stored in the global persistent store
+	// But, this is probably the safest option - we might be redirecting to a different domain
+	[self setRequestCookies:[NSMutableArray array]];
+
+	#if DEBUG_REQUEST_STATUS
+	NSLog(@"[STATUS] Request will redirect (code: %i): %@",responseCode,self);
+	#endif
+
+	return YES;
 }
 
 - (void)parseStringEncodingFromHeaders
@@ -3155,22 +3166,7 @@ static NSOperationQueue *sharedQueue = nil;
 	[[self cancelledLock] unlock];
 	
 	if ([self downloadComplete] && [self needsRedirect]) {
-
-		// We must lock again to ensure delegate / queue aren't changed while we check them
-		[[self cancelledLock] lock];
-		// Here we perform an initial check to see if either the delegate or the queue wants to be asked about the redirect, because if not we should redirect straight away
-		// We will check again on the main thread later
-		BOOL needToAskDelegateAboutRedirect = (([self delegate] && [[self delegate] respondsToSelector:[self willRedirectSelector]]) || ([self queue] && [[self queue] respondsToSelector:@selector(request:willRedirectToURL:)]));
-		[[self cancelledLock] unlock];
-
-		// Either the delegate or the queue's delegate is interested in being told when we are about to redirect
-		if (needToAskDelegateAboutRedirect) {
-			NSURL *newURL = [[[self redirectURL] copy] autorelease];
-			[self setRedirectURL:nil];
-			[self performSelectorOnMainThread:@selector(requestWillRedirectToURL:) withObject:newURL waitUntilDone:[NSThread isMainThread]];
-
-		// If neither the delegate nor the queue's delegate implement request:willRedirectToURL:, we will redirect automatically
-		} else {
+		if (![self willAskDelegateToConfirmRedirect]) {
 			[self performRedirect];
 		}
 	} else if ([self downloadComplete] && [self authenticationNeeded]) {
@@ -3179,6 +3175,27 @@ static NSOperationQueue *sharedQueue = nil;
 
 	CFRelease(self);
 	[pool release];
+}
+
+- (BOOL)willAskDelegateToConfirmRedirect
+{
+	// We must lock to ensure delegate / queue aren't changed while we check them
+	[[self cancelledLock] lock];
+
+	// Here we perform an initial check to see if either the delegate or the queue wants to be asked about the redirect, because if not we should redirect straight away
+	// We will check again on the main thread later
+	BOOL needToAskDelegateAboutRedirect = (([self delegate] && [[self delegate] respondsToSelector:[self willRedirectSelector]]) || ([self queue] && [[self queue] respondsToSelector:@selector(request:willRedirectToURL:)]));
+
+	[[self cancelledLock] unlock];
+
+	// Either the delegate or the queue's delegate is interested in being told when we are about to redirect
+	if (needToAskDelegateAboutRedirect) {
+		NSURL *newURL = [[[self redirectURL] copy] autorelease];
+		[self setRedirectURL:nil];
+		[self performSelectorOnMainThread:@selector(requestWillRedirectToURL:) withObject:newURL waitUntilDone:[NSThread isMainThread]];
+		return true;
+	}
+	return false;
 }
 
 - (void)handleBytesAvailable
@@ -3520,13 +3537,10 @@ static NSOperationQueue *sharedQueue = nil;
 
 	if (headers && dataPath) {
 
-		// only 200 responses are stored in the cache, so let the client know
-		// this was a successful response
-		[self setResponseStatusCode:200];
-
+		[self setResponseStatusCode:[[headers objectForKey:@"X-ASIHTTPRequest-Response-Status-Code"] intValue]];
 		[self setDidUseCachedResponse:YES];
-
 		[theRequest setResponseHeaders:headers];
+
 		if ([theRequest downloadDestinationPath]) {
 			[theRequest setDownloadDestinationPath:dataPath];
 		} else {
@@ -3538,10 +3552,19 @@ static NSOperationQueue *sharedQueue = nil;
 		[theRequest parseStringEncodingFromHeaders];
 
 		[theRequest setResponseCookies:[NSHTTPCookie cookiesWithResponseHeaderFields:headers forURL:[self url]]];
+
+		// See if we need to redirect
+		if ([self willRedirect]) {
+			if (![self willAskDelegateToConfirmRedirect]) {
+				[self performRedirect];
+			}
+			return;
+		}
 	}
+
 	[theRequest setComplete:YES];
 	[theRequest setDownloadComplete:YES];
-	
+
 	// If we're pulling data from the cache without contacting the server at all, we won't have set originalURL yet
 	if ([self redirectCount] == 0) {
 		[theRequest setOriginalURL:[theRequest url]];

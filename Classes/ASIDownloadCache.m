@@ -85,15 +85,66 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 	[[self accessLock] unlock];
 }
 
+- (void)updateExpiryForRequest:(ASIHTTPRequest *)request maxAge:(NSTimeInterval)maxAge
+{
+	NSString *headerPath = [self pathToStoreCachedResponseHeadersForRequest:request];
+	NSMutableDictionary *cachedHeaders = [NSMutableDictionary dictionaryWithContentsOfFile:headerPath];
+	if (!cachedHeaders) {
+		return;
+	}
+	NSDate *expires = [self expiryDateForRequest:request maxAge:maxAge];
+	if (!expires) {
+		return;
+	}
+	[cachedHeaders setObject:[NSNumber numberWithDouble:[expires timeIntervalSince1970]] forKey:@"X-ASIHTTPRequest-Expires"];
+	[cachedHeaders writeToFile:headerPath atomically:NO];
+}
+
+- (NSDate *)expiryDateForRequest:(ASIHTTPRequest *)request maxAge:(NSTimeInterval)maxAge
+{
+	NSMutableDictionary *responseHeaders = [NSMutableDictionary dictionaryWithDictionary:[request responseHeaders]];
+
+	// If we weren't given a custom max-age, lets look for one in the response headers
+	if (!maxAge) {
+		NSString *cacheControl = [[responseHeaders objectForKey:@"Cache-Control"] lowercaseString];
+		if (cacheControl) {
+			NSScanner *scanner = [NSScanner scannerWithString:cacheControl];
+			[scanner scanUpToString:@"max-age" intoString:NULL];
+			if ([scanner scanString:@"max-age" intoString:NULL]) {
+				[scanner scanString:@"=" intoString:NULL];
+				[scanner scanDouble:&maxAge];
+			}
+		}
+	}
+
+	// RFC 2612 says max-age must override any Expires header
+	if (maxAge) {
+		return [[NSDate date] addTimeInterval:maxAge];
+	} else {
+		NSString *expires = [responseHeaders objectForKey:@"Expires"];
+		if (expires) {
+			return [ASIHTTPRequest dateFromRFC1123String:expires];
+		}
+	}
+	return nil;
+}
+
 - (void)storeResponseForRequest:(ASIHTTPRequest *)request maxAge:(NSTimeInterval)maxAge
 {
 	[[self accessLock] lock];
-	
-	if ([request error] || ![request responseHeaders] || ([request responseStatusCode] != 200) || ([request cachePolicy] & ASIDoNotWriteToCacheCachePolicy)) {
+
+	if ([request error] || ![request responseHeaders] || ([request cachePolicy] & ASIDoNotWriteToCacheCachePolicy)) {
 		[[self accessLock] unlock];
 		return;
 	}
-	
+
+	// We only cache 200/OK or redirect reponses (redirect responses are cached so the cache works better with no internet connection)
+	int responseCode = [request responseStatusCode];
+	if (responseCode != 200 && responseCode != 301 && responseCode != 302 && responseCode != 303 && responseCode != 307) {
+		[[self accessLock] unlock];
+		return;
+	}
+
 	if ([self shouldRespectCacheControlHeaders] && ![[self class] serverAllowsResponseCachingForRequest:request]) {
 		[[self accessLock] unlock];
 		return;
@@ -111,31 +162,22 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 	// This is what we use for deciding if cached data is current, rather than parsing the expires / max-age headers individually each time
 	// We store this as a timestamp to make reading it easier as NSDateFormatter is quite expensive
 
-	// If we weren't given a custom max-age, lets look for one in the response headers
-	if (!maxAge) {
-		NSString *cacheControl = [[responseHeaders objectForKey:@"Cache-Control"] lowercaseString];
-		if (cacheControl) {
-			NSScanner *scanner = [NSScanner scannerWithString:cacheControl];
-			[scanner scanUpToString:@"max-age" intoString:NULL];
-			if ([scanner scanString:@"max-age" intoString:NULL]) {
-				[scanner scanString:@"=" intoString:NULL];
-				[scanner scanDouble:&maxAge];
-			}
-		}
+	NSDate *expires = [self expiryDateForRequest:request maxAge:maxAge];
+	if (expires) {
+		[responseHeaders setObject:[NSNumber numberWithDouble:[expires timeIntervalSince1970]] forKey:@"X-ASIHTTPRequest-Expires"];
 	}
 
-	// RFC 2612 says max-age must override any Expires header
-	if (maxAge) {
-		[responseHeaders setObject:[NSNumber numberWithDouble:[[[NSDate date] addTimeInterval:maxAge] timeIntervalSince1970]] forKey:@"X-ASIHTTPRequest-Expires"];
-	} else {
-		NSString *expires = [responseHeaders objectForKey:@"Expires"];
-		if (expires) {
-			[responseHeaders setObject:[NSNumber numberWithDouble:[[ASIHTTPRequest dateFromRFC1123String:expires] timeIntervalSince1970]] forKey:@"X-ASIHTTPRequest-Expires"];
-		}
+	// Store the response code in a custom header so we can reuse it later
+
+	// We'll change 304/Not Modified to 200/OK because this is likely to be us updating the cached headers with a conditional GET
+	int statusCode = [request responseStatusCode];
+	if (statusCode == 304) {
+		statusCode = 200;
 	}
+	[responseHeaders setObject:[NSNumber numberWithInt:[request responseStatusCode]] forKey:@"X-ASIHTTPRequest-Response-Status-Code"];
 
 	[responseHeaders writeToFile:headerPath atomically:NO];
-	
+
 	if ([request responseData]) {
 		[[request responseData] writeToFile:dataPath atomically:NO];
 	} else if ([request downloadDestinationPath] && ![[request downloadDestinationPath] isEqualToString:dataPath]) {
@@ -282,14 +324,15 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 		return NO;
 	}
 
-	// If we already have response headers for this request, check to see if the new content is different
-	if ([request responseHeaders]) {
+	// New content is not different
+	if ([request responseStatusCode] == 304) {
+		[[self accessLock] unlock];
+		return YES;
+	}
 
-		// New content is not different
-		if ([request responseStatusCode] == 304) {
-			[[self accessLock] unlock];
-			return YES;
-		}
+	// If we already have response headers for this request, check to see if the new content is different
+	// We check [request complete] so that we don't end up comparing response headers from a redirection with these
+	if ([request responseHeaders] && [request complete]) {
 
 		// If the Etag or Last-Modified date are different from the one we have, we'll have to fetch this resource again
 		NSArray *headersToCompare = [NSArray arrayWithObjects:@"Etag",@"Last-Modified",nil];

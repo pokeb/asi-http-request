@@ -56,6 +56,13 @@ typedef enum _ASICacheStoragePolicy {
 // Should return the cache policy that will be used when requests have their cache policy set to ASIUseDefaultCachePolicy
 - (ASICachePolicy)defaultCachePolicy;
 
+// Returns the date a cached response should expire on. Pass a non-zero max age to specify a custom date.
+- (NSDate *)expiryDateForRequest:(ASIHTTPRequest *)request maxAge:(NSTimeInterval)maxAge;
+
+// Updates cached response headers with a new expiry date. Pass a non-zero max age to specify a custom date.
+- (void)updateExpiryForRequest:(ASIHTTPRequest *)request maxAge:(NSTimeInterval)maxAge;
+
+// Looks at the request's cache policy and any cached headers to determine if the cache data is still valid
 - (BOOL)canUseCachedDataForRequest:(ASIHTTPRequest *)request;
 
 // Removes cached data for a particular request
