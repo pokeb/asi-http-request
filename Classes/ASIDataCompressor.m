@@ -82,7 +82,7 @@
 	zStream.avail_out = 0;
 
 	NSInteger bytesProcessedAlready = zStream.total_out;
-	while (zStream.avail_in != 0) {
+	while (zStream.avail_out == 0) {
 		
 		if (zStream.total_out-bytesProcessedAlready >= [outputData length]) {
 			[outputData increaseLengthBy:halfLength];
