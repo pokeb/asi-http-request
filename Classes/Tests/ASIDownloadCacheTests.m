@@ -14,6 +14,7 @@
 @interface ASIDownloadCacheTests ()
 - (void)runCacheOnlyCallsRequestFinishedOnceTest;
 - (void)finishCached:(ASIHTTPRequest *)request;
+- (void)runRedirectTest;
 @end
 
 
@@ -164,9 +165,32 @@
 	success = ![request didUseCachedResponse];
 	GHAssertTrue(success,@"Request says it used a cached response, but there wasn't one to use");
 
-	success = !![request error];
+	success = ([request error] != nil);
 	GHAssertTrue(success,@"Request had no error set");
 
+	// Cache some data
+	NSURL *url = [NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/cache-away"];
+	request = [ASIHTTPRequest requestWithURL:url];
+	[request startSynchronous];
+
+	NSString *path = [[ASIDownloadCache sharedCache] pathToStoreCachedResponseDataForRequest:request];
+	success = (path != nil);
+	GHAssertTrue(success,@"Cache failed to store data");
+
+	path = [[ASIDownloadCache sharedCache] pathToStoreCachedResponseHeadersForRequest:request];
+	success = (path != nil);
+	GHAssertTrue(success,@"Cache failed to store data");
+
+	// Make sure data gets removed
+	[[ASIDownloadCache sharedCache] removeCachedDataForURL:url];
+
+	path = [[ASIDownloadCache sharedCache] pathToCachedResponseDataForURL:url];
+	success = (path == nil);
+	GHAssertTrue(success,@"Cache failed to remove data");
+
+	path = [[ASIDownloadCache sharedCache] pathToCachedResponseHeadersForURL:url];
+	success = (path == nil);
+	GHAssertTrue(success,@"Cache failed to remove data");
 
 	// Test ASIDontLoadCachePolicy
 	[[ASIDownloadCache sharedCache] clearCachedResponsesForStoragePolicy:ASICacheForSessionDurationCacheStoragePolicy];
@@ -307,14 +331,16 @@
 
 - (void)test304
 {
+	NSURL *url = [NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_great_american_novel_(abridged).txt"];
+
 	// Test default cache policy
 	[[ASIDownloadCache sharedCache] clearCachedResponsesForStoragePolicy:ASICacheForSessionDurationCacheStoragePolicy];
 	[[ASIDownloadCache sharedCache] setDefaultCachePolicy:ASIUseDefaultCachePolicy];
-	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_great_american_novel_(abridged).txt"]];
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:url];
 	[request setDownloadCache:[ASIDownloadCache sharedCache]];
 	[request startSynchronous];
 
-	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_great_american_novel_(abridged).txt"]];
+	request = [ASIHTTPRequest requestWithURL:url];
 	[request setDownloadCache:[ASIDownloadCache sharedCache]];
 	[request startSynchronous];
 	BOOL success = ([request responseStatusCode] == 200);
@@ -325,6 +351,30 @@
 
 	success = ([[request responseData] length]);
 	GHAssertTrue(success,@"Response was empty");
+
+	// Test 304 updates expiry date
+	url = [NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/content_not_modified_but_expires_tomorrow"];
+	request = [ASIHTTPRequest requestWithURL:url];
+	[request setDownloadCache:[ASIDownloadCache sharedCache]];
+	[request startSynchronous];
+
+	NSTimeInterval expiryTimestamp = [[[[ASIDownloadCache sharedCache] cachedResponseHeadersForURL:url] objectForKey:@"X-ASIHTTPRequest-Expires"] doubleValue];
+
+	// Wait to give the expiry date a chance to change
+	sleep(2);
+
+	request = [ASIHTTPRequest requestWithURL:url];
+	[request setCachePolicy:ASIAskServerIfModifiedCachePolicy];
+	[request setDownloadCache:[ASIDownloadCache sharedCache]];
+	[request startSynchronous];
+
+	success = [request didUseCachedResponse];
+	GHAssertTrue(success, @"Cached data should have been used");
+
+	NSTimeInterval newExpiryTimestamp = [[[[ASIDownloadCache sharedCache] cachedResponseHeadersForURL:url] objectForKey:@"X-ASIHTTPRequest-Expires"] doubleValue];
+	NSLog(@"%@",[request responseString]);
+	success = (newExpiryTimestamp > expiryTimestamp);
+	GHAssertTrue(success, @"Failed to update expiry timestamp on 304");
 }
 
 - (void)testStringEncoding
@@ -408,6 +458,52 @@
 - (void)finishCached:(ASIHTTPRequest *)request
 {
 	requestsFinishedCount++;
+}
+
+- (void)testRedirect
+{
+	// Run this request on the main thread to force delegate calls to happen synchronously
+	[self performSelectorOnMainThread:@selector(runRedirectTest) withObject:nil waitUntilDone:YES];
+}
+
+- (void)runRedirectTest
+{
+	[[ASIDownloadCache sharedCache] clearCachedResponsesForStoragePolicy:ASICacheForSessionDurationCacheStoragePolicy];
+	[[ASIDownloadCache sharedCache] clearCachedResponsesForStoragePolicy:ASICachePermanentlyCacheStoragePolicy];
+	[[ASIDownloadCache sharedCache] setDefaultCachePolicy:ASIUseDefaultCachePolicy];
+	[ASIHTTPRequest setDefaultCache:[ASIDownloadCache sharedCache]];
+
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/cached-redirect"]];
+	[request startSynchronous];
+
+	BOOL success = ([[[request url] absoluteString] isEqualToString:@"http://allseeing-i.com/i/logo.png"]);
+	GHAssertTrue(success,@"Request did not redirect correctly, cannot proceed with test");
+
+	requestRedirectedWasCalled = NO;
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/cached-redirect"]];
+	[request setDelegate:self];
+	[request startSynchronous];
+
+	success = ([request didUseCachedResponse]);
+	GHAssertTrue(success,@"Failed to cache final response");
+
+	GHAssertTrue(requestRedirectedWasCalled,@"Failed to call requestRedirected");
+}
+
+- (void)requestRedirected:(ASIHTTPRequest *)redirected
+{
+	requestRedirectedWasCalled = YES;
+}
+
+- (void)request:(ASIHTTPRequest *)request willRedirectToURL:(NSURL *)newURL
+{
+	BOOL success = ([[newURL absoluteString] isEqualToString:@"http://allseeing-i.com/i/logo.png"]);
+	GHAssertTrue(success,@"Request did not redirect correctly, cannot proceed with test");
+
+	success = ([request didUseCachedResponse]);
+	GHAssertTrue(success,@"Failed to cache redirect response");
+
+	[request redirectToURL:newURL];
 }
 
 @end

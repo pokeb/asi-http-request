@@ -2,7 +2,7 @@
 //  ASIHTTPRequest.h
 //
 //  Created by Ben Copsey on 04/10/2007.
-//  Copyright 2007-2010 All-Seeing Interactive. All rights reserved.
+//  Copyright 2007-2011 All-Seeing Interactive. All rights reserved.
 //
 //  A guide to the main features is available at:
 //  http://allseeing-i.com/ASIHTTPRequest
@@ -92,7 +92,7 @@ typedef void (^ASIDataBlock)(NSData *data);
 	// Temporarily stores the url we are about to redirect to. Will be nil again when we do redirect
 	NSURL *redirectURL;
 
-	// The delegate, you need to manage setting and talking to your delegate in your subclasses
+	// The delegate - will be notified of various changes in state via the ASIHTTPRequestDelegate protocol
 	id <ASIHTTPRequestDelegate> delegate;
 	
 	// Another delegate that is also notified of request status changes and progress updates
@@ -100,7 +100,7 @@ typedef void (^ASIDataBlock)(NSData *data);
 	// NOTE: WILL BE RETAINED BY THE REQUEST
 	id <ASIHTTPRequestDelegate, ASIProgressDelegate> queue;
 	
-	// HTTP method to use (GET / POST / PUT / DELETE / HEAD). Defaults to GET
+	// HTTP method to use (eg: GET / POST / PUT / DELETE / HEAD etc). Defaults to GET
 	NSString *requestMethod;
 	
 	// Request body - only used when the whole body is stored in memory (shouldStreamPostDataFromDisk is false)
@@ -191,6 +191,9 @@ typedef void (^ASIDataBlock)(NSData *data);
 	// Username and password used for authentication
 	NSString *username;
 	NSString *password;
+	
+	// User-Agent for this request
+	NSString *userAgent;
 	
 	// Domain used for NTLM authentication
 	NSString *domain;
@@ -343,8 +346,9 @@ typedef void (^ASIDataBlock)(NSData *data);
 	// Tells ASIHTTPRequest not to delete partial downloads, and allows it to use an existing file to resume a download. Defaults to NO.
 	BOOL allowResumeForFileDownloads;
 	
-	// Custom user information associated with the request
+	// Custom user information associated with the request (not sent to the server)
 	NSDictionary *userInfo;
+	NSInteger tag;
 	
 	// Use HTTP 1.0 rather than 1.1 (defaults to false)
 	BOOL useHTTPVersionOne;
@@ -399,7 +403,10 @@ typedef void (^ASIDataBlock)(NSData *data);
 
 	// The number of times this request has retried (when numberOfTimesToRetryOnTimeout > 0)
 	int retryCount;
-	
+
+	// Temporarily set to YES when a closed connection forces a retry (internally, this stops ASIHTTPRequest cleaning up a temporary post body)
+	BOOL willRetryRequest;
+
 	// When YES, requests will keep the connection to the server alive for a while to allow subsequent requests to re-use it for a substantial speed-boost
 	// Persistent connections will not be used if the server explicitly closes the connection
 	// Default is YES
@@ -439,7 +446,6 @@ typedef void (^ASIDataBlock)(NSData *data);
 	
 	// This timer checks up on the request every 0.25 seconds, and updates progress
 	NSTimer *statusTimer;
-
 	
 	// The download cache that will be used for this request (use [ASIHTTPRequest setDefaultCache:cache] to configure a default cache
 	id <ASICacheDelegate> downloadCache;
@@ -460,7 +466,6 @@ typedef void (^ASIDataBlock)(NSData *data);
 	BOOL shouldContinueWhenAppEntersBackground;
 	UIBackgroundTaskIdentifier backgroundTask;
 	#endif
-
 	
 	// When downloading a gzipped response, the request will use this helper object to inflate the response
 	ASIDataDecompressor *dataDecompressor;
@@ -794,6 +799,7 @@ typedef void (^ASIDataBlock)(NSData *data);
 // Will be used as a user agent if requests do not specify a custom user agent
 // Is only used when you have specified a Bundle Display Name (CFDisplayBundleName) or Bundle Name (CFBundleName) in your plist
 + (NSString *)defaultUserAgentString;
++ (void)setDefaultUserAgentString:(NSString *)agent;
 
 #pragma mark mime-type detection
 
@@ -890,6 +896,7 @@ typedef void (^ASIDataBlock)(NSData *data);
 
 @property (retain) NSString *username;
 @property (retain) NSString *password;
+@property (retain) NSString *userAgent;
 @property (retain) NSString *domain;
 
 @property (retain) NSString *proxyUsername;
@@ -932,7 +939,7 @@ typedef void (^ASIDataBlock)(NSData *data);
 @property (retain,readonly) NSString *responseStatusMessage;
 @property (retain) NSMutableData *rawResponseData;
 @property (assign) NSTimeInterval timeOutSeconds;
-@property (retain) NSString *requestMethod;
+@property (retain, nonatomic) NSString *requestMethod;
 @property (retain) NSMutableData *postBody;
 @property (assign) unsigned long long contentLength;
 @property (assign) unsigned long long postLength;
@@ -947,6 +954,7 @@ typedef void (^ASIDataBlock)(NSData *data);
 @property (assign) BOOL allowCompressedResponse;
 @property (assign) BOOL allowResumeForFileDownloads;
 @property (retain) NSDictionary *userInfo;
+@property (assign) NSInteger tag;
 @property (retain) NSString *postBodyFilePath;
 @property (assign) BOOL shouldStreamPostDataFromDisk;
 @property (assign) BOOL didCreateTemporaryPostDataFile;

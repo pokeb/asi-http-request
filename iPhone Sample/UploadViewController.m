@@ -70,14 +70,14 @@
         [[UIApplication sharedApplication] cancelAllLocalNotifications];
 
     // Create a new notification
-    UILocalNotification* alarm = [[[UILocalNotification alloc] init] autorelease];
-    if (alarm) {
-		[alarm setFireDate:[NSDate date]];
-		[alarm setTimeZone:[NSTimeZone defaultTimeZone]];
-		[alarm setRepeatInterval:0];
-		[alarm setSoundName:@"alarmsound.caf"];
-		[alarm setAlertBody:@"Boom!\r\n\r\nUpload is finished!"];
-        [[UIApplication sharedApplication] scheduleLocalNotification:alarm];
+    UILocalNotification *notification = [[[UILocalNotification alloc] init] autorelease];
+    if (notification) {
+		[notification setFireDate:[NSDate date]];
+		[notification setTimeZone:[NSTimeZone defaultTimeZone]];
+		[notification setRepeatInterval:0];
+		[notification setSoundName:@"alarmsound.caf"];
+		[notification setAlertBody:@"Boom!\r\n\r\nUpload is finished!"];
+        [[UIApplication sharedApplication] scheduleLocalNotification:notification];
     }
 	#endif
 }

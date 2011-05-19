@@ -20,6 +20,7 @@
 }
 
 - (void)testBasicDownload;
+- (void)testBase64Encode;
 - (void)testDelegateMethods;
 - (void)testConditionalGET;
 - (void)testException;
@@ -56,7 +57,7 @@
 #endif
 - (void)testAutomaticRetry;
 - (void)testCloseConnection;
-- (void)testPersistentConnectionTimeout;
+- (void)testPersistentConnections;
 - (void)testNilPortCredentialsMatching;
 
 @property (retain, nonatomic) NSMutableData *responseData;
