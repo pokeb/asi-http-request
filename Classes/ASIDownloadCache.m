@@ -8,7 +8,12 @@
 
 #import "ASIDownloadCache.h"
 #import "ASIHTTPRequest.h"
+
+#ifndef BP_COCOTRON
 #import <CommonCrypto/CommonHMAC.h>
+#else
+#import "CommonDigest.h"
+#endif
 
 static ASIDownloadCache *sharedCache = nil;
 

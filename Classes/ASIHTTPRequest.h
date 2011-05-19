@@ -20,6 +20,13 @@
 #import "ASIProgressDelegate.h"
 #import "ASICacheDelegate.h"
 
+//@@@BPHACK
+#ifdef BP_COCOTRON
+	#import "Foundation/NSURLCredential.h"
+	#import "Security/Security.h"
+#endif
+//@@@
+
 extern NSString *ASIHTTPRequestVersion;
 
 // Make targeting different platforms more reliable
@@ -343,7 +350,9 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	BOOL validatesSecureCertificate;
     
     // If not nil and the URL scheme is https, CFNetwork configured to supply a client certificate
+#ifndef BP_COCOTRON
     SecIdentityRef clientCertificateIdentity;
+#endif
 	NSArray *clientCertificates;
 	
 	// Details on the proxy to use - you could set these yourself, but it's probably best to let ASIHTTPRequest detect the system proxy settings
@@ -618,7 +627,9 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 
 #pragma mark client certificate
 
+#ifndef BP_COCOTRON
 - (void)setClientCertificateIdentity:(SecIdentityRef)anIdentity;
+#endif
 
 #pragma mark session credentials
 
