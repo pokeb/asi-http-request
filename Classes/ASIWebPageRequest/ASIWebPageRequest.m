@@ -37,13 +37,10 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 
 @property (retain, nonatomic) ASINetworkQueue *externalResourceQueue;
 @property (retain, nonatomic) NSMutableDictionary *resourceList;
-@property (assign, nonatomic) xmlDocPtr doc; // Declared as @property in order to get a "free" ivar and hide it from the header
 
 @end
 
 @implementation ASIWebPageRequest
-
-@synthesize doc;
 
 + (void)initialize
 {
