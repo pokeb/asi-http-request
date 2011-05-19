@@ -47,11 +47,11 @@ typedef enum _ASIURLReplacementMode {
 	// This dictionary stores a list of external resources to download, along with their content-type data or a path to the data
 	NSMutableDictionary *resourceList;
 
-	// If the response is an HTML or CSS file, this will be set so the content can be correctly parsed when it has finished fetching external resources
-	ASIWebContentType webContentType;
-
 	// Used internally for parsing HTML (with libxml)
 	struct _xmlDoc *doc;
+
+	// If the response is an HTML or CSS file, this will be set so the content can be correctly parsed when it has finished fetching external resources
+	ASIWebContentType webContentType;
 
 	// Stores a reference to the ASIWebPageRequest that created this request
 	// Note that a parentRequest can also have a parent request because ASIWebPageRequests parse their contents to look for external resources recursively

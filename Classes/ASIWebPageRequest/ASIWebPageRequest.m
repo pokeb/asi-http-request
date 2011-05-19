@@ -37,7 +37,6 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 
 @property (retain, nonatomic) ASINetworkQueue *externalResourceQueue;
 @property (retain, nonatomic) NSMutableDictionary *resourceList;
-
 @end
 
 @implementation ASIWebPageRequest
