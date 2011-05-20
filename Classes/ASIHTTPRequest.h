@@ -351,6 +351,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
     
     // If not nil and the URL scheme is https, CFNetwork configured to supply a client certificate
 #ifndef BP_COCOTRON
+//NOTE: This is pretty important... 
     SecIdentityRef clientCertificateIdentity;
 #endif
 	NSArray *clientCertificates;
