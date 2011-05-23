@@ -688,7 +688,11 @@ static NSOperationQueue *sharedQueue = nil;
 		}
 
 		// Create a new HTTP request.
+#ifndef BP_COCOTRON
 		request = CFHTTPMessageCreateRequest(kCFAllocatorDefault, (CFStringRef)[self requestMethod], (CFURLRef)[self url], [self useHTTPVersionOne] ? kCFHTTPVersion1_0 : kCFHTTPVersion1_1);
+#else
+		request = (CFHTTPMessageRef) CFHTTPMessageCreateRequest(kCFAllocatorDefault, (CFStringRef)[self requestMethod], (CFURLRef)[self url], [self useHTTPVersionOne] ? kCFHTTPVersion1_0 : kCFHTTPVersion1_1);
+#endif
 		if (!request) {
 			[self failWithError:ASIUnableToCreateRequestError];
 			return;
@@ -1860,7 +1864,12 @@ static NSOperationQueue *sharedQueue = nil;
 	}
 	#endif		
 
+#ifndef BP_COCOTRON
 	CFDictionaryRef headerFields = CFHTTPMessageCopyAllHeaderFields(message);
+#else
+	CFDictionaryRef headerFields = (CFDictionaryRef) CFHTTPMessageCopyAllHeaderFields(message);
+#endif
+	
 	[self setResponseHeaders:(NSDictionary *)headerFields];
 
 	CFRelease(headerFields);
@@ -2343,7 +2352,11 @@ static NSOperationQueue *sharedQueue = nil;
 	// Read authentication data
 	if (!proxyAuthentication) {
 		CFHTTPMessageRef responseHeader = (CFHTTPMessageRef) CFReadStreamCopyProperty((CFReadStreamRef)[self readStream],kCFStreamPropertyHTTPResponseHeader);
+#ifndef BP_COCOTRON
 		proxyAuthentication = CFHTTPAuthenticationCreateFromResponse(NULL, responseHeader);
+#else
+		proxyAuthentication = (CFHTTPAuthenticationRef)CFHTTPAuthenticationCreateFromResponse(NULL, responseHeader);
+#endif
 		CFRelease(responseHeader);
 		[self setProxyAuthenticationScheme:[(NSString *)CFHTTPAuthenticationCopyMethod(proxyAuthentication) autorelease]];
 	}

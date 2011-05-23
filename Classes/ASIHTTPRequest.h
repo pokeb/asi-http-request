@@ -25,7 +25,6 @@
 	#import "Foundation/NSURLCredential.h"
 	#import "Security/Security.h"
 	#import <CFNetwork/CFNetwork.h>
-#include <CFNetwork/CFNetworkErrors.h>
 #endif
 //@@@
 
