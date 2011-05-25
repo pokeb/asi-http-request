@@ -12,11 +12,7 @@
 
 #import "ASIHTTPRequest.h"
 
-#ifndef BP_COCOTRON
-	#import <zlib.h>
-#else
-	#import <Onyx2D/O2zlib.h>
-#endif
+#import <zlib.h>
 
 #if TARGET_OS_IPHONE
 #import "Reachability.h"
@@ -26,6 +22,8 @@
 //@@@BPHACK NOTE: Why is this used?
 #ifndef BP_COCOTRON
 #import <SystemConfiguration/SystemConfiguration.h>
+#else
+#import "CFSSLHandler_openssl.h"
 #endif
 //@@@
 #endif
@@ -320,12 +318,14 @@ static NSOperationQueue *sharedQueue = nil;
 - (void)dealloc
 {
 	[self setAuthenticationNeeded:ASINoAuthenticationNeededYet];
+#ifndef BP_COCOTRON
 	if (requestAuthentication) {
 		CFRelease(requestAuthentication);
 	}
 	if (proxyAuthentication) {
 		CFRelease(proxyAuthentication);
 	}
+#endif
 	if (request) {
 		CFRelease(request);
 	}
@@ -775,12 +775,12 @@ static NSOperationQueue *sharedQueue = nil;
 		}
 	}
 	
+#ifndef BP_COCOTRON			
 	if (credentials && ![[self requestHeaders] objectForKey:@"Authorization"]) {
 		
 		// When the Authentication key is set, the credentials were stored after an authentication challenge, so we can let CFNetwork apply them
 		// (credentials for Digest and NTLM will always be stored like this)
 		if ([credentials objectForKey:@"Authentication"]) {
-			
 			// If we've already talked to this server and have valid credentials, let's apply them to the request
 			if (!CFHTTPMessageApplyCredentialDictionary(request, (CFHTTPAuthenticationRef)[credentials objectForKey:@"Authentication"], (CFDictionaryRef)[credentials objectForKey:@"Credentials"], NULL)) {
 				[[self class] removeAuthenticationCredentialsFromSessionStore:[credentials objectForKey:@"Credentials"]];
@@ -793,14 +793,22 @@ static NSOperationQueue *sharedQueue = nil;
 			[self addBasicAuthenticationHeaderWithUsername:[usernameAndPassword objectForKey:(NSString *)kCFHTTPAuthenticationUsername] andPassword:[usernameAndPassword objectForKey:(NSString *)kCFHTTPAuthenticationPassword]];
 		}
 	}
+#else
+	assert(!credentials);
+#endif
 	if ([self useSessionPersistence]) {
 		credentials = [self findSessionProxyAuthenticationCredentials];
 		if (credentials) {
+#ifndef BP_COCOTRON
 			if (!CFHTTPMessageApplyCredentialDictionary(request, (CFHTTPAuthenticationRef)[credentials objectForKey:@"Authentication"], (CFDictionaryRef)[credentials objectForKey:@"Credentials"], NULL)) {
 				[[self class] removeProxyAuthenticationCredentialsFromSessionStore:[credentials objectForKey:@"Credentials"]];
 			}
+#else
+			assert(!credentials);
+#endif
 		}
 	}
+
 }
 
 - (void)applyCookieHeader
@@ -1166,7 +1174,9 @@ static NSOperationQueue *sharedQueue = nil;
 		}
 		[[self connectionInfo] setObject:[self requestID] forKey:@"request"];		
 		[[self connectionInfo] setObject:[self readStream] forKey:@"stream"];
+#ifndef BP_COCOTRON
 		CFReadStreamSetProperty((CFReadStreamRef)[self readStream],  kCFStreamPropertyHTTPAttemptPersistentConnection, kCFBooleanTrue);
+#endif
 		
 		#if DEBUG_PERSISTENT_CONNECTIONS
 		NSLog(@"Request #%@ will use connection #%i",[self requestID],[[[self connectionInfo] objectForKey:@"id"] intValue]);
@@ -1342,7 +1352,9 @@ static NSOperationQueue *sharedQueue = nil;
 			
 			// Find out how much data we've uploaded so far
 //@@@BPHACK/Fix more casting fixes...
+#ifndef BP_COCOTRON
 			[self setTotalBytesSent:[(id)NSMakeCollectable([(NSNumber *)CFReadStreamCopyProperty((CFReadStreamRef)[self readStream], kCFStreamPropertyHTTPRequestBytesWrittenCount) autorelease]) unsignedLongLongValue]];
+#endif
 //@@@
 			if (totalBytesSent > lastBytesSent) {
 				
@@ -1846,7 +1858,6 @@ static NSOperationQueue *sharedQueue = nil;
 - (void)readResponseHeaders
 {
 	[self setAuthenticationNeeded:ASINoAuthenticationNeededYet];
-
 	CFHTTPMessageRef message = (CFHTTPMessageRef)CFReadStreamCopyProperty((CFReadStreamRef)[self readStream], kCFStreamPropertyHTTPResponseHeader);
 	if (!message) {
 		return;

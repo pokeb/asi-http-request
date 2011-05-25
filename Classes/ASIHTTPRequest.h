@@ -25,6 +25,7 @@
 	#import "Foundation/NSURLCredential.h"
 	#import "Security/Security.h"
 	#import <CFNetwork/CFNetwork.h>
+	#import "CFNetworkWrapper.h"
 #endif
 //@@@
 
@@ -203,7 +204,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	NSInputStream *readStream;
 	
 	// Used for authentication
-    CFHTTPAuthenticationRef requestAuthentication; 
+    CFHTTPAuthenticationRef requestAuthentication;
 	NSDictionary *requestCredentials;
 	
 	// Used during NTLM authentication
@@ -226,7 +227,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	BOOL shouldPresentProxyAuthenticationDialog;	
 	
 	// Used for proxy authentication
-    CFHTTPAuthenticationRef proxyAuthentication; 
+    CFHTTPAuthenticationRef proxyAuthentication;
 	NSDictionary *proxyCredentials;
 	
 	// Used during authentication with an NTLM proxy
