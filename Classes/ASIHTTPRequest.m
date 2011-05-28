@@ -4485,12 +4485,12 @@ static NSOperationQueue *sharedQueue = nil;
 #if TARGET_OS_IPHONE
 	[bandwidthThrottlingLock lock];
 
-	BOOL throttle = isBandwidthThrottled || (!shouldThrottleBandwithForWWANOnly && (maxBandwidthPerSecond));
+	BOOL throttle = isBandwidthThrottled || (!shouldThrottleBandwithForWWANOnly && !!maxBandwidthPerSecond);
 	[bandwidthThrottlingLock unlock];
 	return throttle;
 #else
 	[bandwidthThrottlingLock lock];
-	BOOL throttle = (maxBandwidthPerSecond);
+	BOOL throttle = !!maxBandwidthPerSecond;
 	[bandwidthThrottlingLock unlock];
 	return throttle;
 #endif
