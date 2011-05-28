@@ -24,7 +24,7 @@
 #import "ASIDataCompressor.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.8-90 2011-05-28";
+NSString *ASIHTTPRequestVersion = @"v1.8-91 2011-05-28";
 
 static NSString *defaultUserAgent = nil;
 
@@ -1284,7 +1284,7 @@ static NSOperationQueue *sharedQueue = nil;
 			
 			if (![[[self connectionInfo] objectForKey:@"host"] isEqualToString:[[self url] host]] || ![[[self connectionInfo] objectForKey:@"scheme"] isEqualToString:[[self url] scheme]] || [(NSNumber *)[[self connectionInfo] objectForKey:@"port"] intValue] != [[[self url] port] intValue]) {
 				[self setConnectionInfo:nil];
-				
+
 			// Check if we should have expired this connection
 			} else if ([[[self connectionInfo] objectForKey:@"expires"] timeIntervalSinceNow] < 0) {
 				#if DEBUG_PERSISTENT_CONNECTIONS
@@ -1292,7 +1292,14 @@ static NSOperationQueue *sharedQueue = nil;
 				#endif
 				[persistentConnectionsPool removeObject:[self connectionInfo]];
 				[self setConnectionInfo:nil];
-			}
+
+			} else if ([[self connectionInfo] objectForKey:@"request"] != nil) {
+                //Some other request reused this connection already - we'll have to create a new one
+				#if DEBUG_PERSISTENT_CONNECTIONS
+                NSLog(@"%@ - Not re-using connection #%i for request #%i because it is already used by request #%i",self,[[[self connectionInfo] objectForKey:@"id"] intValue],[[self requestID] intValue],[[[self connectionInfo] objectForKey:@"request"] intValue]);
+				#endif
+                [self setConnectionInfo:nil];
+            }
 		}
 		
 		
