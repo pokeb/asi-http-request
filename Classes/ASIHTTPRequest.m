@@ -2611,21 +2611,29 @@ static NSOperationQueue *sharedQueue = nil;
 
 - (BOOL)showProxyAuthenticationDialog
 {
-// Mac authentication dialog coming soon!
-#if TARGET_OS_IPHONE
+	if ([self isSynchronous]) {
+		return NO;
+	}
+
+	// Mac authentication dialog coming soon!
+	#if TARGET_OS_IPHONE
 	if ([self shouldPresentProxyAuthenticationDialog]) {
 		[ASIAuthenticationDialog performSelectorOnMainThread:@selector(presentAuthenticationDialogForRequest:) withObject:self waitUntilDone:[NSThread isMainThread]];
 		return YES;
 	}
 	return NO;
-#else
+	#else
 	return NO;
-#endif
+	#endif
 }
 
 
 - (BOOL)willAskDelegateForProxyCredentials
 {
+	if ([self isSynchronous]) {
+		return NO;
+	}
+
 	// If we have a delegate, we'll see if it can handle proxyAuthenticationNeededForRequest:.
 	// Otherwise, we'll try the queue (if this request is part of one) and it will pass the message on to its own delegate
 	id authenticationDelegate = [self delegate];
@@ -2673,6 +2681,10 @@ static NSOperationQueue *sharedQueue = nil;
 
 - (BOOL)willAskDelegateForCredentials
 {
+	if ([self isSynchronous]) {
+		return NO;
+	}
+
 	// If we have a delegate, we'll see if it can handle proxyAuthenticationNeededForRequest:.
 	// Otherwise, we'll try the queue (if this request is part of one) and it will pass the message on to its own delegate
 	id authenticationDelegate = [self delegate];
@@ -2875,16 +2887,19 @@ static NSOperationQueue *sharedQueue = nil;
 
 - (BOOL)showAuthenticationDialog
 {
-// Mac authentication dialog coming soon!
-#if TARGET_OS_IPHONE
+	if ([self isSynchronous]) {
+		return NO;
+	}
+	// Mac authentication dialog coming soon!
+	#if TARGET_OS_IPHONE
 	if ([self shouldPresentAuthenticationDialog]) {
 		[ASIAuthenticationDialog performSelectorOnMainThread:@selector(presentAuthenticationDialogForRequest:) withObject:self waitUntilDone:[NSThread isMainThread]];
 		return YES;
 	}
 	return NO;
-#else
+	#else
 	return NO;
-#endif
+	#endif
 }
 
 - (void)attemptToApplyCredentialsAndResume

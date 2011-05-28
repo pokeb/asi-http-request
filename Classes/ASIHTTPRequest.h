@@ -229,6 +229,7 @@ typedef void (^ASIDataBlock)(NSData *data);
 	int authenticationRetryCount;
 	
 	// Authentication scheme (Basic, Digest, NTLM)
+	// If you are using Basic authentication and want to force ASIHTTPRequest to send an authorization header without waiting for a 401, you must set this to (NSString *)kCFHTTPAuthenticationSchemeBasic
 	NSString *authenticationScheme;
 	
 	// Realm for authentication when credentials are required
@@ -294,7 +295,7 @@ typedef void (^ASIDataBlock)(NSData *data);
 	SEL didReceiveResponseHeadersSelector;
 
 	// Called on the delegate (if implemented) when the request receives a Location header and shouldRedirect is YES
-	// The delegate can then change the url if needed, and can restart the request by calling [request resume], or simply cancel it
+	// The delegate can then change the url if needed, and can restart the request by calling [request redirectToURL:], or simply cancel it
 	SEL willRedirectSelector;
 
 	// Called on the delegate (if implemented) when the request completes successfully. Default is requestFinished:
