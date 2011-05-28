@@ -174,7 +174,7 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 	if (statusCode == 304) {
 		statusCode = 200;
 	}
-	[responseHeaders setObject:[NSNumber numberWithInt:[request responseStatusCode]] forKey:@"X-ASIHTTPRequest-Response-Status-Code"];
+	[responseHeaders setObject:[NSNumber numberWithInt:statusCode] forKey:@"X-ASIHTTPRequest-Response-Status-Code"];
 
 	[responseHeaders writeToFile:headerPath atomically:NO];
 
