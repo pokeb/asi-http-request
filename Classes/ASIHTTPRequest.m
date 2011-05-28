@@ -24,7 +24,7 @@
 #import "ASIDataCompressor.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.8-91 2011-05-28";
+NSString *ASIHTTPRequestVersion = @"v1.8-94 2011-05-28";
 
 static NSString *defaultUserAgent = nil;
 
@@ -4485,12 +4485,12 @@ static NSOperationQueue *sharedQueue = nil;
 #if TARGET_OS_IPHONE
 	[bandwidthThrottlingLock lock];
 
-	BOOL throttle = isBandwidthThrottled || (!shouldThrottleBandwithForWWANOnly && !!maxBandwidthPerSecond);
+	BOOL throttle = isBandwidthThrottled || (!shouldThrottleBandwithForWWANOnly && (maxBandwidthPerSecond > 0));
 	[bandwidthThrottlingLock unlock];
 	return throttle;
 #else
 	[bandwidthThrottlingLock lock];
-	BOOL throttle = !!maxBandwidthPerSecond;
+	BOOL throttle = (maxBandwidthPerSecond > 0);
 	[bandwidthThrottlingLock unlock];
 	return throttle;
 #endif
