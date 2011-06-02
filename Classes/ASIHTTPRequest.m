@@ -4740,9 +4740,13 @@ static NSOperationQueue *sharedQueue = nil;
 // If you have multiple requests sharing the thread or you want to re-use the thread, you'll need to restart the runloop
 + (NSThread *)threadForRequest:(ASIHTTPRequest *)request
 {
-	if (!networkThread) {
-		networkThread = [[NSThread alloc] initWithTarget:self selector:@selector(runRequests) object:nil];
-		[networkThread start];
+	if (networkThread == nil) {
+		@synchronized(self) {
+			if (networkThread == nil) {
+				networkThread = [[NSThread alloc] initWithTarget:self selector:@selector(runRequests) object:nil];
+				[networkThread start];
+			}
+		}
 	}
 	return networkThread;
 }
