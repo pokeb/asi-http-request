@@ -3716,6 +3716,7 @@ static NSOperationQueue *sharedQueue = nil;
 
 		CFReadStreamSetClient((CFReadStreamRef)[self readStream], kCFStreamEventNone, NULL, NULL);
 		[[self readStream] removeFromRunLoop:[NSRunLoop currentRunLoop] forMode:[self runLoopMode]];
+		[[self readStream] close];
 		[self setReadStreamIsScheduled:NO];
 	}
 }
