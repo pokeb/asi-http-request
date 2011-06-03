@@ -1436,6 +1436,7 @@ static NSOperationQueue *sharedQueue = nil;
 {
 	[self setURL:[self redirectURL]];
 	[self setComplete:YES];
+	[self destroyReadStream];
 	[self setNeedsRedirect:NO];
 	[self setRedirectCount:[self redirectCount]+1];
 
