@@ -435,15 +435,19 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 	return YES;
 }
 
-
-// Borrowed from: http://stackoverflow.com/questions/652300/using-md5-hash-on-a-string-in-cocoa
 + (NSString *)keyForURL:(NSURL *)url
 {
 	NSString *urlString = [url absoluteString];
+	if ([urlString length] == 0) {
+		return nil;
+	}
+
 	// Strip trailing slashes so http://allseeing-i.com/ASIHTTPRequest/ is cached the same as http://allseeing-i.com/ASIHTTPRequest
 	if ([[urlString substringFromIndex:[urlString length]-1] isEqualToString:@"/"]) {
 		urlString = [urlString substringToIndex:[urlString length]-1];
 	}
+
+	// Borrowed from: http://stackoverflow.com/questions/652300/using-md5-hash-on-a-string-in-cocoa
 	const char *cStr = [urlString UTF8String];
 	unsigned char result[16];
 	CC_MD5(cStr, (CC_LONG)strlen(cStr), result);
