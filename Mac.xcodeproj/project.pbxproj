@@ -422,7 +422,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = B55B5EE40F7658C80064029C /* Build configuration list for PBXNativeTarget "Unit Tests (GHUnit)" */;
 			buildPhases = (
-				B52D490910DA4009008E8365 /* ShellScript */,
+				B52D490910DA4009008E8365 /* Run Script */,
 				B55B5EDB0F7658C70064029C /* Resources */,
 				B55B5EDC0F7658C70064029C /* Sources */,
 				B55B5EDD0F7658C70064029C /* Frameworks */,
@@ -494,13 +494,14 @@
 			shellPath = /bin/sh;
 			shellScript = "./Build\\ Scripts/set_version_number.rb";
 		};
-		B52D490910DA4009008E8365 /* ShellScript */ = {
+		B52D490910DA4009008E8365 /* Run Script */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			inputPaths = (
 			);
+			name = "Run Script";
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
