@@ -221,8 +221,11 @@
 	
 	NSString *charset = (NSString *)CFStringConvertEncodingToIANACharSetName(CFStringConvertNSStringEncodingToEncoding([self stringEncoding]));
 	
-	// Set your own boundary string only if really obsessive. We don't bother to check if post data contains the boundary, since it's pretty unlikely that it does.
-	NSString *stringBoundary = @"0xKhTmLbOuNdArY";
+	// We don't bother to check if post data contains the boundary, since it's pretty unlikely that it does.
+	CFUUIDRef uuid = CFUUIDCreate(nil);
+	NSString *uuidString = [(NSString*)CFUUIDCreateString(nil, uuid) autorelease];
+	CFRelease(uuid);
+	NSString *stringBoundary = [NSString stringWithFormat:@"0xKhTmLbOuNdArY-%@",uuidString];
 	
 	[self addRequestHeader:@"Content-Type" value:[NSString stringWithFormat:@"multipart/form-data; charset=%@; boundary=%@", charset, stringBoundary]];
 	
@@ -329,7 +332,9 @@
 
 - (void)addToDebugBody:(NSString *)string
 {
-	[self setDebugBodyString:[[self debugBodyString] stringByAppendingString:string]];
+	if (string) {
+		[self setDebugBodyString:[[self debugBodyString] stringByAppendingString:string]];
+	}
 }
 #endif
 
