@@ -24,7 +24,7 @@
 #import "ASIDataCompressor.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.8.1-5 2011-06-05";
+NSString *ASIHTTPRequestVersion = @"v1.8.1-8 2011-06-05";
 
 static NSString *defaultUserAgent = nil;
 
@@ -4297,13 +4297,15 @@ static NSOperationQueue *sharedQueue = nil;
 	}
 }
 
-
 + (NSMutableArray *)sessionCookies
 {
+	[sessionCookiesLock lock];
 	if (!sessionCookies) {
-		[ASIHTTPRequest setSessionCookies:[[[NSMutableArray alloc] init] autorelease]];
+		[ASIHTTPRequest setSessionCookies:[NSMutableArray array]];
 	}
-	return sessionCookies;
+	NSMutableArray *cookies = [[sessionCookies retain] autorelease];
+	[sessionCookiesLock unlock];
+	return cookies;
 }
 
 + (void)setSessionCookies:(NSMutableArray *)newSessionCookies
@@ -4349,81 +4351,83 @@ static NSOperationQueue *sharedQueue = nil;
 
 + (NSString *)defaultUserAgentString
 {
-	// If we already have a default user agent set, return that
-	if (defaultUserAgent) {
-		return defaultUserAgent;
-	}
-	
-	// Otherwise, create a new user agent string (we'll save it for later reuse)
-	
-	NSBundle *bundle = [NSBundle bundleForClass:[self class]];
+	@synchronized (self) {
 
-	// Attempt to find a name for this application
-	NSString *appName = [bundle objectForInfoDictionaryKey:@"CFBundleDisplayName"];
-	if (!appName) {
-		appName = [bundle objectForInfoDictionaryKey:@"CFBundleName"];	
-	}
+		if (!defaultUserAgent) {
 
-	NSData *latin1Data = [appName dataUsingEncoding:NSUTF8StringEncoding];
-	appName = [[[NSString alloc] initWithData:latin1Data encoding:NSISOLatin1StringEncoding] autorelease];
+			NSBundle *bundle = [NSBundle bundleForClass:[self class]];
 
-	// If we couldn't find one, we'll give up (and ASIHTTPRequest will use the standard CFNetwork user agent)
-	if (!appName) {
-		return nil;
-	}
+			// Attempt to find a name for this application
+			NSString *appName = [bundle objectForInfoDictionaryKey:@"CFBundleDisplayName"];
+			if (!appName) {
+				appName = [bundle objectForInfoDictionaryKey:@"CFBundleName"];
+			}
 
-	NSString *appVersion = nil;
-	NSString *marketingVersionNumber = [bundle objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
-    NSString *developmentVersionNumber = [bundle objectForInfoDictionaryKey:@"CFBundleVersion"];
-	if (marketingVersionNumber && developmentVersionNumber) {
-		if ([marketingVersionNumber isEqualToString:developmentVersionNumber]) {
-			appVersion = marketingVersionNumber;
-		} else {
-			appVersion = [NSString stringWithFormat:@"%@ rv:%@",marketingVersionNumber,developmentVersionNumber];
+			NSData *latin1Data = [appName dataUsingEncoding:NSUTF8StringEncoding];
+			appName = [[[NSString alloc] initWithData:latin1Data encoding:NSISOLatin1StringEncoding] autorelease];
+
+			// If we couldn't find one, we'll give up (and ASIHTTPRequest will use the standard CFNetwork user agent)
+			if (!appName) {
+				return nil;
+			}
+
+			NSString *appVersion = nil;
+			NSString *marketingVersionNumber = [bundle objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
+			NSString *developmentVersionNumber = [bundle objectForInfoDictionaryKey:@"CFBundleVersion"];
+			if (marketingVersionNumber && developmentVersionNumber) {
+				if ([marketingVersionNumber isEqualToString:developmentVersionNumber]) {
+					appVersion = marketingVersionNumber;
+				} else {
+					appVersion = [NSString stringWithFormat:@"%@ rv:%@",marketingVersionNumber,developmentVersionNumber];
+				}
+			} else {
+				appVersion = (marketingVersionNumber ? marketingVersionNumber : developmentVersionNumber);
+			}
+
+			NSString *deviceName;
+			NSString *OSName;
+			NSString *OSVersion;
+			NSString *locale = [[NSLocale currentLocale] localeIdentifier];
+
+			#if TARGET_OS_IPHONE
+				UIDevice *device = [UIDevice currentDevice];
+				deviceName = [device model];
+				OSName = [device systemName];
+				OSVersion = [device systemVersion];
+
+			#else
+				deviceName = @"Macintosh";
+				OSName = @"Mac OS X";
+
+				// From http://www.cocoadev.com/index.pl?DeterminingOSVersion
+				// We won't bother to check for systems prior to 10.4, since ASIHTTPRequest only works on 10.5+
+				OSErr err;
+				SInt32 versionMajor, versionMinor, versionBugFix;
+				err = Gestalt(gestaltSystemVersionMajor, &versionMajor);
+				if (err != noErr) return nil;
+				err = Gestalt(gestaltSystemVersionMinor, &versionMinor);
+				if (err != noErr) return nil;
+				err = Gestalt(gestaltSystemVersionBugFix, &versionBugFix);
+				if (err != noErr) return nil;
+				OSVersion = [NSString stringWithFormat:@"%u.%u.%u", versionMajor, versionMinor, versionBugFix];
+			#endif
+
+			// Takes the form "My Application 1.0 (Macintosh; Mac OS X 10.5.7; en_GB)"
+			[self setDefaultUserAgentString:[NSString stringWithFormat:@"%@ %@ (%@; %@ %@; %@)", appName, appVersion, deviceName, OSName, OSVersion, locale]];	
 		}
-	} else {
-		appVersion = (marketingVersionNumber ? marketingVersionNumber : developmentVersionNumber);
+		return [[defaultUserAgent retain] autorelease];
 	}
-	
-	
-	NSString *deviceName;
-	NSString *OSName;
-	NSString *OSVersion;
-	
-	NSString *locale = [[NSLocale currentLocale] localeIdentifier];
-	
-#if TARGET_OS_IPHONE
-	UIDevice *device = [UIDevice currentDevice];
-	deviceName = [device model];
-	OSName = [device systemName];
-	OSVersion = [device systemVersion];
-	
-#else
-	deviceName = @"Macintosh";
-	OSName = @"Mac OS X";
-	
-	// From http://www.cocoadev.com/index.pl?DeterminingOSVersion
-	// We won't bother to check for systems prior to 10.4, since ASIHTTPRequest only works on 10.5+
-    OSErr err;
-    SInt32 versionMajor, versionMinor, versionBugFix;
-	err = Gestalt(gestaltSystemVersionMajor, &versionMajor);
-	if (err != noErr) return nil;
-	err = Gestalt(gestaltSystemVersionMinor, &versionMinor);
-	if (err != noErr) return nil;
-	err = Gestalt(gestaltSystemVersionBugFix, &versionBugFix);
-	if (err != noErr) return nil;
-	OSVersion = [NSString stringWithFormat:@"%u.%u.%u", versionMajor, versionMinor, versionBugFix];
-	
-#endif
-	// Takes the form "My Application 1.0 (Macintosh; Mac OS X 10.5.7; en_GB)"
-	[self setDefaultUserAgentString:[NSString stringWithFormat:@"%@ %@ (%@; %@ %@; %@)", appName, appVersion, deviceName, OSName, OSVersion, locale]];	
-	return defaultUserAgent;
 }
 
 + (void)setDefaultUserAgentString:(NSString *)agent
 {
-	[defaultUserAgent release];
-	defaultUserAgent = [agent copy];
+	@synchronized (self) {
+		if (defaultUserAgent == agent) {
+			return;
+		}
+		[defaultUserAgent release];
+		defaultUserAgent = [agent copy];
+	}
 }
 
 
@@ -4671,13 +4675,18 @@ static NSOperationQueue *sharedQueue = nil;
 
 + (void)setDefaultCache:(id <ASICacheDelegate>)cache
 {
-	[defaultCache release];
-	defaultCache = [cache retain];
+	@synchronized (self) {
+		[cache retain];
+		[defaultCache release];
+		defaultCache = cache;
+	}
 }
 
 + (id <ASICacheDelegate>)defaultCache
 {
-	return defaultCache;
+    @synchronized(self) {
+        return [[defaultCache retain] autorelease];
+    }
 }
 
 

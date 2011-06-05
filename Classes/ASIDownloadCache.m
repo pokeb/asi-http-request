@@ -34,9 +34,12 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 + (id)sharedCache
 {
 	if (!sharedCache) {
-		sharedCache = [[self alloc] init];
-		[sharedCache setStoragePath:[[NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) objectAtIndex:0] stringByAppendingPathComponent:@"ASIHTTPRequestCache"]];
-
+		@synchronized(self) {
+			if (!sharedCache) {
+				sharedCache = [[self alloc] init];
+				[sharedCache setStoragePath:[[NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) objectAtIndex:0] stringByAppendingPathComponent:@"ASIHTTPRequestCache"]];
+			}
+		}
 	}
 	return sharedCache;
 }
