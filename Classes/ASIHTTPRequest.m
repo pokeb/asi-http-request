@@ -2994,6 +2994,10 @@ static NSOperationQueue *sharedQueue = nil;
 		CFMakeCollectable(proxyAuthentication);
 	}
 
+//@@@BPHACK - call me crazy but i thought it's a better idea to stop the run loop before telling delegates that it has stopped.
+//	CFRunLoopStop(CFRunLoopGetCurrent());
+//	[self release];
+	
     BOOL wasInProgress = inProgress;
     BOOL wasFinished = finished;
 
@@ -3012,8 +3016,8 @@ static NSOperationQueue *sharedQueue = nil;
         [self didChangeValueForKey:@"isFinished"];
 
 	CFRunLoopStop(CFRunLoopGetCurrent());
-
 	[self release];
+//@@@
 }
 
 - (BOOL)useDataFromCache
