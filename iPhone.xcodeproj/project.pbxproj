@@ -981,6 +981,7 @@
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_VERSION = com.apple.compilers.llvmgcc42;
 				IPHONEOS_DEPLOYMENT_TARGET = 4.3;
+				ONLY_ACTIVE_ARCH = NO;
 				OTHER_LDFLAGS = "-ObjC";
 				PRIVATE_HEADERS_FOLDER_PATH = /../ASIHttpRequest/PrivateHeaders;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -998,6 +999,7 @@
 				GCC_PREFIX_HEADER = "ASIHttpRequest/ASIHttpRequest-Prefix.pch";
 				GCC_VERSION = com.apple.compilers.llvmgcc42;
 				IPHONEOS_DEPLOYMENT_TARGET = 4.3;
+				ONLY_ACTIVE_ARCH = NO;
 				OTHER_LDFLAGS = "-ObjC";
 				PRIVATE_HEADERS_FOLDER_PATH = /../ASIHttpRequest/PrivateHeaders;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1156,6 +1158,7 @@
 				3FE02B5A13A4FD1A00747D26 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		B55B60CE0F765BB10064029C /* Build configuration list for PBXNativeTarget "Tests" */ = {
 			isa = XCConfigurationList;
