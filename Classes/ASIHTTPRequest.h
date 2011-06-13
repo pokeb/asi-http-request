@@ -229,6 +229,7 @@ typedef void (^ASIDataBlock)(NSData *data);
 	int authenticationRetryCount;
 	
 	// Authentication scheme (Basic, Digest, NTLM)
+	// If you are using Basic authentication and want to force ASIHTTPRequest to send an authorization header without waiting for a 401, you must set this to (NSString *)kCFHTTPAuthenticationSchemeBasic
 	NSString *authenticationScheme;
 	
 	// Realm for authentication when credentials are required
@@ -294,7 +295,7 @@ typedef void (^ASIDataBlock)(NSData *data);
 	SEL didReceiveResponseHeadersSelector;
 
 	// Called on the delegate (if implemented) when the request receives a Location header and shouldRedirect is YES
-	// The delegate can then change the url if needed, and can restart the request by calling [request resume], or simply cancel it
+	// The delegate can then change the url if needed, and can restart the request by calling [request redirectToURL:], or simply cancel it
 	SEL willRedirectSelector;
 
 	// Called on the delegate (if implemented) when the request completes successfully. Default is requestFinished:
@@ -388,6 +389,7 @@ typedef void (^ASIDataBlock)(NSData *data);
 	// Set to NO to only present credentials when explicitly asked for them
 	// This only affects credentials stored in the session cache when useSessionPersistence is YES. Credentials from the keychain are never presented unless the server asks for them
 	// Default is YES
+	// For requests using Basic authentication, set authenticationScheme to (NSString *)kCFHTTPAuthenticationSchemeBasic, and credentials can be sent on the very first request when shouldPresentCredentialsBeforeChallenge is YES
 	BOOL shouldPresentCredentialsBeforeChallenge;
 	
 	// YES when the request hasn't finished yet. Will still be YES even if the request isn't doing anything (eg it's waiting for delegate authentication). READ-ONLY

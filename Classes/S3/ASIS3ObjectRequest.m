@@ -84,9 +84,11 @@ NSString *const ASIS3StorageClassReducedRedundancy = @"REDUCED_REDUNDANCY";
 	ASIS3ObjectRequest *newRequest = [super copyWithZone:zone];
 	[newRequest setBucket:[self bucket]];
 	[newRequest setKey:[self key]];
-	[newRequest setMimeType:[self mimeType]];
 	[newRequest setSourceBucket:[self sourceBucket]];
 	[newRequest setSourceKey:[self sourceKey]];
+	[newRequest setMimeType:[self mimeType]];
+	[newRequest setSubResource:[self subResource]];
+	[newRequest setStorageClass:[self storageClass]];
 	return newRequest;
 }
 
