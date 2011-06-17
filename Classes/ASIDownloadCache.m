@@ -183,9 +183,14 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 
 	if ([request responseData]) {
 		[[request responseData] writeToFile:dataPath atomically:NO];
-	} else if ([request downloadDestinationPath] && ![[request downloadDestinationPath] isEqualToString:dataPath]) {
+	} else if ([request downloadDestinationPath] && ![[request downloadDestinationPath] isEqualToString:dataPath]) {        
 		NSError *error = nil;
-		[[[[NSFileManager alloc] init] autorelease] copyItemAtPath:[request downloadDestinationPath] toPath:dataPath error:&error];
+        NSFileManager* manager = [[NSFileManager alloc] init];
+        if ([manager fileExistsAtPath:dataPath]) {
+            [manager removeItemAtPath:dataPath error:&error];
+        }
+        [manager copyItemAtPath:[request downloadDestinationPath] toPath:dataPath error:&error];
+        [manager release];
 	}
 	[[self accessLock] unlock];
 }
