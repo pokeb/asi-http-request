@@ -1356,6 +1356,21 @@ static NSOperationQueue *sharedQueue = nil;
 	}
 	
 	[connectionsLock unlock];
+    
+    // set the VOIP property if it was asked for
+#if TARGET_OS_IPHONE && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_4_0
+    if([self shouldUseVOIPSocket])
+    {
+        BOOL r1 = CFReadStreamSetProperty((CFReadStreamRef)[self readStream], kCFStreamNetworkServiceType, kCFStreamNetworkServiceTypeVoIP);	
+        if (!r1)
+        {
+#ifdef DEBUG_REQUEST_STATUS
+            NSLog(@"[CONNECTION] Request %@ Error setting VOIP property", self);
+#endif
+        }
+    }
+#endif
+
 
 	// Schedule the stream
 	if (![self readStreamIsScheduled] && (!throttleWakeUpTime || [throttleWakeUpTime timeIntervalSinceDate:[NSDate date]] < 0)) {
@@ -5060,6 +5075,7 @@ static NSOperationQueue *sharedQueue = nil;
 @synthesize redirectURL;
 #if TARGET_OS_IPHONE && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_4_0
 @synthesize shouldContinueWhenAppEntersBackground;
+@synthesize shouldUseVOIPSocket;
 #endif
 @synthesize dataDecompressor;
 @synthesize shouldWaitToInflateCompressedResponses;
