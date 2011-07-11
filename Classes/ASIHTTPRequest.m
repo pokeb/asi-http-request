@@ -1989,7 +1989,8 @@ static NSOperationQueue *sharedQueue = nil;
 
 - (void)requestTimedOut
 {
-	[self callSelectorOnMainThread:&didTimeOutSelector forDelegate:&delegate];
+//	[self callSelectorOnMainThread:&didTimeOutSelector forDelegate:&delegate];
+	[delegate performSelector:didTimeOutSelector withObject:self];
 }
 
 // Subclasses might override this method to process the result in the same thread
@@ -4446,6 +4447,9 @@ static NSOperationQueue *sharedQueue = nil;
 		}
 		return [[defaultUserAgent retain] autorelease];
 	}
+		//@@@bp remove warning
+	return @"";
+		//@@@
 }
 
 + (void)setDefaultUserAgentString:(NSString *)agent
@@ -4716,6 +4720,9 @@ static NSOperationQueue *sharedQueue = nil;
     @synchronized(self) {
         return [[defaultCache retain] autorelease];
     }
+		//@@@bp remove warning
+	return 0;
+		//@@@
 }
 
 
