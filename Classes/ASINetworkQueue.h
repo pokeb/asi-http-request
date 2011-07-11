@@ -10,11 +10,7 @@
 #import "ASIHTTPRequestDelegate.h"
 #import "ASIProgressDelegate.h"
 
-#ifndef BP_COCOTRON
 @interface ASINetworkQueue : NSOperationQueue <ASIProgressDelegate, ASIHTTPRequestDelegate, NSCopying> {
-#else
-@interface ASINetworkQueue : NSOperationQueue {
-#endif
 	
 	// Delegate will get didFail + didFinish messages (if set)
 	id delegate;

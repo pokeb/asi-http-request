@@ -8,12 +8,7 @@
 
 #import "ASIDownloadCache.h"
 #import "ASIHTTPRequest.h"
-
-#ifndef BP_COCOTRON
 #import <CommonCrypto/CommonHMAC.h>
-#else
-#import "CommonDigest.h"
-#endif
 
 static ASIDownloadCache *sharedCache = nil;
 
@@ -401,17 +396,9 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 	NSMutableDictionary *threadDict = [[NSThread currentThread] threadDictionary];
 	NSDateFormatter *dateFormatter = [threadDict objectForKey:@"ASIDownloadCacheDateFormatter"];
 	if (dateFormatter == nil) {
-#ifndef BP_COCOTRON
 		dateFormatter = [[[NSDateFormatter alloc] init] autorelease];
 		[dateFormatter setLocale:[[[NSLocale alloc] initWithLocaleIdentifier:@"en_US_POSIX"] autorelease]];
 		[dateFormatter setTimeZone:[NSTimeZone timeZoneForSecondsFromGMT:0]];
-#else
-		NSDictionary *localeDict = [NSLocale componentsFromLocaleIdentifier:@"en_US_POSIX"];
-		dateFormatter = [[[NSDateFormatter alloc] initWithDateFormat:nil allowNaturalLanguage:NO locale:localeDict] autorelease];
-//@@@BPHACK NOTE: Hoping i dont need this because i cant find how to set the timezone...
-		//[dateFormatter setTimeZone:[NSTimeZone timeZoneForSecondsFromGMT:0]];
-//@@@
-#endif
 		[dateFormatter setDateFormat:@"EEE, dd MMM yyyy HH:mm:ss 'GMT'"];
 		[threadDict setObject:dateFormatter forKey:@"ASIDownloadCacheDateFormatter"];
 	}

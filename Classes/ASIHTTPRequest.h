@@ -20,15 +20,6 @@
 #import "ASIProgressDelegate.h"
 #import "ASICacheDelegate.h"
 
-//@@@BPHACK
-#ifdef BP_COCOTRON
-	#import "Foundation/NSURLCredential.h"
-	#import "Security/Security.h"
-	#import <CFNetwork/CFNetwork.h>
-	#import "CFNetworkWrapper.h"
-#endif
-//@@@
-
 extern NSString *ASIHTTPRequestVersion;
 
 // Make targeting different platforms more reliable
@@ -204,7 +195,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	NSInputStream *readStream;
 	
 	// Used for authentication
-    CFHTTPAuthenticationRef requestAuthentication;
+    CFHTTPAuthenticationRef requestAuthentication; 
 	NSDictionary *requestCredentials;
 	
 	// Used during NTLM authentication
@@ -227,7 +218,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	BOOL shouldPresentProxyAuthenticationDialog;	
 	
 	// Used for proxy authentication
-    CFHTTPAuthenticationRef proxyAuthentication;
+    CFHTTPAuthenticationRef proxyAuthentication; 
 	NSDictionary *proxyCredentials;
 	
 	// Used during authentication with an NTLM proxy
@@ -352,10 +343,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 	BOOL validatesSecureCertificate;
     
     // If not nil and the URL scheme is https, CFNetwork configured to supply a client certificate
-#ifndef BP_COCOTRON
-//NOTE: This is pretty important... 
     SecIdentityRef clientCertificateIdentity;
-#endif
 	NSArray *clientCertificates;
 	
 	// Details on the proxy to use - you could set these yourself, but it's probably best to let ASIHTTPRequest detect the system proxy settings
@@ -630,9 +618,7 @@ extern unsigned long const ASIWWANBandwidthThrottleAmount;
 
 #pragma mark client certificate
 
-#ifndef BP_COCOTRON
 - (void)setClientCertificateIdentity:(SecIdentityRef)anIdentity;
-#endif
 
 #pragma mark session credentials
 

@@ -11,21 +11,13 @@
 //  See: http://developer.apple.com/samplecode/ImageClient/listing37.html
 
 #import "ASIHTTPRequest.h"
-
 #import <zlib.h>
-
 #if TARGET_OS_IPHONE
 #import "Reachability.h"
 #import "ASIAuthenticationDialog.h"
 #import <MobileCoreServices/MobileCoreServices.h>
 #else
-//@@@BPHACK NOTE: Why is this used?
-#ifndef BP_COCOTRON
 #import <SystemConfiguration/SystemConfiguration.h>
-#else
-#import "CFSSLHandler_openssl.h"
-#endif
-//@@@
 #endif
 #import "ASIInputStream.h"
 
@@ -318,22 +310,18 @@ static NSOperationQueue *sharedQueue = nil;
 - (void)dealloc
 {
 	[self setAuthenticationNeeded:ASINoAuthenticationNeededYet];
-#ifndef BP_COCOTRON
 	if (requestAuthentication) {
 		CFRelease(requestAuthentication);
 	}
 	if (proxyAuthentication) {
 		CFRelease(proxyAuthentication);
 	}
-#endif
 	if (request) {
 		CFRelease(request);
 	}
-#ifndef BP_COCOTRON
 	if (clientCertificateIdentity) {
 		CFRelease(clientCertificateIdentity);
 	}
-#endif
 	[self cancelLoad];
 	[queue release];
 	[userInfo release];
@@ -688,11 +676,7 @@ static NSOperationQueue *sharedQueue = nil;
 		}
 
 		// Create a new HTTP request.
-#ifndef BP_COCOTRON
 		request = CFHTTPMessageCreateRequest(kCFAllocatorDefault, (CFStringRef)[self requestMethod], (CFURLRef)[self url], [self useHTTPVersionOne] ? kCFHTTPVersion1_0 : kCFHTTPVersion1_1);
-#else
-		request = (CFHTTPMessageRef) CFHTTPMessageCreateRequest(kCFAllocatorDefault, (CFStringRef)[self requestMethod], (CFURLRef)[self url], [self useHTTPVersionOne] ? kCFHTTPVersion1_0 : kCFHTTPVersion1_1);
-#endif
 		if (!request) {
 			[self failWithError:ASIUnableToCreateRequestError];
 			return;
@@ -775,12 +759,12 @@ static NSOperationQueue *sharedQueue = nil;
 		}
 	}
 	
-#ifndef BP_COCOTRON			
 	if (credentials && ![[self requestHeaders] objectForKey:@"Authorization"]) {
 		
 		// When the Authentication key is set, the credentials were stored after an authentication challenge, so we can let CFNetwork apply them
 		// (credentials for Digest and NTLM will always be stored like this)
 		if ([credentials objectForKey:@"Authentication"]) {
+			
 			// If we've already talked to this server and have valid credentials, let's apply them to the request
 			if (!CFHTTPMessageApplyCredentialDictionary(request, (CFHTTPAuthenticationRef)[credentials objectForKey:@"Authentication"], (CFDictionaryRef)[credentials objectForKey:@"Credentials"], NULL)) {
 				[[self class] removeAuthenticationCredentialsFromSessionStore:[credentials objectForKey:@"Credentials"]];
@@ -793,22 +777,14 @@ static NSOperationQueue *sharedQueue = nil;
 			[self addBasicAuthenticationHeaderWithUsername:[usernameAndPassword objectForKey:(NSString *)kCFHTTPAuthenticationUsername] andPassword:[usernameAndPassword objectForKey:(NSString *)kCFHTTPAuthenticationPassword]];
 		}
 	}
-#else
-	assert(!credentials);
-#endif
 	if ([self useSessionPersistence]) {
 		credentials = [self findSessionProxyAuthenticationCredentials];
 		if (credentials) {
-#ifndef BP_COCOTRON
 			if (!CFHTTPMessageApplyCredentialDictionary(request, (CFHTTPAuthenticationRef)[credentials objectForKey:@"Authentication"], (CFDictionaryRef)[credentials objectForKey:@"Credentials"], NULL)) {
 				[[self class] removeProxyAuthenticationCredentialsFromSessionStore:[credentials objectForKey:@"Credentials"]];
 			}
-#else
-			assert(!credentials);
-#endif
 		}
 	}
-
 }
 
 - (void)applyCookieHeader
@@ -985,7 +961,6 @@ static NSOperationQueue *sharedQueue = nil;
         }
 
         // Tell CFNetwork to use a client certificate
-#ifndef BP_COCOTRON
         if (clientCertificateIdentity) {
 
 			NSMutableArray *certificates = [NSMutableArray arrayWithCapacity:[clientCertificates count]+1];
@@ -999,7 +974,6 @@ static NSOperationQueue *sharedQueue = nil;
 			}
             [sslProperties setObject:certificates forKey:(NSString *)kCFStreamSSLCertificates];
         }
-#endif
 
         CFReadStreamSetProperty((CFReadStreamRef)[self readStream], kCFStreamPropertySSLSettings, sslProperties);
     }
@@ -1028,26 +1002,16 @@ static NSOperationQueue *sharedQueue = nil;
 #if TARGET_OS_IPHONE
 			NSDictionary *proxySettings = NSMakeCollectable([(NSDictionary *)CFNetworkCopySystemProxySettings() autorelease]);
 #else
-//@@@BPHACK/Fix ;)
-//			NSDictionary *proxySettings = NSMakeCollectable([(NSDictionary *)SCDynamicStoreCopyProxies(NULL) autorelease]);
-			NSDictionary *proxySettings = (NSDictionary *) NSMakeCollectable([(NSDictionary *)SCDynamicStoreCopyProxies(NULL) autorelease]);
-//@@@
+			NSDictionary *proxySettings = NSMakeCollectable([(NSDictionary *)SCDynamicStoreCopyProxies(NULL) autorelease]);
 #endif
-
-//@@@BPHACK/Fix ;)
-//			proxies = NSMakeCollectable([(NSArray *)CFNetworkCopyProxiesForURL((CFURLRef)[self url], (CFDictionaryRef)proxySettings) autorelease]);
-			proxies = (NSArray *) NSMakeCollectable([(NSArray *)CFNetworkCopyProxiesForURL((CFURLRef)[self url], (CFDictionaryRef)proxySettings) autorelease]);
-//@@@
+			
+			proxies = NSMakeCollectable([(NSArray *)CFNetworkCopyProxiesForURL((CFURLRef)[self url], (CFDictionaryRef)proxySettings) autorelease]);
 			
 			// Now check to see if the proxy settings contained a PAC url, we need to run the script to get the real list of proxies if so
-//@@@BPHACK TODO: Add support for pac in windows?
-#ifndef BP_COCOTRON
 			NSDictionary *settings = [proxies objectAtIndex:0];
 			if ([settings objectForKey:(NSString *)kCFProxyAutoConfigurationURLKey]) {
 				proxies = [ASIHTTPRequest proxiesForURL:[self url] fromPAC:[settings objectForKey:(NSString *)kCFProxyAutoConfigurationURLKey]];
 			}
-#endif
-//@@@
 		}
 		
 		if (!proxies) {
@@ -1058,20 +1022,13 @@ static NSOperationQueue *sharedQueue = nil;
 		// I don't really understand why the dictionary returned by CFNetworkCopyProxiesForURL uses different key names from CFNetworkCopySystemProxySettings/SCDynamicStoreCopyProxies
 		// and why its key names are documented while those we actually need to use don't seem to be (passing the kCF* keys doesn't seem to work)
 		if ([proxies count] > 0) {
-//@@@BPHACK TODO: Add support for proxies in windows?
-#ifndef BP_COCOTRON
 			NSDictionary *settings = [proxies objectAtIndex:0];
 			[self setProxyHost:[settings objectForKey:(NSString *)kCFProxyHostNameKey]];
 			[self setProxyPort:[[settings objectForKey:(NSString *)kCFProxyPortNumberKey] intValue]];
 			[self setProxyType:[settings objectForKey:(NSString *)kCFProxyTypeKey]];
-#else
-			assert([proxies count] == 0);
-#endif
 		}
 	}
 	if ([self proxyHost] && [self proxyPort]) {
-//@@@BPHACK TODO: Add support for proxies in windows?
-#ifndef BP_COCOTRON
 		NSString *hostKey;
 		NSString *portKey;
 
@@ -1097,9 +1054,6 @@ static NSOperationQueue *sharedQueue = nil;
 		} else {
 			CFReadStreamSetProperty((CFReadStreamRef)[self readStream], kCFStreamPropertyHTTPProxy, proxyToUse);
 		}
-#else
-		assert(![self proxyHost]);
-#endif
 	}
 
 	//
@@ -1174,9 +1128,7 @@ static NSOperationQueue *sharedQueue = nil;
 		}
 		[[self connectionInfo] setObject:[self requestID] forKey:@"request"];		
 		[[self connectionInfo] setObject:[self readStream] forKey:@"stream"];
-#ifndef BP_COCOTRON
 		CFReadStreamSetProperty((CFReadStreamRef)[self readStream],  kCFStreamPropertyHTTPAttemptPersistentConnection, kCFBooleanTrue);
-#endif
 		
 		#if DEBUG_PERSISTENT_CONNECTIONS
 		NSLog(@"Request #%@ will use connection #%i",[self requestID],[[[self connectionInfo] objectForKey:@"id"] intValue]);
@@ -1351,11 +1303,7 @@ static NSOperationQueue *sharedQueue = nil;
 			[self setLastBytesSent:totalBytesSent];	
 			
 			// Find out how much data we've uploaded so far
-//@@@BPHACK/Fix more casting fixes...
-#ifndef BP_COCOTRON
-			[self setTotalBytesSent:[(id)NSMakeCollectable([(NSNumber *)CFReadStreamCopyProperty((CFReadStreamRef)[self readStream], kCFStreamPropertyHTTPRequestBytesWrittenCount) autorelease]) unsignedLongLongValue]];
-#endif
-//@@@
+			[self setTotalBytesSent:[NSMakeCollectable([(NSNumber *)CFReadStreamCopyProperty((CFReadStreamRef)[self readStream], kCFStreamPropertyHTTPRequestBytesWrittenCount) autorelease]) unsignedLongLongValue]];
 			if (totalBytesSent > lastBytesSent) {
 				
 				// We've uploaded more data,  reset the timeout
@@ -1470,9 +1418,7 @@ static NSOperationQueue *sharedQueue = nil;
 	[headRequest setTimeOutSeconds:[self timeOutSeconds]];
 	[headRequest setUseHTTPVersionOne:[self useHTTPVersionOne]];
 	[headRequest setValidatesSecureCertificate:[self validatesSecureCertificate]];
-#ifndef BP_COCOTRON
     [headRequest setClientCertificateIdentity:clientCertificateIdentity];
-#endif
 	[headRequest setClientCertificates:[[clientCertificates copy] autorelease]];
 	[headRequest setPACurl:[self PACurl]];
 	[headRequest setShouldPresentCredentialsBeforeChallenge:[self shouldPresentCredentialsBeforeChallenge]];
@@ -1858,6 +1804,7 @@ static NSOperationQueue *sharedQueue = nil;
 - (void)readResponseHeaders
 {
 	[self setAuthenticationNeeded:ASINoAuthenticationNeededYet];
+
 	CFHTTPMessageRef message = (CFHTTPMessageRef)CFReadStreamCopyProperty((CFReadStreamRef)[self readStream], kCFStreamPropertyHTTPResponseHeader);
 	if (!message) {
 		return;
@@ -1875,12 +1822,7 @@ static NSOperationQueue *sharedQueue = nil;
 	}
 	#endif		
 
-#ifndef BP_COCOTRON
 	CFDictionaryRef headerFields = CFHTTPMessageCopyAllHeaderFields(message);
-#else
-	CFDictionaryRef headerFields = (CFDictionaryRef) CFHTTPMessageCopyAllHeaderFields(message);
-#endif
-	
 	[self setResponseHeaders:(NSDictionary *)headerFields];
 
 	CFRelease(headerFields);
@@ -2036,11 +1978,8 @@ static NSOperationQueue *sharedQueue = nil;
 	if ([self shouldAttemptPersistentConnection]) {
 		
 		NSString *connectionHeader = [[[self responseHeaders] objectForKey:@"Connection"] lowercaseString];
-
-//@@@BPHACK/Fix more casting fixes...		
-//		NSString *httpVersion = NSMakeCollectable([(NSString *)CFHTTPMessageCopyVersion(message) autorelease]);
-		NSString *httpVersion = (NSString *)NSMakeCollectable([(NSString *)CFHTTPMessageCopyVersion(message) autorelease]);
-//@@@		
+		NSString *httpVersion = NSMakeCollectable([(NSString *)CFHTTPMessageCopyVersion(message) autorelease]);
+		
 		// Don't re-use the connection if the server is HTTP 1.0 and didn't send Connection: Keep-Alive
 		if (![httpVersion isEqualToString:(NSString *)kCFHTTPVersion1_0] || [connectionHeader isEqualToString:@"keep-alive"]) {
 
@@ -2113,28 +2052,20 @@ static NSOperationQueue *sharedQueue = nil;
 
 - (void)saveProxyCredentialsToKeychain:(NSDictionary *)newCredentials
 {
-#ifndef BP_COCOTRON
 	NSURLCredential *authenticationCredentials = [NSURLCredential credentialWithUser:[newCredentials objectForKey:(NSString *)kCFHTTPAuthenticationUsername] password:[newCredentials objectForKey:(NSString *)kCFHTTPAuthenticationPassword] persistence:NSURLCredentialPersistencePermanent];
 	if (authenticationCredentials) {
 		[ASIHTTPRequest saveCredentials:authenticationCredentials forProxy:[self proxyHost] port:[self proxyPort] realm:[self proxyAuthenticationRealm]];
-	}
-#else
-	assert(!newCredentials);
-#endif
+	}	
 }
 
 
 - (void)saveCredentialsToKeychain:(NSDictionary *)newCredentials
 {
-#ifndef BP_COCOTRON
 	NSURLCredential *authenticationCredentials = [NSURLCredential credentialWithUser:[newCredentials objectForKey:(NSString *)kCFHTTPAuthenticationUsername] password:[newCredentials objectForKey:(NSString *)kCFHTTPAuthenticationPassword] persistence:NSURLCredentialPersistencePermanent];
 	
 	if (authenticationCredentials) {
 		[ASIHTTPRequest saveCredentials:authenticationCredentials forHost:[[self url] host] port:[[[self url] port] intValue] protocol:[[self url] scheme] realm:[self authenticationRealm]];
 	}	
-#else
-	assert(!newCredentials);
-#endif
 }
 
 - (BOOL)applyProxyCredentials:(NSDictionary *)newCredentials
@@ -2363,11 +2294,7 @@ static NSOperationQueue *sharedQueue = nil;
 	// Read authentication data
 	if (!proxyAuthentication) {
 		CFHTTPMessageRef responseHeader = (CFHTTPMessageRef) CFReadStreamCopyProperty((CFReadStreamRef)[self readStream],kCFStreamPropertyHTTPResponseHeader);
-#ifndef BP_COCOTRON
 		proxyAuthentication = CFHTTPAuthenticationCreateFromResponse(NULL, responseHeader);
-#else
-		proxyAuthentication = (CFHTTPAuthenticationRef)CFHTTPAuthenticationCreateFromResponse(NULL, responseHeader);
-#endif
 		CFRelease(responseHeader);
 		[self setProxyAuthenticationScheme:[(NSString *)CFHTTPAuthenticationCopyMethod(proxyAuthentication) autorelease]];
 	}
@@ -2878,10 +2805,7 @@ static NSOperationQueue *sharedQueue = nil;
 	[progressLock lock];	
 	// Find out how much data we've uploaded so far
 	[self setLastBytesSent:totalBytesSent];	
-//@@@BPHACK/FIX NOTE: Casting fix.
-//	[self setTotalBytesSent:[(NSMakeCollectable([(NSNumber *)CFReadStreamCopyProperty((CFReadStreamRef)[self readStream], kCFStreamPropertyHTTPRequestBytesWrittenCount) autorelease]) unsignedLongLongValue]];
-	[self setTotalBytesSent:[(id)NSMakeCollectable([(NSNumber *)CFReadStreamCopyProperty((CFReadStreamRef)[self readStream], kCFStreamPropertyHTTPRequestBytesWrittenCount) autorelease]) unsignedLongLongValue]];
-//@@@
+	[self setTotalBytesSent:[NSMakeCollectable([(NSNumber *)CFReadStreamCopyProperty((CFReadStreamRef)[self readStream], kCFStreamPropertyHTTPRequestBytesWrittenCount) autorelease]) unsignedLongLongValue]];
 	[self setComplete:YES];
 	[self updateProgressIndicators];
 
@@ -2905,15 +2829,11 @@ static NSOperationQueue *sharedQueue = nil;
 		
 		// Decompress the file (if necessary) directly to the destination path
 		} else if ([self isResponseCompressed]) {
-#ifndef BP_COCOTRON
 			int decompressionStatus = [ASIHTTPRequest uncompressZippedDataFromFile:[self temporaryFileDownloadPath] toFile:[self downloadDestinationPath]];
 			if (decompressionStatus != Z_OK) {
 				fileError = [NSError errorWithDomain:NetworkRequestErrorDomain code:ASIFileManagementError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Decompression of %@ failed with code %hi",[self temporaryFileDownloadPath],decompressionStatus],NSLocalizedDescriptionKey,nil]];
 			}
 			[self removeTemporaryDownloadFile];
-#else
-			assert(![self isResponseCompressed]);
-#endif
 		} else {
 			
 	
@@ -2994,10 +2914,6 @@ static NSOperationQueue *sharedQueue = nil;
 		CFMakeCollectable(proxyAuthentication);
 	}
 
-//@@@BPHACK - call me crazy but i thought it's a better idea to stop the run loop before telling delegates that it has stopped.
-//	CFRunLoopStop(CFRunLoopGetCurrent());
-//	[self release];
-	
     BOOL wasInProgress = inProgress;
     BOOL wasFinished = finished;
 
@@ -3016,8 +2932,8 @@ static NSOperationQueue *sharedQueue = nil;
         [self didChangeValueForKey:@"isFinished"];
 
 	CFRunLoopStop(CFRunLoopGetCurrent());
+
 	[self release];
-//@@@
 }
 
 - (BOOL)useDataFromCache
@@ -3097,10 +3013,7 @@ static NSOperationQueue *sharedQueue = nil;
 - (void)handleStreamError
 
 {
-//@@@BPHACK/FIX NOTE: Casting fix.
-//	NSError *underlyingError = NSMakeCollectable([(NSError *)CFReadStreamCopyError((CFReadStreamRef)[self readStream]) autorelease]);
-	NSError *underlyingError = (NSError *)NSMakeCollectable([(NSError *)CFReadStreamCopyError((CFReadStreamRef)[self readStream]) autorelease]);
-//@@@
+	NSError *underlyingError = NSMakeCollectable([(NSError *)CFReadStreamCopyError((CFReadStreamRef)[self readStream]) autorelease]);
 
 	[self cancelLoad];
 	
@@ -3111,13 +3024,7 @@ static NSOperationQueue *sharedQueue = nil;
 		// If we get this, we need to retry the request
 		// We'll only do this once - if it happens again on retry, we'll give up
 		// -1005 = kCFURLErrorNetworkConnectionLost - this doesn't seem to be declared on Mac OS 10.5
-//@@@BPHACK
-#ifdef BP_COCOTRON
-	#define	ENOTCONN	57		/* Socket is not connected */
-#endif
-//@@@
 		if (([[underlyingError domain] isEqualToString:NSPOSIXErrorDomain] && ([underlyingError code] == ENOTCONN || [underlyingError code] == EPIPE)) 
-			//@@BP NOTE: CFNetworkErrors.h
 			|| ([[underlyingError domain] isEqualToString:(NSString *)kCFErrorDomainCFNetwork] && [underlyingError code] == -1005)) {
 			if ([self retryUsingNewConnection]) {
 				return;
@@ -3289,9 +3196,7 @@ static NSOperationQueue *sharedQueue = nil;
 	[newRequest setUseHTTPVersionOne:[self useHTTPVersionOne]];
 	[newRequest setShouldRedirect:[self shouldRedirect]];
 	[newRequest setValidatesSecureCertificate:[self validatesSecureCertificate]];
-#ifndef BP_COCOTRON
     [newRequest setClientCertificateIdentity:clientCertificateIdentity];
-#endif
 	[newRequest setClientCertificates:[[clientCertificates copy] autorelease]];
 	[newRequest setPACurl:[self PACurl]];
 	[newRequest setShouldPresentCredentialsBeforeChallenge:[self shouldPresentCredentialsBeforeChallenge]];
@@ -3316,7 +3221,7 @@ static NSOperationQueue *sharedQueue = nil;
 
 
 #pragma mark client certificate
-#ifndef BP_COCOTRON
+
 - (void)setClientCertificateIdentity:(SecIdentityRef)anIdentity {
     if(clientCertificateIdentity) {
         CFRelease(clientCertificateIdentity);
@@ -3328,7 +3233,7 @@ static NSOperationQueue *sharedQueue = nil;
 		CFRetain(clientCertificateIdentity);
 	}
 }
-#endif
+
 
 #pragma mark session credentials
 
@@ -3450,71 +3355,46 @@ static NSOperationQueue *sharedQueue = nil;
 
 + (void)saveCredentials:(NSURLCredential *)credentials forHost:(NSString *)host port:(int)port protocol:(NSString *)protocol realm:(NSString *)realm
 {
-#ifndef BP_COCOTRON
 	NSURLProtectionSpace *protectionSpace = [[[NSURLProtectionSpace alloc] initWithHost:host port:port protocol:protocol realm:realm authenticationMethod:NSURLAuthenticationMethodDefault] autorelease];
 	[[NSURLCredentialStorage sharedCredentialStorage] setDefaultCredential:credentials forProtectionSpace:protectionSpace];
-#else
-	assert(!credentials);
-#endif
 }
 
 + (void)saveCredentials:(NSURLCredential *)credentials forProxy:(NSString *)host port:(int)port realm:(NSString *)realm
 {
-#ifndef BP_COCOTRON
 	NSURLProtectionSpace *protectionSpace = [[[NSURLProtectionSpace alloc] initWithProxyHost:host port:port type:NSURLProtectionSpaceHTTPProxy realm:realm authenticationMethod:NSURLAuthenticationMethodDefault] autorelease];
 	[[NSURLCredentialStorage sharedCredentialStorage] setDefaultCredential:credentials forProtectionSpace:protectionSpace];
-#else
-	assert(!credentials);
-#endif
 }
 
 + (NSURLCredential *)savedCredentialsForHost:(NSString *)host port:(int)port protocol:(NSString *)protocol realm:(NSString *)realm
 {
-#ifndef BP_COCOTRON
 	NSURLProtectionSpace *protectionSpace = [[[NSURLProtectionSpace alloc] initWithHost:host port:port protocol:protocol realm:realm authenticationMethod:NSURLAuthenticationMethodDefault] autorelease];
 	return [[NSURLCredentialStorage sharedCredentialStorage] defaultCredentialForProtectionSpace:protectionSpace];
-#else
-	assert(!host);
-	return nil;
-#endif
 }
 
 + (NSURLCredential *)savedCredentialsForProxy:(NSString *)host port:(int)port protocol:(NSString *)protocol realm:(NSString *)realm
 {
-#ifndef BP_COCOTRON
 	NSURLProtectionSpace *protectionSpace = [[[NSURLProtectionSpace alloc] initWithProxyHost:host port:port type:NSURLProtectionSpaceHTTPProxy realm:realm authenticationMethod:NSURLAuthenticationMethodDefault] autorelease];
 	return [[NSURLCredentialStorage sharedCredentialStorage] defaultCredentialForProtectionSpace:protectionSpace];
-#else
-	assert(!host);
-	return nil;
-#endif
 }
 
 + (void)removeCredentialsForHost:(NSString *)host port:(int)port protocol:(NSString *)protocol realm:(NSString *)realm
 {
-#ifndef BP_COCOTRON
 	NSURLProtectionSpace *protectionSpace = [[[NSURLProtectionSpace alloc] initWithHost:host port:port protocol:protocol realm:realm authenticationMethod:NSURLAuthenticationMethodDefault] autorelease];
 	NSURLCredential *credential = [[NSURLCredentialStorage sharedCredentialStorage] defaultCredentialForProtectionSpace:protectionSpace];
 	if (credential) {
 		[[NSURLCredentialStorage sharedCredentialStorage] removeCredential:credential forProtectionSpace:protectionSpace];
 	}
-#else
-	assert(!host);
-#endif
 }
 
 + (void)removeCredentialsForProxy:(NSString *)host port:(int)port realm:(NSString *)realm
 {
-#ifndef BP_COCOTRON
 	NSURLProtectionSpace *protectionSpace = [[[NSURLProtectionSpace alloc] initWithProxyHost:host port:port type:NSURLProtectionSpaceHTTPProxy realm:realm authenticationMethod:NSURLAuthenticationMethodDefault] autorelease];
 	NSURLCredential *credential = [[NSURLCredentialStorage sharedCredentialStorage] defaultCredentialForProtectionSpace:protectionSpace];
 	if (credential) {
 		[[NSURLCredentialStorage sharedCredentialStorage] removeCredential:credential forProtectionSpace:protectionSpace];
 	}
-#else
-	assert(!host);
-#endif
 }
+
 
 + (NSMutableArray *)sessionCookies
 {
@@ -3564,13 +3444,13 @@ static NSOperationQueue *sharedQueue = nil;
 }
 
 #pragma mark gzip decompression
+
 //
 // Contributed by Shaun Harrison of Enormego, see: http://developers.enormego.com/view/asihttprequest_gzip
 // Based on this: http://deusty.blogspot.com/2007/07/gzip-compressiondecompression.html
 //
 + (NSData *)uncompressZippedData:(NSData*)compressedData
 {
-#ifndef BP_COCOTRON
 	if ([compressedData length] == 0) return compressedData;
 	
 	NSUInteger full_length = [compressedData length];
@@ -3614,16 +3494,11 @@ static NSOperationQueue *sharedQueue = nil;
 	} else {
 		return nil;
 	}
-#else
-	assert(!compressedData);
-	return	compressedData;
-#endif
 }
 
 // NOTE: To debug this method, turn off Data Formatters in Xcode or you'll crash on closeFile
 + (int)uncompressZippedDataFromFile:(NSString *)sourcePath toFile:(NSString *)destinationPath
 {
-#ifndef BP_COCOTRON
 	// Create an empty file at the destination path
 	if (![[NSFileManager defaultManager] createFileAtPath:destinationPath contents:[NSData data] attributes:nil]) {
 		return 1;
@@ -3647,10 +3522,6 @@ static NSOperationQueue *sharedQueue = nil;
 	[inputFileHandle closeFile];
 	[outputFileHandle closeFile];	
 	return status;
-#else
-	assert(!sourcePath);
-	return -1;
-#endif
 }
 
 //
@@ -3661,7 +3532,6 @@ static NSOperationQueue *sharedQueue = nil;
 
 + (int)uncompressZippedDataFromSource:(FILE *)source toDestination:(FILE *)dest
 {
-#ifndef BP_COCOTRON
     int ret;
     unsigned have;
     z_stream strm;
@@ -3716,10 +3586,6 @@ static NSOperationQueue *sharedQueue = nil;
     /* clean up and return */
     (void)inflateEnd(&strm);
     return ret == Z_STREAM_END ? Z_OK : Z_DATA_ERROR;
-#else
-	assert(!source);
-	return -1;
-#endif
 }
 
 
@@ -3729,7 +3595,6 @@ static NSOperationQueue *sharedQueue = nil;
 
 + (NSData *)compressData:(NSData*)uncompressedData
 {
-#ifndef BP_COCOTRON
 	if ([uncompressedData length] == 0) return uncompressedData;
 	
 	z_stream strm;
@@ -3767,16 +3632,11 @@ static NSOperationQueue *sharedQueue = nil;
 	
 	[compressed setLength: strm.total_out];
 	return [NSData dataWithData:compressed];
-#else
-	assert(!uncompressedData);
-	return uncompressedData;
-#endif
 }
 
 // NOTE: To debug this method, turn off Data Formatters in Xcode or you'll crash on closeFile
 + (int)compressDataFromFile:(NSString *)sourcePath toFile:(NSString *)destinationPath
 {
-#ifndef BP_COCOTRON
 	// Create an empty file at the destination path
 	[[NSFileManager defaultManager] createFileAtPath:destinationPath contents:[NSData data] attributes:nil];
 	
@@ -3800,10 +3660,6 @@ static NSOperationQueue *sharedQueue = nil;
 	[outputFileHandle closeFile];
 
 	return status;
-#else
-	assert(!sourcePath);
-	return -1;
-#endif
 }
 
 //
@@ -3811,7 +3667,6 @@ static NSOperationQueue *sharedQueue = nil;
 // 
 + (int)compressDataFromSource:(FILE *)source toDestination:(FILE *)dest
 {
-#ifndef BP_COCOTRON
     int ret, flush;
     unsigned have;
     z_stream strm;
@@ -3858,10 +3713,6 @@ static NSOperationQueue *sharedQueue = nil;
     /* clean up and return */
     (void)deflateEnd(&strm);
     return Z_OK;
-#else
-	assert(!source);
-	return -1;
-#endif
 }
 
 #pragma mark get user agent
@@ -3906,8 +3757,6 @@ static NSOperationQueue *sharedQueue = nil;
 	OSVersion = [device systemVersion];
 	
 #else
-//@@@bphack
-#ifndef BP_COCOTRON	
 	deviceName = @"Macintosh";
 	OSName = @"Mac OS X";
 	
@@ -3922,16 +3771,7 @@ static NSOperationQueue *sharedQueue = nil;
 	err = Gestalt(gestaltSystemVersionBugFix, &versionBugFix);
 	if (err != noErr) return nil;
 	OSVersion = [NSString stringWithFormat:@"%u.%u.%u", versionMajor, versionMinor, versionBugFix];
-#else
-	deviceName = @"Windows";
-	OSName = @"Windows Something?";
-	SInt32 versionMajor, versionMinor, versionBugFix;
-	versionMajor = 6;
-	versionMinor = 6;
-	versionBugFix = 6;
-	OSVersion = [NSString stringWithFormat:@"%u.%u.%u", versionMajor, versionMinor, versionBugFix];
-#endif
-//@@@	
+	
 #endif
 	// Takes the form "My Application 1.0 (Macintosh; Mac OS X 10.5.7; en_GB)"
 	return [NSString stringWithFormat:@"%@ %@ (%@; %@ %@; %@)", appName, appVersion, deviceName, OSName, OSVersion, locale];
@@ -3946,10 +3786,8 @@ static NSOperationQueue *sharedQueue = nil;
 	// Work around <rdar://problem/5530166>.  This dummy call to 
 	// CFNetworkCopyProxiesForURL initialise some state within CFNetwork 
 	// that is required by CFNetworkCopyProxiesForAutoConfigurationScript.
-//@@@bphack/fix casting fix
-//	CFRelease(CFNetworkCopyProxiesForURL((CFURLRef)theURL, NULL));
-	CFRelease((id)CFNetworkCopyProxiesForURL((CFURLRef)theURL, NULL));
-//@@@
+	CFRelease(CFNetworkCopyProxiesForURL((CFURLRef)theURL, NULL));
+	
 	NSStringEncoding encoding;
 	NSError *err = nil;
 	NSString *script = [NSString stringWithContentsOfURL:pacScriptURL usedEncoding:&encoding error:&err];
@@ -3960,10 +3798,7 @@ static NSOperationQueue *sharedQueue = nil;
 	}
 	// Obtain the list of proxies by running the autoconfiguration script
 	CFErrorRef err2 = NULL;
-//@@@bphack/fix casting fix
-//	NSArray *proxies = NSMakeCollectable([(NSArray *)CFNetworkCopyProxiesForAutoConfigurationScript((CFStringRef)script,(CFURLRef)theURL, &err2) autorelease]);
-	NSArray *proxies = (NSArray *)NSMakeCollectable([(NSArray *)CFNetworkCopyProxiesForAutoConfigurationScript((CFStringRef)script,(CFURLRef)theURL, &err2) autorelease]);	
-//@@@
+	NSArray *proxies = NSMakeCollectable([(NSArray *)CFNetworkCopyProxiesForAutoConfigurationScript((CFStringRef)script,(CFURLRef)theURL, &err2) autorelease]);
 	if (err2) {
 		return nil;
 	}
@@ -3978,20 +3813,13 @@ static NSOperationQueue *sharedQueue = nil;
 		return nil;
 	}
 	// Borrowed from http://stackoverflow.com/questions/2439020/wheres-the-iphone-mime-type-database
-//@@@BPHACK/FIX casting fix plus these were re-delcared by me for d0ze.
-//	CFStringRef UTI = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, (CFStringRef)[path pathExtension], NULL);
-	CFStringRef UTI = (CFStringRef)UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, (CFStringRef)[path pathExtension], NULL);
-//    CFStringRef MIMEType = UTTypeCopyPreferredTagWithClass (UTI, kUTTagClassMIMEType);
-    CFStringRef MIMEType = (CFStringRef)UTTypeCopyPreferredTagWithClass (UTI, kUTTagClassMIMEType);
-//@@@
+	CFStringRef UTI = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, (CFStringRef)[path pathExtension], NULL);
+    CFStringRef MIMEType = UTTypeCopyPreferredTagWithClass (UTI, kUTTagClassMIMEType);
     CFRelease(UTI);
 	if (!MIMEType) {
 		return @"application/octet-stream";
 	}
-//@@@bphack/fix casting fix
-//    return NSMakeCollectable([(NSString *)MIMEType autorelease]);
-    return (NSString *)NSMakeCollectable([(NSString *)MIMEType autorelease]);	
-//@@@
+    return NSMakeCollectable([(NSString *)MIMEType autorelease]);
 }
 
 #pragma mark bandwidth measurement / throttling
@@ -4336,45 +4164,11 @@ static NSOperationQueue *sharedQueue = nil;
     return [[[NSString alloc] initWithData:data encoding:NSASCIIStringEncoding] autorelease];
 }
 
-//@@@BPHACK - Function used for cocotron
-//- (NSString *) stringFromDate: (NSDate *) date
-//{
-//	NSString *result;
-//	int32_t length;
-//	unichar *string;
-//	NSZone *z = [self zone];
-//	UDate udate = [date timeIntervalSince1970] * 1000.0;
-//	UErrorCode err = U_ZERO_ERROR;
-//	
-//	length = udat_format (internal->_formatter, udate, NULL, 0, NULL, &err);
-//	string = NSZoneMalloc (z, sizeof(UChar) * (length + 1));
-//	err = U_ZERO_ERROR;
-//	udat_format (internal->_formatter, udate, string, length, NULL, &err);
-//	if (U_SUCCESS(err))
-//	{
-//		result = AUTORELEASE([[NSString allocWithZone: z]
-//							  initWithBytesNoCopy: string
-//							  length: length * sizeof(UChar)
-//							  encoding: NSUnicodeStringEncoding
-//							  freeWhenDone: YES]);
-//		return result;
-//	}
-//	
-//	NSZoneFree (z, string);
-//	return nil;
-//}
-//@@@
-
 // Based on hints from http://stackoverflow.com/questions/1850824/parsing-a-rfc-822-date-with-nsdateformatter
 + (NSDate *)dateFromRFC1123String:(NSString *)string
 {
 	NSDateFormatter *formatter = [[[NSDateFormatter alloc] init] autorelease];
-#ifndef BP_COCOTRON
 	[formatter setLocale:[[[NSLocale alloc] initWithLocaleIdentifier:@"en_US_POSIX"] autorelease]];
-#else
-	NSDictionary *localeDict = [NSLocale componentsFromLocaleIdentifier:@"en_US_POSIX"];
-	formatter = [[[NSDateFormatter alloc] initWithDateFormat:nil allowNaturalLanguage:NO locale:localeDict] autorelease];
-#endif
 	// Does the string include a week day?
 	NSString *day = @"";
 	if ([string rangeOfString:@","].location != NSNotFound) {
@@ -4386,18 +4180,7 @@ static NSOperationQueue *sharedQueue = nil;
 		seconds = @":ss";
 	}
 	[formatter setDateFormat:[NSString stringWithFormat:@"%@dd MMM yyyy HH:mm%@ z",day,seconds]];
-//@@@BPHACK
-	NSDate *datetoreturn;
-#ifndef BP_COCOTRON
-//	return [formatter dateFromString:string];
-	datetoreturn = [formatter dateFromString:string];
-#else
-	NSString *stringFormat = [formatter dateFormat];
-	NSCalendarDate *calendarDate =  NSCalendarDateWithStringDateFormatLocale(string, stringFormat, localeDict);
-	datetoreturn = (NSDate *)calendarDate;
-#endif
-	return	datetoreturn;
-//@@@
+	return [formatter dateFromString:string];
 }
 
 #pragma mark ===

@@ -12,10 +12,6 @@
 // Private stuff
 @interface ASINetworkQueue ()
 	- (void)resetProgressDelegate:(id *)progressDelegate;
-//@@@BPHACK
-- (void)request:(ASIHTTPRequest *)request incrementUploadSizeBy:(long long)newLength;
-- (void)request:(ASIHTTPRequest *)request incrementDownloadSizeBy:(long long)newLength;
-//@@@
 	@property (assign) int requestsCount;
 @end
 
