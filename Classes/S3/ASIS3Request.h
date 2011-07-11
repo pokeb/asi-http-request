@@ -18,14 +18,22 @@
 // See http://docs.amazonwebservices.com/AmazonS3/2006-03-01/index.html?RESTAccessPolicy.html for what these mean
 extern NSString *const ASIS3AccessPolicyPrivate; // This is the default in S3 when no access policy header is provided
 extern NSString *const ASIS3AccessPolicyPublicRead;
-extern NSString *const ASIS3AccessPolicyPublicReadWrote;
+extern NSString *const ASIS3AccessPolicyPublicReadWrite;
 extern NSString *const ASIS3AccessPolicyAuthenticatedRead;
+extern NSString *const ASIS3AccessPolicyBucketOwnerRead;
+extern NSString *const ASIS3AccessPolicyBucketOwnerFullControl;
+
+// Constants for requestScheme - defaults is ASIS3RequestSchemeHTTP
+extern NSString *const ASIS3RequestSchemeHTTP;
+extern NSString *const ASIS3RequestSchemeHTTPS;
+
+
 
 typedef enum _ASIS3ErrorType {
     ASIS3ResponseParsingFailedType = 1,
     ASIS3ResponseErrorType = 2
-	
 } ASIS3ErrorType;
+
 
 
 @interface ASIS3Request : ASIHTTPRequest <NSCopying, NSXMLParserDelegate> {
@@ -36,6 +44,9 @@ typedef enum _ASIS3ErrorType {
 	// Your S3 secret access key. Set it on the request, or set it globally using [ASIS3Request setSharedSecretAccessKey:]
 	NSString *secretAccessKey;
 	
+	// Set to ASIS3RequestSchemeHTTPS to send your requests via HTTPS (default is ASIS3RequestSchemeHTTP)
+	NSString *requestScheme;
+
 	// The string that will be used in the HTTP date header. Generally you'll want to ignore this and let the class add the current date for you, but the accessor is used by the tests
 	NSString *dateString;
 
@@ -68,7 +79,7 @@ typedef enum _ASIS3ErrorType {
 + (void)setSharedAccessKey:(NSString *)newAccessKey;
 + (NSString *)sharedSecretAccessKey;
 + (void)setSharedSecretAccessKey:(NSString *)newAccessKey;
-	
+
 # pragma mark helpers
 	
 // Returns a date formatter than can be used to parse a date from S3
@@ -82,7 +93,11 @@ typedef enum _ASIS3ErrorType {
 // You shouldn't normally need to use this yourself
 + (NSString *)stringByURLEncodingForS3Path:(NSString *)key;
 
+// Returns a string for the hostname used for S3 requests. You shouldn't ever need to change this.
++ (NSString *)S3Host;
 
+// This is called automatically before the request starts to build the request URL (if one has not been manually set already)
+- (void)buildURL;
 
 @property (retain) NSString *dateString;
 @property (retain) NSString *accessKey;
@@ -90,4 +105,5 @@ typedef enum _ASIS3ErrorType {
 @property (retain) NSString *accessPolicy;
 @property (retain) NSString *currentXMLElementContent;
 @property (retain) NSMutableArray *currentXMLElementStack;
+@property (retain) NSString *requestScheme;
 @end

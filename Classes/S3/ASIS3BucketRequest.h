@@ -60,15 +60,12 @@
 // Use for deleting buckets - they must be empty for this to succeed
 + (id)DELETERequestWithBucket:(NSString *)bucket;
 
-//Builds a query string out of the list parameters we supplied
-- (void)createQueryString;
-
-@property (retain) NSString *bucket;
-@property (retain) NSString *subResource;
-@property (retain) NSString *prefix;
-@property (retain) NSString *marker;
-@property (assign) int maxResultCount;
-@property (retain) NSString *delimiter;	
+@property (retain, nonatomic) NSString *bucket;
+@property (retain, nonatomic) NSString *subResource;
+@property (retain, nonatomic) NSString *prefix;
+@property (retain, nonatomic) NSString *marker;
+@property (assign, nonatomic) int maxResultCount;
+@property (retain, nonatomic) NSString *delimiter;
 @property (retain, readonly) NSMutableArray *objects;
 @property (retain, readonly) NSMutableArray *commonPrefixes;
 @property (assign, readonly) BOOL isTruncated;

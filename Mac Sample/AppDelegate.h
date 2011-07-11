@@ -5,6 +5,8 @@
 //  Copyright 2008 All-Seeing Interactive Ltd. All rights reserved.
 //
 
+#import <WebKit/WebKit.h>
+
 @class ASIHTTPRequest;
 @class ASINetworkQueue;
 
@@ -45,6 +47,11 @@
 	IBOutlet NSTextField *tableLoadStatus;
 	NSMutableArray *rowData;
 	ASINetworkQueue *tableQueue;
+
+	IBOutlet WebView *webView;
+	IBOutlet NSTextView *webPageSource;
+	IBOutlet NSTextField *urlField;
+	IBOutlet NSButton *dataURICheckbox;
 }
 
 - (IBAction)simpleURLFetch:(id)sender;
@@ -64,6 +71,7 @@
 
 - (IBAction)reloadTableData:(id)sender;
 - (IBAction)clearCache:(id)sender;
+- (IBAction)fetchWebPage:(id)sender;
 
 @property (retain, nonatomic) ASIHTTPRequest *bigFetchRequest;
 @property (retain, nonatomic) NSMutableArray *rowData;

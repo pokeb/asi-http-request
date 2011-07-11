@@ -12,8 +12,13 @@
 #import "InfoCell.h"
 #import "ToggleCell.h"
 
-@implementation QueueViewController
+// Private stuff
+@interface QueueViewController ()
+- (void)imageFetchComplete:(ASIHTTPRequest *)request;
+- (void)imageFetchFailed:(ASIHTTPRequest *)request;
+@end
 
+@implementation QueueViewController
 
 - (IBAction)fetchThreeImages:(id)sender
 {
@@ -36,16 +41,19 @@
 	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/images/small-image.jpg"]];
 	[request setDownloadDestinationPath:[[NSHomeDirectory() stringByAppendingPathComponent:@"Documents"] stringByAppendingPathComponent:@"1.png"]];
 	[request setDownloadProgressDelegate:imageProgressIndicator1];
+    [request setUserInfo:[NSDictionary dictionaryWithObject:@"request1" forKey:@"name"]];
 	[networkQueue addOperation:request];
 	
 	request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/images/medium-image.jpg"]] autorelease];
 	[request setDownloadDestinationPath:[[NSHomeDirectory() stringByAppendingPathComponent:@"Documents"] stringByAppendingPathComponent:@"2.png"]];
 	[request setDownloadProgressDelegate:imageProgressIndicator2];
+    [request setUserInfo:[NSDictionary dictionaryWithObject:@"request2" forKey:@"name"]];
 	[networkQueue addOperation:request];
 	
 	request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/images/large-image.jpg"]] autorelease];
 	[request setDownloadDestinationPath:[[NSHomeDirectory() stringByAppendingPathComponent:@"Documents"] stringByAppendingPathComponent:@"3.png"]];
 	[request setDownloadProgressDelegate:imageProgressIndicator3];
+    [request setUserInfo:[NSDictionary dictionaryWithObject:@"request3" forKey:@"name"]];
 	[networkQueue addOperation:request];
 	
 	[networkQueue go];
@@ -93,8 +101,8 @@
 
 - (void)viewDidLoad
 {
+	[super viewDidLoad];
 	[[[self navigationBar] topItem] setTitle:@"Using a Queue"];
-	[[self view] setAutoresizingMask:UIViewAutoresizingFlexibleHeight|UIViewAutoresizingFlexibleWidth];
 }
 
 static NSString *intro = @"Demonstrates a fetching 3 items at once, using an ASINetworkQueue to track progress.\r\nEach request has its own downloadProgressDelegate, and the queue has an additional downloadProgressDelegate to track overall progress.";
@@ -219,7 +227,7 @@ static NSString *intro = @"Demonstrates a fetching 3 items at once, using an ASI
 			
 		}
 		NSUInteger imageWidth = (tableWidth-tablePadding-20)/3;
-		NSUInteger imageHeight = imageWidth*0.66;
+		NSUInteger imageHeight = imageWidth*0.66f;
 		
 		
 		[imageView1 setFrame:CGRectMake(tablePadding/2,10,imageWidth,imageHeight)];
@@ -262,7 +270,7 @@ static NSString *intro = @"Demonstrates a fetching 3 items at once, using an ASI
 			tablePadding = 110;
 		}
 		NSUInteger imageWidth = (tableWidth-tablePadding-20)/3;
-		NSUInteger imageHeight = imageWidth*0.66;
+		NSUInteger imageHeight = imageWidth*0.66f;
 		return imageHeight+50;
 	} else {
 		return 42;

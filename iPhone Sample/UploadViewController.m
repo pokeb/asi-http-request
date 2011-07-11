@@ -10,6 +10,12 @@
 #import "ASIFormDataRequest.h"
 #import "InfoCell.h"
 
+// Private stuff
+@interface UploadViewController ()
+- (void)uploadFailed:(ASIHTTPRequest *)theRequest;
+- (void)uploadFinished:(ASIHTTPRequest *)theRequest;
+@end
+
 @implementation UploadViewController
 
 - (IBAction)performLargeUpload:(id)sender
@@ -20,6 +26,10 @@
 	[request setPostValue:@"test" forKey:@"value2"];
 	[request setPostValue:@"test" forKey:@"value3"];
 	[request setTimeOutSeconds:20];
+
+	#if __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_4_0
+	[request setShouldContinueWhenAppEntersBackground:YES];
+	#endif
 	[request setUploadProgressDelegate:progressIndicator];
 	[request setDelegate:self];
 	[request setDidFailSelector:@selector(uploadFailed:)];
@@ -53,10 +63,29 @@
 - (void)uploadFinished:(ASIHTTPRequest *)theRequest
 {
 	[resultView setText:[NSString stringWithFormat:@"Finished uploading %llu bytes of data",[theRequest postLength]]];
+
+	#if __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_4_0
+    // Clear out the old notification before scheduling a new one.
+    if ([[[UIApplication sharedApplication] scheduledLocalNotifications] count] > 0)
+        [[UIApplication sharedApplication] cancelAllLocalNotifications];
+
+    // Create a new notification
+    UILocalNotification *notification = [[[UILocalNotification alloc] init] autorelease];
+    if (notification) {
+		[notification setFireDate:[NSDate date]];
+		[notification setTimeZone:[NSTimeZone defaultTimeZone]];
+		[notification setRepeatInterval:0];
+		[notification setSoundName:@"alarmsound.caf"];
+		[notification setAlertBody:@"Boom!\r\n\r\nUpload is finished!"];
+        [[UIApplication sharedApplication] scheduleLocalNotification:notification];
+    }
+	#endif
 }
 
 - (void)dealloc
 {
+	[request setDelegate:nil];
+	[request setUploadProgressDelegate:nil];
 	[request cancel];
 	[request release];
 	[progressIndicator release];
@@ -70,15 +99,14 @@
 
 - (void)viewDidLoad
 {
+	[super viewDidLoad];
 	[[[self navigationBar] topItem] setTitle:@"Tracking Upload Progress"];
 	resultView = [[UITextView alloc] initWithFrame:CGRectZero];
 	[resultView setBackgroundColor:[UIColor clearColor]];
 	progressIndicator = [[UIProgressView alloc] initWithFrame:CGRectZero];
-	[[self view] setAutoresizingMask:UIViewAutoresizingFlexibleHeight|UIViewAutoresizingFlexibleWidth];
-
 }
 
-static NSString *intro = @"Demonstrates POSTing content to a URL, showing upload progress.\nYou'll only see accurate progress for uploads when the request body is larger than 128KB (in 2.2.1 SDK), or when the request body is larger than 32KB (in 3.0 SDK)";
+static NSString *intro = @"Demonstrates POSTing content to a URL, showing upload progress.\nYou'll only see accurate progress for uploads when the request body is larger than 128KB (in 2.2.1 SDK), or when the request body is larger than 32KB (in 3.0 SDK)\n\nThis request is also setup to run when the app enters the background on devices running on iOS4. In the delegate method that is called when the request finishes, we show a local notification to let the user know the upload is finished.";
 
 - (UIView *)tableView:(UITableView *)theTableView viewForHeaderInSection:(NSInteger)section
 {
@@ -125,7 +153,7 @@ static NSString *intro = @"Demonstrates POSTing content to a URL, showing upload
 		
 	} else if ([indexPath section] == 1) {
 		return nil;
-	} else if ([indexPath section] == 2) {
+	} else {
 		cell = [tableView dequeueReusableCellWithIdentifier:@"Response"];
 		if (!cell) {
 			cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"Response"] autorelease];
