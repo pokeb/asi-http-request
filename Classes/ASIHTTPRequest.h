@@ -314,9 +314,6 @@ typedef void (^ASIDataBlock)(NSData *data);
 	// If you set this and implement the method in your delegate, you must handle the data yourself - ASIHTTPRequest will not populate responseData or write the data to downloadDestinationPath
 	SEL didReceiveDataSelector;
 	
-	// Called on the delegate (if implemented) when the request times out. Default is requestTimedOut:
-	SEL didTimeOutSelector;
-
 	// Used for recording when something last happened during the request, we will compare this value with the current date to time out requests when appropriate
 	NSDate *lastActivityTime;
 	
@@ -671,9 +668,6 @@ typedef void (^ASIDataBlock)(NSData *data);
 // Otherwise, returns NO, and nothing will happen
 - (BOOL)retryUsingNewConnection;
 
-// Called when a request times out, lets the delgate know via didTimeOutSelector
-- (void)requestTimedOut;
-
 // Can be called by delegates from inside their willRedirectSelector implementations to restart the request with a new url
 - (void)redirectToURL:(NSURL *)newURL;
 
@@ -938,7 +932,6 @@ typedef void (^ASIDataBlock)(NSData *data);
 @property (assign) SEL didFinishSelector;
 @property (assign) SEL didFailSelector;
 @property (assign) SEL didReceiveDataSelector;
-@property (assign) SEL didTimeOutSelector;
 @property (retain,readonly) NSString *authenticationRealm;
 @property (retain,readonly) NSString *proxyAuthenticationRealm;
 @property (retain) NSError *error;

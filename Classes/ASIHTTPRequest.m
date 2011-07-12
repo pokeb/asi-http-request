@@ -304,7 +304,6 @@ static NSOperationQueue *sharedQueue = nil;
 	[self setDidFinishSelector:@selector(requestFinished:)];
 	[self setDidFailSelector:@selector(requestFailed:)];
 	[self setDidReceiveDataSelector:@selector(request:didReceiveData:)];
-	[self setDidTimeOutSelector:@selector(requestTimedOut:)];
 	[self setURL:newURL];
 	[self setCancelledLock:[[[NSRecursiveLock alloc] init] autorelease]];
 	[self setDownloadCache:[[self class] defaultCache]];
@@ -1491,8 +1490,7 @@ static NSOperationQueue *sharedQueue = nil;
 	
 	[self performThrottling];
 	
-	if ([self shouldTimeOut]) {	
-		[self requestTimedOut];
+	if ([self shouldTimeOut]) {			
 		// Do we need to auto-retry this request?
 		if ([self numberOfTimesToRetryOnTimeout] > [self retryCount]) {
 
@@ -1985,12 +1983,6 @@ static NSOperationQueue *sharedQueue = nil;
 	if (queue && [queue respondsToSelector:@selector(request:willRedirectToURL:)]) {
 		[queue performSelector:@selector(request:willRedirectToURL:) withObject:self withObject:newURL];
 	}
-}
-
-- (void)requestTimedOut
-{
-//	[self callSelectorOnMainThread:&didTimeOutSelector forDelegate:&delegate];
-	[delegate performSelector:didTimeOutSelector withObject:self];
 }
 
 // Subclasses might override this method to process the result in the same thread
@@ -4088,7 +4080,6 @@ static NSOperationQueue *sharedQueue = nil;
 	[newRequest setDidFinishSelector:[self didFinishSelector]];
 	[newRequest setDidFailSelector:[self didFailSelector]];
 	[newRequest setDidReceiveDataSelector:[self didReceiveDataSelector]];
-	[newRequest setDidTimeOutSelector:[self didTimeOutSelector]];
 	[newRequest setTimeOutSeconds:[self timeOutSeconds]];
 	[newRequest setShouldResetDownloadProgress:[self shouldResetDownloadProgress]];
 	[newRequest setShouldResetUploadProgress:[self shouldResetUploadProgress]];
@@ -5006,7 +4997,6 @@ static NSOperationQueue *sharedQueue = nil;
 @synthesize didFinishSelector;
 @synthesize didFailSelector;
 @synthesize didReceiveDataSelector;
-@synthesize didTimeOutSelector;
 @synthesize authenticationRealm;
 @synthesize proxyAuthenticationRealm;
 @synthesize error;
