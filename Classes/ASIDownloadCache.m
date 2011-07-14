@@ -103,21 +103,28 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 	[cachedHeaders writeToFile:headerPath atomically:NO];
 }
 
+- (NSTimeInterval)maxAgeFromResponseHeaders:(NSDictionary*)responseHeaders
+{
+    NSTimeInterval maxAge = 0;
+    NSString *cacheControl = [[responseHeaders objectForKey:@"Cache-Control"] lowercaseString];
+    if (cacheControl) {
+        NSScanner *scanner = [NSScanner scannerWithString:cacheControl];
+        [scanner scanUpToString:@"max-age" intoString:NULL];
+        if ([scanner scanString:@"max-age" intoString:NULL]) {
+            [scanner scanString:@"=" intoString:NULL];
+            [scanner scanDouble:&maxAge];
+        }
+    }
+    return maxAge;
+}
+
 - (NSDate *)expiryDateForRequest:(ASIHTTPRequest *)request maxAge:(NSTimeInterval)maxAge
 {
-	NSMutableDictionary *responseHeaders = [NSMutableDictionary dictionaryWithDictionary:[request responseHeaders]];
+	NSDictionary *responseHeaders = [request responseHeaders];
 
 	// If we weren't given a custom max-age, lets look for one in the response headers
 	if (!maxAge) {
-		NSString *cacheControl = [[responseHeaders objectForKey:@"Cache-Control"] lowercaseString];
-		if (cacheControl) {
-			NSScanner *scanner = [NSScanner scannerWithString:cacheControl];
-			[scanner scanUpToString:@"max-age" intoString:NULL];
-			if ([scanner scanString:@"max-age" intoString:NULL]) {
-				[scanner scanString:@"=" intoString:NULL];
-				[scanner scanDouble:&maxAge];
-			}
-		}
+		maxAge = [self maxAgeFromResponseHeaders:responseHeaders];
 	}
 
 	// RFC 2612 says max-age must override any Expires header
@@ -127,7 +134,15 @@ static NSString *permanentCacheFolder = @"PermanentStore";
 		NSString *expires = [responseHeaders objectForKey:@"Expires"];
 		if (expires) {
 			return [ASIHTTPRequest dateFromRFC1123String:expires];
-		}
+		} else {
+            // Lets look for max-age in the cached response headers
+            NSDictionary *cachedHeaders = [self cachedResponseHeadersForURL:[request url]];
+            
+            maxAge = [self maxAgeFromResponseHeaders:cachedHeaders];
+            if (maxAge) {
+                return [[NSDate date] addTimeInterval:maxAge];
+            }
+        }
 	}
 	return nil;
 }
