@@ -1169,7 +1169,7 @@ static NSOperationQueue *sharedQueue = nil;
 		} else {
 			[self setPostBodyReadStream:[ASIInputStream inputStreamWithFileAtPath:[self postBodyFilePath] request:self]];
 		}
-		[self setReadStream:[(NSInputStream *)CFReadStreamCreateForStreamedHTTPRequest(kCFAllocatorDefault, request,(CFReadStreamRef)[self postBodyReadStream]) autorelease]];
+		[self setReadStream:[(NSInputStream *)CFMakeCollectable(CFReadStreamCreateForStreamedHTTPRequest(kCFAllocatorDefault, request,(CFReadStreamRef)[self postBodyReadStream])) autorelease]];    
     } else {
 		
 		// If we have a request body, we'll stream it from memory using our custom stream, so that we can measure bandwidth use and it can be bandwidth-throttled if necessary
@@ -1179,10 +1179,10 @@ static NSOperationQueue *sharedQueue = nil;
 			} else if ([self postBody]) {
 				[self setPostBodyReadStream:[ASIInputStream inputStreamWithData:[self postBody] request:self]];
 			}
-			[self setReadStream:[(NSInputStream *)CFReadStreamCreateForStreamedHTTPRequest(kCFAllocatorDefault, request,(CFReadStreamRef)[self postBodyReadStream]) autorelease]];
+			[self setReadStream:[(NSInputStream *)CFMakeCollectable(CFReadStreamCreateForStreamedHTTPRequest(kCFAllocatorDefault, request,(CFReadStreamRef)[self postBodyReadStream])) autorelease]];
 		
 		} else {
-			[self setReadStream:[(NSInputStream *)CFReadStreamCreateForHTTPRequest(kCFAllocatorDefault, request) autorelease]];
+			[self setReadStream:[(NSInputStream *)CFMakeCollectable(CFReadStreamCreateForHTTPRequest(kCFAllocatorDefault, request)) autorelease]];
 		}
 	}
 
@@ -2132,9 +2132,9 @@ static NSOperationQueue *sharedQueue = nil;
 	}
 	#endif		
 
-	[self setResponseHeaders:[(NSDictionary *)CFHTTPMessageCopyAllHeaderFields(message) autorelease]];
+	[self setResponseHeaders:[(NSDictionary *)CFMakeCollectable(CFHTTPMessageCopyAllHeaderFields(message)) autorelease]];
 	[self setResponseStatusCode:(int)CFHTTPMessageGetResponseStatusCode(message)];
-	[self setResponseStatusMessage:[(NSString *)CFHTTPMessageCopyResponseStatusLine(message) autorelease]];
+	[self setResponseStatusMessage:[(NSString *)CFMakeCollectable(CFHTTPMessageCopyResponseStatusLine(message)) autorelease]];
 
 	if ([self downloadCache] && ([[self downloadCache] canUseCachedDataForRequest:self])) {
 
@@ -2749,7 +2749,7 @@ static NSOperationQueue *sharedQueue = nil;
 		CFHTTPMessageRef responseHeader = (CFHTTPMessageRef) CFReadStreamCopyProperty((CFReadStreamRef)[self readStream],kCFStreamPropertyHTTPResponseHeader);
 		proxyAuthentication = CFHTTPAuthenticationCreateFromResponse(NULL, responseHeader);
 		CFRelease(responseHeader);
-		[self setProxyAuthenticationScheme:[(NSString *)CFHTTPAuthenticationCopyMethod(proxyAuthentication) autorelease]];
+		[self setProxyAuthenticationScheme:[(NSString *)CFMakeCollectable(CFHTTPAuthenticationCopyMethod(proxyAuthentication)) autorelease]];
 	}
 	
 	// If we haven't got a CFHTTPAuthenticationRef by now, something is badly wrong, so we'll have to give up
@@ -2762,7 +2762,7 @@ static NSOperationQueue *sharedQueue = nil;
 	// Get the authentication realm
 	[self setProxyAuthenticationRealm:nil];
 	if (!CFHTTPAuthenticationRequiresAccountDomain(proxyAuthentication)) {
-		[self setProxyAuthenticationRealm:[(NSString *)CFHTTPAuthenticationCopyRealm(proxyAuthentication) autorelease]];
+		[self setProxyAuthenticationRealm:[(NSString *)CFMakeCollectable(CFHTTPAuthenticationCopyRealm(proxyAuthentication)) autorelease]];
 	}
 	
 	// See if authentication is valid
@@ -2926,7 +2926,7 @@ static NSOperationQueue *sharedQueue = nil;
 		CFHTTPMessageRef responseHeader = (CFHTTPMessageRef) CFReadStreamCopyProperty((CFReadStreamRef)[self readStream],kCFStreamPropertyHTTPResponseHeader);
 		requestAuthentication = CFHTTPAuthenticationCreateFromResponse(NULL, responseHeader);
 		CFRelease(responseHeader);
-		[self setAuthenticationScheme:[(NSString *)CFHTTPAuthenticationCopyMethod(requestAuthentication) autorelease]];
+		[self setAuthenticationScheme:[(NSString *)CFMakeCollectable(CFHTTPAuthenticationCopyMethod(requestAuthentication)) autorelease]];
 	}
 	
 	if (!requestAuthentication) {
@@ -2942,7 +2942,7 @@ static NSOperationQueue *sharedQueue = nil;
 	// Get the authentication realm
 	[self setAuthenticationRealm:nil];
 	if (!CFHTTPAuthenticationRequiresAccountDomain(requestAuthentication)) {
-		[self setAuthenticationRealm:[(NSString *)CFHTTPAuthenticationCopyRealm(requestAuthentication) autorelease]];
+		[self setAuthenticationRealm:[(NSString *)CFMakeCollectable(CFHTTPAuthenticationCopyRealm(requestAuthentication)) autorelease]];
 	}
 	
 	#if DEBUG_HTTP_AUTHENTICATION
