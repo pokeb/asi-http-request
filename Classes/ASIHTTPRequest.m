@@ -298,6 +298,7 @@ static NSOperationQueue *sharedQueue = nil;
 	[self setUseSessionPersistence:YES];
 	[self setUseCookiePersistence:YES];
 	[self setValidatesSecureCertificate:YES];
+    [self setSecurityLevel:(NSString *)kCFStreamSocketSecurityLevelNegotiatedSSL];
 	[self setRequestCookies:[[[NSMutableArray alloc] init] autorelease]];
 	[self setDidStartSelector:@selector(requestStarted:)];
 	[self setDidReceiveResponseHeadersSelector:@selector(request:didReceiveResponseHeaders:)];
@@ -1222,6 +1223,9 @@ static NSOperationQueue *sharedQueue = nil;
             [sslProperties setObject:certificates forKey:(NSString *)kCFStreamSSLCertificates];
         }
 
+        // Tell CFNetwork to use specified security level for the socket stream
+        [sslProperties setObject:[self securityLevel] forKey:(NSString *)kCFStreamSSLLevel];
+        
         CFReadStreamSetProperty((CFReadStreamRef)[self readStream], kCFStreamPropertySSLSettings, sslProperties);
     }
 
@@ -1621,6 +1625,7 @@ static NSOperationQueue *sharedQueue = nil;
 	[headRequest setValidatesSecureCertificate:[self validatesSecureCertificate]];
     [headRequest setClientCertificateIdentity:clientCertificateIdentity];
 	[headRequest setClientCertificates:[[clientCertificates copy] autorelease]];
+    [headRequest setSecurityLevel:[self securityLevel]];
 	[headRequest setPACurl:[self PACurl]];
 	[headRequest setShouldPresentCredentialsBeforeChallenge:[self shouldPresentCredentialsBeforeChallenge]];
 	[headRequest setNumberOfTimesToRetryOnTimeout:[self numberOfTimesToRetryOnTimeout]];
@@ -4072,6 +4077,7 @@ static NSOperationQueue *sharedQueue = nil;
 	[newRequest setValidatesSecureCertificate:[self validatesSecureCertificate]];
     [newRequest setClientCertificateIdentity:clientCertificateIdentity];
 	[newRequest setClientCertificates:[[clientCertificates copy] autorelease]];
+    [newRequest setSecurityLevel:[self securityLevel]];
 	[newRequest setPACurl:[self PACurl]];
 	[newRequest setShouldPresentCredentialsBeforeChallenge:[self shouldPresentCredentialsBeforeChallenge]];
 	[newRequest setNumberOfTimesToRetryOnTimeout:[self numberOfTimesToRetryOnTimeout]];
@@ -5020,6 +5026,7 @@ static NSOperationQueue *sharedQueue = nil;
 @synthesize updatedProgress;
 @synthesize shouldRedirect;
 @synthesize validatesSecureCertificate;
+@synthesize securityLevel;
 @synthesize needsRedirect;
 @synthesize redirectCount;
 @synthesize shouldCompressRequestBody;
