@@ -506,4 +506,33 @@
 	[request redirectToURL:newURL];
 }
 
+- (void)testCachedFileOverwritten
+{
+	// Test for https://github.com/pokeb/asi-http-request/pull/211
+	// This test ensures that items in the cache are correctly overwritten when a downloadDestinationPath is set,
+	// and they need to be copied to the cache at the end of the request
+
+	// This url returns different content every time
+	NSURL *url = [NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/random-content"];
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:url];
+	[request setDownloadCache:[ASIDownloadCache sharedCache]];
+	[request setSecondsToCache:0.5f];
+	[request startSynchronous];
+
+	NSString *path = [[ASIDownloadCache sharedCache] pathToCachedResponseDataForURL:url];
+	NSString *content = [NSString stringWithContentsOfFile:path encoding:NSUTF8StringEncoding error:NULL];
+
+	sleep(1);
+
+	request = [ASIHTTPRequest requestWithURL:url];
+	[request setDownloadCache:[ASIDownloadCache sharedCache]];
+	[request setDownloadDestinationPath:[[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:@"test.html"]];
+	[request startSynchronous];
+
+	NSString *content2 = [NSString stringWithContentsOfFile:path encoding:NSUTF8StringEncoding error:NULL];
+
+	BOOL success = ![content isEqualToString:content2];
+	GHAssertTrue(success, @"Failed to overwrite response in cache");
+}
+
 @end
