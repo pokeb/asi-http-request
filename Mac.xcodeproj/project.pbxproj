@@ -30,7 +30,6 @@
 		B5403FF11151149E00D8BE63 /* ASIS3ServiceRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5403FED1151149E00D8BE63 /* ASIS3ServiceRequest.m */; };
 		B54B23FA12AA7D9100A7F940 /* ASIWebPageRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B54B23F912AA7D9100A7F940 /* ASIWebPageRequest.m */; };
 		B54B23FB12AA7D9100A7F940 /* ASIWebPageRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B54B23F912AA7D9100A7F940 /* ASIWebPageRequest.m */; };
-		B551D5C513ED431000607B74 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B551D5C413ED431000607B74 /* libz.dylib */; };
 		B551D5C713ED432B00607B74 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B551D5C613ED432B00607B74 /* libz.dylib */; };
 		B552535D11D23EBB00F9B170 /* ASIDownloadCache.m in Sources */ = {isa = PBXBuildFile; fileRef = B552535A11D23EBB00F9B170 /* ASIDownloadCache.m */; };
 		B552536111D23ECD00F9B170 /* ASIDownloadCache.m in Sources */ = {isa = PBXBuildFile; fileRef = B552535A11D23EBB00F9B170 /* ASIDownloadCache.m */; };
@@ -47,6 +46,7 @@
 		B55B600F0F7659900064029C /* ASIHTTPRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B5D140F76568E0064029C /* ASIHTTPRequest.m */; };
 		B55B60100F7659960064029C /* ASIFormDataRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B5D120F76568E0064029C /* ASIFormDataRequest.m */; };
 		B565297E101C8D01000499CF /* ASITestCase.m in Sources */ = {isa = PBXBuildFile; fileRef = B565297C101C8D01000499CF /* ASITestCase.m */; };
+		B56DF2BA13ED5C4100549DCD /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B551D5C613ED432B00607B74 /* libz.dylib */; };
 		B5728CA010AEC2F4004F4CE6 /* StressTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B5728C9F10AEC2F4004F4CE6 /* StressTests.m */; };
 		B57A610812D5FBEB00887E97 /* ASIWebPageRequestTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B57A610712D5FBEB00887E97 /* ASIWebPageRequestTests.m */; };
 		B5873F8C10FF2884001E145F /* ASIS3BucketObject.m in Sources */ = {isa = PBXBuildFile; fileRef = B5873F8710FF2884001E145F /* ASIS3BucketObject.m */; };
@@ -116,7 +116,6 @@
 		B5403FED1151149E00D8BE63 /* ASIS3ServiceRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ASIS3ServiceRequest.m; path = S3/ASIS3ServiceRequest.m; sourceTree = "<group>"; };
 		B54B23F812AA7D9100A7F940 /* ASIWebPageRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ASIWebPageRequest.h; path = ASIWebPageRequest/ASIWebPageRequest.h; sourceTree = "<group>"; };
 		B54B23F912AA7D9100A7F940 /* ASIWebPageRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ASIWebPageRequest.m; path = ASIWebPageRequest/ASIWebPageRequest.m; sourceTree = "<group>"; };
-		B551D5C413ED431000607B74 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
 		B551D5C613ED432B00607B74 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
 		B551DD3310D6AB6B00EC1CBF /* ASIHTTPRequestConfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIHTTPRequestConfig.h; sourceTree = "<group>"; };
 		B552535A11D23EBB00F9B170 /* ASIDownloadCache.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIDownloadCache.m; sourceTree = "<group>"; };
@@ -139,7 +138,6 @@
 		B55B5E710F7656C60064029C /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = "Mac Sample/Info.plist"; sourceTree = "<group>"; };
 		B55B5E740F7656DA0064029C /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = "Mac Sample/English.lproj/MainMenu.xib"; sourceTree = "<group>"; };
 		B55B5E770F7656DF0064029C /* English */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; name = English; path = "Mac Sample/English.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
-		B55B5EB70F7658200064029C /* libz.1.2.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.1.2.3.dylib; path = usr/lib/libz.1.2.3.dylib; sourceTree = SDKROOT; };
 		B55B5ED00F76588D0064029C /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = "Mac Sample/AppDelegate.h"; sourceTree = "<group>"; };
 		B55B5ED10F76588D0064029C /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AppDelegate.m; path = "Mac Sample/AppDelegate.m"; sourceTree = "<group>"; };
 		B55B5EDF0F7658C70064029C /* Unit Tests (GHUnit).app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Unit Tests (GHUnit).app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -184,11 +182,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B551D5C513ED431000607B74 /* libz.dylib in Frameworks */,
 				8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */,
 				B522DE821031BD5E009A2D22 /* SystemConfiguration.framework in Frameworks */,
 				B53E62561255EC4600C1E79A /* libxml2.dylib in Frameworks */,
 				B53E62B11255EEB800C1E79A /* WebKit.framework in Frameworks */,
+				B56DF2BA13ED5C4100549DCD /* libz.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -238,20 +236,18 @@
 		29B97314FDCFA39411CA2CEA /* Mac */ = {
 			isa = PBXGroup;
 			children = (
-				B551D5C613ED432B00607B74 /* libz.dylib */,
-				B551D5C413ED431000607B74 /* libz.dylib */,
 				B55B5D100F76568E0064029C /* Classes */,
 				29B97315FDCFA39411CA2CEA /* Other Sources */,
 				29B97317FDCFA39411CA2CEA /* Resources */,
 				29B97323FDCFA39411CA2CEA /* Frameworks */,
 				19C28FACFE9D520D11CA2CBB /* Products */,
-				B55B5EB70F7658200064029C /* libz.1.2.3.dylib */,
 				B53FADE70FF38B2A002E2DE6 /* SystemConfiguration.framework */,
 				B51791281024BF0F00583567 /* Security.framework */,
 				B50C17DA121C254D0055FCAB /* Security.framework */,
 				B50C18D1121C2F240055FCAB /* Foundation.framework */,
 				B53E62551255EC4600C1E79A /* libxml2.dylib */,
 				B53E62571255EC4E00C1E79A /* libtidy.dylib */,
+				B551D5C613ED432B00607B74 /* libz.dylib */,
 				B53E62B01255EEB800C1E79A /* WebKit.framework */,
 			);
 			name = Mac;
