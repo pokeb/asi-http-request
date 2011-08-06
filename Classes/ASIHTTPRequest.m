@@ -238,6 +238,7 @@ static NSOperationQueue *sharedQueue = nil;
 @property (assign, nonatomic) NSString *runLoopMode;
 @property (retain, nonatomic) NSTimer *statusTimer;
 @property (assign) BOOL didUseCachedResponse;
+@property (assign) BOOL didPerformConditionalGET;
 @property (retain, nonatomic) NSURL *redirectURL;
 
 @property (assign, nonatomic) BOOL isPACFileRequest;
@@ -868,6 +869,7 @@ static NSOperationQueue *sharedQueue = nil;
 
 		[self setComplete:NO];
 		[self setDidUseCachedResponse:NO];
+        [self setDidPerformConditionalGET:NO];
 		
 		if (![self url]) {
 			[self failWithError:ASIUnableToCreateRequestError];
@@ -2140,7 +2142,10 @@ static NSOperationQueue *sharedQueue = nil;
 
 		// Update the expiry date
 		[[self downloadCache] updateExpiryForRequest:self maxAge:[self secondsToCache]];
-
+        
+        // Indicate that a conditional GET was performed
+        [self setDidPerformConditionalGET:YES];
+        
 		// Read the response from the cache
 		[self useDataFromCache];
 
@@ -5055,6 +5060,7 @@ static NSOperationQueue *sharedQueue = nil;
 @synthesize cachePolicy;
 @synthesize cacheStoragePolicy;
 @synthesize didUseCachedResponse;
+@synthesize didPerformConditionalGET;
 @synthesize secondsToCache;
 @synthesize clientCertificates;
 @synthesize redirectURL;
