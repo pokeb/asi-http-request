@@ -238,6 +238,7 @@ static NSOperationQueue *sharedQueue = nil;
 @property (assign, nonatomic) NSString *runLoopMode;
 @property (retain, nonatomic) NSTimer *statusTimer;
 @property (assign) BOOL didUseCachedResponse;
+@property (assign) BOOL didPerformConditionalGET;
 @property (retain, nonatomic) NSURL *redirectURL;
 
 @property (assign, nonatomic) BOOL isPACFileRequest;
@@ -528,7 +529,7 @@ static NSOperationQueue *sharedQueue = nil;
 			NSData *compressedBody = [ASIDataCompressor compressData:[self postBody] error:&err];
 			if (err) {
 				[self failWithError:err];
-				return;
+                return;
 			}
 			[self setCompressedPostBody:compressedBody];
 			[self setPostLength:[[self compressedPostBody] length]];
@@ -868,6 +869,7 @@ static NSOperationQueue *sharedQueue = nil;
 
 		[self setComplete:NO];
 		[self setDidUseCachedResponse:NO];
+        [self setDidPerformConditionalGET:NO];
 		
 		if (![self url]) {
 			[self failWithError:ASIUnableToCreateRequestError];
@@ -2140,7 +2142,10 @@ static NSOperationQueue *sharedQueue = nil;
 
 		// Update the expiry date
 		[[self downloadCache] updateExpiryForRequest:self maxAge:[self secondsToCache]];
-
+        
+        // Indicate that a conditional GET was performed
+        [self setDidPerformConditionalGET:YES];
+        
 		// Read the response from the cache
 		[self useDataFromCache];
 
@@ -4827,23 +4832,30 @@ static NSOperationQueue *sharedQueue = nil;
     return [[[NSString alloc] initWithData:data encoding:NSASCIIStringEncoding] autorelease];
 }
 
++ (NSTimeInterval)maxAgeFromResponseHeaders:(NSDictionary*)responseHeaders
+{
+    NSTimeInterval maxAge = 0;
+    NSString *cacheControl = [[responseHeaders objectForKey:@"Cache-Control"] lowercaseString];
+    if (cacheControl) {
+        NSScanner *scanner = [NSScanner scannerWithString:cacheControl];
+        [scanner scanUpToString:@"max-age" intoString:NULL];
+        if ([scanner scanString:@"max-age" intoString:NULL]) {
+            [scanner scanString:@"=" intoString:NULL];
+            [scanner scanDouble:&maxAge];
+        }
+    }
+    return maxAge;
+}
+
 + (NSDate *)expiryDateForRequest:(ASIHTTPRequest *)request maxAge:(NSTimeInterval)maxAge
 {
-	NSDictionary *responseHeaders = [request responseHeaders];
-  
+    NSDictionary *responseHeaders = [request responseHeaders];
+    
 	// If we weren't given a custom max-age, lets look for one in the response headers
 	if (!maxAge) {
-		NSString *cacheControl = [[responseHeaders objectForKey:@"Cache-Control"] lowercaseString];
-		if (cacheControl) {
-			NSScanner *scanner = [NSScanner scannerWithString:cacheControl];
-			[scanner scanUpToString:@"max-age" intoString:NULL];
-			if ([scanner scanString:@"max-age" intoString:NULL]) {
-				[scanner scanString:@"=" intoString:NULL];
-				[scanner scanDouble:&maxAge];
-			}
-		}
+		maxAge = [self maxAgeFromResponseHeaders:responseHeaders];
 	}
-  
+    
 	// RFC 2612 says max-age must override any Expires header
 	if (maxAge) {
 		return [[NSDate date] addTimeInterval:maxAge];
@@ -4851,7 +4863,15 @@ static NSOperationQueue *sharedQueue = nil;
 		NSString *expires = [responseHeaders objectForKey:@"Expires"];
 		if (expires) {
 			return [ASIHTTPRequest dateFromRFC1123String:expires];
-		}
+		} else {            
+            // Lets look for max-age in the cached response headers
+            NSDictionary *cachedHeaders = [request.downloadCache cachedResponseHeadersForURL:[request url]];
+            
+            maxAge = [self maxAgeFromResponseHeaders:cachedHeaders];
+            if (maxAge) {
+                return [[NSDate date] addTimeInterval:maxAge];
+            }
+        }
 	}
 	return nil;
 }
@@ -5087,6 +5107,7 @@ static NSOperationQueue *sharedQueue = nil;
 @synthesize cachePolicy;
 @synthesize cacheStoragePolicy;
 @synthesize didUseCachedResponse;
+@synthesize didPerformConditionalGET;
 @synthesize secondsToCache;
 @synthesize clientCertificates;
 @synthesize redirectURL;

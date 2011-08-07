@@ -460,6 +460,9 @@ typedef void (^ASIDataBlock)(NSData *data);
 	
 	// Will be true when the response was pulled from the cache rather than downloaded
 	BOOL didUseCachedResponse;
+    
+    // Will be true when a conditional GET was performed
+    BOOL didPerformConditionalGET;
 
 	// Set secondsToCache to use a custom time interval for expiring the response when it is stored in a cache
 	NSTimeInterval secondsToCache;
@@ -993,6 +996,7 @@ typedef void (^ASIDataBlock)(NSData *data);
 @property (assign) ASICachePolicy cachePolicy;
 @property (assign) ASICacheStoragePolicy cacheStoragePolicy;
 @property (assign, readonly) BOOL didUseCachedResponse;
+@property (assign, readonly) BOOL didPerformConditionalGET;
 @property (assign) NSTimeInterval secondsToCache;
 @property (retain) NSArray *clientCertificates;
 #if TARGET_OS_IPHONE && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_4_0

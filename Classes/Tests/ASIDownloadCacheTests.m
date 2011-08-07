@@ -298,6 +298,32 @@
 	GHAssertTrue(success,@"Failed to use cached response");
 }
 
+- (void)testMaxAgeAfterRecache
+{
+	[[ASIDownloadCache sharedCache] clearCachedResponsesForStoragePolicy:ASICacheForSessionDurationCacheStoragePolicy];
+	[[ASIDownloadCache sharedCache] setDefaultCachePolicy:ASIUseDefaultCachePolicy];
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://s3.amazonaws.com/assets.ldscoloringbook.com/max-age-test"]];
+	[request setDownloadCache:[ASIDownloadCache sharedCache]];
+	[request startSynchronous];
+    
+    // Sleep long enough for the cache entry to expire (it has max-age=10)
+    [NSThread sleepForTimeInterval:15];
+    
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://s3.amazonaws.com/assets.ldscoloringbook.com/max-age-test"]];
+	[request setDownloadCache:[ASIDownloadCache sharedCache]];
+	[request startSynchronous];
+	BOOL success = [request didUseCachedResponse];
+	GHAssertTrue(success,@"Failed to use cached response");
+	success = [request didPerformConditionalGET];
+	GHAssertTrue(success,@"Failed to perform conditional GET");
+    
+	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://s3.amazonaws.com/assets.ldscoloringbook.com/max-age-test"]];
+	[request setDownloadCache:[ASIDownloadCache sharedCache]];
+	[request startSynchronous];
+	success = ![request didPerformConditionalGET];
+	GHAssertTrue(success,@"Should not have performed a conditional GET");
+}
+
 - (void)testCustomExpiry
 {
 	[[ASIDownloadCache sharedCache] clearCachedResponsesForStoragePolicy:ASICacheForSessionDurationCacheStoragePolicy];
