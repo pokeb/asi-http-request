@@ -24,7 +24,7 @@
 #import "ASIDataCompressor.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.8.1-26 2011-08-06";
+NSString *ASIHTTPRequestVersion = @"v1.8.1-27 2011-08-07";
 
 static NSString *defaultUserAgent = nil;
 
@@ -4235,7 +4235,7 @@ static NSOperationQueue *sharedQueue = nil;
 		if ([self username] && [self password]) {
 			NSDictionary *usernameAndPassword = [theCredentials objectForKey:@"Credentials"];
 			NSString *storedUsername = [usernameAndPassword objectForKey:(NSString *)kCFHTTPAuthenticationUsername];
-			NSString *storedPassword = [usernameAndPassword objectForKey:(NSString *)kCFHTTPAuthenticationUsername];
+			NSString *storedPassword = [usernameAndPassword objectForKey:(NSString *)kCFHTTPAuthenticationPassword];
 			if (![storedUsername isEqualToString:[self username]] || ![storedPassword isEqualToString:[self password]]) {
 				continue;
 			}
