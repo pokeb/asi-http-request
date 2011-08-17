@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		043151B613FBC19C00C01878 /* ASIHTTPFramework.h in Headers */ = {isa = PBXBuildFile; fileRef = 043151B513FBC19C00C01878 /* ASIHTTPFramework.h */; };
+		043151B713FBC19C00C01878 /* ASIHTTPFramework.h in Headers */ = {isa = PBXBuildFile; fileRef = 043151B513FBC19C00C01878 /* ASIHTTPFramework.h */; };
 		0436EEB813FAD01200E75011 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D52C11C7CEFA0059B815 /* Foundation.framework */; };
 		0436EEC513FAD02200E75011 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D52C11C7CEFA0059B815 /* Foundation.framework */; };
 		0436EECC13FAD05900E75011 /* ASIAuthenticationDialog.m in Sources */ = {isa = PBXBuildFile; fileRef = B59A87C1103EC6F200300252 /* ASIAuthenticationDialog.m */; };
@@ -240,6 +242,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		043151B513FBC19C00C01878 /* ASIHTTPFramework.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIHTTPFramework.h; sourceTree = "<group>"; };
 		0436EEB713FAD01200E75011 /* libASIHTTPFrameworkSimulator.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libASIHTTPFrameworkSimulator.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		0436EEC413FAD02200E75011 /* libASIHTTPFrameworkDevice.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libASIHTTPFrameworkDevice.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		0436EF2C13FAD1A000E75011 /* ASIHTTPRequest.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = ASIHTTPRequest.plist; path = "iPhone Sample/ASIHTTPRequest.plist"; sourceTree = "<group>"; };
@@ -442,6 +445,7 @@
 		080E96DDFE201D6D7F000001 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
+				043151B513FBC19C00C01878 /* ASIHTTPFramework.h */,
 				B551DB4610D6938500EC1CBF /* ASIHTTPRequestConfig.h */,
 				B5FE752A11DBBA6A00F898C8 /* ASICacheDelegate.h */,
 				B5747F271174BB8300C9414E /* ASIHTTPRequestDelegate.h */,
@@ -705,6 +709,7 @@
 				0436EF2913FAD08A00E75011 /* ASICloudFilesObject.h in Headers */,
 				0436EF2A13FAD08A00E75011 /* ASICloudFilesObjectRequest.h in Headers */,
 				0436EF2B13FAD08A00E75011 /* ASICloudFilesRequest.h in Headers */,
+				043151B613FBC19C00C01878 /* ASIHTTPFramework.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -738,6 +743,7 @@
 				0436EF0F13FAD08000E75011 /* ASICloudFilesObject.h in Headers */,
 				0436EF1013FAD08000E75011 /* ASICloudFilesObjectRequest.h in Headers */,
 				0436EF1113FAD08000E75011 /* ASICloudFilesRequest.h in Headers */,
+				043151B713FBC19C00C01878 /* ASIHTTPFramework.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
