@@ -24,7 +24,7 @@
 #import "ASIDataCompressor.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.8.1-27 2011-08-07";
+NSString *ASIHTTPRequestVersion = @"v1.8.1-28 2011-08-20";
 
 static NSString *defaultUserAgent = nil;
 
@@ -4026,7 +4026,6 @@ static NSOperationQueue *sharedQueue = nil;
 }
 
 #pragma mark NSCopying
-
 - (id)copyWithZone:(NSZone *)zone
 {
 	// Don't forget - this will return a retained copy!
@@ -4420,6 +4419,7 @@ static NSOperationQueue *sharedQueue = nil;
 		}
 		return [[defaultUserAgent retain] autorelease];
 	}
+	return nil;
 }
 
 + (void)setDefaultUserAgentString:(NSString *)agent
@@ -4690,6 +4690,7 @@ static NSOperationQueue *sharedQueue = nil;
     @synchronized(self) {
         return [[defaultCache retain] autorelease];
     }
+	return nil;
 }
 
 

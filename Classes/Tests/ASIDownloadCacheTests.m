@@ -298,6 +298,30 @@
 	GHAssertTrue(success,@"Failed to use cached response");
 }
 
+- (void)testExtensionHandling
+{
+	NSArray *extensions = [ASIDownloadCache fileExtensionsToHandleAsHTML];
+	for (NSString *extension in extensions) {
+		NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://allseeing-i.com/file.%@",extension]];
+		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:url];
+		NSString *path = [[ASIDownloadCache sharedCache] pathToStoreCachedResponseDataForRequest:request];
+		BOOL success = [[path pathExtension] isEqualToString:@"html"];
+		GHAssertTrue(success, @"Failed to use html extension on cached path for a resource we know a webview won't be able to open locally");
+	}
+
+	NSURL *url = [NSURL URLWithString:@"http://allseeing-i.com/"];
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:url];
+	NSString *path = [[ASIDownloadCache sharedCache] pathToStoreCachedResponseDataForRequest:request];
+	BOOL success = [[path pathExtension] isEqualToString:@"html"];
+	GHAssertTrue(success, @"Failed to use html extension on cached path for a url without an extension");
+
+	url = [NSURL URLWithString:@"http://allseeing-i.com/i/logo.png"];
+	request = [ASIHTTPRequest requestWithURL:url];
+	path = [[ASIDownloadCache sharedCache] pathToStoreCachedResponseDataForRequest:request];
+	success = [[path pathExtension] isEqualToString:@"png"];
+	GHAssertTrue(success, @"Failed to preserve file extension on cached path");
+}
+
 - (void)testCustomExpiry
 {
 	[[ASIDownloadCache sharedCache] clearCachedResponsesForStoragePolicy:ASICacheForSessionDurationCacheStoragePolicy];
