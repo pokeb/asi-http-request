@@ -4080,6 +4080,7 @@ static NSOperationQueue *sharedQueue = nil;
 	[newRequest setShouldUseRFC2616RedirectBehaviour:[self shouldUseRFC2616RedirectBehaviour]];
 	[newRequest setShouldAttemptPersistentConnection:[self shouldAttemptPersistentConnection]];
 	[newRequest setPersistentConnectionTimeoutSeconds:[self persistentConnectionTimeoutSeconds]];
+    [newRequest setAuthenticationScheme:[self authenticationScheme]];
 	return newRequest;
 }
 
