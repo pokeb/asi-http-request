@@ -10,7 +10,7 @@ set -e
                  FRAMEWORK_NAME=${PRODUCT_NAME}
                        LIB_NAME=lib${PRODUCT_NAME}
               FRAMEWORK_VERSION=A
-                     BUILD_TYPE=${BUILD_STYLE}
+                     BUILD_TYPE=${CONFIGURATION}
 
 # Where we'll put the build framework.
 # The script presumes we're in the project root

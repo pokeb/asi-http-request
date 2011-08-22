@@ -1,8 +1,8 @@
 
 default:
 	# Set default make action here
-	xcodebuild -target "${TARGETNAME} (Device)" -configuration ${BUILD_STYLE} -project ${PROJECT_NAME}.xcodeproj
-	xcodebuild -target "${TARGETNAME} (Simulator)" -configuration ${BUILD_STYLE} -project  ${PROJECT_NAME}.xcodeproj
+	xcodebuild -target "${TARGETNAME} (Device)" -configuration ${CONFIGURATION} -project ${PROJECT_NAME}.xcodeproj
+	xcodebuild -target "${TARGETNAME} (Simulator)" -configuration ${CONFIGURATION} -project  ${PROJECT_NAME}.xcodeproj
 	sh iOSFramework.sh
 
 # If you need to clean a specific target/configuration: $(COMMAND) -target $(TARGET) -configuration DebugOrRelease -sdk $(SDK) clean
@@ -11,4 +11,4 @@ clean:
 
 test:
 	#change the target to whatever needs to be tested
-	GHUNIT_CLI=1 xcodebuild -target Tests -configuration ${BUILD_STYLE} build
+	GHUNIT_CLI=1 xcodebuild -target Tests -configuration ${CONFIGURATION} build
