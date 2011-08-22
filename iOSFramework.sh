@@ -3,6 +3,7 @@
 
 # Modified by Juan Batiz-Benet to fit GHUnit
 # Modified by Gabriel Handford for GHUnit
+# Modified by Johan Attali to be compliant with any other projects
 
 set -e
 
