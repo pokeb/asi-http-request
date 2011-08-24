@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		07BF2CF21405A375004015F1 /* ASIDataDecompressorTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 07BF2CF11405A375004015F1 /* ASIDataDecompressorTests.m */; };
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
 		B502441B1025D36B002B13E1 /* ProxyTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B502441A1025D36B002B13E1 /* ProxyTests.m */; };
 		B50C17DB121C254D0055FCAB /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B50C17DA121C254D0055FCAB /* Security.framework */; };
@@ -79,6 +80,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		07BF2CF11405A375004015F1 /* ASIDataDecompressorTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIDataDecompressorTests.m; sourceTree = "<group>"; };
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		13E42FB307B3F0F600E4EEF1 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = /System/Library/Frameworks/CoreData.framework; sourceTree = "<absolute>"; };
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
@@ -364,6 +366,7 @@
 				B57A610712D5FBEB00887E97 /* ASIWebPageRequestTests.m */,
 				B53E62ED1255F73300C1E79A /* ASIDataCompressorTests.h */,
 				B53E62EE1255F73300C1E79A /* ASIDataCompressorTests.m */,
+				07BF2CF11405A375004015F1 /* ASIDataDecompressorTests.m */,
 				B5728C9E10AEC2F4004F4CE6 /* StressTests.h */,
 				B5728C9F10AEC2F4004F4CE6 /* StressTests.m */,
 				B50244191025D36B002B13E1 /* ProxyTests.h */,
@@ -569,6 +572,7 @@
 				B53E62EF1255F73300C1E79A /* ASIDataCompressorTests.m in Sources */,
 				B54B23FA12AA7D9100A7F940 /* ASIWebPageRequest.m in Sources */,
 				B57A610812D5FBEB00887E97 /* ASIWebPageRequestTests.m in Sources */,
+				07BF2CF21405A375004015F1 /* ASIDataDecompressorTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
