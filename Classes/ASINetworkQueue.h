@@ -10,6 +10,10 @@
 #import "ASIHTTPRequestDelegate.h"
 #import "ASIProgressDelegate.h"
 
+#if NS_BLOCKS_AVAILABLE
+typedef void (^ASIBasicQueueBlock)(void);
+#endif
+
 @interface ASINetworkQueue : NSOperationQueue <ASIProgressDelegate, ASIHTTPRequestDelegate, NSCopying> {
 	
 	// Delegate will get didFail + didFinish messages (if set)
@@ -69,6 +73,10 @@
 
 	// Storage container for additional queue information.
 	NSDictionary *userInfo;
+  
+	//block to execute when the queue has finished all requests (successfully or unsuccessfully)
+	ASIBasicQueueBlock queueDidFinishBlock;
+
 	
 }
 
@@ -84,6 +92,11 @@
 // All ASINetworkQueues are paused when created so that total size can be calculated before the queue starts
 // This method will start the queue
 - (void)go;
+
+#if NS_BLOCKS_AVAILABLE
+- (void)setQueueDidFinishBlock:(ASIBasicQueueBlock)aQueueDidFinishBlock;
+#endif
+
 
 @property (assign, nonatomic, setter=setUploadProgressDelegate:) id uploadProgressDelegate;
 @property (assign, nonatomic, setter=setDownloadProgressDelegate:) id downloadProgressDelegate;
