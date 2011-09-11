@@ -29,4 +29,13 @@
 @synthesize creationDate;
 @synthesize ownerID;
 @synthesize ownerName;
+
+- (void)dealloc
+{
+	[name release];
+	[creationDate release];
+	[ownerID release];
+	[ownerName release];
+}
+
 @end
