@@ -479,9 +479,6 @@ static const NSUInteger kDomainSection = 1;
 
 #pragma mark -
 
-@synthesize request;
-@synthesize type;
-@synthesize tableView;
-@synthesize didEnableRotationNotifications;
-@synthesize presentingController;
+@synthesize request, type, tableView, didEnableRotationNotifications, presentingController;
+
 @end
