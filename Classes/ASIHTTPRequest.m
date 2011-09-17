@@ -105,7 +105,7 @@ static BOOL isBandwidthThrottled = NO;
 
 // When YES, bandwidth will be automatically throttled when using WWAN (3G/Edge/GPRS)
 // Wifi will not be throttled
-static BOOL shouldThrottleBandwithForWWANOnly = NO;
+static BOOL shouldThrottleBandwidthForWWANOnly = NO;
 #endif
 
 // Mediates access to the session cookies so requests
@@ -4493,7 +4493,7 @@ static NSOperationQueue *sharedQueue = nil;
 #if TARGET_OS_IPHONE
 	[bandwidthThrottlingLock lock];
 
-	BOOL throttle = isBandwidthThrottled || (!shouldThrottleBandwithForWWANOnly && (maxBandwidthPerSecond > 0));
+	BOOL throttle = isBandwidthThrottled || (!shouldThrottleBandwidthForWWANOnly && (maxBandwidthPerSecond > 0));
 	[bandwidthThrottlingLock unlock];
 	return throttle;
 #else
@@ -4573,7 +4573,7 @@ static NSOperationQueue *sharedQueue = nil;
 	// Are we performing bandwidth throttling?
 	if (
 	#if TARGET_OS_IPHONE
-	isBandwidthThrottled || (!shouldThrottleBandwithForWWANOnly && (maxBandwidthPerSecond))
+	isBandwidthThrottled || (!shouldThrottleBandwidthForWWANOnly && (maxBandwidthPerSecond))
 	#else
 	maxBandwidthPerSecond
 	#endif
@@ -4625,7 +4625,7 @@ static NSOperationQueue *sharedQueue = nil;
 		[ASIHTTPRequest setMaxBandwidthPerSecond:0];
 		[bandwidthThrottlingLock lock];
 		isBandwidthThrottled = NO;
-		shouldThrottleBandwithForWWANOnly = NO;
+		shouldThrottleBandwidthForWWANOnly = NO;
 		[bandwidthThrottlingLock unlock];
 	}
 }
@@ -4633,7 +4633,7 @@ static NSOperationQueue *sharedQueue = nil;
 + (void)throttleBandwidthForWWANUsingLimit:(unsigned long)limit
 {	
 	[bandwidthThrottlingLock lock];
-	shouldThrottleBandwithForWWANOnly = YES;
+	shouldThrottleBandwidthForWWANOnly = YES;
 	maxBandwidthPerSecond = limit;
 	[ASIHTTPRequest registerForNetworkReachabilityNotifications];	
 	[bandwidthThrottlingLock unlock];
