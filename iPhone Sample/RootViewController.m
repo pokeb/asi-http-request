@@ -115,6 +115,12 @@
     }
 }
 
+- (void)dealloc
+{
+    [popoverController release];
+    [rootPopoverButtonItem release];
+    [super dealloc];
+}
 
 @synthesize splitViewController;
 @synthesize popoverController;
