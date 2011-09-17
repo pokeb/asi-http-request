@@ -19,23 +19,22 @@
 	return bucket;
 }
 
-- (NSString *)description
-{
-	return [NSString stringWithFormat:@"Name: %@ creationDate: %@ ownerID: %@ ownerName: %@",[self name],[self creationDate],[self ownerID],[self ownerName]];
-}
-
-
-@synthesize name;
-@synthesize creationDate;
-@synthesize ownerID;
-@synthesize ownerName;
-
 - (void)dealloc
 {
 	[name release];
 	[creationDate release];
 	[ownerID release];
 	[ownerName release];
+	[super dealloc];
 }
 
+- (NSString *)description
+{
+	return [NSString stringWithFormat:@"Name: %@ creationDate: %@ ownerID: %@ ownerName: %@",[self name],[self creationDate],[self ownerID],[self ownerName]];
+}
+
+@synthesize name;
+@synthesize creationDate;
+@synthesize ownerID;
+@synthesize ownerName;
 @end
