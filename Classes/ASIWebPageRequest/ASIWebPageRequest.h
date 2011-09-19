@@ -11,10 +11,6 @@
 //  Known issue: You cannot use startSychronous with an ASIWebPageRequest
 
 #import "ASIHTTPRequest.h"
-#import <libxml/HTMLparser.h>
-#import <libxml/xmlsave.h>
-#import <libxml/xpath.h>
-#import <libxml/xpathInternals.h>
 
 @class ASINetworkQueue;
 
@@ -52,7 +48,7 @@ typedef enum _ASIURLReplacementMode {
 	NSMutableDictionary *resourceList;
 
 	// Used internally for parsing HTML (with libxml)
-	xmlDocPtr doc;
+	struct _xmlDoc *doc;
 
 	// If the response is an HTML or CSS file, this will be set so the content can be correctly parsed when it has finished fetching external resources
 	ASIWebContentType webContentType;
