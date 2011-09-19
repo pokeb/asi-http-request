@@ -88,7 +88,7 @@
 			[outputData increaseLengthBy:halfLength];
 		}
 		
-		zStream.next_out = [outputData mutableBytes] + zStream.total_out-bytesProcessedAlready;
+		zStream.next_out = (Bytef*)[outputData mutableBytes] + zStream.total_out-bytesProcessedAlready;
 		zStream.avail_out = (unsigned int)([outputData length] - (zStream.total_out-bytesProcessedAlready));
 		status = deflate(&zStream, shouldFinish ? Z_FINISH : Z_NO_FLUSH);
 		
@@ -184,7 +184,7 @@
 		}
 		
 		// Write the deflated data out to the destination file
-		[outputStream write:[outputData bytes] maxLength:[outputData length]];
+		[outputStream write:(const uint8_t *)[outputData bytes] maxLength:[outputData length]];
 		
 		// Make sure nothing went wrong
 		if ([inputStream streamStatus] == NSStreamEventErrorOccurred) {
