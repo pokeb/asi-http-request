@@ -24,7 +24,7 @@
 #import "ASIDataCompressor.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.8.1-44 2011-09-17";
+NSString *ASIHTTPRequestVersion = @"v1.8.1-49 2011-09-19";
 
 static NSString *defaultUserAgent = nil;
 
