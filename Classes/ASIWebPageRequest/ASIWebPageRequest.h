@@ -60,6 +60,9 @@ typedef enum _ASIURLReplacementMode {
 
 	// Controls what ASIWebPageRequest does with external resources. See the notes above for more.
 	ASIURLReplacementMode urlReplacementMode;
+
+	// When set to NO, loading will stop when an external resource fails to load. Defaults to YES
+	BOOL shouldIgnoreExternalResourceErrors;
 }
 
 // Will return a data URI that contains a base64 version of the content at this url
@@ -73,4 +76,5 @@ typedef enum _ASIURLReplacementMode {
 
 @property (retain, nonatomic) ASIWebPageRequest *parentRequest;
 @property (assign, nonatomic) ASIURLReplacementMode urlReplacementMode;
+@property (assign, nonatomic) BOOL shouldIgnoreExternalResourceErrors;
 @end

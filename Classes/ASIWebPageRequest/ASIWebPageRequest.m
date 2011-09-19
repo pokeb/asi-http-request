@@ -49,6 +49,13 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 	}
 }
 
+- (id)initWithURL:(NSURL *)newURL
+{
+	self = [super initWithURL:newURL];
+	[self setShouldIgnoreExternalResourceErrors:YES];
+	return self;
+}
+
 - (void)dealloc
 {
 	[externalResourceQueue cancelAllOperations];
@@ -63,6 +70,9 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 // We override it to stop that happening, and instead do that work in the bottom of finishedFetchingExternalResources:
 - (void)markAsFinished
 {
+	if ([self error]) {
+		[super markAsFinished];
+	}
 }
 
 // This method is normally responsible for telling delegates we are done, but it happens to be the most convenient place to parse the responses
@@ -124,6 +134,7 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 	[[self externalResourceQueue] cancelAllOperations];
 	[self setExternalResourceQueue:[ASINetworkQueue queue]];
 	[[self externalResourceQueue] setDelegate:self];
+	[[self externalResourceQueue] setShouldCancelAllRequestsOnFailure:[self shouldIgnoreExternalResourceErrors]];
 	[[self externalResourceQueue] setShowAccurateProgress:[self showAccurateProgress]];
 	[[self externalResourceQueue] setQueueDidFinishSelector:@selector(finishedFetchingExternalResources:)];
 	[[self externalResourceQueue] setRequestDidFinishSelector:@selector(externalResourceFetchSucceeded:)];
@@ -250,6 +261,7 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 	[[self externalResourceQueue] cancelAllOperations];
 	[self setExternalResourceQueue:[ASINetworkQueue queue]];
 	[[self externalResourceQueue] setDelegate:self];
+	[[self externalResourceQueue] setShouldCancelAllRequestsOnFailure:[self shouldIgnoreExternalResourceErrors]];
 	[[self externalResourceQueue] setShowAccurateProgress:[self showAccurateProgress]];
 	[[self externalResourceQueue] setQueueDidFinishSelector:@selector(finishedFetchingExternalResources:)];
 	[[self externalResourceQueue] setRequestDidFinishSelector:@selector(externalResourceFetchSucceeded:)];
@@ -296,7 +308,9 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 
 - (void)externalResourceFetchFailed:(ASIHTTPRequest *)externalResourceRequest
 {
-	[self failWithError:[externalResourceRequest error]];
+	if ([[self externalResourceQueue] shouldCancelAllRequestsOnFailure]) {
+		[self failWithError:[externalResourceRequest error]];
+	}
 }
 
 - (void)finishedFetchingExternalResources:(ASINetworkQueue *)queue
@@ -704,4 +718,5 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 @synthesize resourceList;
 @synthesize parentRequest;
 @synthesize urlReplacementMode;
+@synthesize shouldIgnoreExternalResourceErrors;
 @end
