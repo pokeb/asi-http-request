@@ -177,7 +177,7 @@ NSString *const kASIOAuthVersionKey           = @"oauth_version";
             }
         } else if ([type hasPrefix:@"multipart/form-data"]) {
             
-            for (NSDictionary *val in [self postData]) {
+            for (NSDictionary *val in self->postData) {
                 NSString *name = nil;
                 NSString *value = @"";
                 
