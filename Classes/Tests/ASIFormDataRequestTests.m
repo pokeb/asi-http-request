@@ -17,6 +17,14 @@
 
 @implementation ASIFormDataRequestTests
 
+
+-(void)testDefaultMethod
+{
+    ASIFormDataRequest *request = [[[ASIFormDataRequest alloc] initWithURL:[NSURL URLWithString:@"http://wedontcare.com"]] autorelease];
+    
+    GHAssertTrue([[request requestMethod] isEqualToString:@"POST"], @"Default request method should be POST");
+}
+
 - (void)testAddNilKeysAndValues
 {
 	ASIFormDataRequest *request = [ASIFormDataRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/empty-post-value"]];
