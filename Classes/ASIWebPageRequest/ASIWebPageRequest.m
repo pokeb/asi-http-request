@@ -495,6 +495,10 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 {
 	// Get rid of any surrounding whitespace
 	newURL = [newURL stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+	NSArray *components = [newURL componentsSeparatedByString:@"#"]; // strip anchor tags (anchor tags do not affect the cachability of the item)
+    	if([components count] > 1){
+       		 newURL = (NSString *)[components objectAtIndex:0];
+    	}
 	// Don't attempt to fetch data URIs
 	if ([newURL length] > 4) {
 		if (![[[newURL substringToIndex:5] lowercaseString] isEqualToString:@"data:"]) {
