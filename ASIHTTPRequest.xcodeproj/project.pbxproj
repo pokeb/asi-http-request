@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 45;
+	objectVersion = 46;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -106,9 +106,6 @@
 		B50C182C121C26FA0055FCAB /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B50C182B121C26FA0055FCAB /* Security.framework */; };
 		B50C1848121C27510055FCAB /* client.p12 in Resources */ = {isa = PBXBuildFile; fileRef = B50C1847121C27510055FCAB /* client.p12 */; };
 		B50D532C126C87ED0022EA6F /* BlocksTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B50D532B126C87ED0022EA6F /* BlocksTests.m */; };
-		B50F66191297FA45003887B1 /* strict.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = B50F66181297FA45003887B1 /* strict.xcconfig */; };
-		B50F661A1297FA45003887B1 /* strict.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = B50F66181297FA45003887B1 /* strict.xcconfig */; };
-		B50F661B1297FA45003887B1 /* strict.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = B50F66181297FA45003887B1 /* strict.xcconfig */; };
 		B51791A31024C3E800583567 /* AuthenticationViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B51791A21024C3E800583567 /* AuthenticationViewController.m */; };
 		B523254211CA01F1006C6E5A /* Sample.xib in Resources */ = {isa = PBXBuildFile; fileRef = B523254111CA01F1006C6E5A /* Sample.xib */; };
 		B523254311CA01F1006C6E5A /* Sample.xib in Resources */ = {isa = PBXBuildFile; fileRef = B523254111CA01F1006C6E5A /* Sample.xib */; };
@@ -935,8 +932,11 @@
 /* Begin PBXProject section */
 		29B97313FDCFA39411CA2CEA /* Project object */ = {
 			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0420;
+			};
 			buildConfigurationList = C01FCF4E08A954540054247B /* Build configuration list for PBXProject "ASIHTTPRequest" */;
-			compatibilityVersion = "Xcode 3.1";
+			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 1;
 			knownRegions = (
@@ -968,7 +968,6 @@
 				B55B60740F765A990064029C /* iphone-icon.png in Resources */,
 				B576D76611C7F4D90059B815 /* iPhoneMainWindow.xib in Resources */,
 				B523254311CA01F1006C6E5A /* Sample.xib in Resources */,
-				B50F661A1297FA45003887B1 /* strict.xcconfig in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -978,7 +977,6 @@
 			files = (
 				B56529A3101C8EDA000499CF /* iphone-tests-icon.png in Resources */,
 				B50C1848121C27510055FCAB /* client.p12 in Resources */,
-				B50F661B1297FA45003887B1 /* strict.xcconfig in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -990,7 +988,6 @@
 				B558B5EB11C7F9C8009B4627 /* iPadMainWindow.xib in Resources */,
 				B523254211CA01F1006C6E5A /* Sample.xib in Resources */,
 				B52325AD11CA05A8006C6E5A /* info.png in Resources */,
-				B50F66191297FA45003887B1 /* strict.xcconfig in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1250,7 +1247,6 @@
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				HEADER_SEARCH_PATHS = "${SDK_DIR}/usr/include/libxml2";
-				PREBINDING = NO;
 				PRODUCT_NAME = ASIHTTPRequest;
 				SDKROOT = iphoneos;
 			};
@@ -1262,9 +1258,7 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				HEADER_SEARCH_PATHS = "${SDK_DIR}/usr/include/libxml2";
-				PREBINDING = NO;
 				PRODUCT_NAME = ASIHTTPRequest;
 				SDKROOT = iphoneos;
 				ZERO_LINK = NO;
@@ -1280,7 +1274,6 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				HEADER_SEARCH_PATHS = "${SDK_DIR}/usr/include/libxml2";
 				OTHER_LDFLAGS = "-all_load";
-				PREBINDING = NO;
 				PRODUCT_NAME = ASIHTTPRequestWebPageRequest;
 				SDKROOT = iphoneos;
 			};
@@ -1292,10 +1285,8 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				HEADER_SEARCH_PATHS = "${SDK_DIR}/usr/include/libxml2";
 				OTHER_LDFLAGS = "-all_load";
-				PREBINDING = NO;
 				PRODUCT_NAME = ASIHTTPRequestWebPageRequest;
 				SDKROOT = iphoneos;
 				ZERO_LINK = NO;
@@ -1311,7 +1302,6 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				HEADER_SEARCH_PATHS = "${SDK_DIR}/usr/include/libxml2";
 				OTHER_LDFLAGS = "-all_load";
-				PREBINDING = NO;
 				PRODUCT_NAME = ASIHTTPRequestS3;
 				SDKROOT = iphoneos;
 			};
@@ -1323,10 +1313,8 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				HEADER_SEARCH_PATHS = "${SDK_DIR}/usr/include/libxml2";
 				OTHER_LDFLAGS = "-all_load";
-				PREBINDING = NO;
 				PRODUCT_NAME = ASIHTTPRequestS3;
 				SDKROOT = iphoneos;
 				ZERO_LINK = NO;
@@ -1342,7 +1330,6 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				HEADER_SEARCH_PATHS = "${SDK_DIR}/usr/include/libxml2";
 				OTHER_LDFLAGS = "-all_load";
-				PREBINDING = NO;
 				PRODUCT_NAME = ASIHTTPRequestCloudFiles;
 				SDKROOT = iphoneos;
 			};
@@ -1354,10 +1341,8 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				HEADER_SEARCH_PATHS = "${SDK_DIR}/usr/include/libxml2";
 				OTHER_LDFLAGS = "-all_load";
-				PREBINDING = NO;
 				PRODUCT_NAME = ASIHTTPRequestCloudFiles;
 				SDKROOT = iphoneos;
 				ZERO_LINK = NO;
@@ -1409,7 +1394,6 @@
 					"\"$(SRCROOT)/External/GHUnit\"",
 				);
 				GCC_C_LANGUAGE_STANDARD = "compiler-default";
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "iOS Sample/iPhone_Prefix.pch";
 				GCC_PREPROCESSOR_DEFINITIONS = "";
@@ -1423,7 +1407,6 @@
 					"-ObjC",
 					"-all_load",
 				);
-				PREBINDING = NO;
 				PRODUCT_NAME = Tests;
 				PROVISIONING_PROFILE = "";
 				SKIP_INSTALL = YES;
@@ -1442,7 +1425,7 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "iOS Sample/iPhone_Prefix.pch";
-				GCC_VERSION = com.apple.compilers.llvmgcc42;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				HEADER_SEARCH_PATHS = "${SDK_DIR}/usr/include/libxml2";
 				INFOPLIST_FILE = "iOS Sample/iPadInfo.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 3.2;
@@ -1461,7 +1444,7 @@
 				COPY_PHASE_STRIP = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "iOS Sample/iPhone_Prefix.pch";
-				GCC_VERSION = com.apple.compilers.llvmgcc42;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				HEADER_SEARCH_PATHS = "${SDK_DIR}/usr/include/libxml2";
 				INFOPLIST_FILE = "iOS Sample/iPadInfo.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 3.2;
@@ -1480,7 +1463,6 @@
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				ONLY_ACTIVE_ARCH = NO;
-				PREBINDING = NO;
 				SDKROOT = iphoneos;
 			};
 			name = Debug;
@@ -1493,7 +1475,6 @@
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				PREBINDING = NO;
 				SDKROOT = iphoneos;
 			};
 			name = Release;
