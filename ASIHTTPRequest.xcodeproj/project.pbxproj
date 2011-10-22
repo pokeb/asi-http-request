@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		D0FC980A1452293700EF5FC2 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0FC98091452293700EF5FC2 /* Cocoa.framework */; };
 		D0FC98141452293700EF5FC2 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = D0FC98121452293700EF5FC2 /* InfoPlist.strings */; };
-		D0FC982A14522A1500EF5FC2 /* README-GHUnit in Resources */ = {isa = PBXBuildFile; fileRef = D0FC982614522A1500EF5FC2 /* README-GHUnit */; };
 		D0FC988214522A1C00EF5FC2 /* ASICacheDelegate.h in Headers */ = {isa = PBXBuildFile; fileRef = D0FC983014522A1C00EF5FC2 /* ASICacheDelegate.h */; settings = {ATTRIBUTES = (); }; };
 		D0FC988314522A1C00EF5FC2 /* ASIDataCompressor.h in Headers */ = {isa = PBXBuildFile; fileRef = D0FC983114522A1C00EF5FC2 /* ASIDataCompressor.h */; settings = {ATTRIBUTES = (); }; };
 		D0FC988414522A1C00EF5FC2 /* ASIDataCompressor.m in Sources */ = {isa = PBXBuildFile; fileRef = D0FC983214522A1C00EF5FC2 /* ASIDataCompressor.m */; };
@@ -59,9 +58,9 @@
 		D0FC98D114522ABE00EF5FC2 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = D0FC98D014522ABE00EF5FC2 /* libz.dylib */; };
 		D0FC98D314522AC800EF5FC2 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0FC98D214522AC800EF5FC2 /* CoreServices.framework */; };
 		D0FC990E1452404100EF5FC2 /* ASIAuthenticationDialog.m in Sources */ = {isa = PBXBuildFile; fileRef = D0FC990B1452401800EF5FC2 /* ASIAuthenticationDialog.m */; };
-		D0FC99101452405100EF5FC2 /* Reachability.h in Headers */ = {isa = PBXBuildFile; fileRef = D0FC990014523FF500EF5FC2 /* Reachability.h */; };
+		D0FC99101452405100EF5FC2 /* Reachability.h in Headers */ = {isa = PBXBuildFile; fileRef = D0FC990014523FF500EF5FC2 /* Reachability.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D0FC99121452406D00EF5FC2 /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = D0FC990114523FF500EF5FC2 /* Reachability.m */; };
-		D0FC99131452407300EF5FC2 /* ASIAuthenticationDialog.h in Headers */ = {isa = PBXBuildFile; fileRef = D0FC990A1452401800EF5FC2 /* ASIAuthenticationDialog.h */; };
+		D0FC99131452407300EF5FC2 /* ASIAuthenticationDialog.h in Headers */ = {isa = PBXBuildFile; fileRef = D0FC990A1452401800EF5FC2 /* ASIAuthenticationDialog.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D0FC99151452408500EF5FC2 /* CFNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0FC99141452408500EF5FC2 /* CFNetwork.framework */; };
 		D0FC99171452409B00EF5FC2 /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0FC99161452409B00EF5FC2 /* MobileCoreServices.framework */; };
 		D0FC9919145240A300EF5FC2 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0FC9918145240A300EF5FC2 /* CoreGraphics.framework */; };
@@ -72,18 +71,59 @@
 		D0FC99221452414400EF5FC2 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0FC980E1452293700EF5FC2 /* Foundation.framework */; };
 		D0FC99231452415500EF5FC2 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0FC980E1452293700EF5FC2 /* Foundation.framework */; };
 		D0FC9924145241CC00EF5FC2 /* ASIHTTPRequest.h in Headers */ = {isa = PBXBuildFile; fileRef = D0FC983914522A1C00EF5FC2 /* ASIHTTPRequest.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0FC99EE14525D6300EF5FC2 /* ASIDataCompressor.m in Sources */ = {isa = PBXBuildFile; fileRef = D0FC983214522A1C00EF5FC2 /* ASIDataCompressor.m */; };
+		D0FC99EF14525D6300EF5FC2 /* ASIDataDecompressor.m in Sources */ = {isa = PBXBuildFile; fileRef = D0FC983414522A1C00EF5FC2 /* ASIDataDecompressor.m */; };
+		D0FC99F014525D6300EF5FC2 /* ASIDownloadCache.m in Sources */ = {isa = PBXBuildFile; fileRef = D0FC983614522A1C00EF5FC2 /* ASIDownloadCache.m */; };
+		D0FC99F114525D6300EF5FC2 /* ASIFormDataRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = D0FC983814522A1C00EF5FC2 /* ASIFormDataRequest.m */; };
+		D0FC99F214525D6300EF5FC2 /* ASIHTTPRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = D0FC983A14522A1C00EF5FC2 /* ASIHTTPRequest.m */; };
+		D0FC99F314525D6300EF5FC2 /* ASIInputStream.m in Sources */ = {isa = PBXBuildFile; fileRef = D0FC983E14522A1C00EF5FC2 /* ASIInputStream.m */; };
+		D0FC99F414525D6300EF5FC2 /* ASINetworkQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = D0FC984014522A1C00EF5FC2 /* ASINetworkQueue.m */; };
+		D0FC99F514525D6300EF5FC2 /* ASICloudFilesCDNRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = D0FC984714522A1C00EF5FC2 /* ASICloudFilesCDNRequest.m */; };
+		D0FC99F614525D6300EF5FC2 /* ASICloudFilesContainer.m in Sources */ = {isa = PBXBuildFile; fileRef = D0FC984914522A1C00EF5FC2 /* ASICloudFilesContainer.m */; };
+		D0FC99F714525D6300EF5FC2 /* ASICloudFilesContainerRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = D0FC984B14522A1C00EF5FC2 /* ASICloudFilesContainerRequest.m */; };
+		D0FC99F814525D6300EF5FC2 /* ASICloudFilesContainerXMLParserDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = D0FC984D14522A1C00EF5FC2 /* ASICloudFilesContainerXMLParserDelegate.m */; };
+		D0FC99F914525D6300EF5FC2 /* ASICloudFilesObject.m in Sources */ = {isa = PBXBuildFile; fileRef = D0FC984F14522A1C00EF5FC2 /* ASICloudFilesObject.m */; };
+		D0FC99FA14525D6300EF5FC2 /* ASICloudFilesObjectRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = D0FC985114522A1C00EF5FC2 /* ASICloudFilesObjectRequest.m */; };
+		D0FC99FB14525D6300EF5FC2 /* ASICloudFilesRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = D0FC985314522A1C00EF5FC2 /* ASICloudFilesRequest.m */; };
+		D0FC99FC14525D6300EF5FC2 /* ASIS3Bucket.m in Sources */ = {isa = PBXBuildFile; fileRef = D0FC985714522A1C00EF5FC2 /* ASIS3Bucket.m */; };
+		D0FC99FD14525D6300EF5FC2 /* ASIS3BucketObject.m in Sources */ = {isa = PBXBuildFile; fileRef = D0FC985914522A1C00EF5FC2 /* ASIS3BucketObject.m */; };
+		D0FC99FE14525D6300EF5FC2 /* ASIS3BucketRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = D0FC985B14522A1C00EF5FC2 /* ASIS3BucketRequest.m */; };
+		D0FC99FF14525D6300EF5FC2 /* ASIS3ObjectRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = D0FC985D14522A1C00EF5FC2 /* ASIS3ObjectRequest.m */; };
+		D0FC9A0014525D6300EF5FC2 /* ASIS3Request.m in Sources */ = {isa = PBXBuildFile; fileRef = D0FC985F14522A1C00EF5FC2 /* ASIS3Request.m */; };
+		D0FC9A0114525D6300EF5FC2 /* ASIS3ServiceRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = D0FC986114522A1C00EF5FC2 /* ASIS3ServiceRequest.m */; };
+		D0FC9A0214525D8700EF5FC2 /* ASICacheDelegate.h in Headers */ = {isa = PBXBuildFile; fileRef = D0FC983014522A1C00EF5FC2 /* ASICacheDelegate.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0FC9A0314525D8700EF5FC2 /* ASIDataCompressor.h in Headers */ = {isa = PBXBuildFile; fileRef = D0FC983114522A1C00EF5FC2 /* ASIDataCompressor.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0FC9A0414525D8700EF5FC2 /* ASIDataDecompressor.h in Headers */ = {isa = PBXBuildFile; fileRef = D0FC983314522A1C00EF5FC2 /* ASIDataDecompressor.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0FC9A0514525D8700EF5FC2 /* ASIDownloadCache.h in Headers */ = {isa = PBXBuildFile; fileRef = D0FC983514522A1C00EF5FC2 /* ASIDownloadCache.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0FC9A0614525D8700EF5FC2 /* ASIFormDataRequest.h in Headers */ = {isa = PBXBuildFile; fileRef = D0FC983714522A1C00EF5FC2 /* ASIFormDataRequest.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0FC9A0714525D8700EF5FC2 /* ASIHTTPRequestConfig.h in Headers */ = {isa = PBXBuildFile; fileRef = D0FC983B14522A1C00EF5FC2 /* ASIHTTPRequestConfig.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0FC9A0814525D8700EF5FC2 /* ASIHTTPRequestDelegate.h in Headers */ = {isa = PBXBuildFile; fileRef = D0FC983C14522A1C00EF5FC2 /* ASIHTTPRequestDelegate.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0FC9A0914525D8700EF5FC2 /* ASIInputStream.h in Headers */ = {isa = PBXBuildFile; fileRef = D0FC983D14522A1C00EF5FC2 /* ASIInputStream.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0FC9A0A14525D8700EF5FC2 /* ASINetworkQueue.h in Headers */ = {isa = PBXBuildFile; fileRef = D0FC983F14522A1C00EF5FC2 /* ASINetworkQueue.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0FC9A0B14525D8700EF5FC2 /* ASIProgressDelegate.h in Headers */ = {isa = PBXBuildFile; fileRef = D0FC984114522A1C00EF5FC2 /* ASIProgressDelegate.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0FC9A0C14525D8700EF5FC2 /* ASICloudFilesCDNRequest.h in Headers */ = {isa = PBXBuildFile; fileRef = D0FC984614522A1C00EF5FC2 /* ASICloudFilesCDNRequest.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0FC9A0D14525D8700EF5FC2 /* ASICloudFilesContainer.h in Headers */ = {isa = PBXBuildFile; fileRef = D0FC984814522A1C00EF5FC2 /* ASICloudFilesContainer.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0FC9A0E14525D8800EF5FC2 /* ASICloudFilesContainerRequest.h in Headers */ = {isa = PBXBuildFile; fileRef = D0FC984A14522A1C00EF5FC2 /* ASICloudFilesContainerRequest.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0FC9A0F14525D8800EF5FC2 /* ASICloudFilesContainerXMLParserDelegate.h in Headers */ = {isa = PBXBuildFile; fileRef = D0FC984C14522A1C00EF5FC2 /* ASICloudFilesContainerXMLParserDelegate.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0FC9A1014525D8800EF5FC2 /* ASICloudFilesObject.h in Headers */ = {isa = PBXBuildFile; fileRef = D0FC984E14522A1C00EF5FC2 /* ASICloudFilesObject.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0FC9A1114525D8800EF5FC2 /* ASICloudFilesObjectRequest.h in Headers */ = {isa = PBXBuildFile; fileRef = D0FC985014522A1C00EF5FC2 /* ASICloudFilesObjectRequest.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0FC9A1214525D8800EF5FC2 /* ASICloudFilesRequest.h in Headers */ = {isa = PBXBuildFile; fileRef = D0FC985214522A1C00EF5FC2 /* ASICloudFilesRequest.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0FC9A1314525D8800EF5FC2 /* ASINSXMLParserCompat.h in Headers */ = {isa = PBXBuildFile; fileRef = D0FC985514522A1C00EF5FC2 /* ASINSXMLParserCompat.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0FC9A1414525D8800EF5FC2 /* ASIS3Bucket.h in Headers */ = {isa = PBXBuildFile; fileRef = D0FC985614522A1C00EF5FC2 /* ASIS3Bucket.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0FC9A1514525D8800EF5FC2 /* ASIS3BucketObject.h in Headers */ = {isa = PBXBuildFile; fileRef = D0FC985814522A1C00EF5FC2 /* ASIS3BucketObject.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0FC9A1614525D8800EF5FC2 /* ASIS3BucketRequest.h in Headers */ = {isa = PBXBuildFile; fileRef = D0FC985A14522A1C00EF5FC2 /* ASIS3BucketRequest.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0FC9A1714525D8800EF5FC2 /* ASIS3ObjectRequest.h in Headers */ = {isa = PBXBuildFile; fileRef = D0FC985C14522A1C00EF5FC2 /* ASIS3ObjectRequest.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0FC9A1814525D8800EF5FC2 /* ASIS3Request.h in Headers */ = {isa = PBXBuildFile; fileRef = D0FC985E14522A1C00EF5FC2 /* ASIS3Request.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D0FC9A1914525D8800EF5FC2 /* ASIS3ServiceRequest.h in Headers */ = {isa = PBXBuildFile; fileRef = D0FC986014522A1C00EF5FC2 /* ASIS3ServiceRequest.h */; settings = {ATTRIBUTES = (Public, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		D0FC98061452293700EF5FC2 /* ASIHTTPRequest.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = ASIHTTPRequest.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		D0FC98091452293700EF5FC2 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
-		D0FC980C1452293700EF5FC2 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
-		D0FC980D1452293700EF5FC2 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
 		D0FC980E1452293700EF5FC2 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		D0FC98111452293700EF5FC2 /* ASIHTTPRequest-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "ASIHTTPRequest-Info.plist"; sourceTree = "<group>"; };
 		D0FC98131452293700EF5FC2 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		D0FC98151452293700EF5FC2 /* ASIHTTPRequest-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ASIHTTPRequest-Prefix.pch"; sourceTree = "<group>"; };
-		D0FC982614522A1500EF5FC2 /* README-GHUnit */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "README-GHUnit"; sourceTree = "<group>"; };
 		D0FC983014522A1C00EF5FC2 /* ASICacheDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASICacheDelegate.h; sourceTree = "<group>"; };
 		D0FC983114522A1C00EF5FC2 /* ASIDataCompressor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIDataCompressor.h; sourceTree = "<group>"; };
 		D0FC983214522A1C00EF5FC2 /* ASIDataCompressor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIDataCompressor.m; sourceTree = "<group>"; };
@@ -150,10 +190,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				D0FC98D314522AC800EF5FC2 /* CoreServices.framework in Frameworks */,
-				D0FC98D114522ABE00EF5FC2 /* libz.dylib in Frameworks */,
 				D0FC98CF14522A9F00EF5FC2 /* SystemConfiguration.framework in Frameworks */,
 				D0FC980A1452293700EF5FC2 /* Cocoa.framework in Frameworks */,
 				D0FC99231452415500EF5FC2 /* Foundation.framework in Frameworks */,
+				D0FC98D114522ABE00EF5FC2 /* libz.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -197,31 +237,20 @@
 		D0FC98081452293700EF5FC2 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				D0FC98D014522ABE00EF5FC2 /* libz.dylib */,
 				D0FC991A145240BC00EF5FC2 /* iOS Frameworks */,
-				D0FC98091452293700EF5FC2 /* Cocoa.framework */,
-				D0FC98D214522AC800EF5FC2 /* CoreServices.framework */,
-				D0FC98CE14522A9E00EF5FC2 /* SystemConfiguration.framework */,
 				D0FC980E1452293700EF5FC2 /* Foundation.framework */,
-				D0FC980B1452293700EF5FC2 /* Other Frameworks */,
+				D0FC98CE14522A9E00EF5FC2 /* SystemConfiguration.framework */,
+				D0FC98D214522AC800EF5FC2 /* CoreServices.framework */,
+				D0FC98091452293700EF5FC2 /* Cocoa.framework */,
+				D0FC98D014522ABE00EF5FC2 /* libz.dylib */,
 			);
 			name = Frameworks;
-			sourceTree = "<group>";
-		};
-		D0FC980B1452293700EF5FC2 /* Other Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-				D0FC980C1452293700EF5FC2 /* AppKit.framework */,
-				D0FC980D1452293700EF5FC2 /* CoreData.framework */,
-			);
-			name = "Other Frameworks";
 			sourceTree = "<group>";
 		};
 		D0FC980F1452293700EF5FC2 /* ASIHTTPRequestFramework */ = {
 			isa = PBXGroup;
 			children = (
 				D0FC982D14522A1C00EF5FC2 /* Classes */,
-				D0FC982414522A1500EF5FC2 /* External */,
 				D0FC98101452293700EF5FC2 /* Supporting Files */,
 			);
 			name = ASIHTTPRequestFramework;
@@ -236,22 +265,6 @@
 				D0FC98151452293700EF5FC2 /* ASIHTTPRequest-Prefix.pch */,
 			);
 			name = "Supporting Files";
-			sourceTree = "<group>";
-		};
-		D0FC982414522A1500EF5FC2 /* External */ = {
-			isa = PBXGroup;
-			children = (
-				D0FC982514522A1500EF5FC2 /* GHUnit */,
-			);
-			path = External;
-			sourceTree = SOURCE_ROOT;
-		};
-		D0FC982514522A1500EF5FC2 /* GHUnit */ = {
-			isa = PBXGroup;
-			children = (
-				D0FC982614522A1500EF5FC2 /* README-GHUnit */,
-			);
-			path = GHUnit;
 			sourceTree = "<group>";
 		};
 		D0FC982D14522A1C00EF5FC2 /* Classes */ = {
@@ -408,9 +421,33 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D0FC9924145241CC00EF5FC2 /* ASIHTTPRequest.h in Headers */,
+				D0FC9A0214525D8700EF5FC2 /* ASICacheDelegate.h in Headers */,
+				D0FC9A0314525D8700EF5FC2 /* ASIDataCompressor.h in Headers */,
+				D0FC9A0414525D8700EF5FC2 /* ASIDataDecompressor.h in Headers */,
+				D0FC9A0514525D8700EF5FC2 /* ASIDownloadCache.h in Headers */,
+				D0FC9A0614525D8700EF5FC2 /* ASIFormDataRequest.h in Headers */,
+				D0FC9A0714525D8700EF5FC2 /* ASIHTTPRequestConfig.h in Headers */,
+				D0FC9A0814525D8700EF5FC2 /* ASIHTTPRequestDelegate.h in Headers */,
+				D0FC9A0914525D8700EF5FC2 /* ASIInputStream.h in Headers */,
+				D0FC9A0A14525D8700EF5FC2 /* ASINetworkQueue.h in Headers */,
+				D0FC9A0B14525D8700EF5FC2 /* ASIProgressDelegate.h in Headers */,
+				D0FC9A0C14525D8700EF5FC2 /* ASICloudFilesCDNRequest.h in Headers */,
+				D0FC9A0D14525D8700EF5FC2 /* ASICloudFilesContainer.h in Headers */,
+				D0FC9A0E14525D8800EF5FC2 /* ASICloudFilesContainerRequest.h in Headers */,
+				D0FC9A0F14525D8800EF5FC2 /* ASICloudFilesContainerXMLParserDelegate.h in Headers */,
+				D0FC9A1014525D8800EF5FC2 /* ASICloudFilesObject.h in Headers */,
+				D0FC9A1114525D8800EF5FC2 /* ASICloudFilesObjectRequest.h in Headers */,
+				D0FC9A1214525D8800EF5FC2 /* ASICloudFilesRequest.h in Headers */,
+				D0FC9A1314525D8800EF5FC2 /* ASINSXMLParserCompat.h in Headers */,
+				D0FC9A1414525D8800EF5FC2 /* ASIS3Bucket.h in Headers */,
+				D0FC9A1514525D8800EF5FC2 /* ASIS3BucketObject.h in Headers */,
+				D0FC9A1614525D8800EF5FC2 /* ASIS3BucketRequest.h in Headers */,
+				D0FC9A1714525D8800EF5FC2 /* ASIS3ObjectRequest.h in Headers */,
+				D0FC9A1814525D8800EF5FC2 /* ASIS3Request.h in Headers */,
+				D0FC9A1914525D8800EF5FC2 /* ASIS3ServiceRequest.h in Headers */,
 				D0FC99131452407300EF5FC2 /* ASIAuthenticationDialog.h in Headers */,
 				D0FC99101452405100EF5FC2 /* Reachability.h in Headers */,
+				D0FC9924145241CC00EF5FC2 /* ASIHTTPRequest.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -485,7 +522,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				D0FC98141452293700EF5FC2 /* InfoPlist.strings in Resources */,
-				D0FC982A14522A1500EF5FC2 /* README-GHUnit in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -523,6 +559,26 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D0FC99EE14525D6300EF5FC2 /* ASIDataCompressor.m in Sources */,
+				D0FC99EF14525D6300EF5FC2 /* ASIDataDecompressor.m in Sources */,
+				D0FC99F014525D6300EF5FC2 /* ASIDownloadCache.m in Sources */,
+				D0FC99F114525D6300EF5FC2 /* ASIFormDataRequest.m in Sources */,
+				D0FC99F214525D6300EF5FC2 /* ASIHTTPRequest.m in Sources */,
+				D0FC99F314525D6300EF5FC2 /* ASIInputStream.m in Sources */,
+				D0FC99F414525D6300EF5FC2 /* ASINetworkQueue.m in Sources */,
+				D0FC99F514525D6300EF5FC2 /* ASICloudFilesCDNRequest.m in Sources */,
+				D0FC99F614525D6300EF5FC2 /* ASICloudFilesContainer.m in Sources */,
+				D0FC99F714525D6300EF5FC2 /* ASICloudFilesContainerRequest.m in Sources */,
+				D0FC99F814525D6300EF5FC2 /* ASICloudFilesContainerXMLParserDelegate.m in Sources */,
+				D0FC99F914525D6300EF5FC2 /* ASICloudFilesObject.m in Sources */,
+				D0FC99FA14525D6300EF5FC2 /* ASICloudFilesObjectRequest.m in Sources */,
+				D0FC99FB14525D6300EF5FC2 /* ASICloudFilesRequest.m in Sources */,
+				D0FC99FC14525D6300EF5FC2 /* ASIS3Bucket.m in Sources */,
+				D0FC99FD14525D6300EF5FC2 /* ASIS3BucketObject.m in Sources */,
+				D0FC99FE14525D6300EF5FC2 /* ASIS3BucketRequest.m in Sources */,
+				D0FC99FF14525D6300EF5FC2 /* ASIS3ObjectRequest.m in Sources */,
+				D0FC9A0014525D6300EF5FC2 /* ASIS3Request.m in Sources */,
+				D0FC9A0114525D6300EF5FC2 /* ASIS3ServiceRequest.m in Sources */,
 				D0FC99121452406D00EF5FC2 /* Reachability.m in Sources */,
 				D0FC990E1452404100EF5FC2 /* ASIAuthenticationDialog.m in Sources */,
 			);
@@ -545,8 +601,8 @@
 		D0FC98191452293700EF5FC2 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				ALWAYS_SEARCH_USER_PATHS = YES;
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				COPY_PHASE_STRIP = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
@@ -562,7 +618,7 @@
 				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
 			};
@@ -571,8 +627,8 @@
 		D0FC981A1452293700EF5FC2 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				ALWAYS_SEARCH_USER_PATHS = YES;
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
@@ -582,7 +638,7 @@
 				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				SDKROOT = macosx;
 			};
 			name = Release;
@@ -590,6 +646,8 @@
 		D0FC981C1452293700EF5FC2 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				FRAMEWORK_VERSION = A;
@@ -597,6 +655,7 @@
 				GCC_PREFIX_HEADER = "ASIHTTPRequest/ASIHTTPRequest-Prefix.pch";
 				INFOPLIST_FILE = "ASIHTTPRequest/ASIHTTPRequest-Info.plist";
 				PRODUCT_NAME = ASIHTTPRequest;
+				VERSIONING_SYSTEM = "apple-generic";
 				WRAPPER_EXTENSION = framework;
 			};
 			name = Debug;
@@ -604,6 +663,8 @@
 		D0FC981D1452293700EF5FC2 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				FRAMEWORK_VERSION = A;
@@ -611,6 +672,7 @@
 				GCC_PREFIX_HEADER = "ASIHTTPRequest/ASIHTTPRequest-Prefix.pch";
 				INFOPLIST_FILE = "ASIHTTPRequest/ASIHTTPRequest-Info.plist";
 				PRODUCT_NAME = ASIHTTPRequest;
+				VERSIONING_SYSTEM = "apple-generic";
 				WRAPPER_EXTENSION = framework;
 			};
 			name = Release;
@@ -618,35 +680,47 @@
 		D0FC98FA14523F3C00EF5FC2 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				COPY_PHASE_STRIP = YES;
 				DSTROOT = /tmp/ASIHTTPRequestLibrary.dst;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "ASIHTTPRequestLibrary/ASIHTTPRequestLibrary-Prefix.pch";
-				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 4.3;
+				LIBRARY_SEARCH_PATHS = (
+					include/,
+					"$(BUILT_PRODUCTS_DIR)/usr/local/lib/include/",
+				);
 				OTHER_LDFLAGS = "-ObjC";
-				PRIVATE_HEADERS_FOLDER_PATH = "include/$(PROJECT_NAME)";
+				PRIVATE_HEADERS_FOLDER_PATH = /usr/local/include;
 				PRODUCT_NAME = ASIHTTPRequest;
-				PUBLIC_HEADERS_FOLDER_PATH = include;
+				PUBLIC_HEADERS_FOLDER_PATH = "include/$(PROJECT_NAME)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
+				VALIDATE_PRODUCT = NO;
+				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Debug;
 		};
 		D0FC98FB14523F3C00EF5FC2 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				COPY_PHASE_STRIP = YES;
 				DSTROOT = /tmp/ASIHTTPRequestLibrary.dst;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "ASIHTTPRequestLibrary/ASIHTTPRequestLibrary-Prefix.pch";
-				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 4.3;
+				LIBRARY_SEARCH_PATHS = "$(TARGET_BUILD_DIR)/include/";
 				OTHER_LDFLAGS = "-ObjC";
-				PRIVATE_HEADERS_FOLDER_PATH = "include/$(PROJECT_NAME)";
+				PRIVATE_HEADERS_FOLDER_PATH = /usr/local/include;
 				PRODUCT_NAME = ASIHTTPRequest;
-				PUBLIC_HEADERS_FOLDER_PATH = include;
+				PUBLIC_HEADERS_FOLDER_PATH = "include/$(PROJECT_NAME)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
-				VALIDATE_PRODUCT = YES;
+				VALIDATE_PRODUCT = NO;
+				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Release;
 		};
@@ -678,6 +752,7 @@
 				D0FC98FB14523F3C00EF5FC2 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
