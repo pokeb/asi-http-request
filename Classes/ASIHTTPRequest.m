@@ -1200,41 +1200,40 @@ static NSOperationQueue *sharedQueue = nil;
 
     if([[[[self url] scheme] lowercaseString] isEqualToString:@"https"]) {       
        
+			NSMutableDictionary *sslProperties = [[[NSMutableDictionary alloc] initWithCapacity:1] autorelease];
+
         // Tell CFNetwork not to validate SSL certificates
         if (![self validatesSecureCertificate]) {
             // see: http://iphonedevelopment.blogspot.com/2010/05/nsstream-tcp-and-ssl.html
             
-            NSDictionary *sslProperties = [[NSDictionary alloc] initWithObjectsAndKeys:
+            sslProperties = [[[NSMutableDictionary alloc] initWithObjectsAndKeys:
                                       [NSNumber numberWithBool:YES], kCFStreamSSLAllowsExpiredCertificates,
                                       [NSNumber numberWithBool:YES], kCFStreamSSLAllowsAnyRoot,
                                       [NSNumber numberWithBool:NO],  kCFStreamSSLValidatesCertificateChain,
-                                      kCFNull,kCFStreamSSLPeerName,
-                                      nil];
-            
-            CFReadStreamSetProperty((CFReadStreamRef)[self readStream], 
-                                    kCFStreamPropertySSLSettings, 
-                                    (CFTypeRef)sslProperties);
+																					 kCFNull,kCFStreamSSLPeerName,
+                                      nil] autorelease];
+					
+					
         } 
         
         // Tell CFNetwork to use a client certificate
         if (clientCertificateIdentity) {
-            NSMutableDictionary *sslProperties = [NSMutableDictionary dictionaryWithCapacity:1];
             
-			NSMutableArray *certificates = [NSMutableArray arrayWithCapacity:[clientCertificates count]+1];
+					NSMutableArray *certificates = [NSMutableArray arrayWithCapacity:[clientCertificates count]+1];
 
-			// The first object in the array is our SecIdentityRef
-			[certificates addObject:(id)clientCertificateIdentity];
+					// The first object in the array is our SecIdentityRef
+					[certificates addObject:(id)clientCertificateIdentity];
 
-			// If we've added any additional certificates, add them too
-			for (id cert in clientCertificates) {
-				[certificates addObject:cert];
-			}
+					// If we've added any additional certificates, add them too
+					for (id cert in clientCertificates) {
+						[certificates addObject:cert];
+					}
+								
+								[sslProperties setObject:certificates forKey:(NSString *)kCFStreamSSLCertificates];
             
-            [sslProperties setObject:certificates forKey:(NSString *)kCFStreamSSLCertificates];
-            
-            CFReadStreamSetProperty((CFReadStreamRef)[self readStream], kCFStreamPropertySSLSettings, sslProperties);
         }
-        
+			CFReadStreamSetProperty((CFReadStreamRef)[self readStream], kCFStreamPropertySSLSettings,(CFTypeRef)sslProperties);
+			
     }
 
 	//
