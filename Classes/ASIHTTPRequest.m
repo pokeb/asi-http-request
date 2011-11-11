@@ -460,6 +460,11 @@ static NSOperationQueue *sharedQueue = nil;
 		[authenticationNeededBlock release];
 		authenticationNeededBlock = nil;
 	}
+	if (requestRedirectedBlock) {
+		[blocks addObject:requestRedirectedBlock];
+		[requestRedirectedBlock release];
+		requestRedirectedBlock = nil;
+	}
 	[[self class] performSelectorOnMainThread:@selector(releaseBlocks:) withObject:blocks waitUntilDone:[NSThread isMainThread]];
 }
 // Always called on main thread
