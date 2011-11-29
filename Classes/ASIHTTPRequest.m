@@ -24,7 +24,7 @@
 #import "ASIDataCompressor.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.8.1-61 2011-09-19";
+NSString *ASIHTTPRequestVersion = @"v1.8.1-71 2011-11-30";
 
 static NSString *defaultUserAgent = nil;
 
@@ -140,6 +140,7 @@ static NSOperationQueue *sharedQueue = nil;
 // Private stuff
 @interface ASIHTTPRequest ()
 
+- (void)requestRedirected;
 - (void)cancelLoad;
 
 - (void)destroyReadStream;
@@ -1466,7 +1467,7 @@ static NSOperationQueue *sharedQueue = nil;
 	} else {
 		// Go all the way back to the beginning and build the request again, so that we can apply any new cookies
 		[self main];
-        [self performSelectorOnMainThread:@selector(requestRedirected) withObject:nil waitUntilDone:[NSThread isMainThread]];
+		[self performSelectorOnMainThread:@selector(requestRedirected) withObject:nil waitUntilDone:[NSThread isMainThread]];
 	}
 }
 
