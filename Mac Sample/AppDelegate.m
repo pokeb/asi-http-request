@@ -35,7 +35,7 @@
 
 - (id)init
 {
-	[super init];
+	self = [super init];
 	networkQueue = [[ASINetworkQueue alloc] init];
 	[NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(updateBandwidthUsageIndicator) userInfo:nil repeats:YES];
 	return self;
