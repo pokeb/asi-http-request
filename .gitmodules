@@ -1,0 +1,3 @@
+[submodule "External/GHUnit"]
+	path = External/GHUnit
+	url = /Users/eggers/GHUnit
