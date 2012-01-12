@@ -1,3 +1,0 @@
-This folder is where ASIHTTPRequest looks for GHUnit frameworks.
-
-When you run one of the test targets, a build script will attempt to download a pre-compiled framework and install it here, if one does not already exist. If you would prefer to build GHUnit yourself, simply grab a copy from https://github.com/gabriel/gh-unit, and drop your built framework in this folder.
