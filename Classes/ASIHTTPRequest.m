@@ -3515,7 +3515,7 @@ static NSOperationQueue *sharedQueue = nil;
 		
 	// If request has asked delegate or ASIAuthenticationDialog for credentials
 	} else if ([self authenticationNeeded]) {
-		CFRunLoopStop(CFRunLoopGetCurrent());
+        // Do nothing.
 	}
 
 }
@@ -3554,8 +3554,6 @@ static NSOperationQueue *sharedQueue = nil;
         [self didChangeValueForKey:@"isExecuting"];
     if (!wasFinished)
         [self didChangeValueForKey:@"isFinished"];
-
-	CFRunLoopStop(CFRunLoopGetCurrent());
 
 	#if TARGET_OS_IPHONE && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_4_0
 	if ([ASIHTTPRequest isMultitaskingSupported] && [self shouldContinueWhenAppEntersBackground]) {
@@ -4795,7 +4793,7 @@ static NSOperationQueue *sharedQueue = nil;
     BOOL runAlways = YES; // Introduced to cheat Static Analyzer
 	while (runAlways) {
 		NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-		CFRunLoopRun();
+        CFRunLoopRunInMode(kCFRunLoopDefaultMode, 1.0e10, true);
 		[pool drain];
 	}
 
