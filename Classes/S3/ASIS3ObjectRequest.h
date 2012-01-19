@@ -39,6 +39,9 @@ extern NSString *const ASIS3StorageClassReducedRedundancy;
 	// Set this to ASIS3StorageClassReducedRedundancy to save money on storage, at (presumably) a slightly higher risk you will lose the data
 	// If this is not set, no x-amz-storage-class header will be sent to S3, and their default will be used
 	NSString *storageClass;
+    
+    // If this is not set, no x-amz-security-token header will be sent to S3, and their default will be used
+    NSString *securityToken;
 }
 
 // Create a request, building an appropriate url
@@ -77,4 +80,5 @@ extern NSString *const ASIS3StorageClassReducedRedundancy;
 @property (retain, nonatomic) NSString *mimeType;
 @property (retain, nonatomic) NSString *subResource;
 @property (retain, nonatomic) NSString *storageClass;
+@property (retain, nonatomic) NSString *securityToken;
 @end
