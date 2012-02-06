@@ -216,7 +216,10 @@ static const NSUInteger kDomainSection = 1;
 
 + (void)dismiss
 {
-	[[sharedDialog parentViewController] dismissModalViewControllerAnimated:YES];
+	if ([sharedDialog respondsToSelector:@selector(presentingViewController)])
+		[[sharedDialog presentingViewController] dismissModalViewControllerAnimated:YES];
+	else 
+		[[sharedDialog parentViewController] dismissModalViewControllerAnimated:YES];
 }
 
 - (void)viewDidDisappear:(BOOL)animated
@@ -233,7 +236,10 @@ static const NSUInteger kDomainSection = 1;
 	if (self == sharedDialog) {
 		[[self class] dismiss];
 	} else {
-		[[self parentViewController] dismissModalViewControllerAnimated:YES];
+		if ([self respondsToSelector:@selector(presentingViewController)])
+			[[self presentingViewController] dismissModalViewControllerAnimated:YES];
+		else
+			[[self parentViewController] dismissModalViewControllerAnimated:YES];
 	}
 }
 
