@@ -17,6 +17,35 @@
 
 @implementation ASIFormDataRequestTests
 
+
+-(void)testDefaultMethod
+{
+    ASIFormDataRequest *request = [[[ASIFormDataRequest alloc] initWithURL:[NSURL URLWithString:@"http://wedontcare.com"]] autorelease];
+    
+    GHAssertTrue([[request requestMethod] isEqualToString:@"POST"], @"Default request method should be POST");
+}
+
+- (void)testAddNilKeysAndValues
+{
+	ASIFormDataRequest *request = [ASIFormDataRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/empty-post-value"]];
+	[request setPostValue:nil forKey:@"key1"];
+	[request setPostValue:@"value2" forKey:@"key2"];
+	[request setData:nil forKey:@"file1"];
+	[request setData:[@"hello" dataUsingEncoding:NSUTF8StringEncoding] forKey:@"file2"];
+	[request startSynchronous];
+	BOOL success = ([[request responseString] isEqualToString:@"key1: \r\nkey2: value2\r\nfile1: \r\nfile2: hello"]);
+	GHAssertTrue(success, @"Sent wrong data");
+
+	// Test nil key (no key or value should be sent to the server)
+	request = [ASIFormDataRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
+	[request addPostValue:@"value1" forKey:nil];
+	[request addPostValue:@"value2" forKey:@"key2"];
+	[request buildPostBody];
+	NSString *postBody = [[[NSString alloc] initWithData:[request postBody] encoding:NSUTF8StringEncoding] autorelease];
+	success = ([postBody isEqualToString:@"key2=value2"]);
+	GHAssertTrue(success, @"Sent wrong data");
+}
+
 - (void)testPostWithFileUpload
 {
 	NSURL *url = [NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/post"];
