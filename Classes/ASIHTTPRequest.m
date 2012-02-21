@@ -181,6 +181,9 @@ static NSOperationQueue *sharedQueue = nil;
 
 - (void)useDataFromCache;
 
+- (NSInputStream *)assignConnectionInfo;
+- (void)setSslProperties;
+
 // Called to update the size of a partial download when starting a request, or retrying after a timeout
 - (void)updatePartialDownloadSize;
 
@@ -1160,6 +1163,120 @@ static NSOperationQueue *sharedQueue = nil;
     return NO;
 }
 
+- (void)setSslProperties
+{    
+    // Tell CFNetwork not to validate SSL certificates.
+    if (![self validatesSecureCertificate]) {
+        // see: http://iphonedevelopment.blogspot.com/2010/05/nsstream-tcp-and-ssl.html
+        
+        NSDictionary *sslProperties = [[NSDictionary alloc] initWithObjectsAndKeys:
+                                       [NSNumber numberWithBool:YES], kCFStreamSSLAllowsExpiredCertificates,
+                                       [NSNumber numberWithBool:YES], kCFStreamSSLAllowsAnyRoot,
+                                       [NSNumber numberWithBool:NO],  kCFStreamSSLValidatesCertificateChain,
+                                       kCFNull,kCFStreamSSLPeerName,
+                                       nil];
+        
+        CFReadStreamSetProperty((CFReadStreamRef)[self readStream], 
+                                kCFStreamPropertySSLSettings, 
+                                (CFTypeRef)sslProperties);
+        [sslProperties release];
+    } 
+    
+    // Tell CFNetwork to use a client certificate.
+    if (clientCertificateIdentity) {
+        NSMutableDictionary *sslProperties = [NSMutableDictionary dictionaryWithCapacity:1];
+        
+        NSMutableArray *certificates = [NSMutableArray arrayWithCapacity:[clientCertificates count]+1];
+        
+        // The first object in the array is our SecIdentityRef
+        [certificates addObject:(id)clientCertificateIdentity];
+        
+        // If we've added any additional certificates, add them too
+        for (id cert in clientCertificates) {
+            [certificates addObject:cert];
+        }
+        
+        [sslProperties setObject:certificates forKey:(NSString *)kCFStreamSSLCertificates];
+        
+        CFReadStreamSetProperty((CFReadStreamRef)[self readStream], kCFStreamPropertySSLSettings, sslProperties);
+    }
+}
+
+// url.Host and url.scheme must be set when this method is called.
+- (NSInputStream *)assignConnectionInfo
+{
+    NSInputStream *oldStream = nil;
+    
+    // If we are redirecting, we will re-use the current connection only if we are connecting to the same server
+    if ([self connectionInfo]) {
+        if (![[[self connectionInfo] objectForKey:@"host"] isEqualToString:[[self url] host]] || ![[[self connectionInfo] objectForKey:@"scheme"] isEqualToString:[[self url] scheme]] || [(NSNumber *)[[self connectionInfo] objectForKey:@"port"] intValue] != [[[self url] port] intValue]) {
+            [self setConnectionInfo:nil];
+            
+			// Check if we should have expired this connection
+        } else if ([[[self connectionInfo] objectForKey:@"expires"] timeIntervalSinceNow] < 0) {
+#if DEBUG_PERSISTENT_CONNECTIONS
+            ASI_DEBUG_LOG(@"[CONNECTION] Not re-using connection #%i because it has expired",[[[self connectionInfo] objectForKey:@"id"] intValue]);
+#endif
+            [persistentConnectionsPool removeObject:[self connectionInfo]];
+            [self setConnectionInfo:nil];
+            
+        } else if ([[self connectionInfo] objectForKey:@"request"] != nil) {
+            // Some other request reused this connection already - we'll have to create a new one
+#if DEBUG_PERSISTENT_CONNECTIONS
+            ASI_DEBUG_LOG(@"%@ - Not re-using connection #%i for request #%i because it is already used by request #%i",self,[[[self connectionInfo] objectForKey:@"id"] intValue],[[self requestID] intValue],[[[self connectionInfo] objectForKey:@"request"] intValue]);
+#endif
+            [self setConnectionInfo:nil];
+        }
+    }
+    
+    
+    
+    if (![self connectionInfo]) {
+        // Look for a connection to the same server in the pool
+        for (NSMutableDictionary *existingConnection in persistentConnectionsPool) {
+            if (![existingConnection objectForKey:@"request"] && [[existingConnection objectForKey:@"host"] isEqualToString:[[self url] host]] && [[existingConnection objectForKey:@"scheme"] isEqualToString:[[self url] scheme]] && [(NSNumber *)[existingConnection objectForKey:@"port"] intValue] == [[[self url] port] intValue]) {
+                [self setConnectionInfo:existingConnection];
+            }
+        }
+    }
+    
+    if ([[self connectionInfo] objectForKey:@"stream"]) {
+        oldStream = [[[self connectionInfo] objectForKey:@"stream"] retain];
+        
+    }
+    
+    // No free connection was found in the pool matching the server/scheme/port we're connecting to, we'll need to create a new one
+    if (![self connectionInfo]) {
+        [self setConnectionInfo:[NSMutableDictionary dictionary]];
+        nextConnectionNumberToCreate++;
+        [[self connectionInfo] setObject:[NSNumber numberWithInt:nextConnectionNumberToCreate] forKey:@"id"];
+        [[self connectionInfo] setObject:[[self url] host] forKey:@"host"];
+        [[self connectionInfo] setObject:[NSNumber numberWithInt:[[[self url] port] intValue]] forKey:@"port"];
+        [[self connectionInfo] setObject:[[self url] scheme] forKey:@"scheme"];
+        [persistentConnectionsPool addObject:[self connectionInfo]];
+    }
+    
+    // If we are retrying this request, it will already have a requestID
+    if (![self requestID]) {
+        nextRequestID++;
+        [self setRequestID:[NSNumber numberWithUnsignedInt:nextRequestID]];
+    }
+    [[self connectionInfo] setObject:[self requestID] forKey:@"request"];		
+    [[self connectionInfo] setObject:[self readStream] forKey:@"stream"];
+    CFReadStreamSetProperty((CFReadStreamRef)[self readStream],  kCFStreamPropertyHTTPAttemptPersistentConnection, kCFBooleanTrue);
+
+    // Tag the stream with an id that tells it which connection to use behind the scenes
+    // See http://lists.apple.com/archives/macnetworkprog/2008/Dec/msg00001.html for details on this approach
+    CFReadStreamSetProperty((CFReadStreamRef)[self readStream], CFSTR("ASIStreamID"), [[self connectionInfo] objectForKey:@"id"]);
+	
+
+#if DEBUG_PERSISTENT_CONNECTIONS
+    ASI_DEBUG_LOG(@"[CONNECTION] Request #%@ will use connection #%i",[self requestID],[[[self connectionInfo] objectForKey:@"id"] intValue]);
+#endif
+    
+    return oldStream;
+}
+
 - (void)startRequest
 {
 	if ([self isCancelled]) {
@@ -1210,44 +1327,8 @@ static NSOperationQueue *sharedQueue = nil;
     // Handle SSL certificate settings
     //
 
-    if([[[[self url] scheme] lowercaseString] isEqualToString:@"https"]) {       
-       
-        // Tell CFNetwork not to validate SSL certificates
-        if (![self validatesSecureCertificate]) {
-            // see: http://iphonedevelopment.blogspot.com/2010/05/nsstream-tcp-and-ssl.html
-            
-            NSDictionary *sslProperties = [[NSDictionary alloc] initWithObjectsAndKeys:
-                                      [NSNumber numberWithBool:YES], kCFStreamSSLAllowsExpiredCertificates,
-                                      [NSNumber numberWithBool:YES], kCFStreamSSLAllowsAnyRoot,
-                                      [NSNumber numberWithBool:NO],  kCFStreamSSLValidatesCertificateChain,
-                                      kCFNull,kCFStreamSSLPeerName,
-                                      nil];
-            
-            CFReadStreamSetProperty((CFReadStreamRef)[self readStream], 
-                                    kCFStreamPropertySSLSettings, 
-                                    (CFTypeRef)sslProperties);
-            [sslProperties release];
-        } 
-        
-        // Tell CFNetwork to use a client certificate
-        if (clientCertificateIdentity) {
-            NSMutableDictionary *sslProperties = [NSMutableDictionary dictionaryWithCapacity:1];
-            
-			NSMutableArray *certificates = [NSMutableArray arrayWithCapacity:[clientCertificates count]+1];
-
-			// The first object in the array is our SecIdentityRef
-			[certificates addObject:(id)clientCertificateIdentity];
-
-			// If we've added any additional certificates, add them too
-			for (id cert in clientCertificates) {
-				[certificates addObject:cert];
-			}
-            
-            [sslProperties setObject:certificates forKey:(NSString *)kCFStreamSSLCertificates];
-            
-            CFReadStreamSetProperty((CFReadStreamRef)[self readStream], kCFStreamPropertySSLSettings, sslProperties);
-        }
-        
+    if([[[[self url] scheme] lowercaseString] isEqualToString:@"https"]) {
+        [self setSslProperties];
     }
 
 	//
@@ -1302,78 +1383,7 @@ static NSOperationQueue *sharedQueue = nil;
 	
 	// Use a persistent connection if possible
 	if ([self shouldAttemptPersistentConnection]) {
-		
-
-		// If we are redirecting, we will re-use the current connection only if we are connecting to the same server
-		if ([self connectionInfo]) {
-			
-			if (![[[self connectionInfo] objectForKey:@"host"] isEqualToString:[[self url] host]] || ![[[self connectionInfo] objectForKey:@"scheme"] isEqualToString:[[self url] scheme]] || [(NSNumber *)[[self connectionInfo] objectForKey:@"port"] intValue] != [[[self url] port] intValue]) {
-				[self setConnectionInfo:nil];
-
-			// Check if we should have expired this connection
-			} else if ([[[self connectionInfo] objectForKey:@"expires"] timeIntervalSinceNow] < 0) {
-				#if DEBUG_PERSISTENT_CONNECTIONS
-				ASI_DEBUG_LOG(@"[CONNECTION] Not re-using connection #%i because it has expired",[[[self connectionInfo] objectForKey:@"id"] intValue]);
-				#endif
-				[persistentConnectionsPool removeObject:[self connectionInfo]];
-				[self setConnectionInfo:nil];
-
-			} else if ([[self connectionInfo] objectForKey:@"request"] != nil) {
-                //Some other request reused this connection already - we'll have to create a new one
-				#if DEBUG_PERSISTENT_CONNECTIONS
-                ASI_DEBUG_LOG(@"%@ - Not re-using connection #%i for request #%i because it is already used by request #%i",self,[[[self connectionInfo] objectForKey:@"id"] intValue],[[self requestID] intValue],[[[self connectionInfo] objectForKey:@"request"] intValue]);
-				#endif
-                [self setConnectionInfo:nil];
-            }
-		}
-		
-		
-		
-		if (![self connectionInfo] && [[self url] host] && [[self url] scheme]) { // We must have a proper url with a host and scheme, or this will explode
-			
-			// Look for a connection to the same server in the pool
-			for (NSMutableDictionary *existingConnection in persistentConnectionsPool) {
-				if (![existingConnection objectForKey:@"request"] && [[existingConnection objectForKey:@"host"] isEqualToString:[[self url] host]] && [[existingConnection objectForKey:@"scheme"] isEqualToString:[[self url] scheme]] && [(NSNumber *)[existingConnection objectForKey:@"port"] intValue] == [[[self url] port] intValue]) {
-					[self setConnectionInfo:existingConnection];
-				}
-			}
-		}
-		
-		if ([[self connectionInfo] objectForKey:@"stream"]) {
-			oldStream = [[[self connectionInfo] objectForKey:@"stream"] retain];
-
-		}
-		
-		// No free connection was found in the pool matching the server/scheme/port we're connecting to, we'll need to create a new one
-		if (![self connectionInfo]) {
-			[self setConnectionInfo:[NSMutableDictionary dictionary]];
-			nextConnectionNumberToCreate++;
-			[[self connectionInfo] setObject:[NSNumber numberWithInt:nextConnectionNumberToCreate] forKey:@"id"];
-			[[self connectionInfo] setObject:[[self url] host] forKey:@"host"];
-			[[self connectionInfo] setObject:[NSNumber numberWithInt:[[[self url] port] intValue]] forKey:@"port"];
-			[[self connectionInfo] setObject:[[self url] scheme] forKey:@"scheme"];
-			[persistentConnectionsPool addObject:[self connectionInfo]];
-		}
-		
-		// If we are retrying this request, it will already have a requestID
-		if (![self requestID]) {
-			nextRequestID++;
-			[self setRequestID:[NSNumber numberWithUnsignedInt:nextRequestID]];
-		}
-		[[self connectionInfo] setObject:[self requestID] forKey:@"request"];		
-		[[self connectionInfo] setObject:[self readStream] forKey:@"stream"];
-		CFReadStreamSetProperty((CFReadStreamRef)[self readStream],  kCFStreamPropertyHTTPAttemptPersistentConnection, kCFBooleanTrue);
-		
-		#if DEBUG_PERSISTENT_CONNECTIONS
-		ASI_DEBUG_LOG(@"[CONNECTION] Request #%@ will use connection #%i",[self requestID],[[[self connectionInfo] objectForKey:@"id"] intValue]);
-		#endif
-		
-		
-		// Tag the stream with an id that tells it which connection to use behind the scenes
-		// See http://lists.apple.com/archives/macnetworkprog/2008/Dec/msg00001.html for details on this approach
-		
-		CFReadStreamSetProperty((CFReadStreamRef)[self readStream], CFSTR("ASIStreamID"), [[self connectionInfo] objectForKey:@"id"]);
-	
+		oldStream = [self assignConnectionInfo];
 	} else {
 		#if DEBUG_PERSISTENT_CONNECTIONS
 		ASI_DEBUG_LOG(@"[CONNECTION] Request %@ will not use a persistent connection",self);
