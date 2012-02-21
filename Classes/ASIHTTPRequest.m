@@ -182,6 +182,7 @@ static NSOperationQueue *sharedQueue = nil;
 - (void)useDataFromCache;
 
 - (NSInputStream *)assignConnectionInfo;
+- (void)setProxyProperties;
 - (void)setSslProperties;
 
 // Called to update the size of a partial download when starting a request, or retrying after a timeout
@@ -1163,6 +1164,7 @@ static NSOperationQueue *sharedQueue = nil;
     return NO;
 }
 
+// Handle SSL certificate settings.
 - (void)setSslProperties
 {    
     // Tell CFNetwork not to validate SSL certificates.
@@ -1202,11 +1204,42 @@ static NSOperationQueue *sharedQueue = nil;
     }
 }
 
+// Handle proxy settings.
+- (void)setProxyProperties
+{
+    NSString *hostKey;
+    NSString *portKey;
+    
+    if (![self proxyType]) {
+        [self setProxyType:(NSString *)kCFProxyTypeHTTP];
+    }
+    
+    if ([[self proxyType] isEqualToString:(NSString *)kCFProxyTypeSOCKS]) {
+        hostKey = (NSString *)kCFStreamPropertySOCKSProxyHost;
+        portKey = (NSString *)kCFStreamPropertySOCKSProxyPort;
+    } else {
+        hostKey = (NSString *)kCFStreamPropertyHTTPProxyHost;
+        portKey = (NSString *)kCFStreamPropertyHTTPProxyPort;
+        if ([[[[self url] scheme] lowercaseString] isEqualToString:@"https"]) {
+            hostKey = (NSString *)kCFStreamPropertyHTTPSProxyHost;
+            portKey = (NSString *)kCFStreamPropertyHTTPSProxyPort;
+        }
+    }
+    NSMutableDictionary *proxyToUse = [NSMutableDictionary dictionaryWithObjectsAndKeys:[self proxyHost],hostKey,[NSNumber numberWithInt:[self proxyPort]],portKey,nil];
+    
+    if ([[self proxyType] isEqualToString:(NSString *)kCFProxyTypeSOCKS]) {
+        CFReadStreamSetProperty((CFReadStreamRef)[self readStream], kCFStreamPropertySOCKSProxy, proxyToUse);
+    } else {
+        CFReadStreamSetProperty((CFReadStreamRef)[self readStream], kCFStreamPropertyHTTPProxy, proxyToUse);
+    }  
+}
+
 // url.Host and url.scheme must be set when this method is called.
 - (NSInputStream *)assignConnectionInfo
 {
     NSInputStream *oldStream = nil;
-    
+    [connectionsLock lock];
+
     // If we are redirecting, we will re-use the current connection only if we are connecting to the same server
     if ([self connectionInfo]) {
         if (![[[self connectionInfo] objectForKey:@"host"] isEqualToString:[[self url] host]] || ![[[self connectionInfo] objectForKey:@"scheme"] isEqualToString:[[self url] scheme]] || [(NSNumber *)[[self connectionInfo] objectForKey:@"port"] intValue] != [[[self url] port] intValue]) {
@@ -1241,8 +1274,7 @@ static NSOperationQueue *sharedQueue = nil;
     }
     
     if ([[self connectionInfo] objectForKey:@"stream"]) {
-        oldStream = [[[self connectionInfo] objectForKey:@"stream"] retain];
-        
+        oldStream = [[[self connectionInfo] objectForKey:@"stream"] retain];        
     }
     
     // No free connection was found in the pool matching the server/scheme/port we're connecting to, we'll need to create a new one
@@ -1255,7 +1287,7 @@ static NSOperationQueue *sharedQueue = nil;
         [[self connectionInfo] setObject:[[self url] scheme] forKey:@"scheme"];
         [persistentConnectionsPool addObject:[self connectionInfo]];
     }
-    
+
     // If we are retrying this request, it will already have a requestID
     if (![self requestID]) {
         nextRequestID++;
@@ -1263,6 +1295,10 @@ static NSOperationQueue *sharedQueue = nil;
     }
     [[self connectionInfo] setObject:[self requestID] forKey:@"request"];		
     [[self connectionInfo] setObject:[self readStream] forKey:@"stream"];
+
+    [connectionsLock unlock]; // [self connectinInfo] may not be altered after this point.
+
+    
     CFReadStreamSetProperty((CFReadStreamRef)[self readStream],  kCFStreamPropertyHTTPAttemptPersistentConnection, kCFBooleanTrue);
 
     // Tag the stream with an id that tells it which connection to use behind the scenes
@@ -1323,45 +1359,13 @@ static NSOperationQueue *sharedQueue = nil;
     }
     
     
-    //
-    // Handle SSL certificate settings
-    //
-
     if([[[[self url] scheme] lowercaseString] isEqualToString:@"https"]) {
         [self setSslProperties];
     }
 
-	//
-	// Handle proxy settings
-	//
-
- 	if ([self proxyHost] && [self proxyPort]) {
-		NSString *hostKey;
-		NSString *portKey;
-
-		if (![self proxyType]) {
-			[self setProxyType:(NSString *)kCFProxyTypeHTTP];
-		}
-
-		if ([[self proxyType] isEqualToString:(NSString *)kCFProxyTypeSOCKS]) {
-			hostKey = (NSString *)kCFStreamPropertySOCKSProxyHost;
-			portKey = (NSString *)kCFStreamPropertySOCKSProxyPort;
-		} else {
-			hostKey = (NSString *)kCFStreamPropertyHTTPProxyHost;
-			portKey = (NSString *)kCFStreamPropertyHTTPProxyPort;
-			if ([[[[self url] scheme] lowercaseString] isEqualToString:@"https"]) {
-				hostKey = (NSString *)kCFStreamPropertyHTTPSProxyHost;
-				portKey = (NSString *)kCFStreamPropertyHTTPSProxyPort;
-			}
-		}
-		NSMutableDictionary *proxyToUse = [NSMutableDictionary dictionaryWithObjectsAndKeys:[self proxyHost],hostKey,[NSNumber numberWithInt:[self proxyPort]],portKey,nil];
-
-		if ([[self proxyType] isEqualToString:(NSString *)kCFProxyTypeSOCKS]) {
-			CFReadStreamSetProperty((CFReadStreamRef)[self readStream], kCFStreamPropertySOCKSProxy, proxyToUse);
-		} else {
-			CFReadStreamSetProperty((CFReadStreamRef)[self readStream], kCFStreamPropertyHTTPProxy, proxyToUse);
-		}
-	}
+    if ([self proxyHost] && [self proxyPort]) {
+        [self setProxyProperties];
+    }
 
 
 	//
@@ -1370,9 +1374,6 @@ static NSOperationQueue *sharedQueue = nil;
 	
 	[ASIHTTPRequest expirePersistentConnections];
 
-	[connectionsLock lock];
-	
-	
 	if (![[self url] host] || ![[self url] scheme]) {
 		[self setConnectionInfo:nil];
 		[self setShouldAttemptPersistentConnection:NO];
@@ -1390,8 +1391,6 @@ static NSOperationQueue *sharedQueue = nil;
 		#endif
 	}
 	
-	[connectionsLock unlock];
-
 	// Schedule the stream
 	if (![self readStreamIsScheduled] && (!throttleWakeUpTime || [throttleWakeUpTime timeIntervalSinceDate:[NSDate date]] < 0)) {
 		[self scheduleReadStream];
