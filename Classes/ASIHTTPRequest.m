@@ -142,6 +142,7 @@ static NSOperationQueue *sharedQueue = nil;
 
 - (void)cancelLoad;
 
+- (BOOL)assignPostBodyReadStream;
 - (void)destroyReadStream;
 - (void)scheduleReadStream;
 - (void)unscheduleReadStream;
@@ -1129,6 +1130,35 @@ static NSOperationQueue *sharedQueue = nil;
 	}
 }
 
+- (BOOL)assignPostBodyReadStream {
+    // Do we need to stream the request body from disk
+    if ([self shouldStreamPostDataFromDisk]) {
+        NSFileManager *fileManager = [[[NSFileManager alloc] init] autorelease];
+        if ([self postBodyFilePath] && [fileManager fileExistsAtPath:[self postBodyFilePath]]) {
+    
+            // Are we gzipping the request body?
+            if ([self compressedPostBodyFilePath] && [fileManager fileExistsAtPath:[self compressedPostBodyFilePath]]) {
+                [self setPostBodyReadStream:[ASIInputStream inputStreamWithFileAtPath:[self compressedPostBodyFilePath] request:self]];
+            } else {
+                [self setPostBodyReadStream:[ASIInputStream inputStreamWithFileAtPath:[self postBodyFilePath] request:self]];
+            }
+            return YES;
+        }
+    }
+    
+    // If we have a request body, we'll stream it from memory using our custom stream, so that we can measure bandwidth use and it can be bandwidth-throttled if necessary
+    if ([self postBody] && [[self postBody] length] > 0) {
+        if ([self shouldCompressRequestBody] && [self compressedPostBody]) {
+            [self setPostBodyReadStream:[ASIInputStream inputStreamWithData:[self compressedPostBody] request:self]];
+        } else if ([self postBody]) {
+            [self setPostBodyReadStream:[ASIInputStream inputStreamWithData:[self postBody] request:self]];
+        }
+        return YES;
+    }
+    
+    return NO;
+}
+
 - (void)startRequest
 {
 	if ([self isCancelled]) {
@@ -1163,42 +1193,16 @@ static NSOperationQueue *sharedQueue = nil;
 	// Create the stream for the request
 	//
 
-	NSFileManager *fileManager = [[[NSFileManager alloc] init] autorelease];
-
 	[self setReadStreamIsScheduled:NO];
-	
-	// Do we need to stream the request body from disk
-	if ([self shouldStreamPostDataFromDisk] && [self postBodyFilePath] && [fileManager fileExistsAtPath:[self postBodyFilePath]]) {
-		
-		// Are we gzipping the request body?
-		if ([self compressedPostBodyFilePath] && [fileManager fileExistsAtPath:[self compressedPostBodyFilePath]]) {
-			[self setPostBodyReadStream:[ASIInputStream inputStreamWithFileAtPath:[self compressedPostBodyFilePath] request:self]];
-		} else {
-			[self setPostBodyReadStream:[ASIInputStream inputStreamWithFileAtPath:[self postBodyFilePath] request:self]];
-		}
-		[self setReadStream:[NSMakeCollectable(CFReadStreamCreateForStreamedHTTPRequest(kCFAllocatorDefault, request,(CFReadStreamRef)[self postBodyReadStream])) autorelease]];    
+	if ([self assignPostBodyReadStream]) {
+        [self setReadStream:[NSMakeCollectable(CFReadStreamCreateForStreamedHTTPRequest(kCFAllocatorDefault, request,(CFReadStreamRef)[self postBodyReadStream])) autorelease]]; 
     } else {
-		
-		// If we have a request body, we'll stream it from memory using our custom stream, so that we can measure bandwidth use and it can be bandwidth-throttled if necessary
-		if ([self postBody] && [[self postBody] length] > 0) {
-			if ([self shouldCompressRequestBody] && [self compressedPostBody]) {
-				[self setPostBodyReadStream:[ASIInputStream inputStreamWithData:[self compressedPostBody] request:self]];
-			} else if ([self postBody]) {
-				[self setPostBodyReadStream:[ASIInputStream inputStreamWithData:[self postBody] request:self]];
-			}
-			[self setReadStream:[NSMakeCollectable(CFReadStreamCreateForStreamedHTTPRequest(kCFAllocatorDefault, request,(CFReadStreamRef)[self postBodyReadStream])) autorelease]];
-		
-		} else {
-			[self setReadStream:[NSMakeCollectable(CFReadStreamCreateForHTTPRequest(kCFAllocatorDefault, request)) autorelease]];
-		}
-	}
-
+        [self setReadStream:[NSMakeCollectable(CFReadStreamCreateForHTTPRequest(kCFAllocatorDefault, request)) autorelease]];
+    }
 	if (![self readStream]) {
 		[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIInternalErrorWhileBuildingRequestType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Unable to create read stream",NSLocalizedDescriptionKey,nil]]];
         return;
     }
-
-
     
     
     //
