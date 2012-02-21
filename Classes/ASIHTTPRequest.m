@@ -1130,7 +1130,8 @@ static NSOperationQueue *sharedQueue = nil;
 	}
 }
 
-- (BOOL)assignPostBodyReadStream {
+- (BOOL)assignPostBodyReadStream
+{
     // Do we need to stream the request body from disk
     if ([self shouldStreamPostDataFromDisk]) {
         NSFileManager *fileManager = [[[NSFileManager alloc] init] autorelease];
