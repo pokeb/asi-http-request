@@ -193,7 +193,7 @@ typedef void (^ASIDataBlock)(NSData *data);
 	NSString *password;
 	
 	// User-Agent for this request
-	NSString *userAgent;
+	NSString *userAgentString;
 	
 	// Domain used for NTLM authentication
 	NSString *domain;
@@ -903,7 +903,7 @@ typedef void (^ASIDataBlock)(NSData *data);
 
 @property (retain) NSString *username;
 @property (retain) NSString *password;
-@property (retain) NSString *userAgent;
+@property (retain) NSString *userAgentString;
 @property (retain) NSString *domain;
 
 @property (retain) NSString *proxyUsername;
