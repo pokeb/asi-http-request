@@ -400,7 +400,7 @@
 
 	// Test again using userAgent
 	request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/user-agent"]];
-	[request setUserAgent:customUserAgent];
+	[request setUserAgentString:customUserAgent];
 	[request startSynchronous];
 	success = [[request responseString] isEqualToString:customUserAgent];
 	GHAssertTrue(success,@"Failed to set the correct user-agent for a single request");
