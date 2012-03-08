@@ -1243,6 +1243,8 @@ static NSOperationQueue *sharedQueue = nil;
 // url.Host and url.scheme must be set when this method is called.
 - (NSInputStream *)assignConnectionInfo
 {
+    assert([[self url] host] != nil);
+    assert([[self url] scheme] != nil);
     NSInputStream *oldStream = nil;
     [connectionsLock lock];
 
@@ -1316,7 +1318,7 @@ static NSOperationQueue *sharedQueue = nil;
     ASI_DEBUG_LOG(@"[CONNECTION] Request #%@ will use connection #%i",[self requestID],[[[self connectionInfo] objectForKey:@"id"] intValue]);
 #endif
     
-    return oldStream;
+    return [oldStream autorelease];
 }
 
 - (void)startRequest
@@ -1390,7 +1392,7 @@ static NSOperationQueue *sharedQueue = nil;
 	
 	// Use a persistent connection if possible
 	if ([self shouldAttemptPersistentConnection]) {
-		oldStream = [self assignConnectionInfo];
+		oldStream = [[self assignConnectionInfo] retain];
 	} else {
 		#if DEBUG_PERSISTENT_CONNECTIONS
 		ASI_DEBUG_LOG(@"[CONNECTION] Request %@ will not use a persistent connection",self);
