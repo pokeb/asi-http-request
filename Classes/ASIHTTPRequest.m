@@ -180,6 +180,8 @@ static NSOperationQueue *sharedQueue = nil;
 
 - (void)useDataFromCache;
 
+- (BOOL)checkCaCertificate;
+
 // Called to update the size of a partial download when starting a request, or retrying after a timeout
 - (void)updatePartialDownloadSize;
 
@@ -234,6 +236,7 @@ static NSOperationQueue *sharedQueue = nil;
 @property (assign) ASIAuthenticationState authenticationNeeded;
 @property (assign, nonatomic) BOOL readStreamIsScheduled;
 @property (assign, nonatomic) BOOL downloadComplete;
+@property (assign, nonatomic) BOOL caCertificateCheckComplete;
 @property (retain) NSNumber *requestID;
 @property (assign, nonatomic) NSString *runLoopMode;
 @property (retain, nonatomic) NSTimer *statusTimer;
@@ -343,6 +346,9 @@ static NSOperationQueue *sharedQueue = nil;
 	}
 	if (clientCertificateIdentity) {
 		CFRelease(clientCertificateIdentity);
+	}
+	if (caCertificate) {
+		CFRelease(caCertificate);
 	}
 	[self cancelLoad];
 	[redirectURL release];
@@ -1205,44 +1211,41 @@ static NSOperationQueue *sharedQueue = nil;
     // Handle SSL certificate settings
     //
 
-    if([[[[self url] scheme] lowercaseString] isEqualToString:@"https"]) {       
-       
-        // Tell CFNetwork not to validate SSL certificates
-        if (![self validatesSecureCertificate]) {
-            // see: http://iphonedevelopment.blogspot.com/2010/05/nsstream-tcp-and-ssl.html
-            
-            NSDictionary *sslProperties = [[NSDictionary alloc] initWithObjectsAndKeys:
-                                      [NSNumber numberWithBool:YES], kCFStreamSSLAllowsExpiredCertificates,
-                                      [NSNumber numberWithBool:YES], kCFStreamSSLAllowsAnyRoot,
-                                      [NSNumber numberWithBool:NO],  kCFStreamSSLValidatesCertificateChain,
-                                      kCFNull,kCFStreamSSLPeerName,
-                                      nil];
-            
-            CFReadStreamSetProperty((CFReadStreamRef)[self readStream], 
-                                    kCFStreamPropertySSLSettings, 
-                                    (CFTypeRef)sslProperties);
-            [sslProperties release];
-        } 
-        
-        // Tell CFNetwork to use a client certificate
-        if (clientCertificateIdentity) {
-            NSMutableDictionary *sslProperties = [NSMutableDictionary dictionaryWithCapacity:1];
-            
-			NSMutableArray *certificates = [NSMutableArray arrayWithCapacity:[clientCertificates count]+1];
-
-			// The first object in the array is our SecIdentityRef
-			[certificates addObject:(id)clientCertificateIdentity];
-
-			// If we've added any additional certificates, add them too
-			for (id cert in clientCertificates) {
-				[certificates addObject:cert];
+    if([[[[self url] scheme] lowercaseString] isEqualToString:@"https"]) 
+		{       
+			NSMutableDictionary *sslProperties = [NSMutableDictionary dictionaryWithCapacity:1];
+			
+			// Tell CFNetwork not to validate SSL certificates
+			if ((!validatesSecureCertificate) || (caCertificate))
+			{
+				[sslProperties setObject:[NSNumber numberWithBool:NO] forKey:(NSString *)kCFStreamSSLValidatesCertificateChain];
+				if (caCertificate)
+				{
+					[self setCaCertificateCheckComplete:NO];
+				}
 			}
-            
-            [sslProperties setObject:certificates forKey:(NSString *)kCFStreamSSLCertificates];
-            
-            CFReadStreamSetProperty((CFReadStreamRef)[self readStream], kCFStreamPropertySSLSettings, sslProperties);
-        }
-        
+			else
+			{
+				[sslProperties setObject:[NSNumber numberWithBool:YES] forKey:(NSString *)kCFStreamSSLValidatesCertificateChain];
+			}
+			
+			// Tell CFNetwork to use a client certificate
+			if (clientCertificateIdentity) 
+			{
+				NSMutableArray *certificates = [NSMutableArray arrayWithCapacity:[clientCertificates count]+1];
+				
+				// The first object in the array is our SecIdentityRef
+				[certificates addObject:(id)clientCertificateIdentity];
+				
+				// If we've added any additional certificates, add them too
+				for (id cert in clientCertificates) 
+				{
+					[certificates addObject:cert];
+				}
+				[sslProperties setObject:certificates forKey:(NSString *)kCFStreamSSLCertificates];
+			}
+			
+			CFReadStreamSetProperty((CFReadStreamRef)readStream, kCFStreamPropertySSLSettings, sslProperties);
     }
 
 	//
@@ -1640,6 +1643,7 @@ static NSOperationQueue *sharedQueue = nil;
 	[headRequest setUseHTTPVersionOne:[self useHTTPVersionOne]];
 	[headRequest setValidatesSecureCertificate:[self validatesSecureCertificate]];
     [headRequest setClientCertificateIdentity:clientCertificateIdentity];
+    [headRequest setCaCertificate:caCertificate];
 	[headRequest setClientCertificates:[[clientCertificates copy] autorelease]];
 	[headRequest setPACurl:[self PACurl]];
 	[headRequest setShouldPresentCredentialsBeforeChallenge:[self shouldPresentCredentialsBeforeChallenge]];
@@ -3242,6 +3246,11 @@ static NSOperationQueue *sharedQueue = nil;
 
 - (void)handleBytesAvailable
 {
+	if (![self checkCaCertificate])
+	{
+		return;
+	}
+
 	if (![self responseHeaders]) {
 		[self readResponseHeaders];
 	}
@@ -3645,6 +3654,43 @@ static NSOperationQueue *sharedQueue = nil;
 		ASI_DEBUG_LOG(@"[CONNECTION] Request attempted to use connection #%@, but it has been closed - we have already retried with a new connection, so we must give up", [[self connectionInfo] objectForKey:@"id"]);
 	#endif	
 	return NO;
+}
+
+- (BOOL)checkCaCertificate
+{
+	BOOL success = YES;
+	if (([[[[self url] scheme] lowercaseString] isEqualToString:@"https"]) && 
+			(caCertificate) && 
+			(![self caCertificateCheckComplete]))
+	{
+		SecPolicyRef policy = SecPolicyCreateSSL(NO, (CFStringRef)[[self url] host]);
+		SecTrustRef trust = NULL;
+		CFArrayRef streamCertificates =
+			(CFArrayRef)[readStream propertyForKey:(NSString*)kCFStreamPropertySSLPeerCertificates];
+		SecTrustCreateWithCertificates(streamCertificates,
+																	 policy,
+																	 &trust);
+		SecTrustSetAnchorCertificates(trust, (CFArrayRef)[NSArray arrayWithObject:(id) caCertificate]);
+		SecTrustResultType trustResultType = kSecTrustResultInvalid;
+		OSStatus status = SecTrustEvaluate(trust, &trustResultType);
+		if ((status != errSecSuccess) || (trustResultType != kSecTrustResultUnspecified)) 
+		{
+			NSString *reason = @"A connection failure occurred: SSL problem (certificate failed check against user assigned ca)";
+			[self cancelLoad];
+			[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain 
+																	 code:ASIConnectionFailureErrorType 
+																	 userInfo:[NSDictionary dictionaryWithObjectsAndKeys:reason,NSLocalizedDescriptionKey,nil]]];
+			success = NO;
+		}
+		if (trust) {
+			CFRelease(trust);
+		}
+		if (policy) {
+			CFRelease(policy);
+		}
+		[self setCaCertificateCheckComplete:YES];
+	}
+	return success;
 }
 
 - (void)handleStreamError
@@ -4091,6 +4137,7 @@ static NSOperationQueue *sharedQueue = nil;
 	[newRequest setShouldRedirect:[self shouldRedirect]];
 	[newRequest setValidatesSecureCertificate:[self validatesSecureCertificate]];
     [newRequest setClientCertificateIdentity:clientCertificateIdentity];
+    [newRequest setCaCertificate:caCertificate];
 	[newRequest setClientCertificates:[[clientCertificates copy] autorelease]];
 	[newRequest setPACurl:[self PACurl]];
 	[newRequest setShouldPresentCredentialsBeforeChallenge:[self shouldPresentCredentialsBeforeChallenge]];
@@ -4126,6 +4173,21 @@ static NSOperationQueue *sharedQueue = nil;
     
 	if (clientCertificateIdentity) {
 		CFRetain(clientCertificateIdentity);
+	}
+}
+
+
+#pragma mark ca certificate
+
+- (void)setCaCertificate:(SecCertificateRef)aCaCertificate {
+    if(caCertificate) {
+        CFRelease(caCertificate);
+    }
+    
+    caCertificate = aCaCertificate;
+    
+	if (caCertificate) {
+		CFRetain(caCertificate);
 	}
 }
 
@@ -5100,6 +5162,7 @@ static NSOperationQueue *sharedQueue = nil;
 @synthesize readStreamIsScheduled;
 @synthesize shouldUseRFC2616RedirectBehaviour;
 @synthesize downloadComplete;
+@synthesize caCertificateCheckComplete;
 @synthesize requestID;
 @synthesize runLoopMode;
 @synthesize statusTimer;
