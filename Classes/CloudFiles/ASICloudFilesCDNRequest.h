@@ -24,10 +24,12 @@
 // Response:
 // X-CDN-Enabled: True
 // X-CDN-URI: http://cdn.cloudfiles.mosso.com/c1234
+// X-CDN-SSL-URI: https://cdn.ssl.cloudfiles.mosso.com/c1234
 // X-CDN-TTL: 86400
 + (id)containerInfoRequest:(NSString *)containerName;
 - (BOOL)cdnEnabled;
 - (NSString *)cdnURI;
+- (NSString *)cdnSSLURI;
 - (NSUInteger)cdnTTL;
 
 

@@ -12,6 +12,7 @@
 	float progress;
 }
 
+- (void)testDefaultMethod;
 - (void)testPostWithFileUpload;
 - (void)testEmptyData;
 - (void)testSubclass;
@@ -19,4 +20,5 @@
 - (void)testCharset;
 - (void)testPUT;
 - (void)testCopy;
+
 @end

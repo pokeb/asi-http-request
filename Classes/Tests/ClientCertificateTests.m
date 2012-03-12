@@ -66,7 +66,7 @@
 		tempTrust = CFDictionaryGetValue (myIdentityAndTrust, kSecImportItemTrust);
 		*outTrust = (SecTrustRef)tempTrust;
 	} else {
-		NSLog(@"Failed with error code %i",securityError);
+		NSLog(@"Failed with error code %d",(int)securityError);
 		return NO;
 	}
 	return YES;

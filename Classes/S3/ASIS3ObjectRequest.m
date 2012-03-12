@@ -8,6 +8,8 @@
 
 #import "ASIS3ObjectRequest.h"
 
+NSString *const ASIS3StorageClassStandard = @"STANDARD";
+NSString *const ASIS3StorageClassReducedRedundancy = @"REDUCED_REDUNDANCY";
 
 @implementation ASIS3ObjectRequest
 
@@ -19,76 +21,74 @@
 	return headRequest;
 }
 
-+ (id)requestWithBucket:(NSString *)bucket key:(NSString *)key
++ (id)requestWithBucket:(NSString *)theBucket key:(NSString *)theKey
 {
-	NSString *path = [ASIS3Request stringByURLEncodingForS3Path:key];
-	ASIS3ObjectRequest *request = [[[self alloc] initWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://%@.s3.amazonaws.com%@",bucket,path]]] autorelease];
-	[request setBucket:bucket];
-	[request setKey:key];
-	return request;
+	ASIS3ObjectRequest *newRequest = [[[self alloc] initWithURL:nil] autorelease];
+	[newRequest setBucket:theBucket];
+	[newRequest setKey:theKey];
+	return newRequest;
 }
 
-+ (id)requestWithBucket:(NSString *)bucket key:(NSString *)key subResource:(NSString *)subResource
++ (id)requestWithBucket:(NSString *)theBucket key:(NSString *)theKey subResource:(NSString *)theSubResource
 {
-	NSString *path = [ASIS3Request stringByURLEncodingForS3Path:key];
-	ASIS3ObjectRequest *request = [[[self alloc] initWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://%@.s3.amazonaws.com%@?%@",bucket,path,subResource]]] autorelease];
-	[request setSubResource:subResource];
-	[request setBucket:bucket];
-	[request setKey:key];
-	return request;
+	ASIS3ObjectRequest *newRequest = [[[self alloc] initWithURL:nil] autorelease];
+	[newRequest setSubResource:theSubResource];
+	[newRequest setBucket:theBucket];
+	[newRequest setKey:theKey];
+	return newRequest;
 }
 
-+ (id)PUTRequestForData:(NSData *)data withBucket:(NSString *)bucket key:(NSString *)key
++ (id)PUTRequestForData:(NSData *)data withBucket:(NSString *)theBucket key:(NSString *)theKey
 {
-	ASIS3ObjectRequest *request = [self requestWithBucket:bucket key:key];
-	[request appendPostData:data];
-	[request setRequestMethod:@"PUT"];
-	return request;
+	ASIS3ObjectRequest *newRequest = [self requestWithBucket:theBucket key:theKey];
+	[newRequest appendPostData:data];
+	[newRequest setRequestMethod:@"PUT"];
+	return newRequest;
 }
 
-+ (id)PUTRequestForFile:(NSString *)filePath withBucket:(NSString *)bucket key:(NSString *)key
++ (id)PUTRequestForFile:(NSString *)filePath withBucket:(NSString *)theBucket key:(NSString *)theKey
 {
-	ASIS3ObjectRequest *request = [self requestWithBucket:bucket key:key];
-	[request setPostBodyFilePath:filePath];
-	[request setShouldStreamPostDataFromDisk:YES];
-	[request setRequestMethod:@"PUT"];
-	[request setMimeType:[ASIHTTPRequest mimeTypeForFileAtPath:filePath]];
-	return request;
+	ASIS3ObjectRequest *newRequest = [self requestWithBucket:theBucket key:theKey];
+	[newRequest setPostBodyFilePath:filePath];
+	[newRequest setShouldStreamPostDataFromDisk:YES];
+	[newRequest setRequestMethod:@"PUT"];
+	[newRequest setMimeType:[ASIHTTPRequest mimeTypeForFileAtPath:filePath]];
+	return newRequest;
 }
 
-+ (id)DELETERequestWithBucket:(NSString *)bucket key:(NSString *)key
++ (id)DELETERequestWithBucket:(NSString *)theBucket key:(NSString *)theKey
 {
-	ASIS3ObjectRequest *request = [self requestWithBucket:bucket key:key];
-	[request setRequestMethod:@"DELETE"];
-	return request;
+	ASIS3ObjectRequest *newRequest = [self requestWithBucket:theBucket key:theKey];
+	[newRequest setRequestMethod:@"DELETE"];
+	return newRequest;
 }
 
-+ (id)COPYRequestFromBucket:(NSString *)sourceBucket key:(NSString *)sourceKey toBucket:(NSString *)bucket key:(NSString *)key
++ (id)COPYRequestFromBucket:(NSString *)theSourceBucket key:(NSString *)theSourceKey toBucket:(NSString *)theBucket key:(NSString *)theKey
 {
-	ASIS3ObjectRequest *request = [self requestWithBucket:bucket key:key];
-	[request setRequestMethod:@"PUT"];
-	[request setSourceBucket:sourceBucket];
-	[request setSourceKey:sourceKey];
-	return request;
+	ASIS3ObjectRequest *newRequest = [self requestWithBucket:theBucket key:theKey];
+	[newRequest setRequestMethod:@"PUT"];
+	[newRequest setSourceBucket:theSourceBucket];
+	[newRequest setSourceKey:theSourceKey];
+	return newRequest;
 }
 
-+ (id)HEADRequestWithBucket:(NSString *)bucket key:(NSString *)key
++ (id)HEADRequestWithBucket:(NSString *)theBucket key:(NSString *)theKey
 {
-	ASIS3ObjectRequest *request = [self requestWithBucket:bucket key:key];
-	[request setRequestMethod:@"HEAD"];
-	return request;
+	ASIS3ObjectRequest *newRequest = [self requestWithBucket:theBucket key:theKey];
+	[newRequest setRequestMethod:@"HEAD"];
+	return newRequest;
 }
-
-
 
 - (id)copyWithZone:(NSZone *)zone
 {
 	ASIS3ObjectRequest *newRequest = [super copyWithZone:zone];
 	[newRequest setBucket:[self bucket]];
 	[newRequest setKey:[self key]];
-	[newRequest setMimeType:[self mimeType]];
 	[newRequest setSourceBucket:[self sourceBucket]];
 	[newRequest setSourceKey:[self sourceKey]];
+	[newRequest setMimeType:[self mimeType]];
+	[newRequest setSubResource:[self subResource]];
+	[newRequest setStorageClass:[self storageClass]];
 	return newRequest;
 }
 
@@ -100,7 +100,17 @@
 	[sourceKey release];
 	[sourceBucket release];
 	[subResource release];
+	[storageClass release];
 	[super dealloc];
+}
+
+- (void)buildURL
+{
+	if ([self subResource]) {
+		[self setURL:[NSURL URLWithString:[NSString stringWithFormat:@"%@://%@.%@%@?%@",[self requestScheme],[self bucket],[[self class] S3Host],[ASIS3Request stringByURLEncodingForS3Path:[self key]],[self subResource]]]];
+	} else {
+		[self setURL:[NSURL URLWithString:[NSString stringWithFormat:@"%@://%@.%@%@",[self requestScheme],[self bucket],[[self class] S3Host],[ASIS3Request stringByURLEncodingForS3Path:[self key]]]]];
+	}
 }
 
 - (NSString *)mimeType
@@ -129,6 +139,9 @@
 		NSString *path = [ASIS3Request stringByURLEncodingForS3Path:[self sourceKey]];
 		[headers setObject:[[self sourceBucket] stringByAppendingString:path] forKey:@"x-amz-copy-source"];
 	}
+	if ([self storageClass]) {
+		[headers setObject:[self storageClass] forKey:@"x-amz-storage-class"];
+	}
 	return headers;
 }
 
@@ -141,12 +154,11 @@
 	return [super stringToSignForHeaders:canonicalizedAmzHeaders resource:canonicalizedResource];
 }
 
-
 @synthesize bucket;
 @synthesize key;
 @synthesize sourceBucket;
 @synthesize sourceKey;
 @synthesize mimeType;
 @synthesize subResource;
-
+@synthesize storageClass;
 @end

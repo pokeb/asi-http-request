@@ -9,10 +9,15 @@
 #import "ASIS3Request.h"
 #import <CommonCrypto/CommonHMAC.h>
 
-NSString* const ASIS3AccessPolicyPrivate = @"private";
-NSString* const ASIS3AccessPolicyPublicRead = @"public-read";
-NSString* const ASIS3AccessPolicyPublicReadWrote = @"public-read-write";
-NSString* const ASIS3AccessPolicyAuthenticatedRead = @"authenticated-read";
+NSString *const ASIS3AccessPolicyPrivate = @"private";
+NSString *const ASIS3AccessPolicyPublicRead = @"public-read";
+NSString *const ASIS3AccessPolicyPublicReadWrite = @"public-read-write";
+NSString *const ASIS3AccessPolicyAuthenticatedRead = @"authenticated-read";
+NSString *const ASIS3AccessPolicyBucketOwnerRead = @"bucket-owner-read";
+NSString *const ASIS3AccessPolicyBucketOwnerFullControl = @"bucket-owner-full-control";
+
+NSString *const ASIS3RequestSchemeHTTP = @"http";
+NSString *const ASIS3RequestSchemeHTTPS = @"https";
 
 static NSString *sharedAccessKey = nil;
 static NSString *sharedSecretAccessKey = nil;
@@ -29,6 +34,7 @@ static NSString *sharedSecretAccessKey = nil;
 	self = [super initWithURL:newURL];
 	// After a bit of experimentation/guesswork, this number seems to reduce the chance of a 'RequestTimeout' error
 	[self setPersistentConnectionTimeoutSeconds:20];
+	[self setRequestScheme:ASIS3RequestSchemeHTTP];
 	return self;
 }
 
@@ -41,6 +47,7 @@ static NSString *sharedSecretAccessKey = nil;
 	[accessKey release];
 	[secretAccessKey release];
 	[accessPolicy release];
+	[requestScheme release];
 	[super dealloc];
 }
 
@@ -67,6 +74,14 @@ static NSString *sharedSecretAccessKey = nil;
 	return headers;
 }
 
+- (void)main
+{
+	if (![self url]) {
+		[self buildURL];
+	}
+	[super main];
+}
+
 - (NSString *)canonicalizedResource
 {
 	return @"/";
@@ -79,6 +94,9 @@ static NSString *sharedSecretAccessKey = nil;
 
 - (void)buildRequestHeaders
 {
+	if (![self url]) {
+		[self buildURL];
+	}
 	[super buildRequestHeaders];
 
 	// If an access key / secret access key haven't been set for this request, let's use the shared keys
@@ -100,7 +118,7 @@ static NSString *sharedSecretAccessKey = nil;
 	// Add a header for the access policy if one was set, otherwise we won't add one (and S3 will default to private)
 	NSMutableDictionary *amzHeaders = [self S3Headers];
 	NSString *canonicalizedAmzHeaders = @"";
-	for (NSString *header in [amzHeaders keyEnumerator]) {
+	for (NSString *header in [amzHeaders keysSortedByValueUsingSelector:@selector(compare:)]) {
 		canonicalizedAmzHeaders = [NSString stringWithFormat:@"%@%@:%@\n",canonicalizedAmzHeaders,[header lowercaseString],[amzHeaders objectForKey:header]];
 		[self addRequestHeader:header value:[amzHeaders objectForKey:header]];
 	}
@@ -179,6 +197,7 @@ static NSString *sharedSecretAccessKey = nil;
 	ASIS3Request *newRequest = [super copyWithZone:zone];
 	[newRequest setAccessKey:[self accessKey]];
 	[newRequest setSecretAccessKey:[self secretAccessKey]];
+	[newRequest setRequestScheme:[self requestScheme]];
 	[newRequest setAccessPolicy:[self accessPolicy]];
 	return newRequest;
 }
@@ -274,6 +293,14 @@ static NSString *sharedSecretAccessKey = nil;
 	return [NSData dataWithBytes:digest length:CC_SHA1_DIGEST_LENGTH];
 }
 
++ (NSString *)S3Host
+{
+	return @"s3.amazonaws.com";
+}
+
+- (void)buildURL
+{
+}
 
 @synthesize dateString;
 @synthesize accessKey;
@@ -281,4 +308,5 @@ static NSString *sharedSecretAccessKey = nil;
 @synthesize currentXMLElementContent;
 @synthesize currentXMLElementStack;
 @synthesize accessPolicy;
+@synthesize requestScheme;
 @end

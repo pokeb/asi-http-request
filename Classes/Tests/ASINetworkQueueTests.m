@@ -11,7 +11,7 @@
 #import "ASINetworkQueue.h"
 #import "ASIFormDataRequest.h"
 #import <SystemConfiguration/SystemConfiguration.h>
-
+#import <unistd.h>
 /*
 IMPORTANT
 Code that appears in these tests is not for general purpose use. 
@@ -24,6 +24,36 @@ IMPORTANT
 @interface ASINetworkQueueSubclass : ASINetworkQueue {}
 @end
 @implementation ASINetworkQueueSubclass
+@end
+
+// Stop clang complaining about undeclared selectors
+@interface ASINetworkQueueTests ()
+- (void)queueFinished:(ASINetworkQueue *)request;
+- (void)addedRequestComplete:(ASIHTTPRequest *)request;
+- (void)addAnotherRequest;
+- (void)immediateCancelFail:(ASIHTTPRequest *)request;
+- (void)immediateCancelFinish:(ASIHTTPRequest *)request;
+- (void)finish:(ASIHTTPRequest *)request;
+- (void)throttleFail:(ASIHTTPRequest *)request;
+- (void)postDone:(ASIHTTPRequest *)request;
+- (void)ntlmDone:(ASIHTTPRequest *)request;
+- (void)ntlmFailed:(ASIHTTPRequest *)request;
+- (void)runHEADFailureTest;
+- (void)queueFailureFinish:(ASINetworkQueue *)request;
+- (void)queueFailureFinishCallOnce:(ASINetworkQueue *)request;
+- (void)request:(ASIHTTPRequest *)request isGoingToRedirectToURL:(NSURL *)url;
+- (void)redirectURLTestFailed:(ASIHTTPRequest *)request;
+- (void)redirectURLTestSucceeded:(ASIHTTPRequest *)request;
+- (void)runDelegateMethodsTest;
+- (void)delegateTestStarted:(ASIHTTPRequest *)request;
+- (void)delegateTestFinished:(ASIHTTPRequest *)request;
+- (void)delegateTestFailed:(ASIHTTPRequest *)request;
+- (void)delegateTestRequest:(ASIHTTPRequest *)request receivedResponseHeaders:(NSDictionary *)headers;
+- (void)addMoreRequestsQueueFinished:(ASINetworkQueue *)request;
+- (void)requestFailedCancellingOthers:(ASINetworkQueue *)request;
+- (void)fail:(ASIHTTPRequest *)request;
+- (void)HEADFail:(ASIHTTPRequest *)request;
+- (void)runTestQueueFinishedCalledOnFailureTest;
 @end
 
 @implementation ASINetworkQueueTests
@@ -68,7 +98,7 @@ IMPORTANT
 	[networkQueue setDelegate:self];
 	[networkQueue setRequestDidStartSelector:@selector(delegateTestStarted:)];
 	[networkQueue setRequestDidFinishSelector:@selector(delegateTestFinished:)];
-	[networkQueue setRequestDidReceiveResponseHeadersSelector:@selector(delegateTestResponseHeaders:)];
+	[networkQueue setRequestDidReceiveResponseHeadersSelector:@selector(delegateTestRequest:receivedResponseHeaders:)];
 	
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
 	[networkQueue addOperation:request];
@@ -104,9 +134,9 @@ IMPORTANT
 	started = YES;
 }
 
-- (void)delegateTestResponseHeaders:(ASIHTTPRequest *)request
+- (void)delegateTestRequest:(ASIHTTPRequest *)request receivedResponseHeaders:(NSDictionary *)responseHeaders
 {
-	GHAssertNotNil([request responseHeaders],@"Called delegateTestResponseHeaders: when we have no headers");
+	GHAssertNotNil(responseHeaders,@"Called delegateTestResponseHeaders: when we have no headers");
 	receivedResponseHeaders = YES;
 }
 
@@ -686,14 +716,15 @@ IMPORTANT
 	[networkQueue addOperation:request];
 	[networkQueue go];
 	 
-	// Let the download run for a second, which hopefully won't be enough time to grab this file. If you have a super fast connection, this test may fail, serves you right for being so smug. :)
-	NSTimer *timeoutTimer = [NSTimer scheduledTimerWithTimeInterval:1 target:self selector:@selector(stopQueue:) userInfo:nil repeats:NO];
-	
-	while (!complete) {
-		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
+	// Run until we have received a bit of data
+	while (1) {
+		usleep(250000);
+		if ([request error] || [request contentLength]) {
+			break;
+		}
 	}
 	
-	// 1 second has passed, let's tell the queue to stop
+	// Ok, let's tell the queue to stop
 	[networkQueue reset];
 	[networkQueue setDownloadProgressDelegate:self];
 	[networkQueue setShowAccurateProgress:YES];
@@ -719,9 +750,7 @@ IMPORTANT
 
 	[networkQueue go];
 
-	while (!complete) {
-		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
-	}
+	[networkQueue waitUntilAllOperationsAreFinished];
 	
 	unsigned long long amountDownloaded = [[[NSFileManager defaultManager] attributesOfItemAtPath:downloadPath error:&err] fileSize];
 	GHAssertNil(err,@"Got an error obtaining attributes on the file, this shouldn't happen");
@@ -750,10 +779,12 @@ IMPORTANT
 	[networkQueue addOperation:request];
 	[networkQueue go];
 	
-	// Let the download run for 3 seconds
-	timeoutTimer = [NSTimer scheduledTimerWithTimeInterval:3 target:self selector:@selector(stopQueue:) userInfo:nil repeats:NO];
-	while (!complete) {
-		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
+	// Run until we have received a bit of data
+	while (1) {
+		usleep(1000000);
+		if ([request error] || [request contentLength]) {
+			break;
+		}
 	}
 	[networkQueue cancelAllOperations];
 	
@@ -765,7 +796,6 @@ IMPORTANT
 	success = (![[NSFileManager defaultManager] fileExistsAtPath:temporaryPath]);
 	GHAssertTrue(success,@"Temporary download file should have been deleted");		
 	
-	timeoutTimer = nil;
 	
 }
 
@@ -1097,7 +1127,7 @@ IMPORTANT
 	[queue setShowAccurateProgress:YES];
 	
 	[queue setDelegate:self];
-	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://999.123"]];
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://"]];
 	[request setDelegate:self];
 	[request setDidFailSelector:@selector(HEADFail:)];
 	[queue addOperation:request];
@@ -1201,6 +1231,37 @@ IMPORTANT
 	complete = YES;
 }
 
+
+- (void)testDelegateRedirectHandling
+{
+	ASINetworkQueue *networkQueue = [ASINetworkQueue queue];
+	[networkQueue setDelegate:self];
+
+	[networkQueue setRequestWillRedirectSelector:@selector(request:isGoingToRedirectToURL:)];
+	[networkQueue setRequestDidFailSelector:@selector(redirectURLTestFailed:)];
+	[networkQueue setRequestDidFinishSelector:@selector(redirectURLTestSucceeded:)];
+
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/redirect_to_ssl"]];
+
+	[networkQueue addOperation:request];
+	[networkQueue go];
+}
+
+- (void)redirectURLTestSucceeded:(ASIHTTPRequest *)request
+{
+	BOOL success = [[request url] isEqual:[NSURL URLWithString:@"http://allseeing-i.com"]];
+	GHAssertTrue(success,@"Request failed to redirect to url specified by delegate");
+}
+
+- (void)redirectURLTestFailed:(ASIHTTPRequest *)request
+{
+	GHFail(@"Request failed, cannot proceed with test");
+}
+
+- (void)request:(ASIHTTPRequest *)request isGoingToRedirectToURL:(NSURL *)url
+{
+	[request redirectToURL:[NSURL URLWithString:@"http://allseeing-i.com"]];
+}
 
 @synthesize immediateCancelQueue;
 @synthesize failedRequests;

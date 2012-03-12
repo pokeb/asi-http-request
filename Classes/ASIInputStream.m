@@ -21,20 +21,20 @@ static NSLock *readLock = nil;
 	}
 }
 
-+ (id)inputStreamWithFileAtPath:(NSString *)path request:(ASIHTTPRequest *)request
++ (id)inputStreamWithFileAtPath:(NSString *)path request:(ASIHTTPRequest *)theRequest
 {
-	ASIInputStream *stream = [[[self alloc] init] autorelease];
-	[stream setRequest:request];
-	[stream setStream:[NSInputStream inputStreamWithFileAtPath:path]];
-	return stream;
+	ASIInputStream *theStream = [[[self alloc] init] autorelease];
+	[theStream setRequest:theRequest];
+	[theStream setStream:[NSInputStream inputStreamWithFileAtPath:path]];
+	return theStream;
 }
 
-+ (id)inputStreamWithData:(NSData *)data request:(ASIHTTPRequest *)request
++ (id)inputStreamWithData:(NSData *)data request:(ASIHTTPRequest *)theRequest
 {
-	ASIInputStream *stream = [[[self alloc] init] autorelease];
-	[stream setRequest:request];
-	[stream setStream:[NSInputStream inputStreamWithData:data]];
-	return stream;
+	ASIInputStream *theStream = [[[self alloc] init] autorelease];
+	[theStream setRequest:theRequest];
+	[theStream setStream:[NSInputStream inputStreamWithData:data]];
+	return theStream;
 }
 
 - (void)dealloc
@@ -58,14 +58,16 @@ static NSLock *readLock = nil;
 		}
 		[request performThrottling];
 	}
-	[ASIHTTPRequest incrementBandwidthUsedInLastSecond:toRead];
 	[readLock unlock];
-	return [stream read:buffer maxLength:toRead];
+	NSInteger rv = [stream read:buffer maxLength:toRead];
+	if (rv > 0)
+		[ASIHTTPRequest incrementBandwidthUsedInLastSecond:rv];
+	return rv;
 }
 
 /*
  * Implement NSInputStream mandatory methods to make sure they are implemented
- * (necessary for MacRuby for example) and avoir the overhead of method
+ * (necessary for MacRuby for example) and avoid the overhead of method
  * forwarding for these common methods.
  */
 - (void)open

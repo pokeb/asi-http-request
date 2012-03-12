@@ -28,33 +28,32 @@
 	return self;
 }
 
-+ (id)requestWithBucket:(NSString *)bucket
++ (id)requestWithBucket:(NSString *)theBucket
 {
-	ASIS3BucketRequest *request = [[[self alloc] initWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://%@.s3.amazonaws.com",bucket]]] autorelease];
-	[request setBucket:bucket];
+	ASIS3BucketRequest *request = [[[self alloc] initWithURL:nil] autorelease];
+	[request setBucket:theBucket];
 	return request;
 }
 
-+ (id)requestWithBucket:(NSString *)bucket subResource:(NSString *)subResource
++ (id)requestWithBucket:(NSString *)theBucket subResource:(NSString *)theSubResource
 {
-	ASIS3BucketRequest *request = [[[self alloc] initWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://%@.s3.amazonaws.com/?%@",bucket,subResource]]] autorelease];
-	[request setBucket:bucket];
-	[request setSubResource:subResource];
+	ASIS3BucketRequest *request = [[[self alloc] initWithURL:nil] autorelease];
+	[request setBucket:theBucket];
+	[request setSubResource:theSubResource];
 	return request;
 }
 
-
-+ (id)PUTRequestWithBucket:(NSString *)bucket
++ (id)PUTRequestWithBucket:(NSString *)theBucket
 {
-	ASIS3BucketRequest *request = [self requestWithBucket:bucket];
+	ASIS3BucketRequest *request = [self requestWithBucket:theBucket];
 	[request setRequestMethod:@"PUT"];
 	return request;
 }
 
 
-+ (id)DELETERequestWithBucket:(NSString *)bucket
++ (id)DELETERequestWithBucket:(NSString *)theBucket
 {
-	ASIS3BucketRequest *request = [self requestWithBucket:bucket];
+	ASIS3BucketRequest *request = [self requestWithBucket:theBucket];
 	[request setRequestMethod:@"DELETE"];
 	return request;
 }
@@ -80,8 +79,14 @@
 	return [NSString stringWithFormat:@"/%@/",[self bucket]];
 }
 
-- (void)createQueryString
+- (void)buildURL
 {
+	NSString *baseURL;
+	if ([self subResource]) {
+		baseURL = [NSString stringWithFormat:@"%@://%@.%@/?%@",[self requestScheme],[self bucket],[[self class] S3Host],[self subResource]];
+	} else {
+		baseURL = [NSString stringWithFormat:@"%@://%@.%@",[self requestScheme],[self bucket],[[self class] S3Host]];
+	}
 	NSMutableArray *queryParts = [[[NSMutableArray alloc] init] autorelease];
 	if ([self prefix]) {
 		[queryParts addObject:[NSString stringWithFormat:@"prefix=%@",[[self prefix] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]]];
@@ -95,20 +100,16 @@
 	if ([self maxResultCount] > 0) {
 		[queryParts addObject:[NSString stringWithFormat:@"max-keys=%hi",[self maxResultCount]]];
 	}
-	if ([queryParts count]) 
-    {
+	if ([queryParts count]) {
 		NSString* template = @"%@?%@";
 		if ([[self subResource] length] > 0) {
 			template = @"%@&%@";
 		}
-		[self setURL:[NSURL URLWithString:[NSString stringWithFormat:template,[[self url] absoluteString],[queryParts componentsJoinedByString:@"&"]]]];
-	}
-}
+		[self setURL:[NSURL URLWithString:[NSString stringWithFormat:template,baseURL,[queryParts componentsJoinedByString:@"&"]]]];
+	} else {
+		[self setURL:[NSURL URLWithString:baseURL]];
 
-- (void)main
-{
-	[self createQueryString];
-	[super main];
+	}
 }
 
 - (void)parser:(NSXMLParser *)parser didStartElement:(NSString *)elementName namespaceURI:(NSString *)namespaceURI qualifiedName:(NSString *)qName attributes:(NSDictionary *)attributeDict
@@ -146,7 +147,6 @@
 	}
 }
 
-
 #pragma mark NSCopying
 
 - (id)copyWithZone:(NSZone *)zone
@@ -160,9 +160,6 @@
 	[newRequest setDelimiter:[self delimiter]];
 	return newRequest;
 }
-
-
-
 
 @synthesize bucket;
 @synthesize subResource;

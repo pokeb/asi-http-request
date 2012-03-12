@@ -20,6 +20,7 @@
 }
 
 - (void)testBasicDownload;
+- (void)testBase64Encode;
 - (void)testDelegateMethods;
 - (void)testConditionalGET;
 - (void)testException;
@@ -47,23 +48,16 @@
 - (void)testTooMuchRedirection;
 - (void)testRedirectToNewDomain;
 - (void)test303Redirect;
-- (void)testCompression;
 - (void)testSubclass;
 - (void)testTimeOutWithoutDownloadDelegate;
 - (void)testThrottlingDownloadBandwidth;
 - (void)testThrottlingUploadBandwidth;
-- (void)requestStarted:(ASIHTTPRequest *)request;
-- (void)requestFinished:(ASIHTTPRequest *)request;
-- (void)requestFailed:(ASIHTTPRequest *)request;
-- (void)delegateTestStarted:(ASIHTTPRequest *)request;
-- (void)delegateTestFinished:(ASIHTTPRequest *)request;
-- (void)delegateTestFailed:(ASIHTTPRequest *)request;
 #if TARGET_OS_IPHONE
 - (void)testReachability;
 #endif
 - (void)testAutomaticRetry;
 - (void)testCloseConnection;
-- (void)testPersistentConnectionTimeout;
+- (void)testPersistentConnections;
 - (void)testNilPortCredentialsMatching;
 
 @property (retain, nonatomic) NSMutableData *responseData;

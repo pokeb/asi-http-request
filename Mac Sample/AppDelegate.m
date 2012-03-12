@@ -10,6 +10,7 @@
 #import "ASIFormDataRequest.h"
 #import "ASINetworkQueue.h"
 #import "ASIDownloadCache.h"
+#import "ASIWebPageRequest.h"
 
 @interface AppDelegate ()
 - (void)updateBandwidthUsageIndicator;
@@ -22,6 +23,11 @@
 - (void)authSheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo;
 - (void)postFinished:(ASIHTTPRequest *)request;
 - (void)postFailed:(ASIHTTPRequest *)request;
+- (void)fetchURL:(NSURL *)url;
+- (void)tableViewDataFetchFinished:(ASIHTTPRequest *)request;
+- (void)rowImageDownloadFinished:(ASIHTTPRequest *)request;
+- (void)webPageFetchFailed:(ASIHTTPRequest *)request;
+- (void)webPageFetchSucceeded:(ASIHTTPRequest *)request;
 @end
 
 @implementation AppDelegate
@@ -44,7 +50,7 @@
 
 - (IBAction)simpleURLFetch:(id)sender
 {
-	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/the_great_american_novel_%28abridged%29.txt"]] autorelease];
+	ASIHTTPRequest *request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com"]] autorelease];
 	
 	//Customise our user agent, for no real reason
 	[request addRequestHeader:@"User-Agent" value:@"ASIHTTPRequest"];
@@ -57,10 +63,6 @@
 	}
 }
 
-- (void)requestFinished:(ASIHTTPRequest *)request
-{
-	[htmlSource setString:[request responseString]];
-}
 
 
 - (IBAction)URLFetchWithProgress:(id)sender
@@ -320,10 +322,10 @@
 	
 	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/table-row-data.xml"]];
 	[request setDownloadCache:[ASIDownloadCache sharedCache]];
-	[[ASIDownloadCache sharedCache] setDefaultCachePolicy:ASIOnlyLoadIfNotCachedCachePolicy];
 	[request setDidFinishSelector:@selector(tableViewDataFetchFinished:)];
 	[request setDelegate:self];
 	[[self tableQueue] addOperation:request];
+	[[self tableQueue] setDownloadProgressDelegate:progressIndicator];
 	[[self tableQueue] go];
 }
 
@@ -368,6 +370,7 @@
 	}
 }
 
+
 - (void)rowImageDownloadFinished:(ASIHTTPRequest *)request
 {
 	NSImage *image = [[[NSImage alloc] initWithData:[request responseData]] autorelease];
@@ -378,6 +381,72 @@
 - (IBAction)clearCache:(id)sender
 {
 	[[ASIDownloadCache sharedCache] clearCachedResponsesForStoragePolicy:ASICacheForSessionDurationCacheStoragePolicy];
+	[[ASIDownloadCache sharedCache] clearCachedResponsesForStoragePolicy:ASICachePermanentlyCacheStoragePolicy];
+}
+
+- (IBAction)fetchWebPage:(id)sender
+{
+	[self fetchURL:[NSURL URLWithString:[urlField stringValue]]];
+
+}
+
+- (void)webView:(WebView *)sender decidePolicyForNavigationAction:(NSDictionary *)actionInformation request:(NSURLRequest *)request frame:(WebFrame *)frame decisionListener:(id)listener
+{
+	// If this is a web page we've requested ourselves, let it load
+	if ([[actionInformation objectForKey:WebActionNavigationTypeKey] intValue] == WebNavigationTypeOther) {
+		[listener use];
+		return;
+	}
+
+	// If the user clicked on a link, let's tell the webview to ignore it, and we'll load it ourselves
+	[self fetchURL:[NSURL URLWithString:[[request URL] absoluteString] relativeToURL:[NSURL URLWithString:[urlField stringValue]]]];
+	[listener ignore];
+}
+
+- (void)fetchURL:(NSURL *)url
+{
+	ASIWebPageRequest *request = [ASIWebPageRequest requestWithURL:url];
+	[request setDidFailSelector:@selector(webPageFetchFailed:)];
+	[request setDidFinishSelector:@selector(webPageFetchSucceeded:)];
+	[request setDelegate:self];
+	[request setShowAccurateProgress:NO];
+	[request setDownloadProgressDelegate:progressIndicator];
+	[request setUrlReplacementMode:([dataURICheckbox state] == NSOnState ? ASIReplaceExternalResourcesWithData : ASIReplaceExternalResourcesWithLocalURLs)];
+
+	// It is strongly recommended that you set both a downloadCache and a downloadDestinationPath for all ASIWebPageRequests
+	[request setDownloadCache:[ASIDownloadCache sharedCache]];
+	[request setDownloadDestinationPath:[[ASIDownloadCache sharedCache] pathToStoreCachedResponseDataForRequest:request]];
+
+	[[ASIDownloadCache sharedCache] setShouldRespectCacheControlHeaders:NO];
+	[request startAsynchronous];
+}
+
+- (void)webPageFetchFailed:(ASIHTTPRequest *)request
+{
+	[[NSAlert alertWithError:[request error]] runModal];
+}
+
+- (void)webPageFetchSucceeded:(ASIHTTPRequest *)request
+{
+	NSURL *baseURL;
+	if ([dataURICheckbox state] == NSOnState) {
+		baseURL = [request url];
+
+		// If we're using ASIReplaceExternalResourcesWithLocalURLs, we must set the baseURL to point to our locally cached file
+	} else {
+		baseURL = [NSURL fileURLWithPath:[request downloadDestinationPath]];
+	}
+
+	if ([request downloadDestinationPath]) {
+		NSString *response = [NSString stringWithContentsOfFile:[request downloadDestinationPath] encoding:[request responseEncoding] error:nil];
+		[webPageSource setString:response];
+		[[webView mainFrame] loadHTMLString:response baseURL:baseURL];
+	} else if ([request responseString]) {
+		[webPageSource setString:[request responseString]];
+		[[webView mainFrame] loadHTMLString:[request responseString] baseURL:baseURL];
+	}
+
+	[urlField setStringValue:[[request url] absoluteString]];
 }
 
 

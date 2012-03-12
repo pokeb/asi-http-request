@@ -69,7 +69,13 @@ static NSRecursiveLock *accessDetailsLock = nil;
 		NSDictionary *responseHeaders = [request responseHeaders];
 		authToken = [responseHeaders objectForKey:@"X-Auth-Token"];
 		storageURL = [responseHeaders objectForKey:@"X-Storage-Url"];
-		cdnManagementURL = [responseHeaders objectForKey:@"X-Cdn-Management-Url"];
+		cdnManagementURL = [responseHeaders objectForKey:@"X-CDN-Management-Url"];
+        
+        // there is a bug in the Cloud Files API for some older accounts that causes
+        // the CDN URL to come back in a slightly different header
+        if (!cdnManagementURL) {
+            cdnManagementURL = [responseHeaders objectForKey:@"X-Cdn-Management-Url"];
+        }
 	}
 	[accessDetailsLock unlock];
 	return [request error];
