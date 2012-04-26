@@ -3331,6 +3331,12 @@ static NSOperationQueue *sharedQueue = nil;
 			dataWillBeHandledExternally = YES;
 		}
 		#endif
+        
+		if ([self authenticationNeeded]) {
+			// Don't pass the body of a 401/407 response to the callback.
+			dataWillBeHandledExternally = NO;
+		}
+        
 		// Does the delegate want to handle the data manually?
 		if (dataWillBeHandledExternally) {
 
