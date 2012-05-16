@@ -142,6 +142,9 @@ NSString *const ASIS3StorageClassReducedRedundancy = @"REDUCED_REDUNDANCY";
 	if ([self storageClass]) {
 		[headers setObject:[self storageClass] forKey:@"x-amz-storage-class"];
 	}
+	if ([self useServerSideEncryption]) {
+		[headers setObject:@"AES256" forKey:@"x-amz-server-side-encryption"];
+	}
 	return headers;
 }
 
@@ -161,4 +164,5 @@ NSString *const ASIS3StorageClassReducedRedundancy = @"REDUCED_REDUNDANCY";
 @synthesize mimeType;
 @synthesize subResource;
 @synthesize storageClass;
+@synthesize useServerSideEncryption;
 @end

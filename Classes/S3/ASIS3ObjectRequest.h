@@ -77,4 +77,5 @@ extern NSString *const ASIS3StorageClassReducedRedundancy;
 @property (retain, nonatomic) NSString *mimeType;
 @property (retain, nonatomic) NSString *subResource;
 @property (retain, nonatomic) NSString *storageClass;
+@property (assign, nonatomic) BOOL useServerSideEncryption;
 @end
