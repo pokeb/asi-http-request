@@ -261,6 +261,10 @@ typedef void (^ASIDataBlock)(NSData *data);
 	// HTTP status code, eg: 200 = OK, 404 = Not found etc
 	int responseStatusCode;
 	
+	// HTTP status code, eg: 200 = OK, 404 = Not found etc. 
+	// This does NOT change unlike responseStatusCode when cached headers are pulled from disk.
+	int uncachedResponseStatusCode;
+
 	// Description of the HTTP status code
 	NSString *responseStatusMessage;
 	
@@ -943,6 +947,7 @@ typedef void (^ASIDataBlock)(NSData *data);
 @property (retain) NSDictionary *requestCredentials;
 @property (retain) NSDictionary *proxyCredentials;
 @property (assign,readonly) int responseStatusCode;
+@property (assign,readonly) int uncachedResponseStatusCode;
 @property (retain,readonly) NSString *responseStatusMessage;
 @property (retain) NSMutableData *rawResponseData;
 @property (assign) NSTimeInterval timeOutSeconds;
