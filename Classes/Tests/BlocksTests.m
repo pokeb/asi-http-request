@@ -45,16 +45,16 @@
 	
 	// There's actually no need for us to use '__block' here, because we aren't using the request inside any of our blocks, but it's good to get into the habit of doing this anyway.
 	__block ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/blocks"]];
-	[request setStartedBlock:^{
+	[request setStartedBlock:^(ASIHTTPRequest* request){
 		started = YES;
 	}];
 	[request setHeadersReceivedBlock:^(NSDictionary *headers) {
 		receivedHeaders = YES;
 	}];
-	[request setCompletionBlock:^{
+	[request setCompletionBlock:^(ASIHTTPRequest* request){
 		complete = YES;
 	}];
-	[request setFailedBlock:^{
+	[request setFailedBlock:^(ASIHTTPRequest* request){
 		failed = YES;
 	}];
 	[request setBytesReceivedBlock:^(unsigned long long length, unsigned long long total) {
@@ -94,7 +94,7 @@
 	
 	
 	request = [ASIHTTPRequest requestWithURL:nil];
-	[request setFailedBlock:^{
+	[request setFailedBlock:^(ASIHTTPRequest* request){
 		failed = YES;
 	}];
 	[request startSynchronous];

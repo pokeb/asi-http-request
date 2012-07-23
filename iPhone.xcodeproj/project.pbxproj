@@ -687,7 +687,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "./Build\\ Scripts/set_version_number.rb\n./Build\\ Scripts/fetch_ios_ghunit.rb";
+			shellScript = "";
 		};
 		B52D492810DA4041008E8365 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -700,7 +700,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "./Build\\ Scripts/set_version_number.rb";
+			shellScript = "";
 		};
 		B576D71F11C7F34D0059B815 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
