@@ -43,7 +43,7 @@
 	//Add the file 8 times to the request, for a total request size around 2MB
 	int i;
 	for (i=0; i<8; i++) {
-		[request setFile:path forKey:[NSString stringWithFormat:@"file-%hi",i]];
+		[request setFile:path forKey:[NSString stringWithFormat:@"file-%i",i]];
 	}
 	
 	[request startAsynchronous];
