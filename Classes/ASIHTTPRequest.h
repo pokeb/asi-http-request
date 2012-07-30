@@ -74,7 +74,7 @@ extern NSString* const NetworkRequestErrorDomain;
 extern unsigned long const ASIWWANBandwidthThrottleAmount;
 
 #if NS_BLOCKS_AVAILABLE
-typedef void (^ASIBasicBlock)(void);
+typedef void (^ASIBasicBlock)(ASIHTTPRequest* request);
 typedef void (^ASIHeadersBlock)(NSDictionary *responseHeaders);
 typedef void (^ASISizeBlock)(long long size);
 typedef void (^ASIProgressBlock)(unsigned long long size, unsigned long long total);

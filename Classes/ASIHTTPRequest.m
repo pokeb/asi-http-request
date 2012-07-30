@@ -1742,7 +1742,7 @@ static NSOperationQueue *sharedQueue = nil;
 	#if NS_BLOCKS_AVAILABLE
     if (bytesReceivedBlock) {
 		unsigned long long totalSize = [self contentLength] + [self partialDownloadSize];
-		[self performBlockOnMainThread:^{ if (bytesReceivedBlock) { bytesReceivedBlock(value, totalSize); }}];
+		[self performBlockOnMainThread:^(ASIHTTPRequest* request){ if (bytesReceivedBlock) { bytesReceivedBlock(value, totalSize); }}];
     }
 	#endif
 	[self setLastBytesRead:bytesReadSoFar];
@@ -1786,7 +1786,7 @@ static NSOperationQueue *sharedQueue = nil;
 	#if NS_BLOCKS_AVAILABLE
     if(bytesSentBlock){
 		unsigned long long totalSize = [self postLength];
-		[self performBlockOnMainThread:^{ if (bytesSentBlock) { bytesSentBlock(value, totalSize); }}];
+		[self performBlockOnMainThread:^(ASIHTTPRequest* request){ if (bytesSentBlock) { bytesSentBlock(value, totalSize); }}];
 	}
 	#endif
 }
@@ -1799,7 +1799,7 @@ static NSOperationQueue *sharedQueue = nil;
 
 	#if NS_BLOCKS_AVAILABLE
     if(downloadSizeIncrementedBlock){
-		[self performBlockOnMainThread:^{ if (downloadSizeIncrementedBlock) { downloadSizeIncrementedBlock(length); }}];
+		[self performBlockOnMainThread:^(ASIHTTPRequest* request){ if (downloadSizeIncrementedBlock) { downloadSizeIncrementedBlock(length); }}];
     }
 	#endif
 }
@@ -1811,7 +1811,7 @@ static NSOperationQueue *sharedQueue = nil;
 
 	#if NS_BLOCKS_AVAILABLE
     if(uploadSizeIncrementedBlock) {
-		[self performBlockOnMainThread:^{ if (uploadSizeIncrementedBlock) { uploadSizeIncrementedBlock(length); }}];
+		[self performBlockOnMainThread:^(ASIHTTPRequest* request){ if (uploadSizeIncrementedBlock) { uploadSizeIncrementedBlock(length); }}];
     }
 	#endif
 }
@@ -1827,7 +1827,7 @@ static NSOperationQueue *sharedQueue = nil;
 	#if NS_BLOCKS_AVAILABLE
     if(bytesSentBlock){
 		unsigned long long totalSize = [self postLength];
-		[self performBlockOnMainThread:^{  if (bytesSentBlock) { bytesSentBlock(progressToRemove, totalSize); }}];
+		[self performBlockOnMainThread:^(ASIHTTPRequest* request){  if (bytesSentBlock) { bytesSentBlock(progressToRemove, totalSize); }}];
 	}
 	#endif
 }
@@ -1840,7 +1840,7 @@ static NSOperationQueue *sharedQueue = nil;
 
 - (void)callBlock:(ASIBasicBlock)block
 {
-	block();
+	block(self);
 }
 #endif
 
@@ -1937,7 +1937,7 @@ static NSOperationQueue *sharedQueue = nil;
 	}
 	#if NS_BLOCKS_AVAILABLE
 	if(startedBlock){
-		startedBlock();
+		startedBlock(self);
 	}
 	#endif
 	if (queue && [queue respondsToSelector:@selector(requestStarted:)]) {
@@ -1958,7 +1958,7 @@ static NSOperationQueue *sharedQueue = nil;
 
 	#if NS_BLOCKS_AVAILABLE
 	if(requestRedirectedBlock){
-		requestRedirectedBlock();
+		requestRedirectedBlock(self);
 	}
 	#endif
 }
@@ -2026,7 +2026,7 @@ static NSOperationQueue *sharedQueue = nil;
 
 	#if NS_BLOCKS_AVAILABLE
 	if(completionBlock){
-		completionBlock();
+		completionBlock(self);
 	}
 	#endif
 
@@ -2044,7 +2044,7 @@ static NSOperationQueue *sharedQueue = nil;
 
 	#if NS_BLOCKS_AVAILABLE
     if(failureBlock){
-        failureBlock();
+        failureBlock(self);
     }
 	#endif
 
@@ -2700,7 +2700,7 @@ static NSOperationQueue *sharedQueue = nil;
 	}
 	#if NS_BLOCKS_AVAILABLE
 	if(proxyAuthenticationNeededBlock){
-		proxyAuthenticationNeededBlock();
+		proxyAuthenticationNeededBlock(self);
 	}
 	#endif
 }
@@ -2752,7 +2752,7 @@ static NSOperationQueue *sharedQueue = nil;
 	
 	#if NS_BLOCKS_AVAILABLE
 	if (authenticationNeededBlock) {
-		authenticationNeededBlock();
+		authenticationNeededBlock(self);
 	}
 	#endif	
 }
