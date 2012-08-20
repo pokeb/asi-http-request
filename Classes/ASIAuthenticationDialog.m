@@ -41,7 +41,7 @@ static const NSUInteger kDomainSection = 1;
 - (void)orientationChanged:(NSNotification *)notification;
 - (void)cancelAuthenticationFromDialog:(id)sender;
 - (void)loginWithCredentialsFromDialog:(id)sender;
-@property (retain) UITableView *tableView;
+@property (atomic, retain) UITableView *tableView;
 @end
 
 @implementation ASIAuthenticationDialog
