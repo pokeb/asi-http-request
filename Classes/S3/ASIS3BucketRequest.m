@@ -98,7 +98,7 @@
 		[queryParts addObject:[NSString stringWithFormat:@"delimiter=%@",[[self delimiter] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]]];
 	}
 	if ([self maxResultCount] > 0) {
-		[queryParts addObject:[NSString stringWithFormat:@"max-keys=%hi",[self maxResultCount]]];
+		[queryParts addObject:[NSString stringWithFormat:@"max-keys=%i",[self maxResultCount]]];
 	}
 	if ([queryParts count]) {
 		NSString* template = @"%@?%@";
