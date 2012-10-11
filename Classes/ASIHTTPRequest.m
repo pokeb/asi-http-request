@@ -404,7 +404,7 @@ static NSOperationQueue *sharedQueue = nil;
 #if NS_BLOCKS_AVAILABLE
 - (void)releaseBlocksOnMainThread
 {
-	NSMutableArray *blocks = [NSMutableArray array];
+	NSMutableArray *blocks = [[NSMutableArray alloc] init];
 	if (completionBlock) {
 		[blocks addObject:completionBlock];
 		[completionBlock release];
@@ -471,6 +471,7 @@ static NSOperationQueue *sharedQueue = nil;
 + (void)releaseBlocks:(NSArray *)blocks
 {
 	// Blocks will be released when this method exits
+	[blocks release];
 }
 #endif
 
