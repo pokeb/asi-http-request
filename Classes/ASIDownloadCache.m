@@ -19,6 +19,7 @@ static NSArray *fileExtensionsToHandleAsHTML = nil;
 @interface ASIDownloadCache ()
 + (NSString *)keyForURL:(NSURL *)url;
 - (NSString *)pathToFile:(NSString *)file;
+- (NSString *)generateUniqueIdentifier;
 @end
 
 @implementation ASIDownloadCache
@@ -393,35 +394,69 @@ static NSArray *fileExtensionsToHandleAsHTML = nil;
 
 - (void)clearCachedResponsesForStoragePolicy:(ASICacheStoragePolicy)storagePolicy
 {
-	[[self accessLock] lock];
-	if (![self storagePath]) {
-		[[self accessLock] unlock];
-		return;
-	}
-	NSString *path = [[self storagePath] stringByAppendingPathComponent:(storagePolicy == ASICacheForSessionDurationCacheStoragePolicy ? sessionCacheFolder : permanentCacheFolder)];
+  [[self accessLock] lock];
+  if (![self storagePath]) {
+    [[self accessLock] unlock];
+    return;
+  }
+  NSString *path = [[self storagePath] stringByAppendingPathComponent:(storagePolicy == ASICacheForSessionDurationCacheStoragePolicy ? sessionCacheFolder : permanentCacheFolder)];
+  
+  NSFileManager *fileManager = [[[NSFileManager alloc] init] autorelease];
+  
+  BOOL isDirectory = NO;
+  BOOL exists = [fileManager fileExistsAtPath:path isDirectory:&isDirectory];
+  if (!exists || !isDirectory) {
+    [[self accessLock] unlock];
+    return;
+  }
+  
+  // It is significantly faster to perform a move than a delete on the iOS filesystem, especially on older devices.
+  // We move the existing cache directory so it lives in the temp directory and has a unique name.
+  // We clear the contents of the moved directory in a background thread.
+  NSString *renamedPath = [NSTemporaryDirectory() stringByAppendingPathComponent:[self generateUniqueIdentifier]];
+  
+  NSError *error = nil;
+  BOOL renamed = [fileManager moveItemAtPath:path toPath:renamedPath error:&error];
+  if (!renamed) {
+    [[self accessLock] unlock];
+    [NSException raise:@"FailedToRenameCacheDirectory" format:@"Renaming cache directory failed at path '%@'",path];
+  }
+  
+  BOOL recreated = [fileManager createDirectoryAtPath:path withIntermediateDirectories:YES attributes:nil error:&error];
+  if (!recreated) {
+    [[self accessLock] unlock];
+    [NSException raise:@"FailedToRecreateCacheDirectory" format:@"Recreating cache directory failed at path '%@'",path];
+  }
+  
+  dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void) {
+    NSError *backgroundError = nil;
+    NSArray *cacheFiles = [fileManager contentsOfDirectoryAtPath:renamedPath error:&backgroundError];
+    if (backgroundError) {
+      [NSException raise:@"FailedToTraverseCacheDirectory" format:@"Listing cache directory failed at path '%@'",renamedPath];
+    }
+    for (NSString *file in cacheFiles) {
+      [fileManager removeItemAtPath:[renamedPath stringByAppendingPathComponent:file] error:&backgroundError];
+      if (backgroundError) {
+        [NSException raise:@"FailedToRemoveCacheFile" format:@"Failed to remove cached data at path '%@'",renamedPath];
+      }
+    }
+    
+    // Remove the now-empty temporary directory
+    [fileManager removeItemAtPath:renamedPath error:&backgroundError];
+    if (backgroundError) {
+      [NSException raise:@"FailedToRemoveCacheDirectory" format:@"Failed to remove cached directory at path '%@'",renamedPath];
+    }
+  });
+  
+  [[self accessLock] unlock];
+}
 
-	NSFileManager *fileManager = [[[NSFileManager alloc] init] autorelease];
-
-	BOOL isDirectory = NO;
-	BOOL exists = [fileManager fileExistsAtPath:path isDirectory:&isDirectory];
-	if (!exists || !isDirectory) {
-		[[self accessLock] unlock];
-		return;
-	}
-	NSError *error = nil;
-	NSArray *cacheFiles = [fileManager contentsOfDirectoryAtPath:path error:&error];
-	if (error) {
-		[[self accessLock] unlock];
-		[NSException raise:@"FailedToTraverseCacheDirectory" format:@"Listing cache directory failed at path '%@'",path];	
-	}
-	for (NSString *file in cacheFiles) {
-		[fileManager removeItemAtPath:[path stringByAppendingPathComponent:file] error:&error];
-		if (error) {
-			[[self accessLock] unlock];
-			[NSException raise:@"FailedToRemoveCacheFile" format:@"Failed to remove cached data at path '%@'",path];
-		}
-	}
-	[[self accessLock] unlock];
+- (NSString *)generateUniqueIdentifier
+{
+  CFUUIDRef uniqueIdentifier = CFUUIDCreate(NULL);
+  CFStringRef uniqueIdentifierString = CFUUIDCreateString(NULL, uniqueIdentifier);
+  CFRelease(uniqueIdentifier);
+  return [(NSString *)uniqueIdentifierString autorelease];
 }
 
 + (BOOL)serverAllowsResponseCachingForRequest:(ASIHTTPRequest *)request
