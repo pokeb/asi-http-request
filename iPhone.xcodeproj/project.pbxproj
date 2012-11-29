@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 45;
+	objectVersion = 46;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -81,7 +81,6 @@
 		B57D0F4812AA7D3600E5F992 /* ASIWebPageRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B57D0F4712AA7D3600E5F992 /* ASIWebPageRequest.m */; };
 		B57D0F4912AA7D3600E5F992 /* ASIWebPageRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B57D0F4712AA7D3600E5F992 /* ASIWebPageRequest.m */; };
 		B57D0F4A12AA7D3600E5F992 /* ASIWebPageRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B57D0F4712AA7D3600E5F992 /* ASIWebPageRequest.m */; };
-		B581DDCA12FDFEEE003BA9D0 /* GHUnitIOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B581DDC912FDFEEE003BA9D0 /* GHUnitIOS.framework */; };
 		B5873FD610FF28CA001E145F /* ASIS3BucketObject.m in Sources */ = {isa = PBXBuildFile; fileRef = B5873FC210FF28CA001E145F /* ASIS3BucketObject.m */; };
 		B5873FD810FF28CA001E145F /* ASIS3Request.m in Sources */ = {isa = PBXBuildFile; fileRef = B5873FC610FF28CA001E145F /* ASIS3Request.m */; };
 		B5873FD910FF28CA001E145F /* ASICloudFilesCDNRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5873FC910FF28CA001E145F /* ASICloudFilesCDNRequest.m */; };
@@ -127,6 +126,9 @@
 		DADCEB9F12D505AB00958557 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = DADCEB9E12D505AB00958557 /* libz.dylib */; };
 		DADCEBA012D505B900958557 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = DADCEB9E12D505AB00958557 /* libz.dylib */; };
 		DADCEBA112D505C700958557 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = DADCEB9E12D505AB00958557 /* libz.dylib */; };
+		EBFFF52C1518856F00EC7242 /* GHUnitIOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EBFFF52B1518856F00EC7242 /* GHUnitIOS.framework */; };
+		EBFFF52D1518856F00EC7242 /* GHUnitIOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EBFFF52B1518856F00EC7242 /* GHUnitIOS.framework */; };
+		EBFFF52E1518856F00EC7242 /* GHUnitIOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EBFFF52B1518856F00EC7242 /* GHUnitIOS.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -224,7 +226,6 @@
 		B57AF5951258B401002A1F0C /* RequestProgressCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = RequestProgressCell.m; path = "iPhone Sample/RequestProgressCell.m"; sourceTree = "<group>"; };
 		B57D0F4612AA7D3600E5F992 /* ASIWebPageRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ASIWebPageRequest.h; path = ASIWebPageRequest/ASIWebPageRequest.h; sourceTree = "<group>"; };
 		B57D0F4712AA7D3600E5F992 /* ASIWebPageRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ASIWebPageRequest.m; path = ASIWebPageRequest/ASIWebPageRequest.m; sourceTree = "<group>"; };
-		B581DDC912FDFEEE003BA9D0 /* GHUnitIOS.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GHUnitIOS.framework; path = External/GHUnit/GHUnitIOS.framework; sourceTree = "<group>"; };
 		B5873FC110FF28CA001E145F /* ASIS3BucketObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIS3BucketObject.h; sourceTree = "<group>"; };
 		B5873FC210FF28CA001E145F /* ASIS3BucketObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASIS3BucketObject.m; sourceTree = "<group>"; };
 		B5873FC510FF28CA001E145F /* ASIS3Request.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIS3Request.h; sourceTree = "<group>"; };
@@ -269,6 +270,7 @@
 		B5FE752A11DBBA6A00F898C8 /* ASICacheDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASICacheDelegate.h; sourceTree = "<group>"; };
 		DADCEB9812D5057700958557 /* libxml2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxml2.dylib; path = /usr/lib/libxml2.dylib; sourceTree = "<absolute>"; };
 		DADCEB9E12D505AB00958557 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = /usr/lib/libz.dylib; sourceTree = "<absolute>"; };
+		EBFFF52B1518856F00EC7242 /* GHUnitIOS.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GHUnitIOS.framework; path = External/GHUnit/GHUnitIOS.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -284,6 +286,7 @@
 				DADCEB9012D5050600958557 /* UIKit.framework in Frameworks */,
 				DADCEB9912D5057700958557 /* libxml2.dylib in Frameworks */,
 				DADCEB9F12D505AB00958557 /* libz.dylib in Frameworks */,
+				EBFFF52C1518856F00EC7242 /* GHUnitIOS.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -300,7 +303,7 @@
 				B576D4C411C7CC9C0059B815 /* UIKit.framework in Frameworks */,
 				DADCEB9A12D5058500958557 /* libxml2.dylib in Frameworks */,
 				DADCEBA012D505B900958557 /* libz.dylib in Frameworks */,
-				B581DDCA12FDFEEE003BA9D0 /* GHUnitIOS.framework in Frameworks */,
+				EBFFF52D1518856F00EC7242 /* GHUnitIOS.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -316,6 +319,7 @@
 				DADCEB9212D5051200958557 /* UIKit.framework in Frameworks */,
 				DADCEB9B12D5058C00958557 /* libxml2.dylib in Frameworks */,
 				DADCEBA112D505C700958557 /* libz.dylib in Frameworks */,
+				EBFFF52E1518856F00EC7242 /* GHUnitIOS.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -422,7 +426,7 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				B581DDC912FDFEEE003BA9D0 /* GHUnitIOS.framework */,
+				EBFFF52B1518856F00EC7242 /* GHUnitIOS.framework */,
 				B576D4C011C7CC970059B815 /* CFNetwork.framework */,
 				B576D4D011C7CCBC0059B815 /* CoreGraphics.framework */,
 				B576D52C11C7CEFA0059B815 /* Foundation.framework */,
@@ -615,8 +619,11 @@
 /* Begin PBXProject section */
 		29B97313FDCFA39411CA2CEA /* Project object */ = {
 			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0410;
+			};
 			buildConfigurationList = C01FCF4E08A954540054247B /* Build configuration list for PBXProject "iPhone" */;
-			compatibilityVersion = "Xcode 3.1";
+			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 1;
 			knownRegions = (
@@ -827,6 +834,10 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/External/GHUnit\"",
+				);
 				GCC_C_LANGUAGE_STANDARD = "compiler-default";
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -848,6 +859,10 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/External/GHUnit\"",
+				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "iPhone Sample/iPhone_Prefix.pch";
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
@@ -905,7 +920,6 @@
 					"\"$(SRCROOT)/External/GHUnit\"",
 				);
 				GCC_C_LANGUAGE_STANDARD = "compiler-default";
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "iPhone Sample/iPhone_Prefix.pch";
 				GCC_PREPROCESSOR_DEFINITIONS = "";
@@ -919,7 +933,6 @@
 					"-ObjC",
 					"-all_load",
 				);
-				PREBINDING = NO;
 				PRODUCT_NAME = Tests;
 				PROVISIONING_PROFILE = "";
 				SKIP_INSTALL = YES;
@@ -933,6 +946,10 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_UNIVERSAL_IPHONE_OS)";
 				COPY_PHASE_STRIP = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/External/GHUnit\"",
+				);
 				GCC_C_LANGUAGE_STANDARD = "compiler-default";
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -954,6 +971,10 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_UNIVERSAL_IPHONE_OS)";
 				COPY_PHASE_STRIP = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/External/GHUnit\"",
+				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "iPhone Sample/iPhone_Prefix.pch";
 				GCC_VERSION = com.apple.compilers.llvmgcc42;
@@ -974,7 +995,6 @@
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				ONLY_ACTIVE_ARCH = YES;
-				PREBINDING = NO;
 				SDKROOT = iphoneos;
 			};
 			name = Debug;
@@ -987,7 +1007,6 @@
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				PREBINDING = NO;
 				SDKROOT = iphoneos;
 			};
 			name = Release;

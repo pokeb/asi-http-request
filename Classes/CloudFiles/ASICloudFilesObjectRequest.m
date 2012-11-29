@@ -74,7 +74,7 @@
 	NSString *queryString = @"?format=xml";
 	
 	if (limit && limit > 0) {
-		queryString = [queryString stringByAppendingString:[NSString stringWithFormat:@"&limit=%i", limit]];
+		queryString = [queryString stringByAppendingString:[NSString stringWithFormat:@"&limit=%li", limit]];
 	}
 	if (marker) {
 		queryString = [queryString stringByAppendingString:[NSString stringWithFormat:@"&marker=%@", [marker stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]]];
@@ -130,7 +130,7 @@
 	object.bytes = [[[self responseHeaders] objectForKey:@"Content-Length"] intValue];
 	object.contentType = [[self responseHeaders] objectForKey:@"Content-Type"];
 	object.lastModified = [[self responseHeaders] objectForKey:@"Last-Modified"];
-	object.metadata = [[NSMutableDictionary alloc] init];
+	object.metadata = [NSMutableDictionary dictionary];
 	
 	for (NSString *key in [[self responseHeaders] keyEnumerator]) {
 		NSRange metaRange = [key rangeOfString:@"X-Object-Meta-"];

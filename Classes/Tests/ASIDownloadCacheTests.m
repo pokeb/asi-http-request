@@ -298,6 +298,30 @@
 	GHAssertTrue(success,@"Failed to use cached response");
 }
 
+- (void)testExtensionHandling
+{
+	NSArray *extensions = [ASIDownloadCache fileExtensionsToHandleAsHTML];
+	for (NSString *extension in extensions) {
+		NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://allseeing-i.com/file.%@",extension]];
+		ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:url];
+		NSString *path = [[ASIDownloadCache sharedCache] pathToStoreCachedResponseDataForRequest:request];
+		BOOL success = [[path pathExtension] isEqualToString:@"html"];
+		GHAssertTrue(success, @"Failed to use html extension on cached path for a resource we know a webview won't be able to open locally");
+	}
+
+	NSURL *url = [NSURL URLWithString:@"http://allseeing-i.com/"];
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:url];
+	NSString *path = [[ASIDownloadCache sharedCache] pathToStoreCachedResponseDataForRequest:request];
+	BOOL success = [[path pathExtension] isEqualToString:@"html"];
+	GHAssertTrue(success, @"Failed to use html extension on cached path for a url without an extension");
+
+	url = [NSURL URLWithString:@"http://allseeing-i.com/i/logo.png"];
+	request = [ASIHTTPRequest requestWithURL:url];
+	path = [[ASIDownloadCache sharedCache] pathToStoreCachedResponseDataForRequest:request];
+	success = [[path pathExtension] isEqualToString:@"png"];
+	GHAssertTrue(success, @"Failed to preserve file extension on cached path");
+}
+
 - (void)testCustomExpiry
 {
 	[[ASIDownloadCache sharedCache] clearCachedResponsesForStoragePolicy:ASICacheForSessionDurationCacheStoragePolicy];
@@ -504,6 +528,35 @@
 	GHAssertTrue(success,@"Failed to cache redirect response");
 
 	[request redirectToURL:newURL];
+}
+
+- (void)testCachedFileOverwritten
+{
+	// Test for https://github.com/pokeb/asi-http-request/pull/211
+	// This test ensures that items in the cache are correctly overwritten when a downloadDestinationPath is set,
+	// and they need to be copied to the cache at the end of the request
+
+	// This url returns different content every time
+	NSURL *url = [NSURL URLWithString:@"http://asi/ASIHTTPRequest/tests/random-content"];
+	ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:url];
+	[request setDownloadCache:[ASIDownloadCache sharedCache]];
+	[request setSecondsToCache:0.5f];
+	[request startSynchronous];
+
+	NSString *path = [[ASIDownloadCache sharedCache] pathToCachedResponseDataForURL:url];
+	NSString *content = [NSString stringWithContentsOfFile:path encoding:NSUTF8StringEncoding error:NULL];
+
+	sleep(1);
+
+	request = [ASIHTTPRequest requestWithURL:url];
+	[request setDownloadCache:[ASIDownloadCache sharedCache]];
+	[request setDownloadDestinationPath:[[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:@"test.html"]];
+	[request startSynchronous];
+
+	NSString *content2 = [NSString stringWithContentsOfFile:path encoding:NSUTF8StringEncoding error:NULL];
+
+	BOOL success = ![content isEqualToString:content2];
+	GHAssertTrue(success, @"Failed to overwrite response in cache");
 }
 
 @end

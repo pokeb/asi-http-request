@@ -10,3 +10,5 @@ profile
 *.pbxuser
 *.mode1v3
 External/GHUnit/*
+.svn
+/ASIHTTPRequest License
