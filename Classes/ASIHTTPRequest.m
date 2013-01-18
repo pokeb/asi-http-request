@@ -4103,6 +4103,7 @@ static NSOperationQueue *sharedQueue = nil;
     [newRequest setStartedBlock:startedBlock];
     [newRequest setHeadersReceivedBlock:headersReceivedBlock];
     [newRequest setCompletionBlock:completionBlock];
+    [newRequest setFailedBlock:failureBlock];
     [newRequest setBytesReceivedBlock:bytesReceivedBlock];
     [newRequest setBytesSentBlock:bytesSentBlock];
     [newRequest setDownloadSizeIncrementedBlock:downloadSizeIncrementedBlock];
