@@ -1528,12 +1528,10 @@ static NSOperationQueue *sharedQueue = nil;
 			[self startRequest];
 			return;
 		}
-        CFRetain(self);
 		[self failWithError:ASIRequestTimedOutError];
 		[self cancelLoad];
 		[self setComplete:YES];
 		[[self cancelledLock] unlock];
-        CFRelease(self);
 		return;
 	}
 
