@@ -1211,14 +1211,17 @@ static NSOperationQueue *sharedQueue = nil;
         if (![self validatesSecureCertificate]) {
             // see: http://iphonedevelopment.blogspot.com/2010/05/nsstream-tcp-and-ssl.html
             
-            NSDictionary *sslProperties = [[NSDictionary alloc] initWithObjectsAndKeys:
-                                      [NSNumber numberWithBool:YES], kCFStreamSSLAllowsExpiredCertificates,
-                                      [NSNumber numberWithBool:YES], kCFStreamSSLAllowsAnyRoot,
-                                      [NSNumber numberWithBool:NO],  kCFStreamSSLValidatesCertificateChain,
-                                      kCFNull,kCFStreamSSLPeerName,
-                                      nil];
-            
-            CFReadStreamSetProperty((CFReadStreamRef)[self readStream], 
+            NSMutableDictionary *sslProperties = [[NSMutableDictionary alloc] initWithObjectsAndKeys:
+                                                  [NSNumber numberWithBool:YES], kCFStreamSSLAllowsExpiredCertificates,
+                                                  [NSNumber numberWithBool:YES], kCFStreamSSLAllowsAnyRoot,
+                                                  [NSNumber numberWithBool:NO],  kCFStreamSSLValidatesCertificateChain,
+                                                  kCFNull,kCFStreamSSLPeerName,
+                                                  nil];
+            if ([[[UIDevice currentDevice] systemVersion] compare:@"5.0" options:NSNumericSearch] != NSOrderedAscending && [[[UIDevice currentDevice] systemVersion] compare:@"5.1" options:NSNumericSearch] == NSOrderedAscending) {
+                [sslProperties setObject:@"kCFStreamSocketSecurityLevelTLSv1_0SSLv3" forKey:kCFStreamSSLLevel];
+            }
+
+            CFReadStreamSetProperty((CFReadStreamRef)[self readStream],
                                     kCFStreamPropertySSLSettings, 
                                     (CFTypeRef)sslProperties);
             [sslProperties release];
@@ -1227,9 +1230,12 @@ static NSOperationQueue *sharedQueue = nil;
         // Tell CFNetwork to use a client certificate
         if (clientCertificateIdentity) {
             NSMutableDictionary *sslProperties = [NSMutableDictionary dictionaryWithCapacity:1];
+            if ([[[UIDevice currentDevice] systemVersion] compare:@"5.0" options:NSNumericSearch] != NSOrderedAscending && [[[UIDevice currentDevice] systemVersion] compare:@"5.1" options:NSNumericSearch] == NSOrderedAscending) {
+                [sslProperties setObject:@"kCFStreamSocketSecurityLevelTLSv1_0SSLv3" forKey:kCFStreamSSLLevel];
+            }
             
 			NSMutableArray *certificates = [NSMutableArray arrayWithCapacity:[clientCertificates count]+1];
-
+            
 			// The first object in the array is our SecIdentityRef
 			[certificates addObject:(id)clientCertificateIdentity];
 
