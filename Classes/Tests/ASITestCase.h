@@ -11,7 +11,7 @@
 #if TARGET_OS_IPHONE
 #import <GHUnitIOS/GHUnit.h>
 #else
-#import <GHUnit/GHUnit.h>
+#import "GHUnit.h"
 #endif
 
 @interface ASITestCase : GHTestCase {
