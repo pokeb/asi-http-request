@@ -1009,4 +1009,9 @@ typedef void (^ASIDataBlock)(NSData *data);
 @property (retain) ASIDataDecompressor *dataDecompressor;
 @property (assign) BOOL shouldWaitToInflateCompressedResponses;
 
+#pragma mark - @@@BP Proxy to bypass
+@property (retain) NSString *bypassProxyHost;
+@property (assign) NSInteger bypassProxyPort;
+@property (retain) NSString *bypassProxyType;
+#pragma mark - @@@BP
 @end

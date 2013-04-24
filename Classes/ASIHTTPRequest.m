@@ -307,6 +307,11 @@ static NSOperationQueue *sharedQueue = nil;
 	[self setURL:newURL];
 	[self setCancelledLock:[[[NSRecursiveLock alloc] init] autorelease]];
 	[self setDownloadCache:[[self class] defaultCache]];
+#pragma mark - @@@BP Proxy to bypass
+    self.bypassProxyHost = @"127.0.0.1";
+    self.bypassProxyPort = 8888;
+    self.bypassProxyType = (NSString *)kCFProxyTypeHTTP;
+#pragma mark - @@@BP
 	return self;
 }
 
@@ -3835,7 +3840,8 @@ static NSOperationQueue *sharedQueue = nil;
 	if (![self isPACFileRequest] && (![self proxyHost] && ![self proxyPort])) {
 
 		// If not, we need to figure out what they'll be
-		NSArray *proxies = nil;
+#pragma mark - @@@BP Proxy to bypass
+		NSMutableArray *proxies = nil;
 
 		// Have we been given a proxy auto config file?
 		if ([self PACurl]) {
@@ -3853,10 +3859,22 @@ static NSOperationQueue *sharedQueue = nil;
 			NSDictionary *proxySettings = [NSMakeCollectable(SCDynamicStoreCopyProxies(NULL)) autorelease];
 #endif
 
-			proxies = [NSMakeCollectable(CFNetworkCopyProxiesForURL((CFURLRef)[self url], (CFDictionaryRef)proxySettings)) autorelease];
+			proxies = [NSMutableArray arrayWithArray:[NSMakeCollectable(CFNetworkCopyProxiesForURL((CFURLRef)[self url], (CFDictionaryRef)proxySettings)) autorelease]];
 
 			// Now check to see if the proxy settings contained a PAC url, we need to run the script to get the real list of proxies if so
 			NSDictionary *settings = [proxies objectAtIndex:0];
+            NSString *actualProxyHost = [settings objectForKey:(NSString *)kCFProxyHostNameKey];
+            NSInteger actualProxyPort = [[settings objectForKey:(NSString *)kCFProxyPortNumberKey] intValue];
+            NSString *actualProxyType = [settings objectForKey:(NSString *)kCFProxyTypeKey];
+            if ([self.bypassProxyHost isEqualToString:actualProxyHost]
+                && self.bypassProxyPort==actualProxyPort
+                && [self.bypassProxyType isEqualToString:actualProxyType]) {
+                if (1<proxies.count) {
+                    settings = [proxies objectAtIndex:1];
+                }
+                [proxies removeObjectAtIndex:0];
+            }
+#pragma mark - @@@BP
 			if ([settings objectForKey:(NSString *)kCFProxyAutoConfigurationURLKey]) {
 				[self setPACurl:[settings objectForKey:(NSString *)kCFProxyAutoConfigurationURLKey]];
 				[self fetchPACFile];
@@ -4122,6 +4140,10 @@ static NSOperationQueue *sharedQueue = nil;
 	[newRequest setShouldAttemptPersistentConnection:[self shouldAttemptPersistentConnection]];
 	[newRequest setPersistentConnectionTimeoutSeconds:[self persistentConnectionTimeoutSeconds]];
     [newRequest setAuthenticationScheme:[self authenticationScheme]];
+    newRequest.bypassProxyHost = self.bypassProxyHost;
+    newRequest.bypassProxyPort = self.bypassProxyPort;
+    newRequest.bypassProxyType = self.bypassProxyType;
+    
 	return newRequest;
 }
 
