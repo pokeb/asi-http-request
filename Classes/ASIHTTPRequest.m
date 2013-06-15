@@ -2271,7 +2271,7 @@ static NSOperationQueue *sharedQueue = nil;
 			[cDScanner scanUpToString:@"filename=\"" intoString:NULL];
 			[cDScanner scanString:@"filename=\"" intoString:NULL];
 			NSString *defaultFilenameSuggested;
-			[cDScanner scanUpToString:@"\";" intoString:&defaultFilenameSuggested];
+			[cDScanner scanUpToString:@"\"" intoString:&defaultFilenameSuggested];
 			[self setDefaultFilename:defaultFilenameSuggested];
 		}
 	}
