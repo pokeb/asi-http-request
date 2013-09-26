@@ -219,16 +219,14 @@
 #if DEBUG_FORM_DATA_REQUEST
 	[self addToDebugBody:@"\r\n==== Building a multipart/form-data body ====\r\n"];
 #endif
-	
-	NSString *charset = (NSString *)CFStringConvertEncodingToIANACharSetName(CFStringConvertNSStringEncodingToEncoding([self stringEncoding]));
-	
+    
 	// We don't bother to check if post data contains the boundary, since it's pretty unlikely that it does.
 	CFUUIDRef uuid = CFUUIDCreate(nil);
 	NSString *uuidString = [(NSString*)CFUUIDCreateString(nil, uuid) autorelease];
 	CFRelease(uuid);
 	NSString *stringBoundary = [NSString stringWithFormat:@"0xKhTmLbOuNdArY-%@",uuidString];
 	
-	[self addRequestHeader:@"Content-Type" value:[NSString stringWithFormat:@"multipart/form-data; charset=%@; boundary=%@", charset, stringBoundary]];
+	[self addRequestHeader:@"Content-Type" value:[NSString stringWithFormat:@"multipart/form-data; boundary=%@", stringBoundary]];
 	
 	[self appendPostString:[NSString stringWithFormat:@"--%@\r\n",stringBoundary]];
 	
