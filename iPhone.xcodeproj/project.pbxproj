@@ -828,7 +828,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_IDENTITY = "";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
 				COPY_PHASE_STRIP = NO;
 				GCC_C_LANGUAGE_STANDARD = "compiler-default";
 				GCC_DYNAMIC_NO_PIC = NO;
@@ -840,7 +841,8 @@
 				INFOPLIST_FILE = "iPhone Sample/iPhoneInfo.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 3.1.3;
 				PRODUCT_NAME = "ASIHTTPRequest iPhone";
-				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
+				PROVISIONING_PROFILE = "1EF820DC-2714-4C87-9291-080265963509";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "1EF820DC-2714-4C87-9291-080265963509";
 				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
@@ -849,7 +851,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_IDENTITY = "";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
 				COPY_PHASE_STRIP = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "iPhone Sample/iPhone_Prefix.pch";
@@ -858,7 +861,8 @@
 				INFOPLIST_FILE = "iPhone Sample/iPhoneInfo.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 3.1.3;
 				PRODUCT_NAME = "ASIHTTPRequest iPhone";
-				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
+				PROVISIONING_PROFILE = "1EF820DC-2714-4C87-9291-080265963509";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "1EF820DC-2714-4C87-9291-080265963509";
 				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
