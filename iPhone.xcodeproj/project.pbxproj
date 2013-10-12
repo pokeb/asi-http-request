@@ -26,7 +26,7 @@
 		B53E6D951257B45800C1E79A /* ASIDataDecompressor.m in Sources */ = {isa = PBXBuildFile; fileRef = B53E6D911257B45800C1E79A /* ASIDataDecompressor.m */; };
 		B53E6D961257B45800C1E79A /* ASIDataCompressor.m in Sources */ = {isa = PBXBuildFile; fileRef = B53E6D931257B45800C1E79A /* ASIDataCompressor.m */; };
 		B53E6D971257B45800C1E79A /* ASIDataDecompressor.m in Sources */ = {isa = PBXBuildFile; fileRef = B53E6D911257B45800C1E79A /* ASIDataDecompressor.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		B53E6D981257B45800C1E79A /* ASIDataCompressor.m in Sources */ = {isa = PBXBuildFile; fileRef = B53E6D931257B45800C1E79A /* ASIDataCompressor.m */; };
+		B53E6D981257B45800C1E79A /* ASIDataCompressor.m in Sources */ = {isa = PBXBuildFile; fileRef = B53E6D931257B45800C1E79A /* ASIDataCompressor.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		B53E6D991257B45800C1E79A /* ASIDataDecompressor.m in Sources */ = {isa = PBXBuildFile; fileRef = B53E6D911257B45800C1E79A /* ASIDataDecompressor.m */; };
 		B53E6D9A1257B45800C1E79A /* ASIDataCompressor.m in Sources */ = {isa = PBXBuildFile; fileRef = B53E6D931257B45800C1E79A /* ASIDataCompressor.m */; };
 		B540400B115114BA00D8BE63 /* ASIS3Bucket.m in Sources */ = {isa = PBXBuildFile; fileRef = B5404000115114BA00D8BE63 /* ASIS3Bucket.m */; };
