@@ -16,8 +16,8 @@
 
 @interface ASIInputStream : NSObject
 
-+ (id)inputStreamWithFileAtPath:(NSString *)path request:(ASIHTTPRequest *)request;
-+ (id)inputStreamWithData:(NSData *)data request:(ASIHTTPRequest *)request;
++ (instancetype)inputStreamWithFileAtPath:(NSString *)path request:(ASIHTTPRequest *)request;
++ (instancetype)inputStreamWithData:(NSData *)data request:(ASIHTTPRequest *)request;
 
 @property (strong, nonatomic) NSInputStream *stream;
 @property (assign, nonatomic) ASIHTTPRequest *request;
