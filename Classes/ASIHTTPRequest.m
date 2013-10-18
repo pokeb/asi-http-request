@@ -23,6 +23,14 @@
 #import "ASIDataDecompressor.h"
 #import "ASIDataCompressor.h"
 
+#define ASISuppressPerformSelectorLeakWarning(Stuff) \
+do { \
+_Pragma("clang diagnostic push") \
+_Pragma("clang diagnostic ignored \"-Warc-performSelector-leaks\"") \
+Stuff \
+_Pragma("clang diagnostic pop") \
+} while (0)
+
 // Automatically set on build
 NSString *ASIHTTPRequestVersion = @"v1.8.1-61 2011-09-19";
 
@@ -1896,7 +1904,9 @@ static NSOperationQueue *sharedQueue = nil;
 		return;
 	}
 	if ([self delegate] && [[self delegate] respondsToSelector:[self didStartSelector]]) {
+    ASISuppressPerformSelectorLeakWarning(
 		[[self delegate] performSelector:[self didStartSelector] withObject:self];
+                                          );
 	}
 	#if NS_BLOCKS_AVAILABLE
 	if(startedBlock){
@@ -1934,8 +1944,10 @@ static NSOperationQueue *sharedQueue = nil;
 		return;
 	}
 
-	if (_delegate && [_delegate respondsToSelector:didReceiveResponseHeadersSelector]) {
-		[_delegate performSelector:didReceiveResponseHeadersSelector withObject:self withObject:newResponseHeaders];
+	if (_delegate && [_delegate respondsToSelector:_didReceiveResponseHeadersSelector]) {
+    ASISuppressPerformSelectorLeakWarning(
+                                          [_delegate performSelector:_didReceiveResponseHeadersSelector withObject:self withObject:newResponseHeaders];
+                                          );
 	}
 
 	#if NS_BLOCKS_AVAILABLE
