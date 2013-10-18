@@ -1397,10 +1397,10 @@ static NSOperationQueue *sharedQueue = nil;
 			} else {
 				[self incrementUploadSizeBy:1];	 
 			}
-			[ASIHTTPRequest updateProgressIndicator:&_uploadProgressDelegate withProgress:0 ofTotal:1];
+			[ASIHTTPRequest updateProgressIndicator:_uploadProgressDelegate withProgress:0 ofTotal:1];
 		}
 		if ([self shouldResetDownloadProgress] && ![self partialDownloadSize]) {
-			[ASIHTTPRequest updateProgressIndicator:&_downloadProgressDelegate withProgress:0 ofTotal:1];
+			[ASIHTTPRequest updateProgressIndicator:_downloadProgressDelegate withProgress:0 ofTotal:1];
 		}
 	}	
 	
@@ -1701,7 +1701,7 @@ static NSOperationQueue *sharedQueue = nil;
 	[ASIHTTPRequest performSelector:@selector(request:didReceiveBytes:) onTarget:&_queue withObject:self amount:&value callerToRetain:self];
 	[ASIHTTPRequest performSelector:@selector(request:didReceiveBytes:) onTarget:&_downloadProgressDelegate withObject:self amount:&value callerToRetain:self];
 
-	[ASIHTTPRequest updateProgressIndicator:&_downloadProgressDelegate withProgress:[self totalBytesRead]+[self partialDownloadSize] ofTotal:[self contentLength]+[self partialDownloadSize]];
+	[ASIHTTPRequest updateProgressIndicator:_downloadProgressDelegate withProgress:[self totalBytesRead]+[self partialDownloadSize] ofTotal:[self contentLength]+[self partialDownloadSize]];
 
 	#if NS_BLOCKS_AVAILABLE
     if (bytesReceivedBlock) {
@@ -1745,7 +1745,7 @@ static NSOperationQueue *sharedQueue = nil;
 	
 	[ASIHTTPRequest performSelector:@selector(request:didSendBytes:) onTarget:&_queue withObject:self amount:&value callerToRetain:self];
 	[ASIHTTPRequest performSelector:@selector(request:didSendBytes:) onTarget:&_uploadProgressDelegate withObject:self amount:&value callerToRetain:self];
-	[ASIHTTPRequest updateProgressIndicator:&_uploadProgressDelegate withProgress:[self totalBytesSent]-[self uploadBufferSize] ofTotal:[self postLength]-[self uploadBufferSize]];
+	[ASIHTTPRequest updateProgressIndicator:_uploadProgressDelegate withProgress:[self totalBytesSent]-[self uploadBufferSize] ofTotal:[self postLength]-[self uploadBufferSize]];
 
 	#if NS_BLOCKS_AVAILABLE
     if(bytesSentBlock){
@@ -1786,7 +1786,7 @@ static NSOperationQueue *sharedQueue = nil;
 	long long progressToRemove = -[self totalBytesSent];
 	[ASIHTTPRequest performSelector:@selector(request:didSendBytes:) onTarget:&_queue withObject:self amount:&progressToRemove callerToRetain:self];
 	[ASIHTTPRequest performSelector:@selector(request:didSendBytes:) onTarget:&_uploadProgressDelegate withObject:self amount:&progressToRemove callerToRetain:self];
-	[ASIHTTPRequest updateProgressIndicator:&_uploadProgressDelegate withProgress:0 ofTotal:[self postLength]];
+	[ASIHTTPRequest updateProgressIndicator:_uploadProgressDelegate withProgress:0 ofTotal:[self postLength]];
 
 	#if NS_BLOCKS_AVAILABLE
     if(bytesSentBlock){
@@ -1865,7 +1865,7 @@ static NSOperationQueue *sharedQueue = nil;
 }
 	
 	
-+ (void)updateProgressIndicator:(id *)indicator withProgress:(unsigned long long)progress ofTotal:(unsigned long long)total
++ (void)updateProgressIndicator:(id)indicator withProgress:(unsigned long long)progress ofTotal:(unsigned long long)total
 {
 	#if TARGET_OS_IPHONE
 		// Cocoa Touch: UIProgressView
@@ -1878,12 +1878,12 @@ static NSOperationQueue *sharedQueue = nil;
 		SEL selector = @selector(setDoubleValue:);
 	#endif
 	
-	if (![*indicator respondsToSelector:selector]) {
+	if (![indicator respondsToSelector:selector]) {
 		return;
 	}
 	
 	[progressLock lock];
-	[ASIHTTPRequest performSelector:selector onTarget:indicator withObject:nil amount:&progressAmount callerToRetain:nil];
+	[ASIHTTPRequest performSelector:selector onTarget:&indicator withObject:nil amount:&progressAmount callerToRetain:nil];
 	[progressLock unlock];
 }
 

@@ -404,7 +404,7 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 		}
 	}
 	if (![self parentRequest]) {
-		[[self class] updateProgressIndicator:&downloadProgressDelegate withProgress:contentLength ofTotal:contentLength];
+		[[self class] updateProgressIndicator:downloadProgressDelegate withProgress:contentLength ofTotal:contentLength];
 	}
 
 	NSMutableDictionary *newHeaders = [[[self responseHeaders] mutableCopy] autorelease];
