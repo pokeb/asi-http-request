@@ -245,6 +245,8 @@ static NSOperationQueue *sharedQueue = nil;
 @property (assign) int authenticationRetryCount;
 @property (assign) int proxyAuthenticationRetryCount;
 @property (assign, nonatomic) BOOL updatedProgress;
+
+// Used internally to tell the main loop we need to stop and retry with a new url
 @property (assign, nonatomic) BOOL needsRedirect;
 @property (assign, nonatomic) int redirectCount;
 
@@ -3234,9 +3236,9 @@ static NSOperationQueue *sharedQueue = nil;
 	}
 
 	long long bufferSize = 16384;
-	if (contentLength > 262144) {
+	if (_contentLength > 262144) {
 		bufferSize = 262144;
-	} else if (contentLength > 65536) {
+	} else if (_contentLength > 65536) {
 		bufferSize = 65536;
 	}
 	
@@ -4969,7 +4971,6 @@ static NSOperationQueue *sharedQueue = nil;
 @synthesize useKeychainPersistence;
 @synthesize responseStatusCode;
 @synthesize compressedPostBody;
-@synthesize contentLength;
 @synthesize partialDownloadSize;
 @synthesize postLength;
 @synthesize totalBytesRead;
@@ -4985,7 +4986,6 @@ static NSOperationQueue *sharedQueue = nil;
 @synthesize authenticationRetryCount;
 @synthesize proxyAuthenticationRetryCount;
 @synthesize updatedProgress;
-@synthesize needsRedirect;
 @synthesize redirectCount;
 @synthesize proxyPort;
 @synthesize shouldPresentAuthenticationDialog;

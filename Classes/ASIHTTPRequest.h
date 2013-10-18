@@ -119,9 +119,6 @@ typedef void (^ASIDataBlock)(NSData *data);
   
     // HTTP status code, eg: 200 = OK, 404 = Not found etc
     int responseStatusCode;
-  
-    // Size of the response
-    unsigned long long contentLength;
     
     // Size of the partially downloaded content
     unsigned long long partialDownloadSize;
@@ -158,9 +155,6 @@ typedef void (^ASIDataBlock)(NSData *data);
     
     // Use HTTP 1.0 rather than 1.1 (defaults to false)
     BOOL useHTTPVersionOne;
-  
-    // Used internally to tell the main loop we need to stop and retry with a new url
-    BOOL needsRedirect;
     
     // Incremented every time this request redirects. When it reaches 5, we give up
     int redirectCount;
@@ -720,6 +714,8 @@ typedef void (^ASIDataBlock)(NSData *data);
 // If an error occurs, error will contain an NSError
 // If error code is = ASIConnectionFailureErrorType (1, Connection failure occurred) - inspect [[error userInfo] objectForKey:NSUnderlyingErrorKey] for more information
 @property (strong) NSError *error;
+
+// When the request fails or completes successfully, complete will be true
 @property (assign,readonly) BOOL complete;
 
 // Will be populated with HTTP response headers from the server
@@ -759,6 +755,8 @@ typedef void (^ASIDataBlock)(NSData *data);
 
 // Request body - only used when the whole body is stored in memory (shouldStreamPostDataFromDisk is false)
 @property (strong) NSMutableData *postBody;
+
+// Size of the response
 @property (assign) unsigned long long contentLength;
 @property (assign) unsigned long long postLength;
 
