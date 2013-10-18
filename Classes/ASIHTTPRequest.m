@@ -1347,8 +1347,7 @@ static NSOperationQueue *sharedQueue = nil;
 		
 		// Tag the stream with an id that tells it which connection to use behind the scenes
 		// See http://lists.apple.com/archives/macnetworkprog/2008/Dec/msg00001.html for details on this approach
-		
-		CFReadStreamSetProperty((CFReadStreamRef)[self readStream], CFSTR("ASIStreamID"), [[self connectionInfo] objectForKey:@"id"]);
+		CFReadStreamSetProperty((CFReadStreamRef)[self readStream], CFSTR("ASIStreamID"), (__bridge CFTypeRef)([[self connectionInfo] objectForKey:@"id"]));
 	
 	} else {
 		#if DEBUG_PERSISTENT_CONNECTIONS
@@ -1413,14 +1412,14 @@ static NSOperationQueue *sharedQueue = nil;
 
 - (void)setStatusTimer:(NSTimer *)timer
 {
-	CFRetain(self);
+	CFRetain((__bridge CFTypeRef)(self));
 	// We must invalidate the old timer here, not before we've created and scheduled a new timer
 	// This is because the timer may be the only thing retaining an asynchronous request
 	if (_statusTimer && timer != _statusTimer) {
 		[_statusTimer invalidate];
 	}
 	_statusTimer = timer;
-	CFRelease(self);
+	CFRelease((__bridge CFTypeRef)(self));
 }
 
 // This gets fired every 1/4 of a second to update the progress and work out if we need to timeout
@@ -1495,7 +1494,7 @@ static NSOperationQueue *sharedQueue = nil;
 			// If we are resuming a download, we may need to update the Range header to take account of data we've just downloaded
 			[self updatePartialDownloadSize];
 			if ([self partialDownloadSize]) {
-				CFHTTPMessageSetHeaderFieldValue(request, (CFStringRef)@"Range", (CFStringRef)[NSString stringWithFormat:@"bytes=%llu-",[self partialDownloadSize]]);
+				CFHTTPMessageSetHeaderFieldValue(request, (CFStringRef)@"Range", (__bridge CFStringRef)[NSString stringWithFormat:@"bytes=%llu-",[self partialDownloadSize]]);
 			}
 			[self setRetryCount:[self retryCount]+1];
 			[self unscheduleReadStream];
@@ -1519,7 +1518,7 @@ static NSOperationQueue *sharedQueue = nil;
 			[self setLastBytesSent:totalBytesSent];	
 			
 			// Find out how much data we've uploaded so far
-			[self setTotalBytesSent:[[NSMakeCollectable(CFReadStreamCopyProperty((CFReadStreamRef)[self readStream], kCFStreamPropertyHTTPRequestBytesWrittenCount)) autorelease] unsignedLongLongValue]];
+			[self setTotalBytesSent:[(__bridge_transfer id)(CFReadStreamCopyProperty((CFReadStreamRef)[self readStream], kCFStreamPropertyHTTPRequestBytesWrittenCount)) unsignedLongLongValue]];
 			if (totalBytesSent > lastBytesSent) {
 				
 				// We've uploaded more data,  reset the timeout
@@ -1599,8 +1598,8 @@ static NSOperationQueue *sharedQueue = nil;
 	ASIHTTPRequest *headRequest = [[self class] requestWithURL:[self url]];
 	
 	// Copy the properties that make sense for a HEAD request
-	[headRequest setRequestHeaders:[[[self requestHeaders] mutableCopy] autorelease]];
-	[headRequest setRequestCookies:[[[self requestCookies] mutableCopy] autorelease]];
+	[headRequest setRequestHeaders:[[self requestHeaders] mutableCopy]];
+	[headRequest setRequestCookies:[[self requestCookies] mutableCopy]];
 	[headRequest setUseCookiePersistence:[self useCookiePersistence]];
 	[headRequest setUseKeychainPersistence:[self useKeychainPersistence]];
 	[headRequest setUseSessionPersistence:[self useSessionPersistence]];
@@ -1799,7 +1798,7 @@ static NSOperationQueue *sharedQueue = nil;
 #if NS_BLOCKS_AVAILABLE
 - (void)performBlockOnMainThread:(ASIBasicBlock)block
 {
-	[self performSelectorOnMainThread:@selector(callBlock:) withObject:[[block copy] autorelease] waitUntilDone:[NSThread isMainThread]];
+	[self performSelectorOnMainThread:@selector(callBlock:) withObject:[block copy] waitUntilDone:[NSThread isMainThread]];
 }
 
 - (void)callBlock:(ASIBasicBlock)block
@@ -1935,8 +1934,8 @@ static NSOperationQueue *sharedQueue = nil;
 		return;
 	}
 
-	if (delegate && [delegate respondsToSelector:didReceiveResponseHeadersSelector]) {
-		[delegate performSelector:didReceiveResponseHeadersSelector withObject:self withObject:newResponseHeaders];
+	if (_delegate && [_delegate respondsToSelector:didReceiveResponseHeadersSelector]) {
+		[_delegate performSelector:didReceiveResponseHeadersSelector withObject:self withObject:newResponseHeaders];
 	}
 
 	#if NS_BLOCKS_AVAILABLE
@@ -4288,9 +4287,8 @@ static NSOperationQueue *sharedQueue = nil;
 	if (!sessionCookies) {
 		[ASIHTTPRequest setSessionCookies:[NSMutableArray array]];
 	}
-	NSMutableArray *cookies = [[sessionCookies retain] autorelease];
 	[sessionCookiesLock unlock];
-	return cookies;
+	return sessionCookies;
 }
 
 + (void)setSessionCookies:(NSMutableArray *)newSessionCookies
@@ -4300,8 +4298,7 @@ static NSOperationQueue *sharedQueue = nil;
 	for (NSHTTPCookie *cookie in sessionCookies) {
 		[[NSHTTPCookieStorage sharedHTTPCookieStorage] deleteCookie:cookie];
 	}
-	[sessionCookies release];
-	sessionCookies = [newSessionCookies retain];
+	sessionCookies = newSessionCookies;
 	[sessionCookiesLock unlock];
 }
 
@@ -4400,7 +4397,7 @@ static NSOperationQueue *sharedQueue = nil;
 			// Takes the form "My Application 1.0 (Macintosh; Mac OS X 10.5.7; en_GB)"
 			[self setDefaultUserAgentString:[NSString stringWithFormat:@"%@ %@ (%@; %@ %@; %@)", appName, appVersion, deviceName, OSName, OSVersion, locale]];	
 		}
-		return [[defaultUserAgent retain] autorelease];
+		return defaultUserAgent;
 	}
 	return nil;
 }
@@ -4523,8 +4520,7 @@ static NSOperationQueue *sharedQueue = nil;
 	ASI_DEBUG_LOG(@"[THROTTLING] ===Used: %u bytes of bandwidth in last measurement period===",bandwidthUsedInLastSecond);
 	#endif
 	[bandwidthUsageTracker addObject:[NSNumber numberWithUnsignedLong:bandwidthUsedInLastSecond]];
-	[bandwidthMeasurementDate release];
-	bandwidthMeasurementDate = [[NSDate dateWithTimeIntervalSinceNow:1] retain];
+	bandwidthMeasurementDate = [NSDate dateWithTimeIntervalSinceNow:1];
 	bandwidthUsedInLastSecond = 0;
 	
 	NSUInteger measurements = [bandwidthUsageTracker count];
@@ -4590,8 +4586,7 @@ static NSOperationQueue *sharedQueue = nil;
 	}
 	
 	if (toRead == 0 || !bandwidthMeasurementDate || [bandwidthMeasurementDate timeIntervalSinceNow] < -0) {
-		[throttleWakeUpTime release];
-		throttleWakeUpTime = [bandwidthMeasurementDate retain];
+		throttleWakeUpTime = bandwidthMeasurementDate;
 	}
 	[bandwidthThrottlingLock unlock];	
 	return (unsigned long)toRead;
@@ -4655,7 +4650,7 @@ static NSOperationQueue *sharedQueue = nil;
 // Returns the shared queue
 + (NSOperationQueue *)sharedQueue
 {
-    return [[sharedQueue retain] autorelease];
+    return sharedQueue;
 }
 
 #pragma mark cache
