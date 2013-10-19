@@ -87,7 +87,8 @@ typedef void (^ASIDataBlock)(NSData *data);
   
     // If useKeychainPersistence is true, network requests will attempt to read credentials from the keychain, and will save them in the keychain when they are successfully presented
     BOOL useKeychainPersistence;
-    
+  
+    BOOL _complete;
     // external "finished" indicator, subject of KVO notifications; updates after 'complete'
     BOOL finished;
     
@@ -360,7 +361,7 @@ typedef void (^ASIDataBlock)(NSData *data);
 + (void)updateProgressIndicator:(id)indicator withProgress:(unsigned long long)progress ofTotal:(unsigned long long)total;
 
 // Helper method used for performing invocations on the main thread (used for progress)
-+ (void)performSelector:(SEL)selector onTarget:(id *)target withObject:(id)object amount:(void *)amount callerToRetain:(id)caller;
++ (void)performSelector:(SEL)selector onTarget:(id)target withObject:(id)object amount:(void *)amount callerToRetain:(id)caller;
 
 #pragma mark talking to delegates
 
@@ -657,19 +658,23 @@ typedef void (^ASIDataBlock)(NSData *data);
 @property (retain) NSURL *originalURL;
 
 // The delegate - will be notified of various changes in state via the ASIHTTPRequestDelegate protocol
-@property (weak, nonatomic) id <ASIHTTPRequestDelegate> delegate;
+// id <ASIHTTPRequestDelegate>
+@property (weak, nonatomic) id delegate;
 
 // Another delegate that is also notified of request status changes and progress updates
 // Generally, you won't use this directly, but ASINetworkQueue sets itself as the queue so it can proxy updates to its own delegates
-@property (retain, nonatomic) id <ASIHTTPRequestDelegate, ASIProgressDelegate> queue;
+// id <ASIHTTPRequestDelegate, ASIProgressDelegate>
+@property (retain, nonatomic) id queue;
 
 // NOTE: WILL BE RETAINED BY THE REQUEST
 
 // Delegate for displaying upload progress (usually an NSProgressIndicator, but you can supply a different object and handle this yourself)
-@property (weak, nonatomic) id <ASIProgressDelegate> uploadProgressDelegate;
+// id <ASIProgressDelegate>
+@property (weak, nonatomic) id uploadProgressDelegate;
 
 // Delegate for displaying download progress (usually an NSProgressIndicator, but you can supply a different object and handle this yourself)
-@property (weak, nonatomic) id <ASIProgressDelegate> downloadProgressDelegate;
+// id <ASIProgressDelegate>
+@property (weak, nonatomic) id downloadProgressDelegate;
 @property (assign) BOOL useKeychainPersistence;
 
 // If useSessionPersistence is true, network requests will save credentials and reuse for the duration of the session (until clearSession is called)
