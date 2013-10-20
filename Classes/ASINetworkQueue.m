@@ -9,10 +9,21 @@
 #import "ASINetworkQueue.h"
 #import "ASIHTTPRequest.h"
 
+#define ASISuppressPerformSelectorLeakWarning(Stuff) \
+do { \
+_Pragma("clang diagnostic push") \
+_Pragma("clang diagnostic ignored \"-Warc-performSelector-leaks\"") \
+Stuff \
+_Pragma("clang diagnostic pop") \
+} while (0)
+
 // Private stuff
 @interface ASINetworkQueue ()
-	- (void)resetProgressDelegate:(id *)progressDelegate;
-	@property (assign) int requestsCount;
+
+@property (assign) int requestsCount;
+
+- (void)resetProgressDelegate:(id)progressDelegate;
+
 @end
 
 @implementation ASINetworkQueue
@@ -29,7 +40,7 @@
 
 + (id)queue
 {
-	return [[[self alloc] init] autorelease];
+	return [[self alloc] init];
 }
 
 - (void)dealloc
@@ -38,8 +49,6 @@
 	for (ASIHTTPRequest *request in [self operations]) {
 		[request setQueue:nil];
 	}
-	[userInfo release];
-	[super dealloc];
 }
 
 - (void)setSuspended:(BOOL)suspend
@@ -78,34 +87,34 @@
 
 - (void)setUploadProgressDelegate:(id)newDelegate
 {
-	uploadProgressDelegate = newDelegate;
-	[self resetProgressDelegate:&uploadProgressDelegate];
+	_uploadProgressDelegate = newDelegate;
+	[self resetProgressDelegate:_uploadProgressDelegate];
 
 }
 
 - (void)setDownloadProgressDelegate:(id)newDelegate
 {
-	downloadProgressDelegate = newDelegate;
-	[self resetProgressDelegate:&downloadProgressDelegate];
+	_downloadProgressDelegate = newDelegate;
+	[self resetProgressDelegate:_downloadProgressDelegate];
 }
 
-- (void)resetProgressDelegate:(id *)progressDelegate
+- (void)resetProgressDelegate:(id)progressDelegate
 {
 #if !TARGET_OS_IPHONE
 	// If the uploadProgressDelegate is an NSProgressIndicator, we set its MaxValue to 1.0 so we can treat it similarly to UIProgressViews
 	SEL selector = @selector(setMaxValue:);
-	if ([*progressDelegate respondsToSelector:selector]) {
+	if ([progressDelegate respondsToSelector:selector]) {
 		double max = 1.0;
 		[ASIHTTPRequest performSelector:selector onTarget:progressDelegate withObject:nil amount:&max callerToRetain:nil];
 	}
 	selector = @selector(setDoubleValue:);
-	if ([*progressDelegate respondsToSelector:selector]) {
+	if ([progressDelegate respondsToSelector:selector]) {
 		double value = 0.0;
 		[ASIHTTPRequest performSelector:selector onTarget:progressDelegate withObject:nil amount:&value callerToRetain:nil];
 	}
 #else
 	SEL selector = @selector(setProgress:);
-	if ([*progressDelegate respondsToSelector:selector]) {
+	if ([progressDelegate respondsToSelector:selector]) {
 		float value = 0.0f;
 		[ASIHTTPRequest performSelector:selector onTarget:progressDelegate withObject:nil amount:&value callerToRetain:nil];
 	}
@@ -153,7 +162,7 @@
 				[self addHEADOperation:HEADRequest];
 				[request addDependency:HEADRequest];
 				if ([request shouldResetDownloadProgress]) {
-					[self resetProgressDelegate:&downloadProgressDelegate];
+					[self resetProgressDelegate:_downloadProgressDelegate];
 					[request setShouldResetDownloadProgress:NO];
 				}
 			}
@@ -168,7 +177,7 @@
 	}
 	// Tell the request not to increment the upload size when it starts, as we've already added its length
 	if ([request shouldResetUploadProgress]) {
-		[self resetProgressDelegate:&uploadProgressDelegate];
+		[self resetProgressDelegate:_uploadProgressDelegate];
 		[request setShouldResetUploadProgress:NO];
 	}
 	
@@ -182,21 +191,27 @@
 - (void)requestStarted:(ASIHTTPRequest *)request
 {
 	if ([self requestDidStartSelector]) {
-		[[self delegate] performSelector:[self requestDidStartSelector] withObject:request];
+    ASISuppressPerformSelectorLeakWarning(
+      [[self delegate] performSelector:[self requestDidStartSelector] withObject:request];
+                                          );
 	}
 }
 
 - (void)request:(ASIHTTPRequest *)request didReceiveResponseHeaders:(NSDictionary *)responseHeaders
 {
 	if ([self requestDidReceiveResponseHeadersSelector]) {
-		[[self delegate] performSelector:[self requestDidReceiveResponseHeadersSelector] withObject:request withObject:responseHeaders];
+    ASISuppressPerformSelectorLeakWarning(
+      [[self delegate] performSelector:[self requestDidReceiveResponseHeadersSelector] withObject:request withObject:responseHeaders];
+                                          );
 	}
 }
 
 - (void)request:(ASIHTTPRequest *)request willRedirectToURL:(NSURL *)newURL
 {
 	if ([self requestWillRedirectSelector]) {
-		[[self delegate] performSelector:[self requestWillRedirectSelector] withObject:request withObject:newURL];
+    ASISuppressPerformSelectorLeakWarning(
+      [[self delegate] performSelector:[self requestWillRedirectSelector] withObject:request withObject:newURL];
+                                          );
 	}
 }
 
@@ -204,11 +219,15 @@
 {
 	[self setRequestsCount:[self requestsCount]-1];
 	if ([self requestDidFinishSelector]) {
-		[[self delegate] performSelector:[self requestDidFinishSelector] withObject:request];
+    ASISuppressPerformSelectorLeakWarning(
+      [[self delegate] performSelector:[self requestDidFinishSelector] withObject:request];
+                                          );
 	}
 	if ([self requestsCount] == 0) {
 		if ([self queueDidFinishSelector]) {
-			[[self delegate] performSelector:[self queueDidFinishSelector] withObject:self];
+      ASISuppressPerformSelectorLeakWarning(
+        [[self delegate] performSelector:[self queueDidFinishSelector] withObject:self];
+                                            );
 		}
 	}
 }
@@ -217,11 +236,15 @@
 {
 	[self setRequestsCount:[self requestsCount]-1];
 	if ([self requestDidFailSelector]) {
-		[[self delegate] performSelector:[self requestDidFailSelector] withObject:request];
+    ASISuppressPerformSelectorLeakWarning(
+      [[self delegate] performSelector:[self requestDidFailSelector] withObject:request];
+                                          );
 	}
 	if ([self requestsCount] == 0) {
 		if ([self queueDidFinishSelector]) {
-			[[self delegate] performSelector:[self queueDidFinishSelector] withObject:self];
+      ASISuppressPerformSelectorLeakWarning(
+        [[self delegate] performSelector:[self queueDidFinishSelector] withObject:self];
+                                            );
 		}
 	}
 	if ([self shouldCancelAllRequestsOnFailure] && [self requestsCount] > 0) {
@@ -235,7 +258,7 @@
 {
 	[self setBytesDownloadedSoFar:[self bytesDownloadedSoFar]+bytes];
 	if ([self downloadProgressDelegate]) {
-		[ASIHTTPRequest updateProgressIndicator:downloadProgressDelegate withProgress:[self bytesDownloadedSoFar] ofTotal:[self totalBytesToDownload]];
+		[ASIHTTPRequest updateProgressIndicator:_downloadProgressDelegate withProgress:[self bytesDownloadedSoFar] ofTotal:[self totalBytesToDownload]];
 	}
 }
 
@@ -243,7 +266,7 @@
 {
 	[self setBytesUploadedSoFar:[self bytesUploadedSoFar]+bytes];
 	if ([self uploadProgressDelegate]) {
-		[ASIHTTPRequest updateProgressIndicator:uploadProgressDelegate withProgress:[self bytesUploadedSoFar] ofTotal:[self totalBytesToUpload]];
+		[ASIHTTPRequest updateProgressIndicator:_uploadProgressDelegate withProgress:[self bytesUploadedSoFar] ofTotal:[self totalBytesToUpload]];
 	}
 }
 
@@ -318,26 +341,8 @@
 	[newQueue setDownloadProgressDelegate:[self downloadProgressDelegate]];
 	[newQueue setShouldCancelAllRequestsOnFailure:[self shouldCancelAllRequestsOnFailure]];
 	[newQueue setShowAccurateProgress:[self showAccurateProgress]];
-	[newQueue setUserInfo:[[[self userInfo] copyWithZone:zone] autorelease]];
+	[newQueue setUserInfo:[[self userInfo] copyWithZone:zone]];
 	return newQueue;
 }
 
-
-@synthesize requestsCount;
-@synthesize bytesUploadedSoFar;
-@synthesize totalBytesToUpload;
-@synthesize bytesDownloadedSoFar;
-@synthesize totalBytesToDownload;
-@synthesize shouldCancelAllRequestsOnFailure;
-@synthesize uploadProgressDelegate;
-@synthesize downloadProgressDelegate;
-@synthesize requestDidStartSelector;
-@synthesize requestDidReceiveResponseHeadersSelector;
-@synthesize requestWillRedirectSelector;
-@synthesize requestDidFinishSelector;
-@synthesize requestDidFailSelector;
-@synthesize queueDidFinishSelector;
-@synthesize delegate;
-@synthesize showAccurateProgress;
-@synthesize userInfo;
 @end
