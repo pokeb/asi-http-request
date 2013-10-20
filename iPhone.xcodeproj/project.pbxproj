@@ -93,7 +93,7 @@
 		B5873FDF10FF28CA001E145F /* ASICloudFilesRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5873FD510FF28CA001E145F /* ASICloudFilesRequest.m */; };
 		B5873FF510FF2904001E145F /* ASICloudFilesRequestTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B5873FF310FF2904001E145F /* ASICloudFilesRequestTests.m */; };
 		B59A87C2103EC6F200300252 /* ASIAuthenticationDialog.m in Sources */ = {isa = PBXBuildFile; fileRef = B59A87C1103EC6F200300252 /* ASIAuthenticationDialog.m */; };
-		B59A87C3103EC6F200300252 /* ASIAuthenticationDialog.m in Sources */ = {isa = PBXBuildFile; fileRef = B59A87C1103EC6F200300252 /* ASIAuthenticationDialog.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		B59A87C3103EC6F200300252 /* ASIAuthenticationDialog.m in Sources */ = {isa = PBXBuildFile; fileRef = B59A87C1103EC6F200300252 /* ASIAuthenticationDialog.m */; };
 		B5BD2AFA11CA541100D7C426 /* iPadSampleAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = B5BD2AF911CA541100D7C426 /* iPadSampleAppDelegate.m */; };
 		B5BD2B0111CA542000D7C426 /* DetailCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B5BD2AFC11CA542000D7C426 /* DetailCell.m */; };
 		B5BD2B0211CA542000D7C426 /* InfoCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B5BD2AFE11CA542000D7C426 /* InfoCell.m */; };
