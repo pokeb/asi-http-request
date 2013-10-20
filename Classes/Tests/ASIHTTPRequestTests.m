@@ -436,15 +436,15 @@
 		if (i > 304 && i < 307) {
 			continue;
 		}
-		NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://allseeing-i.com/ASIHTTPRequest/tests/redirect/%hi",i]];
+		NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://allseeing-i.com/ASIHTTPRequest/tests/redirect/%i",i]];
 		request = [ASIHTTPRequest requestWithURL:url];
 		[request setShouldRedirect:NO];
 		[request startSynchronous];
 		if (i == 304) { // 304s will not contain a body, as per rfc2616. Will test 304 handling in a future test when we have etag support
 			continue;
 		}
-		success = [[request responseString] isEqualToString:[NSString stringWithFormat:@"Non-redirected content with %hi status code",i]];
-		GHAssertTrue(success,[NSString stringWithFormat:@"Got the wrong content when not redirecting after a %hi",i]);
+		success = [[request responseString] isEqualToString:[NSString stringWithFormat:@"Non-redirected content with %u status code",i]];
+		GHAssertTrue(success,[NSString stringWithFormat:@"Got the wrong content when not redirecting after a %u",i]);
 	
 		request2 = [ASIFormDataRequest requestWithURL:url];
 		[request2 setPostValue:@"Giant Monkey" forKey:@"lookbehindyou"];
@@ -454,13 +454,13 @@
 		if (i>304) {
 			method = @"POST";	
 		}
-		NSString *expectedString = [NSString stringWithFormat:@"Redirected as %@ after a %hi status code",method,i];
+		NSString *expectedString = [NSString stringWithFormat:@"Redirected as %@ after a %u status code",method,i];
 		if (i>304) {
 			expectedString = [NSString stringWithFormat:@"%@\r\nWatch out for the Giant Monkey!",expectedString];
 		}
 
 		success = [[request2 responseString] isEqualToString:expectedString];
-		GHAssertTrue(success,[NSString stringWithFormat:@"Got the wrong content when redirecting after a %hi",i]);
+		GHAssertTrue(success,[NSString stringWithFormat:@"Got the wrong content when redirecting after a %u",i]);
 	
 		success = ([request2 responseStatusCode] == 200);
 		GHAssertTrue(success,@"Got the wrong status code (expected 200)");
@@ -470,7 +470,7 @@
 	// Test RFC 2616 behaviour
 	for (i=301; i<303; i++) {
 		
-		NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://allseeing-i.com/ASIHTTPRequest/tests/redirect/%hi",i]];
+		NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://allseeing-i.com/ASIHTTPRequest/tests/redirect/%u",i]];
 		request2 = [ASIFormDataRequest requestWithURL:url];
 		[request2 setPostValue:@"Giant Monkey" forKey:@"lookbehindyou"];
 		[request2 setShouldUseRFC2616RedirectBehaviour:YES];
@@ -483,14 +483,14 @@
 			success = ([request2 postLength] == 0 && ![request2 postBody] && [[request2 requestMethod] isEqualToString:@"GET"]);
 			GHAssertTrue(success,@"Failed to reset request to GET on 303 redirect");
 			
-			success = [[request2 responseString] isEqualToString:[NSString stringWithFormat:@"Redirected as GET after a %hi status code",i]];
+			success = [[request2 responseString] isEqualToString:[NSString stringWithFormat:@"Redirected as GET after a %u status code",i]];
 			GHAssertTrue(success,@"Failed to dump the post body on 303 redirect");
 			
 		} else {
 			success = ([request2 postLength] > 0 || ![request2 postBody] || ![[request2 requestMethod] isEqualToString:@"POST"]);
 			GHAssertTrue(success,@"Failed to use the same request method and body for a redirect when using rfc2616 behaviour");
 		
-			success = ([[request2 responseString] isEqualToString:[NSString stringWithFormat:@"Redirected as POST after a %hi status code\r\nWatch out for the Giant Monkey!",i]]);
+			success = ([[request2 responseString] isEqualToString:[NSString stringWithFormat:@"Redirected as POST after a %u status code\r\nWatch out for the Giant Monkey!",i]]);
 			GHAssertTrue(success,@"Failed to send the correct post body on redirect");
 		}
 	}
@@ -524,11 +524,11 @@
 {
 	int i;
 	for (i=305; i<308; i++) {
-		ASIFormDataRequest *request = [ASIFormDataRequest requestWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://allseeing-i.com/ASIHTTPRequest/tests/redirect/%hi",i]]];
+		ASIFormDataRequest *request = [ASIFormDataRequest requestWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://allseeing-i.com/ASIHTTPRequest/tests/redirect/%i",i]]];
 		[request setPostValue:@"foo" forKey:@"eep"];
 		[request setShouldRedirect:NO];
 		[request startSynchronous];
-		request = [ASIFormDataRequest requestWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://allseeing-i.com/ASIHTTPRequest/tests/redirect/%hi",i]]];
+		request = [ASIFormDataRequest requestWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://allseeing-i.com/ASIHTTPRequest/tests/redirect/%i",i]]];
 		[request setPostValue:@"foo" forKey:@"eep"];
 		[request startSynchronous];
 	}
@@ -661,7 +661,7 @@
 	[request setPostBody:[NSMutableData dataWithLength:1024*32]];
 	[request startSynchronous];
 	
-	BOOL success = ([[request responseString] isEqualToString:[NSString stringWithFormat:@"%hu",(1024*32)]]);
+	BOOL success = ([[request responseString] isEqualToString:[NSString stringWithFormat:@"%d",(1024*32)]]);
 	GHAssertTrue(success,@"Sent wrong content length");
 }
 
