@@ -1148,7 +1148,7 @@ static NSOperationQueue *sharedQueue = nil;
 	[self setContentLength:0];
 	[self setResponseHeaders:nil];
 	if (![self downloadDestinationPath]) {
-		[self setRawResponseData:[[NSMutableData data] init]];
+		[self setRawResponseData:[NSMutableData data]];
     }
 	
 	
