@@ -180,7 +180,7 @@ static NSOperationQueue *sharedQueue = nil;
 - (BOOL)willRedirect;
 - (BOOL)willAskDelegateToConfirmRedirect;
 
-+ (void)performInvocation:(NSInvocation *)invocation onTarget:(id *)target releasingObject:(id)objectToRelease;
++ (void)performInvocation:(NSInvocation *)invocation onTarget:(id)target releasingObject:(id)objectToRelease;
 + (void)hideNetworkActivityIndicatorAfterDelay;
 + (void)hideNetworkActivityIndicatorIfNeeeded;
 + (void)runRequests;
@@ -1862,7 +1862,7 @@ static NSOperationQueue *sharedQueue = nil;
     }
 }
 
-+ (void)performInvocation:(NSInvocation *)invocation onTarget:(id )target releasingObject:(id)objectToRelease
++ (void)performInvocation:(NSInvocation *)invocation onTarget:(id)target releasingObject:(id)objectToRelease
 {
     if (target && [target respondsToSelector:[invocation selector]]) {
         [invocation invokeWithTarget:target];
