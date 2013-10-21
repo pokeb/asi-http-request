@@ -1211,8 +1211,8 @@ static NSOperationQueue *sharedQueue = nil;
                                       kCFNull,kCFStreamSSLPeerName,
                                       nil];
             
-            CFReadStreamSetProperty((CFReadStreamRef)[self readStream], kCFStreamPropertySSLSettings, 
-                                    (CFTypeRef)sslProperties);
+            CFReadStreamSetProperty((__bridge CFReadStreamRef)[self readStream], kCFStreamPropertySSLSettings,
+                                    (__bridge CFTypeRef)sslProperties);
         } 
         
         // Tell CFNetwork to use a client certificate
@@ -1231,7 +1231,7 @@ static NSOperationQueue *sharedQueue = nil;
             
             [sslProperties setObject:certificates forKey:(NSString *)kCFStreamSSLCertificates];
             
-            CFReadStreamSetProperty((CFReadStreamRef)[self readStream], kCFStreamPropertySSLSettings, (__bridge CFTypeRef)(sslProperties));
+            CFReadStreamSetProperty((__bridge CFReadStreamRef)[self readStream], kCFStreamPropertySSLSettings, (__bridge CFTypeRef)(sslProperties));
         }
         
     }
@@ -1262,9 +1262,9 @@ static NSOperationQueue *sharedQueue = nil;
 		NSMutableDictionary *proxyToUse = [NSMutableDictionary dictionaryWithObjectsAndKeys:[self proxyHost],hostKey,[NSNumber numberWithInt:[self proxyPort]],portKey,nil];
 
 		if ([[self proxyType] isEqualToString:(NSString *)kCFProxyTypeSOCKS]) {
-			CFReadStreamSetProperty((CFReadStreamRef)[self readStream], kCFStreamPropertySOCKSProxy, (__bridge CFTypeRef)(proxyToUse));
+			CFReadStreamSetProperty((__bridge CFReadStreamRef)[self readStream], kCFStreamPropertySOCKSProxy, (__bridge CFTypeRef)(proxyToUse));
 		} else {
-			CFReadStreamSetProperty((CFReadStreamRef)[self readStream], kCFStreamPropertyHTTPProxy, (__bridge CFTypeRef)(proxyToUse));
+			CFReadStreamSetProperty((__bridge CFReadStreamRef)[self readStream], kCFStreamPropertyHTTPProxy, (__bridge CFTypeRef)(proxyToUse));
 		}
 	}
 
@@ -1348,7 +1348,7 @@ static NSOperationQueue *sharedQueue = nil;
 		}
 		[[self connectionInfo] setObject:[self requestID] forKey:@"request"];		
 		[[self connectionInfo] setObject:[self readStream] forKey:@"stream"];
-		CFReadStreamSetProperty((CFReadStreamRef)[self readStream],  kCFStreamPropertyHTTPAttemptPersistentConnection, kCFBooleanTrue);
+		CFReadStreamSetProperty((__bridge CFReadStreamRef)[self readStream],  kCFStreamPropertyHTTPAttemptPersistentConnection, kCFBooleanTrue);
 		
 		#if DEBUG_PERSISTENT_CONNECTIONS
 		ASI_DEBUG_LOG(@"[CONNECTION] Request #%@ will use connection #%i",[self requestID],[[[self connectionInfo] objectForKey:@"id"] intValue]);
@@ -1357,7 +1357,7 @@ static NSOperationQueue *sharedQueue = nil;
 		
 		// Tag the stream with an id that tells it which connection to use behind the scenes
 		// See http://lists.apple.com/archives/macnetworkprog/2008/Dec/msg00001.html for details on this approach
-		CFReadStreamSetProperty((CFReadStreamRef)[self readStream], CFSTR("ASIStreamID"), (__bridge CFTypeRef)([[self connectionInfo] objectForKey:@"id"]));
+		CFReadStreamSetProperty((__bridge CFReadStreamRef)[self readStream], CFSTR("ASIStreamID"), (__bridge CFTypeRef)([[self connectionInfo] objectForKey:@"id"]));
 	
 	} else {
 		#if DEBUG_PERSISTENT_CONNECTIONS
@@ -1377,8 +1377,8 @@ static NSOperationQueue *sharedQueue = nil;
 
    // Start the HTTP connection
 	CFStreamClientContext ctxt = {0, (__bridge void *)(self), NULL, NULL, NULL};
-    if (CFReadStreamSetClient((CFReadStreamRef)[self readStream], kNetworkEvents, ReadStreamClientCallBack, &ctxt)) {
-		if (CFReadStreamOpen((CFReadStreamRef)[self readStream])) {
+    if (CFReadStreamSetClient((__bridge CFReadStreamRef)[self readStream], kNetworkEvents, ReadStreamClientCallBack, &ctxt)) {
+		if (CFReadStreamOpen((__bridge CFReadStreamRef)[self readStream])) {
 			streamSuccessfullyOpened = YES;
 		}
 	}
@@ -1504,7 +1504,7 @@ static NSOperationQueue *sharedQueue = nil;
 			// If we are resuming a download, we may need to update the Range header to take account of data we've just downloaded
 			[self updatePartialDownloadSize];
 			if ([self partialDownloadSize]) {
-				CFHTTPMessageSetHeaderFieldValue(request, (CFStringRef)@"Range", (__bridge CFStringRef)[NSString stringWithFormat:@"bytes=%llu-",[self partialDownloadSize]]);
+				CFHTTPMessageSetHeaderFieldValue(request, (__bridge CFStringRef)@"Range", (__bridge CFStringRef)[NSString stringWithFormat:@"bytes=%llu-",[self partialDownloadSize]]);
 			}
 			[self setRetryCount:[self retryCount]+1];
 			[self unscheduleReadStream];
@@ -1525,15 +1525,15 @@ static NSOperationQueue *sharedQueue = nil;
 		// If we have a post body
 		if ([self postLength]) {
 		
-			[self setLastBytesSent:totalBytesSent];	
+			[self setLastBytesSent:_totalBytesSent];
 			
 			// Find out how much data we've uploaded so far
-			[self setTotalBytesSent:[(__bridge_transfer id)(CFReadStreamCopyProperty((CFReadStreamRef)[self readStream], kCFStreamPropertyHTTPRequestBytesWrittenCount)) unsignedLongLongValue]];
-			if (totalBytesSent > lastBytesSent) {
+			[self setTotalBytesSent:[(__bridge_transfer id)(CFReadStreamCopyProperty((__bridge CFReadStreamRef)[self readStream], kCFStreamPropertyHTTPRequestBytesWrittenCount)) unsignedLongLongValue]];
+			if (_totalBytesSent > lastBytesSent) {
 				
 				// We've uploaded more data,  reset the timeout
 				[self setLastActivityTime:[NSDate date]];
-				[ASIHTTPRequest incrementBandwidthUsedInLastSecond:(unsigned long)(totalBytesSent-lastBytesSent)];		
+				[ASIHTTPRequest incrementBandwidthUsedInLastSecond:(unsigned long)(_totalBytesSent-lastBytesSent)];
 						
 				#if DEBUG_REQUEST_STATUS
 				if ([self totalBytesSent] == [self postLength]) {
@@ -2119,7 +2119,7 @@ static NSOperationQueue *sharedQueue = nil;
 {
 	[self setAuthenticationNeeded:ASINoAuthenticationNeededYet];
 
-	CFHTTPMessageRef message = (CFHTTPMessageRef)CFReadStreamCopyProperty((CFReadStreamRef)[self readStream], kCFStreamPropertyHTTPResponseHeader);
+	CFHTTPMessageRef message = (CFHTTPMessageRef)CFReadStreamCopyProperty((__bridge CFReadStreamRef)[self readStream], kCFStreamPropertyHTTPResponseHeader);
 	if (!message) {
 		return;
 	}
@@ -2750,7 +2750,7 @@ static NSOperationQueue *sharedQueue = nil;
 	
 	// Read authentication data
 	if (!proxyAuthentication) {
-		CFHTTPMessageRef responseHeader = (CFHTTPMessageRef) CFReadStreamCopyProperty((CFReadStreamRef)[self readStream],kCFStreamPropertyHTTPResponseHeader);
+		CFHTTPMessageRef responseHeader = (CFHTTPMessageRef) CFReadStreamCopyProperty((__bridge CFReadStreamRef)[self readStream],kCFStreamPropertyHTTPResponseHeader);
 		proxyAuthentication = CFHTTPAuthenticationCreateFromResponse(NULL, responseHeader);
 		CFRelease(responseHeader);
 		[self setProxyAuthenticationScheme:(__bridge_transfer NSString *)(CFHTTPAuthenticationCopyMethod(proxyAuthentication))];
@@ -2927,7 +2927,7 @@ static NSOperationQueue *sharedQueue = nil;
 	
 	// Read authentication data
 	if (!requestAuthentication) {
-		CFHTTPMessageRef responseHeader = (CFHTTPMessageRef) CFReadStreamCopyProperty((CFReadStreamRef)[self readStream],kCFStreamPropertyHTTPResponseHeader);
+		CFHTTPMessageRef responseHeader = (CFHTTPMessageRef) CFReadStreamCopyProperty((__bridge CFReadStreamRef)[self readStream],kCFStreamPropertyHTTPResponseHeader);
 		requestAuthentication = CFHTTPAuthenticationCreateFromResponse(NULL, responseHeader);
 		CFRelease(responseHeader);
 		[self setAuthenticationScheme:(__bridge_transfer NSString *)(CFHTTPAuthenticationCopyMethod(requestAuthentication))];
@@ -3236,7 +3236,7 @@ static NSOperationQueue *sharedQueue = nil;
 	// In certain (presumably very rare) circumstances, handleBytesAvailable seems to be called when there isn't actually any data available
 	// We'll check that there is actually data available to prevent blocking on CFReadStreamRead()
 	// So far, I've only seen this in the stress tests, so it might never happen in real-world situations.
-	if (!CFReadStreamHasBytesAvailable((CFReadStreamRef)[self readStream])) {
+	if (!CFReadStreamHasBytesAvailable((__bridge CFReadStreamRef)[self readStream])) {
 		return;
 	}
 
@@ -3386,8 +3386,8 @@ static NSOperationQueue *sharedQueue = nil;
 
 	[progressLock lock];	
 	// Find out how much data we've uploaded so far
-	[self setLastBytesSent:totalBytesSent];	
-	[self setTotalBytesSent:[(__bridge_transfer id)(CFReadStreamCopyProperty((CFReadStreamRef)[self readStream], kCFStreamPropertyHTTPRequestBytesWrittenCount)) unsignedLongLongValue]];
+	[self setLastBytesSent:_totalBytesSent];
+	[self setTotalBytesSent:[(__bridge_transfer id)(CFReadStreamCopyProperty((__bridge CFReadStreamRef)[self readStream], kCFStreamPropertyHTTPRequestBytesWrittenCount)) unsignedLongLongValue]];
 	[self setComplete:YES];
 	if (![self contentLength]) {
 		[self setContentLength:[self totalBytesRead]];
@@ -3632,7 +3632,7 @@ static NSOperationQueue *sharedQueue = nil;
 - (void)handleStreamError
 
 {
-	NSError *underlyingError = (__bridge_transfer NSError *)(CFReadStreamCopyError((CFReadStreamRef)[self readStream]));
+	NSError *underlyingError = (__bridge_transfer NSError *)(CFReadStreamCopyError((__bridge CFReadStreamRef)[self readStream]));
 
 	if (![self error]) { // We may already have handled this error
 		
@@ -3694,7 +3694,7 @@ static NSOperationQueue *sharedQueue = nil;
 		// Reset the timeout
 		[self setLastActivityTime:[NSDate date]];
 		CFStreamClientContext ctxt = {0, (__bridge void *)(self), NULL, NULL, NULL};
-		CFReadStreamSetClient((CFReadStreamRef)[self readStream], kNetworkEvents, ReadStreamClientCallBack, &ctxt);
+		CFReadStreamSetClient((__bridge CFReadStreamRef)[self readStream], kNetworkEvents, ReadStreamClientCallBack, &ctxt);
 		[[self readStream] scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:[self runLoopMode]];
 		[self setReadStreamIsScheduled:YES];
 	}
@@ -3716,7 +3716,7 @@ static NSOperationQueue *sharedQueue = nil;
 		}
 		[connectionsLock unlock];
 
-		CFReadStreamSetClient((CFReadStreamRef)[self readStream], kCFStreamEventNone, NULL, NULL);
+		CFReadStreamSetClient((__bridge CFReadStreamRef)[self readStream], kCFStreamEventNone, NULL, NULL);
 		[[self readStream] removeFromRunLoop:[NSRunLoop currentRunLoop] forMode:[self runLoopMode]];
 		[self setReadStreamIsScheduled:NO];
 	}
@@ -4890,7 +4890,7 @@ static NSOperationQueue *sharedQueue = nil;
 	}
 
 	if (IANAEncoding) {
-		CFStringEncoding cfEncoding = CFStringConvertIANACharSetNameToEncoding((CFStringRef)IANAEncoding);
+		CFStringEncoding cfEncoding = CFStringConvertIANACharSetNameToEncoding((__bridge CFStringRef)IANAEncoding);
 		if (cfEncoding != kCFStringEncodingInvalidId) {
 			*stringEncoding = CFStringConvertEncodingToNSStringEncoding(cfEncoding);
 		}
@@ -4965,8 +4965,6 @@ static NSOperationQueue *sharedQueue = nil;
 @synthesize compressedPostBody;
 @synthesize partialDownloadSize;
 @synthesize postLength;
-@synthesize totalBytesRead;
-@synthesize totalBytesSent;
 @synthesize uploadBufferSize;
 @synthesize responseEncoding;
 @synthesize allowResumeForFileDownloads;

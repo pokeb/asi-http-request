@@ -125,13 +125,7 @@ typedef void (^ASIDataBlock)(NSData *data);
     unsigned long long partialDownloadSize;
     
     // Size of the POST payload
-    unsigned long long postLength;    
-    
-    // The total amount of downloaded data
-    unsigned long long totalBytesRead;
-    
-    // The total amount of uploaded data
-    unsigned long long totalBytesSent;
+    unsigned long long postLength;
     
     // Last amount of data read (used for incrementing progress)
     unsigned long long lastBytesRead;
@@ -777,7 +771,11 @@ typedef void (^ASIDataBlock)(NSData *data);
 // The default for requests is YES
 // Also see the comments in ASINetworkQueue.h
 @property (assign) BOOL showAccurateProgress;
+
+// The total amount of downloaded data
 @property (assign) unsigned long long totalBytesRead;
+
+// The total amount of uploaded data
 @property (assign) unsigned long long totalBytesSent;
 
 // Text encoding for responses that do not send a Content-Type with a charset value. Defaults to NSISOLatin1StringEncoding
