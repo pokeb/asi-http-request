@@ -20,5 +20,5 @@
 + (instancetype)inputStreamWithData:(NSData *)data request:(ASIHTTPRequest *)request;
 
 @property (strong, nonatomic) NSInputStream *stream;
-@property (assign, nonatomic) ASIHTTPRequest *request;
+@property (weak, nonatomic) ASIHTTPRequest *request;
 @end
