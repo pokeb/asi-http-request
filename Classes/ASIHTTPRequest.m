@@ -407,6 +407,9 @@ static NSOperationQueue *sharedQueue = nil;
 	}
 	[self cancelLoad];
 	[_statusTimer invalidate];
+#if NS_BLOCKS_AVAILABLE
+  [self releaseBlocksOnMainThread];
+#endif
 }
 
 #if NS_BLOCKS_AVAILABLE
@@ -1211,8 +1214,7 @@ static NSOperationQueue *sharedQueue = nil;
                                       kCFNull,kCFStreamSSLPeerName,
                                       nil];
             
-            CFReadStreamSetProperty((__bridge CFReadStreamRef)[self readStream], kCFStreamPropertySSLSettings,
-                                    (__bridge CFTypeRef)sslProperties);
+            CFReadStreamSetProperty((__bridge CFReadStreamRef)[self readStream], kCFStreamPropertySSLSettings, (__bridge CFTypeRef)sslProperties);
         } 
         
         // Tell CFNetwork to use a client certificate
@@ -1948,7 +1950,7 @@ static NSOperationQueue *sharedQueue = nil;
 
 	if (_delegate && [_delegate respondsToSelector:_didReceiveResponseHeadersSelector]) {
     ASISuppressPerformSelectorLeakWarning(
-                                          [_delegate performSelector:_didReceiveResponseHeadersSelector withObject:self withObject:newResponseHeaders];
+      [_delegate performSelector:_didReceiveResponseHeadersSelector withObject:self withObject:newResponseHeaders];
                                           );
 	}
 
