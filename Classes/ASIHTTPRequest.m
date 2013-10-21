@@ -10,7 +10,7 @@
 //  Portions are based on the ImageClient example from Apple:
 //  See: http://developer.apple.com/samplecode/ImageClient/listing37.html
 
-#import "ASIHTTPRequest.h"
+#import "ASIHTTPRequest.h"if (![[self class] removeFileAtPath:[self downloadDestinationPath] error:&moveError]) {
 
 #if TARGET_OS_IPHONE
 #import "Reachability.h"
@@ -3458,22 +3458,25 @@ static NSOperationQueue *sharedQueue = nil;
 
 		} else {
 	
-			//Remove any file at the destination path
-			NSError *moveError = nil;
-			if (![[self class] removeFileAtPath:[self downloadDestinationPath] error:&moveError]) {
-				fileError = moveError;
-
-			}
-
-			//Move the temporary file to the destination path
-			if (!fileError) {
-				[[[[NSFileManager alloc] init] autorelease] moveItemAtPath:[self temporaryFileDownloadPath] toPath:[self downloadDestinationPath] error:&moveError];
-				if (moveError) {
-					fileError = [NSError errorWithDomain:NetworkRequestErrorDomain code:ASIFileManagementError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Failed to move file from '%@' to '%@'",[self temporaryFileDownloadPath],[self downloadDestinationPath]],NSLocalizedDescriptionKey,moveError,NSUnderlyingErrorKey,nil]];
+			//James Jeong edited.
+			if (![[self temporaryFileDownloadPath] isEqualToString:[self downloadDestinationPath]]) {
+				//Remove any file at the destination path
+				NSError *moveError = nil;
+				if (![[self class] removeFileAtPath:[self downloadDestinationPath] error:&moveError]) {
+					fileError = moveError;
+	
 				}
-				[self setTemporaryFileDownloadPath:nil];
+	
+				//Move the temporary file to the destination path
+				if (!fileError) {
+					[[[[NSFileManager alloc] init] autorelease] moveItemAtPath:[self temporaryFileDownloadPath] toPath:[self downloadDestinationPath] error:&moveError];
+					if (moveError) {
+						fileError = [NSError errorWithDomain:NetworkRequestErrorDomain code:ASIFileManagementError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Failed to move file from '%@' to '%@'",[self temporaryFileDownloadPath],[self downloadDestinationPath]],NSLocalizedDescriptionKey,moveError,NSUnderlyingErrorKey,nil]];
+					}
+					//[self setTemporaryFileDownloadPath:nil];
+				}
 			}
-			
+			[self setTemporaryFileDownloadPath:nil];
 		}
 	}
 	
