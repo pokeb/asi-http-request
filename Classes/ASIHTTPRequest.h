@@ -864,7 +864,8 @@ typedef void (^ASIDataBlock)(NSData *data);
 @property (retain, readonly) NSNumber *requestID;
 
 // The download cache that will be used for this request (use [ASIHTTPRequest setDefaultCache:cache] to configure a default cache
-@property (assign) id <ASICacheDelegate> downloadCache;
+// id <ASICacheDelegate>
+@property (weak) id downloadCache;
 @property (assign) ASICachePolicy cachePolicy;
 @property (assign) ASICacheStoragePolicy cacheStoragePolicy;
 @property (assign, readonly) BOOL didUseCachedResponse;
