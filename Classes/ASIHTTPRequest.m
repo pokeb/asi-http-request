@@ -1173,8 +1173,10 @@ static NSOperationQueue *sharedQueue = nil;
 		// Are we gzipping the request body?
 		if ([self compressedPostBodyFilePath] && [fileManager fileExistsAtPath:[self compressedPostBodyFilePath]]) {
 			[self setPostBodyReadStream:[ASIInputStream inputStreamWithFileAtPath:[self compressedPostBodyFilePath] request:self]];
+//            [self setPostBodyReadStream:[NSInputStream inputStreamWithFileAtPath:[self compressedPostBodyFilePath]]];
 		} else {
 			[self setPostBodyReadStream:[ASIInputStream inputStreamWithFileAtPath:[self postBodyFilePath] request:self]];
+//            [self setPostBodyReadStream:[NSInputStream inputStreamWithFileAtPath:[self postBodyFilePath]]];
 		}
 		[self setReadStream:[NSMakeCollectable(CFReadStreamCreateForStreamedHTTPRequest(kCFAllocatorDefault, request,(CFReadStreamRef)[self postBodyReadStream])) autorelease]];    
     } else {
@@ -1183,8 +1185,10 @@ static NSOperationQueue *sharedQueue = nil;
 		if ([self postBody] && [[self postBody] length] > 0) {
 			if ([self shouldCompressRequestBody] && [self compressedPostBody]) {
 				[self setPostBodyReadStream:[ASIInputStream inputStreamWithData:[self compressedPostBody] request:self]];
+//                [self setPostBodyReadStream:[NSInputStream inputStreamWithData:[self compressedPostBody]]];
 			} else if ([self postBody]) {
 				[self setPostBodyReadStream:[ASIInputStream inputStreamWithData:[self postBody] request:self]];
+//                [self setPostBodyReadStream:[NSInputStream inputStreamWithData:[self postBody]]];
 			}
 			[self setReadStream:[NSMakeCollectable(CFReadStreamCreateForStreamedHTTPRequest(kCFAllocatorDefault, request,(CFReadStreamRef)[self postBodyReadStream])) autorelease]];
 		
