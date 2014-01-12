@@ -13,7 +13,7 @@
 #import "ASIHTTPRequest.h"
 
 #if TARGET_OS_IPHONE
-#import "Reachability.h"
+#import "_Reachability.h"
 #import "ASIAuthenticationDialog.h"
 #import <MobileCoreServices/MobileCoreServices.h>
 #else
@@ -24,7 +24,7 @@
 #import "ASIDataCompressor.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.8.1-61 2011-09-19";
+NSString *ASIHTTPRequestVersion = @"v1.8.1-79 2012-07-03";
 
 static NSString *defaultUserAgent = nil;
 
@@ -1207,29 +1207,26 @@ static NSOperationQueue *sharedQueue = nil;
 
     if([[[[self url] scheme] lowercaseString] isEqualToString:@"https"]) {       
        
+        NSMutableDictionary *sslProperties = [[NSMutableDictionary alloc] init];
+        
         // Tell CFNetwork not to validate SSL certificates
         if (![self validatesSecureCertificate]) {
             // see: http://iphonedevelopment.blogspot.com/2010/05/nsstream-tcp-and-ssl.html
             
-            NSDictionary *sslProperties = [[NSDictionary alloc] initWithObjectsAndKeys:
-                                      [NSNumber numberWithBool:YES], kCFStreamSSLAllowsExpiredCertificates,
-                                      [NSNumber numberWithBool:YES], kCFStreamSSLAllowsAnyRoot,
-                                      [NSNumber numberWithBool:NO],  kCFStreamSSLValidatesCertificateChain,
-                                      kCFNull,kCFStreamSSLPeerName,
-                                      nil];
-            
-            CFReadStreamSetProperty((CFReadStreamRef)[self readStream], 
-                                    kCFStreamPropertySSLSettings, 
+            [sslProperties setObject:[NSNumber numberWithBool:YES] forKey:kCFStreamSSLAllowsExpiredCertificates];
+            [sslProperties setObject:[NSNumber numberWithBool:YES] forKey:kCFStreamSSLAllowsAnyRoot];
+            [sslProperties setObject:[NSNumber numberWithBool:NO] forKey:kCFStreamSSLValidatesCertificateChain];
+            [sslProperties setObject:kCFNull forKey:kCFStreamSSLPeerName];
+
+            CFReadStreamSetProperty((CFReadStreamRef)[self readStream],
+                                    kCFStreamPropertySSLSettings,
                                     (CFTypeRef)sslProperties);
-            [sslProperties release];
         } 
         
         // Tell CFNetwork to use a client certificate
         if (clientCertificateIdentity) {
-            NSMutableDictionary *sslProperties = [NSMutableDictionary dictionaryWithCapacity:1];
-            
 			NSMutableArray *certificates = [NSMutableArray arrayWithCapacity:[clientCertificates count]+1];
-
+            
 			// The first object in the array is our SecIdentityRef
 			[certificates addObject:(id)clientCertificateIdentity];
 
@@ -1243,6 +1240,13 @@ static NSOperationQueue *sharedQueue = nil;
             CFReadStreamSetProperty((CFReadStreamRef)[self readStream], kCFStreamPropertySSLSettings, sslProperties);
         }
         
+        if ([[[UIDevice currentDevice] systemVersion] compare:@"5.0" options:NSNumericSearch] != NSOrderedAscending && [[[UIDevice currentDevice] systemVersion] compare:@"5.1" options:NSNumericSearch] == NSOrderedAscending) {
+            [sslProperties setObject:@"kCFStreamSocketSecurityLevelTLSv1_0SSLv3" forKey:kCFStreamSSLLevel];
+            CFReadStreamSetProperty((CFReadStreamRef)[self readStream], kCFStreamPropertySSLSettings, sslProperties);
+        }
+
+        [sslProperties release];
+
     }
 
 	//
@@ -4663,7 +4667,7 @@ static NSOperationQueue *sharedQueue = nil;
 
 + (void)registerForNetworkReachabilityNotifications
 {
-	[[Reachability reachabilityForInternetConnection] startNotifier];
+	[[_Reachability reachabilityForInternetConnection] startNotifier];
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reachabilityChanged:) name:kReachabilityChangedNotification object:nil];
 }
 
@@ -4675,7 +4679,7 @@ static NSOperationQueue *sharedQueue = nil;
 
 + (BOOL)isNetworkReachableViaWWAN
 {
-	return ([[Reachability reachabilityForInternetConnection] currentReachabilityStatus] == ReachableViaWWAN);	
+	return ([[_Reachability reachabilityForInternetConnection] currentReachabilityStatus] == ReachableViaWWAN);	
 }
 
 + (void)reachabilityChanged:(NSNotification *)note
