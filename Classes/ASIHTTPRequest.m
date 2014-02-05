@@ -204,6 +204,7 @@ static NSOperationQueue *sharedQueue = nil;
 @property (assign) BOOL complete;
 @property (retain) NSArray *responseCookies;
 @property (assign) int responseStatusCode;
+@property (assign) int uncachedResponseStatusCode;
 @property (retain, nonatomic) NSDate *lastActivityTime;
 
 @property (assign) unsigned long long partialDownloadSize;
@@ -2154,6 +2155,7 @@ static NSOperationQueue *sharedQueue = nil;
 
 	[self setResponseHeaders:[NSMakeCollectable(CFHTTPMessageCopyAllHeaderFields(message)) autorelease]];
 	[self setResponseStatusCode:(int)CFHTTPMessageGetResponseStatusCode(message)];
+	[self setUncachedResponseStatusCode:(int)CFHTTPMessageGetResponseStatusCode(message)];
 	[self setResponseStatusMessage:[NSMakeCollectable(CFHTTPMessageCopyResponseStatusLine(message)) autorelease]];
 
 	if ([self downloadCache] && ([[self downloadCache] canUseCachedDataForRequest:self])) {
@@ -5041,6 +5043,7 @@ static NSOperationQueue *sharedQueue = nil;
 @synthesize requestCookies;
 @synthesize requestCredentials;
 @synthesize responseStatusCode;
+@synthesize uncachedResponseStatusCode;
 @synthesize rawResponseData;
 @synthesize lastActivityTime;
 @synthesize timeOutSeconds;
