@@ -260,9 +260,12 @@ typedef void (^ASIDataBlock)(NSData *data);
 	
 	// HTTP status code, eg: 200 = OK, 404 = Not found etc
 	int responseStatusCode;
-	
+
 	// Description of the HTTP status code
 	NSString *responseStatusMessage;
+
+	// HTTP Version, e.g. 1.0, 1.1 etc
+	NSString *responseHTTPVersion;
 	
 	// Size of the response
 	unsigned long long contentLength;
@@ -944,6 +947,7 @@ typedef void (^ASIDataBlock)(NSData *data);
 @property (retain) NSDictionary *proxyCredentials;
 @property (assign,readonly) int responseStatusCode;
 @property (retain,readonly) NSString *responseStatusMessage;
+@property (retain,readonly) NSString *responseHTTPVersion;
 @property (retain) NSMutableData *rawResponseData;
 @property (assign) NSTimeInterval timeOutSeconds;
 @property (retain, nonatomic) NSString *requestMethod;

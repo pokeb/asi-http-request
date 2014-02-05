@@ -24,7 +24,7 @@
 #import "ASIDataCompressor.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.8.1-61 2011-09-19";
+NSString *ASIHTTPRequestVersion = @"v1.8.1-79 2012-05-31";
 
 static NSString *defaultUserAgent = nil;
 
@@ -225,6 +225,7 @@ static NSOperationQueue *sharedQueue = nil;
 @property (retain) NSString *authenticationRealm;
 @property (retain) NSString *proxyAuthenticationRealm;
 @property (retain) NSString *responseStatusMessage;
+@property (retain) NSString *responseHTTPVersion;
 @property (assign) BOOL inProgress;
 @property (assign) int retryCount;
 @property (assign) BOOL willRetryRequest;
@@ -389,6 +390,7 @@ static NSOperationQueue *sharedQueue = nil;
 	[PACurl release];
 	[clientCertificates release];
 	[responseStatusMessage release];
+	[responseHTTPVersion release];
 	[connectionInfo release];
 	[requestID release];
 	[dataDecompressor release];
@@ -2155,6 +2157,7 @@ static NSOperationQueue *sharedQueue = nil;
 	[self setResponseHeaders:[NSMakeCollectable(CFHTTPMessageCopyAllHeaderFields(message)) autorelease]];
 	[self setResponseStatusCode:(int)CFHTTPMessageGetResponseStatusCode(message)];
 	[self setResponseStatusMessage:[NSMakeCollectable(CFHTTPMessageCopyResponseStatusLine(message)) autorelease]];
+	[self setResponseHTTPVersion:[NSMakeCollectable(CFHTTPMessageCopyVersion(message)) autorelease]];
 
 	if ([self downloadCache] && ([[self downloadCache] canUseCachedDataForRequest:self])) {
 
@@ -5095,6 +5098,7 @@ static NSOperationQueue *sharedQueue = nil;
 @synthesize shouldPresentProxyAuthenticationDialog;
 @synthesize authenticationNeeded;
 @synthesize responseStatusMessage;
+@synthesize responseHTTPVersion;
 @synthesize shouldPresentCredentialsBeforeChallenge;
 @synthesize haveBuiltRequestHeaders;
 @synthesize inProgress;
