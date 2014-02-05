@@ -3439,25 +3439,45 @@ static NSOperationQueue *sharedQueue = nil;
 		if ([self shouldRedirect] && [self needsRedirect] && [self allowResumeForFileDownloads]) {
 		
 		} else if ([self isResponseCompressed]) {
-			
-			// Decompress the file directly to the destination path
-			if ([self shouldWaitToInflateCompressedResponses]) {
-				[ASIDataDecompressor uncompressDataFromFile:[self temporaryFileDownloadPath] toFile:[self downloadDestinationPath] error:&fileError];
-
-			// Response should already have been inflated, move the temporary file to the destination path
-			} else {
-				NSError *moveError = nil;
-				[[[[NSFileManager alloc] init] autorelease] moveItemAtPath:[self temporaryUncompressedDataDownloadPath] toPath:[self downloadDestinationPath] error:&moveError];
-				if (moveError) {
-					fileError = [NSError errorWithDomain:NetworkRequestErrorDomain code:ASIFileManagementError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Failed to move file from '%@' to '%@'",[self temporaryFileDownloadPath],[self downloadDestinationPath]],NSLocalizedDescriptionKey,moveError,NSUnderlyingErrorKey,nil]];
+			NSFileManager *fileManager = [[[NSFileManager alloc] init] autorelease];
+			if ([self shouldCreateDestinationPath]) {
+				NSError *createPathError = nil;
+				NSString *path = [[self downloadDestinationPath] stringByDeletingLastPathComponent];
+				[fileManager createDirectoryAtPath:path withIntermediateDirectories:YES attributes:nil error:&createPathError];
+				if (createPathError) {
+					fileError = createPathError;
 				}
-				[self setTemporaryUncompressedDataDownloadPath:nil];
-
+			}
+			if (!fileError) {
+				// Decompress the file directly to the destination path
+				if ([self shouldWaitToInflateCompressedResponses]) {
+					[ASIDataDecompressor uncompressDataFromFile:[self temporaryFileDownloadPath] toFile:[self downloadDestinationPath] error:&fileError];
+					
+					// Response should already have been inflated, move the temporary file to the destination path
+				} else {
+					NSError *moveError = nil;
+					[[[[NSFileManager alloc] init] autorelease] moveItemAtPath:[self temporaryUncompressedDataDownloadPath] toPath:[self downloadDestinationPath] error:&moveError];
+					if (moveError) {
+						fileError = [NSError errorWithDomain:NetworkRequestErrorDomain code:ASIFileManagementError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Failed to move file from '%@' to '%@'",[self temporaryFileDownloadPath],[self downloadDestinationPath]],NSLocalizedDescriptionKey,moveError,NSUnderlyingErrorKey,nil]];
+					}
+					[self setTemporaryUncompressedDataDownloadPath:nil];
+					
+				}
 			}
 			[self removeTemporaryDownloadFile];
 
 		} else {
-	
+			NSFileManager *fileManager = [[[NSFileManager alloc] init] autorelease];
+			// Create the destination path if needed
+			if ([self shouldCreateDestinationPath]) {
+				NSError *createPathError = nil;
+				NSString *path = [[self downloadDestinationPath] stringByDeletingLastPathComponent];
+				[fileManager createDirectoryAtPath:path withIntermediateDirectories:YES attributes:nil error:&createPathError];
+				if (createPathError) {
+					fileError = createPathError;
+				}
+			}
+			
 			//Remove any file at the destination path
 			NSError *moveError = nil;
 			if (![[self class] removeFileAtPath:[self downloadDestinationPath] error:&moveError]) {
@@ -5029,6 +5049,7 @@ static NSOperationQueue *sharedQueue = nil;
 @synthesize didReceiveResponseHeadersSelector;
 @synthesize willRedirectSelector;
 @synthesize didFinishSelector;
+@synthesize shouldCreateDestinationPath;
 @synthesize didFailSelector;
 @synthesize didReceiveDataSelector;
 @synthesize authenticationRealm;
