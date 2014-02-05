@@ -997,6 +997,7 @@ typedef void (^ASIDataBlock)(NSData *data);
 @property (retain) NSArray *clientCertificates;
 #if TARGET_OS_IPHONE && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_4_0
 @property (assign) BOOL shouldContinueWhenAppEntersBackground;
+@property (assign) BOOL shouldUseVOIPSocket;
 #endif
 @property (retain) ASIDataDecompressor *dataDecompressor;
 @property (assign) BOOL shouldWaitToInflateCompressedResponses;
