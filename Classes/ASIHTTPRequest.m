@@ -225,6 +225,7 @@ static NSOperationQueue *sharedQueue = nil;
 @property (retain) NSString *authenticationRealm;
 @property (retain) NSString *proxyAuthenticationRealm;
 @property (retain) NSString *responseStatusMessage;
+@property (retain) NSString *responseVersion;
 @property (assign) BOOL inProgress;
 @property (assign) int retryCount;
 @property (assign) BOOL willRetryRequest;
@@ -389,6 +390,7 @@ static NSOperationQueue *sharedQueue = nil;
 	[PACurl release];
 	[clientCertificates release];
 	[responseStatusMessage release];
+	[responseVersion release];
 	[connectionInfo release];
 	[requestID release];
 	[dataDecompressor release];
@@ -2155,6 +2157,7 @@ static NSOperationQueue *sharedQueue = nil;
 	[self setResponseHeaders:[NSMakeCollectable(CFHTTPMessageCopyAllHeaderFields(message)) autorelease]];
 	[self setResponseStatusCode:(int)CFHTTPMessageGetResponseStatusCode(message)];
 	[self setResponseStatusMessage:[NSMakeCollectable(CFHTTPMessageCopyResponseStatusLine(message)) autorelease]];
+    [self setResponseVersion:[NSMakeCollectable(CFHTTPMessageCopyVersion(message)) autorelease]];
 
 	if ([self downloadCache] && ([[self downloadCache] canUseCachedDataForRequest:self])) {
 
@@ -2258,10 +2261,8 @@ static NSOperationQueue *sharedQueue = nil;
 		
 		NSString *connectionHeader = [[[self responseHeaders] objectForKey:@"Connection"] lowercaseString];
 
-		NSString *httpVersion = [NSMakeCollectable(CFHTTPMessageCopyVersion(message)) autorelease];
-		
 		// Don't re-use the connection if the server is HTTP 1.0 and didn't send Connection: Keep-Alive
-		if (![httpVersion isEqualToString:(NSString *)kCFHTTPVersion1_0] || [connectionHeader isEqualToString:@"keep-alive"]) {
+		if (![self.responseVersion isEqualToString:(NSString *)kCFHTTPVersion1_0] || [connectionHeader isEqualToString:@"keep-alive"]) {
 
 			// See if server explicitly told us to close the connection
 			if (![connectionHeader isEqualToString:@"close"]) {
@@ -3331,6 +3332,12 @@ static NSOperationQueue *sharedQueue = nil;
 			dataWillBeHandledExternally = YES;
 		}
 		#endif
+        
+		if ([self authenticationNeeded]) {
+			// Don't pass the body of a 401/407 response to the callback.
+			dataWillBeHandledExternally = NO;
+		}
+        
 		// Does the delegate want to handle the data manually?
 		if (dataWillBeHandledExternally) {
 
@@ -5095,6 +5102,7 @@ static NSOperationQueue *sharedQueue = nil;
 @synthesize shouldPresentProxyAuthenticationDialog;
 @synthesize authenticationNeeded;
 @synthesize responseStatusMessage;
+@synthesize responseVersion;
 @synthesize shouldPresentCredentialsBeforeChallenge;
 @synthesize haveBuiltRequestHeaders;
 @synthesize inProgress;
