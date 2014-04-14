@@ -14,7 +14,15 @@
 // Subclassing NSInputStream seems to be tricky, and may involve overriding undocumented methods, so we'll cheat instead.
 // It is used by ASIHTTPRequest whenever we have a request body, and handles measuring and throttling the bandwidth used for uploading
 
-@interface ASIInputStream : NSObject<NSStreamDelegate>
+@interface ASIInputStream : NSObject<NSStreamDelegate>{
+    NSInputStream *stream;
+    id<NSStreamDelegate> delegate;
+    
+    CFReadStreamClientCallBack copiedCallback;
+    CFStreamClientContext copiedContext;
+    CFOptionFlags requestedEvents;
+    ASIHTTPRequest *request;
+}
 
 + (id)inputStreamWithFileAtPath:(NSString *)path request:(ASIHTTPRequest *)request;
 + (id)inputStreamWithData:(NSData *)data request:(ASIHTTPRequest *)request;

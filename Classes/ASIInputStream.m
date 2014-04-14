@@ -14,15 +14,6 @@
 static NSLock *readLock = nil;
 
 @implementation ASIInputStream
-{
-    NSInputStream *stream;
-    id<NSStreamDelegate> delegate;
-    
-    CFReadStreamClientCallBack copiedCallback;
-    CFStreamClientContext copiedContext;
-    CFOptionFlags requestedEvents;
-    ASIHTTPRequest *request;
-}
 
 + (void)initialize
 {
@@ -144,7 +135,7 @@ static NSLock *readLock = nil;
     [readLock unlock];
     NSInteger rv = [stream read:buffer maxLength:toRead];
     if (rv > 0)
-        [ASIHTTPRequest incrementBandwidthUsedInLastSecond:rv];
+        [ASIHTTPRequest incrementBandwidthUsedInLastSecond:(unsigned long)rv];
     return rv;
 }
 
