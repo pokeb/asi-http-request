@@ -41,7 +41,7 @@ static const NSUInteger kDomainSection = 1;
 - (void)orientationChanged:(NSNotification *)notification;
 - (void)cancelAuthenticationFromDialog:(id)sender;
 - (void)loginWithCredentialsFromDialog:(id)sender;
-@property (retain) UITableView *tableView;
+@property (atomic, retain) UITableView *tableView;
 @end
 
 @implementation ASIAuthenticationDialog
@@ -193,7 +193,7 @@ static const NSUInteger kDomainSection = 1;
 - (UITextField *)textFieldInRow:(NSUInteger)row section:(NSUInteger)section
 {
 	return [[[[[self tableView] cellForRowAtIndexPath:
-			   [NSIndexPath indexPathForRow:row inSection:section]]
+			   [NSIndexPath indexPathForRow:(NSInteger)row inSection:(NSInteger)section]]
 			  contentView] subviews] objectAtIndex:0];
 }
 
@@ -471,8 +471,8 @@ static const NSUInteger kDomainSection = 1;
 	[textField setAutocapitalizationType:UITextAutocapitalizationTypeNone];
 	[textField setAutocorrectionType:UITextAutocorrectionTypeNo];
 
-	NSUInteger s = [indexPath section];
-	NSUInteger r = [indexPath row];
+	NSInteger s = [indexPath section];
+	NSInteger r = [indexPath row];
 
 	if (s == kUsernameSection && r == kUsernameRow) {
 		[textField setPlaceholder:@"User"];
