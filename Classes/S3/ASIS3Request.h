@@ -52,6 +52,9 @@ typedef enum _ASIS3ErrorType {
 
 	// The access policy to use when PUTting a file (see the string constants at the top ASIS3Request.h for details on what the possible options are)
 	NSString *accessPolicy;
+    
+    // The session token used by Temporary Security Credentials
+    NSString *sessionToken;
 
 	// Internally used while parsing errors
 	NSString *currentXMLElementContent;
@@ -106,4 +109,5 @@ typedef enum _ASIS3ErrorType {
 @property (retain) NSString *currentXMLElementContent;
 @property (retain) NSMutableArray *currentXMLElementStack;
 @property (retain) NSString *requestScheme;
+@property (retain) NSString *sessionToken;
 @end

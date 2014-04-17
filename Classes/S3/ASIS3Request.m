@@ -48,6 +48,7 @@ static NSString *sharedSecretAccessKey = nil;
 	[secretAccessKey release];
 	[accessPolicy release];
 	[requestScheme release];
+    [sessionToken release];
 	[super dealloc];
 }
 
@@ -71,6 +72,9 @@ static NSString *sharedSecretAccessKey = nil;
 	if ([self accessPolicy]) {
 		[headers setObject:[self accessPolicy] forKey:@"x-amz-acl"];
 	}
+    if (self.sessionToken) {
+        [headers setObject:[self sessionToken] forKey:@"x-amz-security-token"];
+    }
 	return headers;
 }
 
@@ -309,4 +313,5 @@ static NSString *sharedSecretAccessKey = nil;
 @synthesize currentXMLElementStack;
 @synthesize accessPolicy;
 @synthesize requestScheme;
+@synthesize sessionToken;
 @end
