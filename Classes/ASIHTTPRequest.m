@@ -2479,14 +2479,6 @@ static NSOperationQueue *sharedQueue = nil;
 		user = [self proxyUsername];
 		pass = [self proxyPassword];
 	}
-
-	// When we connect to a website using NTLM via a proxy, we will use the main credentials
-	if ((!user || !pass) && [self proxyAuthenticationScheme] == (NSString *)kCFHTTPAuthenticationSchemeNTLM) {
-		user = [self username];
-		pass = [self password];
-	}
-
-
 	
 	// Ok, that didn't work, let's try the keychain
 	// For authenticating proxies, we'll look in the keychain regardless of the value of useKeychainPersistence
@@ -2497,6 +2489,13 @@ static NSOperationQueue *sharedQueue = nil;
 			pass = [authenticationCredentials password];
 		}
 		
+	}
+
+    // If proxy credential is still not available and when we connect to a website using NTLM via a proxy,
+    // we will use the main credentials
+	if ((!user || !pass) && [self proxyAuthenticationScheme] == (NSString *)kCFHTTPAuthenticationSchemeNTLM) {
+		user = [self username];
+		pass = [self password];
 	}
 
 	// Handle NTLM, which requires a domain to be set too
@@ -2846,12 +2845,15 @@ static NSOperationQueue *sharedQueue = nil;
 	
 	if (proxyCredentials) {
 		
+        // From wireshark logs, proxy auth challenge is not responded by calling startRequest twice.
+        // Needed a third call to get the auth challenge response sent.
+        
 		// We use startRequest rather than starting all over again in load request because NTLM requires we reuse the request
-		if ((([self proxyAuthenticationScheme] != (NSString *)kCFHTTPAuthenticationSchemeNTLM) || [self proxyAuthenticationRetryCount] < 2) && [self applyProxyCredentials:proxyCredentials]) {
+		if ((([self proxyAuthenticationScheme] != (NSString *)kCFHTTPAuthenticationSchemeNTLM) || [self proxyAuthenticationRetryCount] < 3) && [self applyProxyCredentials:proxyCredentials]) {
 			[self startRequest];
 			
 		// We've failed NTLM authentication twice, we should assume our credentials are wrong
-		} else if ([self proxyAuthenticationScheme] == (NSString *)kCFHTTPAuthenticationSchemeNTLM && [self proxyAuthenticationRetryCount] == 2) {
+		} else if ([self proxyAuthenticationScheme] == (NSString *)kCFHTTPAuthenticationSchemeNTLM && [self proxyAuthenticationRetryCount] == 3) {
 			[self failWithError:ASIAuthenticationError];
 			
 		// Something went wrong, we'll have to give up
