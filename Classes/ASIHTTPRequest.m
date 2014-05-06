@@ -1459,6 +1459,7 @@ static NSOperationQueue *sharedQueue = nil;
 {
 	[self setURL:[self redirectURL]];
 	[self setComplete:YES];
+	[self destroyReadStream];
 	[self setNeedsRedirect:NO];
 	[self setRedirectCount:[self redirectCount]+1];
 
@@ -3739,6 +3740,7 @@ static NSOperationQueue *sharedQueue = nil;
 
 		CFReadStreamSetClient((CFReadStreamRef)[self readStream], kCFStreamEventNone, NULL, NULL);
 		[[self readStream] removeFromRunLoop:[NSRunLoop currentRunLoop] forMode:[self runLoopMode]];
+		[[self readStream] close];
 		[self setReadStreamIsScheduled:NO];
 	}
 }
