@@ -323,21 +323,6 @@
 }
 
 
-@synthesize requestsCount;
-@synthesize bytesUploadedSoFar;
-@synthesize totalBytesToUpload;
-@synthesize bytesDownloadedSoFar;
-@synthesize totalBytesToDownload;
-@synthesize shouldCancelAllRequestsOnFailure;
-@synthesize uploadProgressDelegate;
-@synthesize downloadProgressDelegate;
-@synthesize requestDidStartSelector;
-@synthesize requestDidReceiveResponseHeadersSelector;
-@synthesize requestWillRedirectSelector;
-@synthesize requestDidFinishSelector;
-@synthesize requestDidFailSelector;
-@synthesize queueDidFinishSelector;
-@synthesize delegate;
-@synthesize showAccurateProgress;
-@synthesize userInfo;
+@synthesize requestsCount, bytesUploadedSoFar, totalBytesToUpload, bytesDownloadedSoFar, totalBytesToDownload, shouldCancelAllRequestsOnFailure, uploadProgressDelegate, downloadProgressDelegate, requestDidStartSelector, requestDidReceiveResponseHeadersSelector, requestWillRedirectSelector, requestDidFinishSelector, requestDidFailSelector, queueDidFinishSelector, delegate, showAccurateProgress, userInfo;
+
 @end
