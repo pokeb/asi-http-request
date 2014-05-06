@@ -4103,6 +4103,20 @@ static NSOperationQueue *sharedQueue = nil;
 	[newRequest setShouldAttemptPersistentConnection:[self shouldAttemptPersistentConnection]];
 	[newRequest setPersistentConnectionTimeoutSeconds:[self persistentConnectionTimeoutSeconds]];
     [newRequest setAuthenticationScheme:[self authenticationScheme]];
+#if NS_BLOCKS_AVAILABLE
+    [newRequest setStartedBlock:startedBlock];
+    [newRequest setHeadersReceivedBlock:headersReceivedBlock];
+    [newRequest setCompletionBlock:completionBlock];
+    [newRequest setFailedBlock:failureBlock];
+    [newRequest setBytesReceivedBlock:bytesReceivedBlock];
+    [newRequest setBytesSentBlock:bytesSentBlock];
+    [newRequest setDownloadSizeIncrementedBlock:downloadSizeIncrementedBlock];
+    [newRequest setUploadSizeIncrementedBlock:uploadSizeIncrementedBlock];
+    [newRequest setDataReceivedBlock:dataReceivedBlock];
+    [newRequest setAuthenticationNeededBlock:authenticationNeededBlock];
+    [newRequest setProxyAuthenticationNeededBlock:proxyAuthenticationNeededBlock];
+    [newRequest setRequestRedirectedBlock:requestRedirectedBlock];
+#endif
 	return newRequest;
 }
 
