@@ -279,8 +279,13 @@ static NSOperationQueue *sharedQueue = nil;
 - (id)initWithURL:(NSURL *)newURL
 {
 	self = [self init];
+	
+	NSArray *components = [[newURL absoluteString] componentsSeparatedByString:@"#"]; // strip anchor tags (anchor tags do not affect the cachability of the item)
+    	if([components count] > 1){
+        	newURL = [NSURL URLWithString:(NSString *)[components objectAtIndex:0]];
+    	}
+    
 	[self setRequestMethod:@"GET"];
-
 	[self setRunLoopMode:NSDefaultRunLoopMode];
 	[self setShouldAttemptPersistentConnection:YES];
 	[self setPersistentConnectionTimeoutSeconds:60.0];
