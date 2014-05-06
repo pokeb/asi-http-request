@@ -89,7 +89,7 @@ static unsigned long bandwidthUsedInLastSecond = 0;
 static NSDate *bandwidthMeasurementDate = nil;
 
 // Since throttling variables are shared among all requests, we'll use a lock to mediate access
-static NSLock *bandwidthThrottlingLock = nil;
+static NSRecursiveLock *bandwidthThrottlingLock = nil;
 
 // the maximum number of bytes that can be transmitted in one second
 static unsigned long maxBandwidthPerSecond = 0;
@@ -259,7 +259,7 @@ static NSOperationQueue *sharedQueue = nil;
 		persistentConnectionsPool = [[NSMutableArray alloc] init];
 		connectionsLock = [[NSRecursiveLock alloc] init];
 		progressLock = [[NSRecursiveLock alloc] init];
-		bandwidthThrottlingLock = [[NSLock alloc] init];
+		bandwidthThrottlingLock = [[NSRecursiveLock alloc] init];
 		sessionCookiesLock = [[NSRecursiveLock alloc] init];
 		sessionCredentialsLock = [[NSRecursiveLock alloc] init];
 		delegateAuthenticationLock = [[NSRecursiveLock alloc] init];
