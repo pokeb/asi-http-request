@@ -368,8 +368,12 @@ typedef void (^ASIDataBlock)(NSData *data);
     
     // If not nil and the URL scheme is https, CFNetwork configured to supply a client certificate
     SecIdentityRef clientCertificateIdentity;
+
 	NSArray *clientCertificates;
 	
+    // If not nil and the URL scheme is https, CFNetwork configured to check server certificates with ONLY this CA certificate
+		SecCertificateRef caCertificate;
+
 	// Details on the proxy to use - you could set these yourself, but it's probably best to let ASIHTTPRequest detect the system proxy settings
 	NSString *proxyHost;
 	int proxyPort;
@@ -439,6 +443,9 @@ typedef void (^ASIDataBlock)(NSData *data);
 	
 	// Used internally to record when a request has finished downloading data
 	BOOL downloadComplete;
+	
+	// Used internally to record when a request has been checked against a ca certificate
+	BOOL caCertificateCheckComplete;
 	
 	// An ID that uniquely identifies this request - primarily used for debugging persistent connections
 	NSNumber *requestID;
@@ -754,6 +761,10 @@ typedef void (^ASIDataBlock)(NSData *data);
 #pragma mark client certificate
 
 - (void)setClientCertificateIdentity:(SecIdentityRef)anIdentity;
+
+#pragma mark ca certificate
+
+- (void)setCaCertificate:(SecCertificateRef)aCaCertificate;
 
 #pragma mark session credentials
 
