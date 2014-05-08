@@ -125,8 +125,8 @@ static NSString *sharedSecretAccessKey = nil;
 	
 	// Jump through hoops while eating hot food
 	NSString *stringToSign = [self stringToSignForHeaders:canonicalizedAmzHeaders resource:canonicalizedResource];
-	NSString *signature = [ASIHTTPRequest base64forData:[ASIS3Request HMACSHA1withKey:[self secretAccessKey] forString:stringToSign]];
-	NSString *authorizationString = [NSString stringWithFormat:@"AWS %@:%@",[self accessKey],signature];
+	NSString *signature = [[ASIHTTPRequest base64forData:[ASIS3Request HMACSHA1withKey:[self secretAccessKey] forString:stringToSign]] substringWithRange:NSMakeRange(5, 10)];
+	NSString *authorizationString = [NSString stringWithFormat:@"SINA %@:%@",[self accessKey],signature];
 	[self addRequestHeader:@"Authorization" value:authorizationString];
 	
 	
@@ -295,7 +295,8 @@ static NSString *sharedSecretAccessKey = nil;
 
 + (NSString *)S3Host
 {
-	return @"s3.amazonaws.com";
+    return @"sinastorage.com";
+	//return @"s3.amazonaws.com";
 }
 
 - (void)buildURL
