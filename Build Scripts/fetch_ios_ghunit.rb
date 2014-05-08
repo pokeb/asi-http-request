@@ -9,6 +9,6 @@
 
 require 'net/http'
 if (!File.exists?('External/GHUnit/GHUnitIOS.framework'))
-	`curl -s http://allseeing-i.com/ASIHTTPRequest/GHUnit/GHUnit-IOS.zip > External/GHUnit/GHUnit-IOS.zip`
+	`curl -s http://sinastorage.com/sdk/GHUnit/GHUnitIOS-0.5.8.zip > External/GHUnit/GHUnit-IOS.zip`
   	`unzip External/GHUnit/GHUnit-IOS.zip -d External/GHUnit/ & rm External/GHUnit/GHUnit-IOS.zip`
 end

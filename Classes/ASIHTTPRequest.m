@@ -24,7 +24,7 @@
 #import "ASIDataCompressor.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.8.1-61 2011-09-19";
+NSString *ASIHTTPRequestVersion = @"v1.8.2-9 2014-05-08";
 
 static NSString *defaultUserAgent = nil;
 
@@ -4622,7 +4622,7 @@ static NSOperationQueue *sharedQueue = nil;
 	
 	// We'll split our bandwidth allowance into 4 (which is the default for an ASINetworkQueue's max concurrent operations count) to give all running requests a fighting chance of reading data this cycle
 	long long toRead = maxBandwidthPerSecond/4;
-	if (maxBandwidthPerSecond > 0 && (bandwidthUsedInLastSecond + toRead > maxBandwidthPerSecond)) {
+	if (maxBandwidthPerSecond > 0 && (bandwidthUsedInLastSecond + (unsigned long long)toRead > maxBandwidthPerSecond)) {
 		toRead = (long long)maxBandwidthPerSecond-(long long)bandwidthUsedInLastSecond;
 		if (toRead < 0) {
 			toRead = 0;

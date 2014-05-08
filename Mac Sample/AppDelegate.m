@@ -35,9 +35,12 @@
 
 - (id)init
 {
-	[super init];
-	networkQueue = [[ASINetworkQueue alloc] init];
-	[NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(updateBandwidthUsageIndicator) userInfo:nil repeats:YES];
+	if (self = [super init]) {
+        
+        networkQueue = [[ASINetworkQueue alloc] init];
+        [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(updateBandwidthUsageIndicator) userInfo:nil repeats:YES];
+    }
+    
 	return self;
 }
 
@@ -358,15 +361,15 @@
 
 - (NSInteger)numberOfRowsInTableView:(NSTableView *)aTableView
 {
-    return [[self rowData] count];
+    return (NSInteger)[[self rowData] count];
 }
 
 - (id)tableView:(NSTableView *)aTableView objectValueForTableColumn:(NSTableColumn *)aTableColumn row:(NSInteger)rowIndex
 {
 	if ([[aTableColumn identifier] isEqualToString:@"image"]) {
-		return [[[self rowData] objectAtIndex:rowIndex] objectForKey:@"image"];
+		return [[[self rowData] objectAtIndex:(NSUInteger)rowIndex] objectForKey:@"image"];
 	} else {
-		return [[[self rowData] objectAtIndex:rowIndex] objectForKey:@"description"];
+		return [[[self rowData] objectAtIndex:(NSUInteger)rowIndex] objectForKey:@"description"];
 	}
 }
 
