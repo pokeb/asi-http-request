@@ -71,6 +71,7 @@ typedef enum _ASIS3ErrorType {
 
 // Parses the response to work out if S3 returned an error	
 - (void)parseResponseXML;
+- (void)parseResponseJson;
 
 #pragma mark shared access keys
 

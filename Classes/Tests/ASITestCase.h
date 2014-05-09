@@ -14,7 +14,7 @@
 #import <GHUnit/GHUnit.h>
 #endif
 
-@interface ASITestCase : GHTestCase {
+@interface ASITestCase : GHAsyncTestCase {
 }
 - (NSString *)filePathForTemporaryTestFiles;
 @end

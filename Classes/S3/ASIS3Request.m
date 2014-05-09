@@ -35,6 +35,7 @@ static NSString *sharedSecretAccessKey = nil;
 	// After a bit of experimentation/guesswork, this number seems to reduce the chance of a 'RequestTimeout' error
 	[self setPersistentConnectionTimeoutSeconds:20];
 	[self setRequestScheme:ASIS3RequestSchemeHTTP];
+    [self setValidatesSecureCertificate:NO];
 	return self;
 }
 
@@ -135,14 +136,43 @@ static NSString *sharedSecretAccessKey = nil;
 - (void)requestFinished
 {
 	if ([[[self responseHeaders] objectForKey:@"Content-Type"] isEqualToString:@"application/xml"]) {
+        
 		[self parseResponseXML];
-	}
+        
+	} else if ([[[self responseHeaders] objectForKey:@"Content-Type"] isEqualToString:@"application/json"]) {
+        
+        [self parseResponseJson];
+    }
 	if (![self error]) {
 		[super requestFinished];
 	}
 }
 
-#pragma mark Error XML parsing
+#pragma mark Error XML/Json parsing
+
+- (void)parseResponseJson {
+    
+    /*
+     
+     {"Message": "The provided token has expired.()", "Code": "ExpiredToken", "Resource": "\/", "RequestId": "05b43801-1405-0916-1056-782bcb67e2e3"}
+     
+     */
+    
+    NSError *jsonParseError = nil;
+    NSDictionary *jsonObject = [NSJSONSerialization JSONObjectWithData:[self responseData] options:kNilOptions error:&jsonParseError];
+    
+    if (jsonParseError == nil && jsonObject && [jsonObject isKindOfClass:[NSDictionary class]]) {
+        
+        if ([jsonObject objectForKey:@"Message"]) {
+            
+            [self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIS3ResponseErrorType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[jsonObject objectForKey:@"Message"], NSLocalizedDescriptionKey, nil]]];
+        }
+        
+    } else {
+        
+        [self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIS3ResponseParsingFailedType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Parsing the resposnse failed", NSLocalizedDescriptionKey, jsonParseError, NSUnderlyingErrorKey, nil]]];
+    }
+}
 
 - (void)parseResponseXML
 {
