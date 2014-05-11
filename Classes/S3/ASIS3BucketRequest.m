@@ -140,7 +140,7 @@
 	} else if ([elementName isEqualToString:@"Prefix"] && [[self currentXMLElementStack] count] > 2 && [[[self currentXMLElementStack] objectAtIndex:[[self currentXMLElementStack] count]-2] isEqualToString:@"CommonPrefixes"]) {
 		[[self commonPrefixes] addObject:[self currentXMLElementContent]];
 	} else if ([elementName isEqualToString:@"IsTruncated"]) {
-		[self setIsTruncated:[[self currentXMLElementContent] isEqualToString:@"true"]];
+		[self setIsTruncated:[[self currentXMLElementContent] isEqualToString:@"True"]];
 	} else {
 		// Let ASIS3Request look for error messages
 		[super parser:parser didEndElement:elementName namespaceURI:namespaceURI qualifiedName:qName];

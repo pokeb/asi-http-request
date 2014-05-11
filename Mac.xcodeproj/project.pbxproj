@@ -200,6 +200,14 @@
 		1058C7A0FEA54F0111CA2CBB /* Linked Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				B53FADE70FF38B2A002E2DE6 /* SystemConfiguration.framework */,
+				B51791281024BF0F00583567 /* Security.framework */,
+				B50C17DA121C254D0055FCAB /* Security.framework */,
+				B50C18D1121C2F240055FCAB /* Foundation.framework */,
+				B53E62551255EC4600C1E79A /* libxml2.dylib */,
+				B53E62571255EC4E00C1E79A /* libtidy.dylib */,
+				B551D5C613ED432B00607B74 /* libz.dylib */,
+				B53E62B01255EEB800C1E79A /* WebKit.framework */,
 				1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */,
 				B5BF64E512FDE9C900CBC324 /* GHUnit.framework */,
 			);
@@ -233,14 +241,6 @@
 				29B97317FDCFA39411CA2CEA /* Resources */,
 				29B97323FDCFA39411CA2CEA /* Frameworks */,
 				19C28FACFE9D520D11CA2CBB /* Products */,
-				B53FADE70FF38B2A002E2DE6 /* SystemConfiguration.framework */,
-				B51791281024BF0F00583567 /* Security.framework */,
-				B50C17DA121C254D0055FCAB /* Security.framework */,
-				B50C18D1121C2F240055FCAB /* Foundation.framework */,
-				B53E62551255EC4600C1E79A /* libxml2.dylib */,
-				B53E62571255EC4E00C1E79A /* libtidy.dylib */,
-				B551D5C613ED432B00607B74 /* libz.dylib */,
-				B53E62B01255EEB800C1E79A /* WebKit.framework */,
 			);
 			name = Mac;
 			sourceTree = "<group>";

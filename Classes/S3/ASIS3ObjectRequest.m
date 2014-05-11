@@ -137,7 +137,9 @@ NSString *const ASIS3StorageClassReducedRedundancy = @"REDUCED_REDUNDANCY";
 	NSMutableDictionary *headers = [super S3Headers];
 	if ([self sourceKey]) {
 		NSString *path = [ASIS3Request stringByURLEncodingForS3Path:[self sourceKey]];
-		[headers setObject:[[self sourceBucket] stringByAppendingString:path] forKey:@"x-amz-copy-source"];
+        NSString *copySource = [NSString stringWithFormat:@"/%@%@", [self sourceBucket], path];
+		[headers setObject:copySource forKey:@"x-amz-copy-source"];
+		//[headers setObject:[[self sourceBucket] stringByAppendingString:path] forKey:@"x-amz-copy-source"];
 	}
 	if ([self storageClass]) {
 		[headers setObject:[self storageClass] forKey:@"x-amz-storage-class"];
