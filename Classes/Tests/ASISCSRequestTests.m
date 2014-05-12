@@ -373,7 +373,7 @@ static NSString *bucket = @"";
 	GHAssertTrue(success,@"Failed to GET the correct data from S3");	
 	
 	// Now grab the data using something other than ASIHTTPRequest to ensure other HTTP clients can parse the gzipped content
-	NSData *data = [NSURLConnection sendSynchronousRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://%@.s3.amazonaws.com/gzipped-data",bucket]]] returningResponse:NULL error:NULL];
+	NSData *data = [NSURLConnection sendSynchronousRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://%@.sinastorage.com.com/gzipped-data",bucket]]] returningResponse:NULL error:NULL];
 	NSString *string = [[[NSString alloc] initWithBytes:[data bytes] length:[data length] encoding:NSUTF8StringEncoding] autorelease];
 	success = [string isEqualToString:text];
 	GHAssertTrue(success,@"Failed to GET the correct data from S3");	
@@ -414,6 +414,8 @@ static NSString *bucket = @"";
 	[listRequest setAccessKey:accessKey];
 	[listRequest setDelimiter:@"/"];
 	[listRequest startSynchronous];
+    [self logRequest:listRequest];
+    GHTestLog(@"%@", listRequest.objects);
 	GHAssertNil([listRequest error],@"Failed to download a list from S3");
 	success = NO;
 	for (NSString *prefix in [listRequest commonPrefixes]) {
@@ -430,6 +432,7 @@ static NSString *bucket = @"";
 	[listRequest setAccessKey:accessKey];
 	[listRequest setMaxResultCount:1];
 	[listRequest startSynchronous];
+    [self logRequest:listRequest];
 	GHAssertTrue([listRequest isTruncated],@"Failed to identify what should be a truncated list of results");
 	
 	// Test urls are built correctly when requesting a subresource
@@ -452,6 +455,7 @@ static NSString *bucket = @"";
 	[listRequest setSecretAccessKey:secretAccessKey];
 	[listRequest setAccessKey:accessKey];
 	[listRequest startSynchronous];
+    [self logRequest:listRequest];
 	GHAssertNil([listRequest error],@"Failed to download a list from S3");
 	success = ([[listRequest objects] count] == 5);
 	GHAssertTrue(success,@"List did not contain all files");
@@ -522,6 +526,7 @@ static NSString *bucket = @"";
 
 - (void)GETRequestDone:(ASIS3Request *)request
 {
+    [self logRequest:request];
 	NSString *expectedContent = [NSString stringWithFormat:@"This is the content of file #%@",[[[request url] absoluteString] lastPathComponent]];
 	BOOL success = ([[request responseString] isEqualToString:expectedContent]);
 	GHAssertTrue(success,@"Got the wrong content when downloading one of the files");
@@ -530,24 +535,29 @@ static NSString *bucket = @"";
 
 - (void)GETRequestFailed:(ASIS3Request *)request
 {
+    [self logRequest:request];
 	GHAssertTrue(NO,@"GET request failed for one of the items in the list");
 }
 
 - (void)PUTRequestDone:(ASIS3Request *)request
 {
+    [self logRequest:request];
 }
 
 - (void)PUTRequestFailed:(ASIS3Request *)request
 {
+    [self logRequest:request];
 	GHAssertTrue(NO,@"PUT request failed for one of the items in the list");
 }
 
 - (void)DELETERequestDone:(ASIS3Request *)request
 {
+    [self logRequest:request];
 }
 
 - (void)DELETERequestFailed:(ASIS3Request *)request
 {
+    [self logRequest:request];
 	GHAssertTrue(NO,@"DELETE request failed for one of the items in the list");
 }
 
@@ -555,6 +565,7 @@ static NSString *bucket = @"";
 
 - (void)s3RequestFailed:(ASIHTTPRequest *)request
 {
+    [self logRequest:request];
 	GHFail(@"Request failed - cannot continue with test");
 	[[self networkQueue] cancelAllOperations];
 }
