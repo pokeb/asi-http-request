@@ -17,24 +17,23 @@
 
 @implementation ASIDataDecompressor
 
-+ (id)decompressor
++ (instancetype)decompressor
 {
-	ASIDataDecompressor *decompressor = [[[self alloc] init] autorelease];
+  ASIDataDecompressor *decompressor = [[self alloc] init];
 	[decompressor setupStream];
 	return decompressor;
 }
 
 - (void)dealloc
 {
-	if (streamReady) {
+  if (_streamReady) {
 		[self closeStream];
 	}
-	[super dealloc];
 }
 
 - (NSError *)setupStream
 {
-	if (streamReady) {
+  if (_streamReady) {
 		return nil;
 	}
 	// Setup the inflate stream
@@ -47,17 +46,17 @@
 	if (status != Z_OK) {
 		return [[self class] inflateErrorWithCode:status];
 	}
-	streamReady = YES;
+  _streamReady = YES;
 	return nil;
 }
 
 - (NSError *)closeStream
 {
-	if (!streamReady) {
+  if (!_streamReady) {
 		return nil;
 	}
 	// Close the inflate stream
-	streamReady = NO;
+  _streamReady = NO;
 	int status = inflateEnd(&zStream);
 	if (status != Z_OK) {
 		return [[self class] inflateErrorWithCode:status];
@@ -121,7 +120,7 @@
 
 + (BOOL)uncompressDataFromFile:(NSString *)sourcePath toFile:(NSString *)destinationPath error:(NSError **)err
 {
-	NSFileManager *fileManager = [[[NSFileManager alloc] init] autorelease];
+  NSFileManager *fileManager = [[NSFileManager alloc] init];
 
 	// Create an empty file at the destination path
 	if (![fileManager createFileAtPath:destinationPath contents:[NSData data] attributes:nil]) {
@@ -214,5 +213,4 @@
 	return [NSError errorWithDomain:NetworkRequestErrorDomain code:ASICompressionError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Decompression of data failed with code %d",code],NSLocalizedDescriptionKey,nil]];
 }
 
-@synthesize streamReady;
 @end

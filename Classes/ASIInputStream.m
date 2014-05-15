@@ -21,26 +21,20 @@ static NSLock *readLock = nil;
 	}
 }
 
-+ (id)inputStreamWithFileAtPath:(NSString *)path request:(ASIHTTPRequest *)theRequest
++ (instancetype)inputStreamWithFileAtPath:(NSString *)path request:(ASIHTTPRequest *)theRequest
 {
-	ASIInputStream *theStream = [[[self alloc] init] autorelease];
+	ASIInputStream *theStream = [[self alloc] init];
 	[theStream setRequest:theRequest];
 	[theStream setStream:[NSInputStream inputStreamWithFileAtPath:path]];
 	return theStream;
 }
 
-+ (id)inputStreamWithData:(NSData *)data request:(ASIHTTPRequest *)theRequest
++ (instancetype)inputStreamWithData:(NSData *)data request:(ASIHTTPRequest *)theRequest
 {
-	ASIInputStream *theStream = [[[self alloc] init] autorelease];
+	ASIInputStream *theStream = [[self alloc] init];
 	[theStream setRequest:theRequest];
 	[theStream setStream:[NSInputStream inputStreamWithData:data]];
 	return theStream;
-}
-
-- (void)dealloc
-{
-	[stream release];
-	[super dealloc];
 }
 
 // Called when CFNetwork wants to read more of our request body
@@ -56,10 +50,10 @@ static NSLock *readLock = nil;
 		} else if (toRead == 0) {
 			toRead = 1;
 		}
-		[request performThrottling];
+		[_request performThrottling];
 	}
 	[readLock unlock];
-	NSInteger rv = [stream read:buffer maxLength:toRead];
+	NSInteger rv = [_stream read:buffer maxLength:toRead];
 	if (rv > 0)
 		[ASIHTTPRequest incrementBandwidthUsedInLastSecond:rv];
 	return rv;
@@ -72,52 +66,52 @@ static NSLock *readLock = nil;
  */
 - (void)open
 {
-    [stream open];
+    [_stream open];
 }
 
 - (void)close
 {
-    [stream close];
+    [_stream close];
 }
 
 - (id)delegate
 {
-    return [stream delegate];
+    return [_stream delegate];
 }
 
 - (void)setDelegate:(id)delegate
 {
-    [stream setDelegate:delegate];
+    [_stream setDelegate:delegate];
 }
 
 - (void)scheduleInRunLoop:(NSRunLoop *)aRunLoop forMode:(NSString *)mode
 {
-    [stream scheduleInRunLoop:aRunLoop forMode:mode];
+    [_stream scheduleInRunLoop:aRunLoop forMode:mode];
 }
 
 - (void)removeFromRunLoop:(NSRunLoop *)aRunLoop forMode:(NSString *)mode
 {
-    [stream removeFromRunLoop:aRunLoop forMode:mode];
+    [_stream removeFromRunLoop:aRunLoop forMode:mode];
 }
 
 - (id)propertyForKey:(NSString *)key
 {
-    return [stream propertyForKey:key];
+    return [_stream propertyForKey:key];
 }
 
 - (BOOL)setProperty:(id)property forKey:(NSString *)key
 {
-    return [stream setProperty:property forKey:key];
+    return [_stream setProperty:property forKey:key];
 }
 
 - (NSStreamStatus)streamStatus
 {
-    return [stream streamStatus];
+    return [_stream streamStatus];
 }
 
 - (NSError *)streamError
 {
-    return [stream streamError];
+    return [_stream streamError];
 }
 
 // If we get asked to perform a method we don't have (probably internal ones),
@@ -125,14 +119,12 @@ static NSLock *readLock = nil;
 
 - (NSMethodSignature *)methodSignatureForSelector:(SEL)aSelector
 {
-	return [stream methodSignatureForSelector:aSelector];
+	return [_stream methodSignatureForSelector:aSelector];
 }
 	 
 - (void)forwardInvocation:(NSInvocation *)anInvocation
 {
-	[anInvocation invokeWithTarget:stream];
+	[anInvocation invokeWithTarget:_stream];
 }
 
-@synthesize stream;
-@synthesize request;
 @end
