@@ -1213,10 +1213,10 @@ static NSOperationQueue *sharedQueue = nil;
         if (![self validatesSecureCertificate]) {
             // see: http://iphonedevelopment.blogspot.com/2010/05/nsstream-tcp-and-ssl.html
             
-            [sslProperties setObject:[NSNumber numberWithBool:YES] forKey:kCFStreamSSLAllowsExpiredCertificates];
-            [sslProperties setObject:[NSNumber numberWithBool:YES] forKey:kCFStreamSSLAllowsAnyRoot];
-            [sslProperties setObject:[NSNumber numberWithBool:NO] forKey:kCFStreamSSLValidatesCertificateChain];
-            [sslProperties setObject:kCFNull forKey:kCFStreamSSLPeerName];
+            [sslProperties setObject:[NSNumber numberWithBool:YES] forKey:(NSString*)kCFStreamSSLAllowsExpiredCertificates];
+            [sslProperties setObject:[NSNumber numberWithBool:YES] forKey:(NSString*)kCFStreamSSLAllowsAnyRoot];
+            [sslProperties setObject:[NSNumber numberWithBool:NO] forKey:(NSString*)kCFStreamSSLValidatesCertificateChain];
+            [sslProperties setObject:(NSString*)kCFNull forKey:(NSString*)kCFStreamSSLPeerName];
 
             CFReadStreamSetProperty((CFReadStreamRef)[self readStream],
                                     kCFStreamPropertySSLSettings,
@@ -1241,7 +1241,7 @@ static NSOperationQueue *sharedQueue = nil;
         }
         
         if ([[[UIDevice currentDevice] systemVersion] compare:@"5.0" options:NSNumericSearch] != NSOrderedAscending && [[[UIDevice currentDevice] systemVersion] compare:@"5.1" options:NSNumericSearch] == NSOrderedAscending) {
-            [sslProperties setObject:@"kCFStreamSocketSecurityLevelTLSv1_0SSLv3" forKey:kCFStreamSSLLevel];
+            [sslProperties setObject:@"kCFStreamSocketSecurityLevelTLSv1_0SSLv3" forKey:(NSString*)kCFStreamSSLLevel];
             CFReadStreamSetProperty((CFReadStreamRef)[self readStream], kCFStreamPropertySSLSettings, sslProperties);
         }
 
@@ -4870,7 +4870,7 @@ static NSOperationQueue *sharedQueue = nil;
   
 	// RFC 2612 says max-age must override any Expires header
 	if (maxAge) {
-		return [[NSDate date] addTimeInterval:maxAge];
+		return [[NSDate date] dateByAddingTimeInterval:maxAge];
 	} else {
 		NSString *expires = [responseHeaders objectForKey:@"Expires"];
 		if (expires) {
