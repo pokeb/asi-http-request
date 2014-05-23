@@ -50,7 +50,7 @@
 		AD9C706E192DDB6D00B6416E /* ASICloudFilesObject.h in Headers */ = {isa = PBXBuildFile; fileRef = B5873FD010FF28CA001E145F /* ASICloudFilesObject.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		AD9C706F192DDB6D00B6416E /* ASICloudFilesObjectRequest.h in Headers */ = {isa = PBXBuildFile; fileRef = B5873FD210FF28CA001E145F /* ASICloudFilesObjectRequest.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		AD9C7070192DDB6D00B6416E /* ASICloudFilesRequest.h in Headers */ = {isa = PBXBuildFile; fileRef = B5873FD410FF28CA001E145F /* ASICloudFilesRequest.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		AD9C7072192DDC0700B6416E /* ASIKit-iOS.h in Headers */ = {isa = PBXBuildFile; fileRef = AD9C7071192DDC0700B6416E /* ASIKit-iOS.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		AD9C7072192DDC0700B6416E /* ASIKit.h in Headers */ = {isa = PBXBuildFile; fileRef = AD9C7071192DDC0700B6416E /* ASIKit.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		AD9C7073192DDFE400B6416E /* ASICacheDelegate.h in Headers */ = {isa = PBXBuildFile; fileRef = B5FE752A11DBBA6A00F898C8 /* ASICacheDelegate.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		AD9C7074192DDFE400B6416E /* ASIProgressDelegate.h in Headers */ = {isa = PBXBuildFile; fileRef = B5747F281174BB8300C9414E /* ASIProgressDelegate.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		AD9C7077192DE0CB00B6416E /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = B55252B311D22E2200F9B170 /* Reachability.m */; };
@@ -212,7 +212,7 @@
 		AD9C704F192DDA5600B6416E /* ASIKit-iOS-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "ASIKit-iOS-Info.plist"; sourceTree = "<group>"; };
 		AD9C7051192DDA5600B6416E /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		AD9C7053192DDA5600B6416E /* ASIKit-iOS-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ASIKit-iOS-Prefix.pch"; sourceTree = "<group>"; };
-		AD9C7071192DDC0700B6416E /* ASIKit-iOS.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "ASIKit-iOS.h"; sourceTree = "<group>"; };
+		AD9C7071192DDC0700B6416E /* ASIKit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASIKit.h; sourceTree = "<group>"; };
 		AD9C7097192DE19500B6416E /* libxml2.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxml2.2.dylib; path = usr/lib/libxml2.2.dylib; sourceTree = SDKROOT; };
 		AD9C709D192DE2B800B6416E /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
 		AD9C709F192DE43400B6416E /* libxml2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxml2.dylib; path = usr/lib/libxml2.dylib; sourceTree = SDKROOT; };
@@ -567,7 +567,7 @@
 		AD9C704D192DDA5600B6416E /* ASIKit-iOS */ = {
 			isa = PBXGroup;
 			children = (
-				AD9C7071192DDC0700B6416E /* ASIKit-iOS.h */,
+				AD9C7071192DDC0700B6416E /* ASIKit.h */,
 				AD9C704E192DDA5600B6416E /* Supporting Files */,
 			);
 			path = "ASIKit-iOS";
@@ -721,7 +721,7 @@
 				AD9C706D192DDB6D00B6416E /* ASICloudFilesContainerXMLParserDelegate.h in Headers */,
 				AD9C706E192DDB6D00B6416E /* ASICloudFilesObject.h in Headers */,
 				AD9C706F192DDB6D00B6416E /* ASICloudFilesObjectRequest.h in Headers */,
-				AD9C7072192DDC0700B6416E /* ASIKit-iOS.h in Headers */,
+				AD9C7072192DDC0700B6416E /* ASIKit.h in Headers */,
 				AD9C7070192DDB6D00B6416E /* ASICloudFilesRequest.h in Headers */,
 				AD9C7073192DDFE400B6416E /* ASICacheDelegate.h in Headers */,
 				AD9C7074192DDFE400B6416E /* ASIProgressDelegate.h in Headers */,

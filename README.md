@@ -1,9 +1,8 @@
 ASI-SCS
 =======
-Branch of ASIHTTPRequest for Sina Cloud Storage Service
-本SDK为ASIHTTPRequest的一个分支，熟悉ASI的同学可以轻松上手，不熟悉的也没关系，相信看完文档您一定能够运用自如，并且能够对ASI有一个初步的认识。
 
-> * 文档的详细内容请查阅：http://open.sinastorage.com/?c=doc&a=sdk
+本SDK为ASIHTTPRequest的一个分支，熟悉ASI的同学可以轻松上手，不熟悉的也没关系，相信看完文档您一定能够运用自如，并且能够对ASI有一个初步的了解。
+
 > * SCS API 的详细内容请查阅：http://open.sinastorage.com/?c=doc&a=api
 > * ASIHTTPRequest的详细内容请查阅：http://allseeing-i.com/ASIHTTPRequest/How-to-use
 
@@ -13,17 +12,57 @@ Branch of ASIHTTPRequest for Sina Cloud Storage Service
 > * OSX: 10.8及以上。
 
 ####相关配置：
-> * 1、将SDK文件夹拷贝到你的工程目录下；
-> * 2、打开xcode，将SCSSDK.xcodeproj拖动到你的工程中；
-> * 3、选择你的工程，在右侧选择Build Settings，并设置Other Linker Flags 为 -ObjC -all_load；
-> * 4、选择Build Phases，在Link Binary With Libraries中添加如下：
->  * _iOS_：libSCSSDK_IOS.a；Foundation.framework ；CoreData.framework ；CoreFoundation.framework ；Security.framework ；CoreGraphics.framework ；UIKit.framework；
->  * _OSX_：libSCSSDK_OSX.a；Cocoa.framework ；CoreData.framework ；CoreFoundation.framework ；Security.framework ；AppKit.framework；
-> * 5、
+> * 1、下载ASIKit.Framework（你可以手动下载，链接如下；也可以执行步骤(1)—(4)，写脚本由程序自动下载）
+>>Mac OS X：http://sdk.sinastorage.com/ASIKit.framework.zip
+>>iOS：http://sdk.sinastorage.com/ASIKit-iOS.framework.zip
+>> * (1)、打开工程，单击XCode侧边栏中的project行，并选择右侧的Build Phase；
+>> * (2)、选择项目的Target，在顶部菜单栏选择Editor > Add Build Phase > Add Run Script Build Phase；
+>> * (3)、设置Run Script（Mac OS X 与 iOS不同）如下；
+>> * (4)、Commond+B编译工程，会自动下载所需的ASIKit.Framework包到工程目录。
+
+> * 2、选择Link Binary With Libraries，点击“+”，点击“Add Other...”，到工程目录下选择添加ASIKit.Framework
+（或者将下载好的ASIKit.Framework直接拖到xcode工程里的Frameworks分组下，并在Add to targets里选中你所要关联的target）
+> * 3、在所需文件中添加头：ASIKit/ASIKit.h
+
+```shell
+# Run Script For Mac OS X
+
+# If not present, download ASIKit archive, extract it and cleanup.
+if [ ! -e $SRCROOT/ASIKit.framework ]; then
+	rm -rf $SRCROOT/ASIKit
+	mkdir $SRCROOT/ASIKit
+	cd $SRCROOT/ASIKit
+	echo "Downloading ASIKit framework"
+	curl -s -O http://sdk.sinastorage.com/ASIKit.framework.zip
+	echo "Unzipping ASIKit"
+	unzip ASIKit.framework.zip
+	mv ASIKit.framework $SRCROOT
+	rm -rf $SRCROOT/ASIKit
+	echo "ASIKit installed for build"
+fi
+```
+
+```shell
+# Run Script For iOS
+
+# If not present, download ASIKit archive, extract it and cleanup.
+    if [ ! -e $SRCROOT/ASIKit.framework ]; then
+    rm -rf $SRCROOT/ASIKit
+    mkdir $SRCROOT/ASIKit
+    cd $SRCROOT/ASIKit
+    echo "Downloading ASIKit-iOS framework"
+    curl -s -O http://sdk.sinastorage.com/ASIKit-iOS.framework.zip
+    echo "Unzipping ASIKit-iOS"
+    unzip ASIKit-iOS.framework.zip
+    mv ASIKit.framework $SRCROOT
+    rm -rf $SRCROOT/ASIKit
+    echo "ASIKit installed for build"
+fi
+```
 
 ###快速上手
 > * 以下示例为简单明确的介绍SDK使用方法，均采用同步请求方式。
-关于请求队列以及异步请求的详细介绍，请参考：【使用队列及异步请求】
+关于请求队列以及异步请求的详细介绍，请参考：【使用异步请求及队列】
 
 ####Bucket操作
 #####列取bucket
@@ -39,7 +78,9 @@ if (![request error]) {
 ```
 
 #####创建bucket
+
 > * 为每个请求设置相应的accessKey和secretAccessKey是很繁琐的，因此我们可以设置基类（ASIS3Request）的sharedAccessKey和sharedSecretAccessKey。这样下次再发送某一请求时，无需再次设置相应的key，SDK会调用我们设置好的这两个sharedKey。
+
 ```objective-c
 [ASIS3Request setSharedSecretAccessKey:@"YourSecretAccessKey"];
 [ASIS3Request setSharedAccessKey:@"YourAccessKey"];
@@ -53,6 +94,7 @@ if ([request error]) {
 ```
 
 #####删除bucket
+
 > * 这里我们无需再次设置相应的accesskey，前面我们已经设置好了两个sharedKey。
 
 ```objective-c
@@ -146,13 +188,25 @@ ASIS3ObjectRequest *request = [ASIS3ObjectRequest PUTRequestForFile:filePath wit
 [request requestScheme:ASIS3RequestSchemeHTTPS];
 ```
 
-####使用GZIP压缩
+####使用异步请求及队列
+#####异步请求的使用
 ```objective-c
-ASIS3ObjectRequest *request = [ASIS3ObjectRequest PUTRequestForFile:filePath withBucket:@"my-bucket" key:@"path/to/the/object"];
-[request setShouldCompressRequestBody:YES];
+- (void)listRequest {
+   ASIS3BucketRequest *listRequest = [ASIS3BucketRequest requestWithBucket:@"my-bucket"];
+   [listRequest setDelegate:self];//delegate:ASIHTTPRequestDelegate
+   [listRequest startAsynchronous];
+}
+ 
+- (void)requestFinished:(ASIHTTPRequest *)request {
+   NSString *responseString = [request responseString];
+   NSData *responseData = [request responseData];
+}
+ 
+- (void)requestFailed:(ASIHTTPRequest *)request {
+   NSError *error = [request error];
+}
 ```
 
-####使用队列及异步请求
 #####创建队列
 ```objective-c
 //ASINetworkQueue *queue;
@@ -161,7 +215,9 @@ ASIS3ObjectRequest *request = [ASIS3ObjectRequest PUTRequestForFile:filePath wit
 ```
 
 #####设置队列回调
+
 > * 其中selector可自定义。
+
 ```objective-c
  //请求成功
  [[self queue] setRequestDidFinishSelector:@selector(requestDone:)];
@@ -207,7 +263,9 @@ ASIS3ObjectRequest *request = [ASIS3ObjectRequest PUTRequestForFile:filePath wit
 ```
 
 #####example
+
 > * 本示例较为完整的展示了如何使用队列及异步请求获取object列表并下载。
+
 ```objective-c
 - (void)download25ImagesToDisk {
    
@@ -220,8 +278,12 @@ ASIS3ObjectRequest *request = [ASIS3ObjectRequest PUTRequestForFile:filePath wit
    [listRequest setPrefix:@"images/jpegs"];
    [listRequest setMaxResultCount:25];
    [listRequest setDelegate:self];
+
+   //设置回调
    [listRequest setDidFinishSelector:@selector(finishedDownloadingImageList:)];
    [listRequest setDidFailSelector:@selector(failedDownloadingImageList:)];
+
+   //加入队列
    [[self queue] addOperation:listRequest];
 }
  
@@ -257,5 +319,77 @@ ASIS3ObjectRequest *request = [ASIS3ObjectRequest PUTRequestForFile:filePath wit
  
 - (void)requestFailed:(ASIS3Request *)request {
    NSLog(@"Download error: %@",[[request error] localizedDescription]);
+}
+```
+
+####进度跟踪
+
+> * 对于单个请求，可通过设置delegate获取进度信息；
+> * 对于请求队列，可通过设置队列的delegate获取全部请求的进度信息；
+> * 两者可同时获得；
+> * 可通过设置showAccurateProgress == YES来获取精确进度；
+> * 详情请参考：http://allseeing-i.com/ASIHTTPRequest/How-to-use#tracking_progress
+
+#####上传进度（单个请求）
+```objective-c
+//myProgressIndicator is a UIProgressView for iOS
+//myProgressIndicator is a NSProgressIndicator for OS X
+
+ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:url];
+[request setUploadProgressDelegate:myProgressIndicator];
+[request startSynchronous];
+NSLog(@"Max: %f, Value: %f", [myProgressIndicator maxValue],[myProgressIndicator doubleValue]);
+```
+
+#####上传进度（队列）
+```objective-c
+- (void)uploadSomethingFiveTimes:(NSURL *)url
+{
+   [myQueue cancelAllOperations];
+   [myQueue setUploadProgressDelegate:myProgressIndicator];
+   [myQueue setDelegate:self];
+   [myQueue setRequestDidFinishSelector:@selector(queueComplete:)];
+   int i;
+   for (i=0; i<5; i++) {
+      ASIHTTPRequest *request = [ASIFormDataRequest requestWithURL:url];
+      [request setPostBody:[@"Some data" dataUsingEncoding:NSUTF8StringEncoding]];
+      [myQueue addOperation:request];
+   }
+   [myQueue go];
+}
+ 
+- (void)queueComplete:(ASINetworkQueue *)queue
+{
+   NSLog(@"Max: %f, Value: %f", [myProgressIndicator maxValue],[myProgressIndicator doubleValue]);
+}
+```
+
+#####下载进度（单个请求）
+```objective-c
+ ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:url];
+[request setDownloadProgressDelegate:myProgressIndicator];
+[request startSynchronous];
+NSLog(@"Max: %f, Value: %f", [myProgressIndicator maxValue],[myProgressIndicator doubleValue]);
+```
+
+#####下载进度（队列）
+```objective-c
+- (void)fetchThisURLFiveTimes:(NSURL *)url
+{
+   [myQueue cancelAllOperations];
+   [myQueue setDownloadProgressDelegate:myProgressIndicator];
+   [myQueue setDelegate:self];
+   [myQueue setRequestDidFinishSelector:@selector(queueComplete:)];
+   int i;
+   for (i=0; i<5; i++) {
+      ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:url];
+      [myQueue addOperation:request];
+   }
+   [myQueue go];
+}
+ 
+- (void)queueComplete:(ASINetworkQueue *)queue
+{
+   NSLog(@"Value: %f", [myProgressIndicator progress]);
 }
 ```
