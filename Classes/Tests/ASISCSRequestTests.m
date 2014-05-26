@@ -18,7 +18,7 @@ static NSString *accessKey = @"";
 static NSString *secretAccessKey = @"";
 
 // You should run these tests on a bucket that does not yet exist
-static NSString *bucket = @"";
+static NSString *bucket = @"test-009";
 
 
 
@@ -143,7 +143,7 @@ static NSString *bucket = @"";
 
 - (void)createTestBucket
 {
-    return;
+    //return;
     /*
     if (!bucket) {
         
@@ -157,25 +157,26 @@ static NSString *bucket = @"";
 	[bucketRequest setSecretAccessKey:secretAccessKey];
 	[bucketRequest setAccessKey:accessKey];
 	[bucketRequest startSynchronous];
+    [self logRequest:bucketRequest];
 	GHAssertNil([bucketRequest error], @"Failed to create a bucket");
 }
 
 // To run this test, uncomment and fill in your S3 access details
 - (void)testREST
 {
-	[self createTestBucket];
+	//[self createTestBucket];
 	
 	BOOL success = (![secretAccessKey isEqualToString:@""] && ![accessKey isEqualToString:@""] && ![bucket isEqualToString:@""]);
 	GHAssertTrue(success, @"You need to supply your S3 access details to run the REST test (see the top of ASIS3RequestTests.m)");
 	
 	// Test creating a bucket
-    /*
+    
 	ASIS3BucketRequest *bucketRequest = [ASIS3BucketRequest PUTRequestWithBucket:bucket];
 	[bucketRequest setSecretAccessKey:secretAccessKey];
 	[bucketRequest setAccessKey:accessKey];
 	[bucketRequest startSynchronous];
 	GHAssertNil([bucketRequest error],@"Failed to create a bucket");	
-	*/
+	
      
 	// List buckets to make sure the bucket is there
 	ASIS3ServiceRequest *serviceRequest = [ASIS3ServiceRequest serviceRequest];
@@ -324,13 +325,12 @@ static NSString *bucket = @"";
 	GHAssertTrue(success,@"Failed to DELETE the file from S3");	
 	
 	// Delete the bucket
-    /*
+    
 	bucketRequest = [ASIS3BucketRequest DELETERequestWithBucket:bucket];
 	[bucketRequest setSecretAccessKey:secretAccessKey];
 	[bucketRequest setAccessKey:accessKey];
 	[bucketRequest startSynchronous];
 	GHAssertNil([bucketRequest error],@"Failed to delete a bucket");
-     */
 	
 	
 }
@@ -730,15 +730,15 @@ static NSString *bucket = @"";
 	[ASIS3Request setSharedSecretAccessKey:secretAccessKey];
 
 	// Create a bucket
-    /*
+    
 	ASIS3Request *request = [ASIS3BucketRequest PUTRequestWithBucket:bucket];
     [request setValidatesSecureCertificate:NO];
 	[request setRequestScheme:ASIS3RequestSchemeHTTPS];
 	[request startSynchronous];
 	GHAssertNil([request error],@"Failed to create a bucket");
-     */
     
-    ASIS3Request *request;
+    
+    //ASIS3Request *request;
 
 	// PUT something in it
 	NSString *key = @"king";
@@ -763,13 +763,15 @@ static NSString *bucket = @"";
 	GHAssertTrue(success,@"Failed to DELETE the object from S3");
 
 	// Delete the bucket
-    /*
+    
 	request = [ASIS3BucketRequest DELETERequestWithBucket:bucket];
 	[request setRequestScheme:ASIS3RequestSchemeHTTPS];
 	[request startSynchronous];
 	GHAssertNil([request error],@"Failed to delete a bucket");
-     */
 
+    //sleep(1);
+    
+    
 	[ASIS3Request setSharedAccessKey:nil];
 	[ASIS3Request setSharedSecretAccessKey:nil];
 }
@@ -781,14 +783,14 @@ static NSString *bucket = @"";
 	[ASIS3Request setSharedSecretAccessKey:secretAccessKey];
 
 	// Create a bucket
-    /*
+    
 	ASIS3Request *request = [ASIS3BucketRequest PUTRequestWithBucket:bucket];
 	[request setRequestScheme:ASIS3RequestSchemeHTTPS];
 	[request startSynchronous];
 	GHAssertNil([request error],@"Failed to create a bucket");
-     */
     
-    ASIS3Request *request;
+    
+    //ASIS3Request *request;
 
 	NSArray *ACLs = [NSArray arrayWithObjects:ASIS3AccessPolicyPrivate, ASIS3AccessPolicyPublicRead, ASIS3AccessPolicyPublicReadWrite, ASIS3AccessPolicyAuthenticatedRead, nil];
 
@@ -801,7 +803,7 @@ static NSString *bucket = @"";
         [self logRequest:request];
 		GHAssertNil([request error],@"Failed to PUT some data into S3");
         
-        sleep(1);
+        //sleep(1);
         
 		// GET object ACL
 		request = [ASIS3ObjectRequest requestWithBucket:bucket key:key subResource:@"acl"];
@@ -818,12 +820,12 @@ static NSString *bucket = @"";
 	GHAssertTrue(success,@"Failed to DELETE the object from S3");
 
 	// Delete the bucket
-    /*
+    
 	request = [ASIS3BucketRequest DELETERequestWithBucket:bucket];
 	[request setRequestScheme:ASIS3RequestSchemeHTTPS];
 	[request startSynchronous];
 	GHAssertNil([request error],@"Failed to delete a bucket");
-     */
+    
 
 	[ASIS3Request setSharedAccessKey:nil];
 	[ASIS3Request setSharedSecretAccessKey:nil];
