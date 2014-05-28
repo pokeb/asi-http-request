@@ -22,7 +22,7 @@ ASI-SCS
 
 > * 2、选择Link Binary With Libraries，点击“+”，点击“Add Other...”，到工程目录下选择添加ASIKit.Framework
 （或者将下载好的ASIKit.Framework直接拖到xcode工程里的Frameworks分组下，并在Add to targets里选中你所要关联的target）
-> * 3、（对于iOS工程）选择Link Binary With Libraries，点击“+”，添加库：libxml2.dylib，libz.dylib，SystemConfiguration.framework，MobileCoreServices.framework，CFNetwork.framework
+> * 3、（对于iOS工程）选择Link Binary With Libraries，点击“+”，添加库：libxml2.dylib，libz.dylib，SystemConfiguration.framework，MobileCoreServices.framework，CFNetwork.framework，CoreGraphics.framework，Foundation.framework，UIKit.framework，CoreFoundation.framework
 > * 4、在所需文件中添加头：ASIKit/ASIKit.h
 
 ```shell
