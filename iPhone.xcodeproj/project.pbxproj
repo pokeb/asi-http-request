@@ -137,6 +137,10 @@
 		DADCEB9F12D505AB00958557 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = DADCEB9E12D505AB00958557 /* libz.dylib */; };
 		DADCEBA012D505B900958557 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = DADCEB9E12D505AB00958557 /* libz.dylib */; };
 		DADCEBA112D505C700958557 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = DADCEB9E12D505AB00958557 /* libz.dylib */; };
+		F87E05BC193F4446007ACCBC /* ASIHTTPLocalizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = F87E05BF193F4446007ACCBC /* ASIHTTPLocalizable.strings */; };
+		F87E05BD193F4446007ACCBC /* ASIHTTPLocalizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = F87E05BF193F4446007ACCBC /* ASIHTTPLocalizable.strings */; };
+		F87E05E4193F4AD0007ACCBC /* ASIHTTPLocalizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = F87E05BF193F4446007ACCBC /* ASIHTTPLocalizable.strings */; };
+		F87E05F6193F5499007ACCBC /* iphone-tests-icon.png in Resources */ = {isa = PBXBuildFile; fileRef = B56529A2101C8EDA000499CF /* iphone-tests-icon.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -281,6 +285,13 @@
 		C01EEDDA15A2D6DB00052A5F /* ASIHTTPRequestIOS-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ASIHTTPRequestIOS-Prefix.pch"; sourceTree = "<group>"; };
 		DADCEB9812D5057700958557 /* libxml2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxml2.dylib; path = /usr/lib/libxml2.dylib; sourceTree = "<absolute>"; };
 		DADCEB9E12D505AB00958557 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = /usr/lib/libz.dylib; sourceTree = "<absolute>"; };
+		F87E05BE193F4446007ACCBC /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/ASIHTTPLocalizable.strings; sourceTree = "<group>"; };
+		F87E05C0193F4451007ACCBC /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/ASIHTTPLocalizable.strings; sourceTree = "<group>"; };
+		F87E05D7193F4AB1007ACCBC /* ASIHTTPResourceBundle.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ASIHTTPResourceBundle.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
+		F87E05D8193F4AB1007ACCBC /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
+		F87E05DC193F4AB1007ACCBC /* ASIHTTPResourceBundle-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "ASIHTTPResourceBundle-Info.plist"; sourceTree = "<group>"; };
+		F87E05DE193F4AB1007ACCBC /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		F87E05E0193F4AB1007ACCBC /* ASIHTTPResourceBundle-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ASIHTTPResourceBundle-Prefix.pch"; sourceTree = "<group>"; };
 		F8D2676D174CDFC000F1D9E0 /* asihttp-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "asihttp-Prefix.pch"; sourceTree = "<group>"; };
 		F8D2676E174CDFC000F1D9E0 /* asihttp.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.objj.h; path = asihttp.h; sourceTree = "<group>"; };
 		F8D26770174CDFC000F1D9E0 /* asihttp.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = asihttp.m; sourceTree = "<group>"; };
@@ -342,6 +353,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		F87E05D4193F4AB1007ACCBC /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -383,6 +401,7 @@
 				B55B60C70F765BB00064029C /* Tests.app */,
 				B576D72311C7F34D0059B815 /* ASIHTTPRequest iPad.app */,
 				C01EEDD615A2D6DA00052A5F /* libASIHTTPRequestIOS.a */,
+				F87E05D7193F4AB1007ACCBC /* ASIHTTPResourceBundle.bundle */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -396,6 +415,7 @@
 				29B97317FDCFA39411CA2CEA /* Resources */,
 				F8D2676B174CDFC000F1D9E0 /* asihttp */,
 				C01EEDD815A2D6DB00052A5F /* ASIHTTPRequest-iOS */,
+				F87E05DA193F4AB1007ACCBC /* ASIHTTPResourceBundle */,
 				29B97323FDCFA39411CA2CEA /* Frameworks */,
 				19C28FACFE9D520D11CA2CBB /* Products */,
 			);
@@ -441,6 +461,7 @@
 				B56529A2101C8EDA000499CF /* iphone-tests-icon.png */,
 				B55B60730F765A990064029C /* iphone-icon.png */,
 				B55B60CB0F765BB10064029C /* Tests-Info.plist */,
+				F87E05BF193F4446007ACCBC /* ASIHTTPLocalizable.strings */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -458,6 +479,7 @@
 				B576D4C311C7CC9C0059B815 /* UIKit.framework */,
 				DADCEB9812D5057700958557 /* libxml2.dylib */,
 				DADCEB9E12D505AB00958557 /* libz.dylib */,
+				F87E05D8193F4AB1007ACCBC /* CoreFoundation.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -594,6 +616,24 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
+		F87E05DA193F4AB1007ACCBC /* ASIHTTPResourceBundle */ = {
+			isa = PBXGroup;
+			children = (
+				F87E05DB193F4AB1007ACCBC /* Supporting Files */,
+			);
+			path = ASIHTTPResourceBundle;
+			sourceTree = "<group>";
+		};
+		F87E05DB193F4AB1007ACCBC /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				F87E05DC193F4AB1007ACCBC /* ASIHTTPResourceBundle-Info.plist */,
+				F87E05DD193F4AB1007ACCBC /* InfoPlist.strings */,
+				F87E05E0193F4AB1007ACCBC /* ASIHTTPResourceBundle-Prefix.pch */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
 		F8D2676B174CDFC000F1D9E0 /* asihttp */ = {
 			isa = PBXGroup;
 			children = (
@@ -697,6 +737,23 @@
 			productReference = C01EEDD615A2D6DA00052A5F /* libASIHTTPRequestIOS.a */;
 			productType = "com.apple.product-type.library.static";
 		};
+		F87E05D6193F4AB1007ACCBC /* ASIHTTPResourceBundle */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F87E05E1193F4AB1007ACCBC /* Build configuration list for PBXNativeTarget "ASIHTTPResourceBundle" */;
+			buildPhases = (
+				F87E05D3193F4AB1007ACCBC /* Sources */,
+				F87E05D4193F4AB1007ACCBC /* Frameworks */,
+				F87E05D5193F4AB1007ACCBC /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ASIHTTPResourceBundle;
+			productName = ASIHTTPResourceBundle;
+			productReference = F87E05D7193F4AB1007ACCBC /* ASIHTTPResourceBundle.bundle */;
+			productType = "com.apple.product-type.bundle";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -714,6 +771,7 @@
 				Japanese,
 				French,
 				German,
+				en,
 			);
 			mainGroup = 29B97314FDCFA39411CA2CEA /* iPhone */;
 			projectDirPath = "";
@@ -723,6 +781,7 @@
 				B55B60C60F765BB00064029C /* Tests */,
 				B576D70211C7F34D0059B815 /* iPad */,
 				C01EEDD515A2D6DA00052A5F /* ASIHTTPRequestIOS */,
+				F87E05D6193F4AB1007ACCBC /* ASIHTTPResourceBundle */,
 			);
 		};
 /* End PBXProject section */
@@ -734,6 +793,7 @@
 			files = (
 				B55B60740F765A990064029C /* iphone-icon.png in Resources */,
 				B576D76611C7F4D90059B815 /* iPhoneMainWindow.xib in Resources */,
+				F87E05BC193F4446007ACCBC /* ASIHTTPLocalizable.strings in Resources */,
 				B523254311CA01F1006C6E5A /* Sample.xib in Resources */,
 				B50F661A1297FA45003887B1 /* strict.xcconfig in Resources */,
 			);
@@ -758,6 +818,16 @@
 				B523254211CA01F1006C6E5A /* Sample.xib in Resources */,
 				B52325AD11CA05A8006C6E5A /* info.png in Resources */,
 				B50F66191297FA45003887B1 /* strict.xcconfig in Resources */,
+				F87E05BD193F4446007ACCBC /* ASIHTTPLocalizable.strings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F87E05D5193F4AB1007ACCBC /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F87E05F6193F5499007ACCBC /* iphone-tests-icon.png in Resources */,
+				F87E05E4193F4AD0007ACCBC /* ASIHTTPLocalizable.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -925,7 +995,34 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		F87E05D3193F4AB1007ACCBC /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		F87E05BF193F4446007ACCBC /* ASIHTTPLocalizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				F87E05BE193F4446007ACCBC /* de */,
+				F87E05C0193F4451007ACCBC /* en */,
+			);
+			name = ASIHTTPLocalizable.strings;
+			sourceTree = "<group>";
+		};
+		F87E05DD193F4AB1007ACCBC /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				F87E05DE193F4AB1007ACCBC /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		1D6058940D05DD3E006BFB54 /* Debug */ = {
@@ -1156,6 +1253,86 @@
 			};
 			name = Release;
 		};
+		F87E05E2193F4AB1007ACCBC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COMBINE_HIDPI_IMAGES = YES;
+				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "ASIHTTPResourceBundle/ASIHTTPResourceBundle-Prefix.pch";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				INFOPLIST_FILE = "ASIHTTPResourceBundle/ASIHTTPResourceBundle-Info.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				WRAPPER_EXTENSION = bundle;
+			};
+			name = Debug;
+		};
+		F87E05E3193F4AB1007ACCBC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COMBINE_HIDPI_IMAGES = YES;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "ASIHTTPResourceBundle/ASIHTTPResourceBundle-Prefix.pch";
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				INFOPLIST_FILE = "ASIHTTPResourceBundle/ASIHTTPResourceBundle-Info.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				WRAPPER_EXTENSION = bundle;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -1200,6 +1377,15 @@
 			buildConfigurations = (
 				C01FCF4F08A954540054247B /* Debug */,
 				C01FCF5008A954540054247B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F87E05E1193F4AB1007ACCBC /* Build configuration list for PBXNativeTarget "ASIHTTPResourceBundle" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F87E05E2193F4AB1007ACCBC /* Debug */,
+				F87E05E3193F4AB1007ACCBC /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

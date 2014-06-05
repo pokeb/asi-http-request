@@ -1,0 +1,13 @@
+/* 
+  ASIHTTPLocalizable.strings
+  iPhone
+
+  Created by Stefan on 04.06.14.
+
+*/
+"The request timed out" = "Zeitüberschreitung";
+"The request timed out" = "Zeitüberschreitung";
+"Authentication needed" = "Eine Authentifikation wird benötigt";
+"The request was cancelled" = "Abbruch durch Benutzer";
+"Unable to create request (bad url?)" = "Die Anfrage konnte nicht durchgeführt werden (fehlerhafte URL?)";
+"The request failed because it redirected too many times" = "Die Anfrage ist fehlgeschlagen, da sie zu oft weitergeleitet wurde.";
