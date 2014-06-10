@@ -60,10 +60,13 @@
 // Use for deleting buckets - they must be empty for this to succeed
 + (id)DELETERequestWithBucket:(NSString *)bucket;
 
+- (id)requestForNextChunk;
+
 @property (retain, nonatomic) NSString *bucket;
 @property (retain, nonatomic) NSString *subResource;
 @property (retain, nonatomic) NSString *prefix;
 @property (retain, nonatomic) NSString *marker;
+@property (retain, nonatomic) NSString *nextMarker;
 @property (assign, nonatomic) int maxResultCount;
 @property (retain, nonatomic) NSString *delimiter;
 @property (retain, readonly) NSMutableArray *objects;

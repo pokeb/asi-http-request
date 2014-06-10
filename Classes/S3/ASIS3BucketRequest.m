@@ -43,6 +43,28 @@
 	return request;
 }
 
+- (id)requestForNextChunk {
+    
+    if (![self isTruncated]) {
+        return nil;
+    }
+    
+    if (![self nextMarker]) {
+        return nil;
+    }
+    
+    ASIS3BucketRequest *listRequest = [[[ASIS3BucketRequest alloc] initWithURL:nil] autorelease];
+    
+    [listRequest setBucket:[self bucket]];
+	[listRequest setSubResource:[self subResource]];
+	[listRequest setPrefix:[self prefix]];
+	[listRequest setMaxResultCount:[self maxResultCount]];
+	[listRequest setDelimiter:[self delimiter]];
+    [listRequest setMarker:[self nextMarker]];
+    
+    return listRequest;
+}
+
 + (id)PUTRequestWithBucket:(NSString *)theBucket
 {
 	ASIS3BucketRequest *request = [self requestWithBucket:theBucket];
@@ -142,6 +164,10 @@
 		[[self commonPrefixes] addObject:[self currentXMLElementContent]];
 	} else if ([elementName isEqualToString:@"IsTruncated"]) {
 		[self setIsTruncated:[[self currentXMLElementContent] isEqualToString:@"True"]];
+	} else if ([elementName isEqualToString:@"Marker"]) {
+		[self setMarker:[self currentXMLElementContent]];
+	} else if ([elementName isEqualToString:@"NextMarker"]) {
+		[self setNextMarker:[self currentXMLElementContent]];
 	} else {
 		// Let ASIS3Request look for error messages
 		[super parser:parser didEndElement:elementName namespaceURI:namespaceURI qualifiedName:qName];
@@ -157,6 +183,7 @@
 	[newRequest setSubResource:[self subResource]];
 	[newRequest setPrefix:[self prefix]];
 	[newRequest setMarker:[self marker]];
+    [newRequest setNextMarker:[self nextMarker]];
 	[newRequest setMaxResultCount:[self maxResultCount]];
 	[newRequest setDelimiter:[self delimiter]];
 	return newRequest;
@@ -169,6 +196,7 @@
 @synthesize commonPrefixes;
 @synthesize prefix;
 @synthesize marker;
+@synthesize nextMarker;
 @synthesize maxResultCount;
 @synthesize delimiter;
 @synthesize isTruncated;
