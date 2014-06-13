@@ -835,7 +835,7 @@ static NSOperationQueue *sharedQueue = nil;
 
 #pragma mark request logic
 
-// Create the request
+// Create the requestImd
 - (void)main
 {
 	@try {
@@ -856,6 +856,15 @@ static NSOperationQueue *sharedQueue = nil;
                             [self cancel];
                         }
                     });
+                    
+                    UILocalNotification *localNotification = [[UILocalNotification alloc] init];
+                    
+                    localNotification.fireDate = [NSDate date];
+                    localNotification.alertBody = NSLocalizedString(@"Upload was stopped by ios due to excceeding maximum background time.", @"Upload was stopped by ios due to excceeding maximum background time");
+                    localNotification.soundName = UILocalNotificationDefaultSoundName;
+                    localNotification.applicationIconBadgeNumber = 1;
+
+                    [[UIApplication sharedApplication] scheduleLocalNotification:localNotification];
                 }];
             }
 		}
