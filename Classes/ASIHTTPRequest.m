@@ -862,7 +862,6 @@ static NSOperationQueue *sharedQueue = nil;
                     localNotification.fireDate = [NSDate date];
                     localNotification.alertBody = NSLocalizedString(@"Upload was stopped by ios due to excceeding maximum background time.", @"Upload was stopped by ios due to excceeding maximum background time");
                     localNotification.soundName = UILocalNotificationDefaultSoundName;
-                    localNotification.applicationIconBadgeNumber = 1;
 
                     [[UIApplication sharedApplication] scheduleLocalNotification:localNotification];
                 }];
