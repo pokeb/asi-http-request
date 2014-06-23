@@ -3551,7 +3551,11 @@ static NSOperationQueue *sharedQueue = nil;
 
 	#if TARGET_OS_IPHONE && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_4_0
 	if ([ASIHTTPRequest isMultitaskingSupported] && [self shouldContinueWhenAppEntersBackground]) {
-		dispatch_async(dispatch_get_main_queue(), ^{
+        // This delay causes some overlapping between distinct requests. Thus, we avoid that our
+        // app is stopped until everything is ok..
+        double delayInSeconds = 0.5;
+        dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, delayInSeconds * NSEC_PER_SEC);
+        dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
 			if (backgroundTask != UIBackgroundTaskInvalid) {
 				[[UIApplication sharedApplication] endBackgroundTask:backgroundTask];
 				backgroundTask = UIBackgroundTaskInvalid;
