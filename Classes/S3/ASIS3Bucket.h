@@ -23,6 +23,8 @@
 	// Information about the owner of this bucket
 	NSString *ownerID;
 	NSString *ownerName;
+    
+    unsigned long long consumedBytes;
 }
 
 + (id)bucketWithOwnerID:(NSString *)ownerID ownerName:(NSString *)ownerName;
@@ -31,4 +33,5 @@
 @property (retain) NSDate *creationDate;
 @property (retain) NSString *ownerID;
 @property (retain) NSString *ownerName;
+@property (assign) unsigned long long consumedBytes;
 @end

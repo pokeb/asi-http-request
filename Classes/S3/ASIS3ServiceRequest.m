@@ -70,6 +70,7 @@
                     ASIS3Bucket *bucket = [ASIS3Bucket bucketWithOwnerID:[self ownerID] ownerName:[self ownerName]];
                     [bucket setName:[item objectForKey:@"Name"]];
                     [bucket setCreationDate:[[ASIS3Request S3RequestDateFormatter] dateFromString:[item objectForKey:@"CreationDate"]]];
+                    [bucket setConsumedBytes:[[item objectForKey:@"ConsumedBytes"] unsignedLongLongValue]];
                     [[self buckets] addObject:bucket];
                 }
             }
@@ -102,7 +103,9 @@
 		[self setOwnerID:[self currentXMLElementContent]];
 	} else if ([elementName isEqualToString:@"DisplayName"]) {
 		[self setOwnerName:[self currentXMLElementContent]];
-	} else {
+	} else if ([elementName isEqualToString:@"ConsumedBytes"]) {
+		[[self currentBucket] setConsumedBytes:[[self currentXMLElementContent] longLongValue]];
+	}else {
 		// Let ASIS3Request look for error messages
 		[super parser:parser didEndElement:elementName namespaceURI:namespaceURI qualifiedName:qName];
 	}
