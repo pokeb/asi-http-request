@@ -13,16 +13,32 @@ ASI-SCS
 
 ####相关配置：
 > * 1、下载ASIKit.Framework（你可以手动下载，链接如下；也可以执行步骤(1)—(4)，写脚本由程序自动下载）
->>Mac OS X：http://sdk.sinastorage.com/ASIKit.framework.zip
->>iOS：http://sdk.sinastorage.com/ASIKit-iOS.framework.zip
+>> * Mac OS X：http://sdk.sinastorage.com/ASIKit.framework.zip
+>> * iOS：http://sdk.sinastorage.com/ASIKit-iOS.framework.zip
 >> * (1)、打开工程，单击XCode侧边栏中的project行，并选择右侧的Build Phase；
 >> * (2)、选择项目的Target，在顶部菜单栏选择Editor > Add Build Phase > Add Run Script Build Phase；
 >> * (3)、设置Run Script（Mac OS X 与 iOS不同）如下；
 >> * (4)、Commond+B编译工程，会自动下载所需的ASIKit.Framework包到工程目录。
 
-> * 2、选择Link Binary With Libraries，点击“+”，点击“Add Other...”，到工程目录下选择添加ASIKit.Framework
-（或者将下载好的ASIKit.Framework直接拖到xcode工程里的Frameworks分组下，并在Add to targets里选中你所要关联的target）
-> * 3、（对于iOS工程）选择Link Binary With Libraries，点击“+”，添加库：libxml2.dylib，libz.dylib，SystemConfiguration.framework，MobileCoreServices.framework，CFNetwork.framework，CoreGraphics.framework，Foundation.framework，UIKit.framework，CoreFoundation.framework
+> * 2、添加下载的framework到工程
+>> * 选择Link Binary With Libraries；
+>> * 点击“+”；
+>> * 点击“Add Other...”，到工程目录下选择添加ASIKit.Framework。
+>> * （或者将下载好的ASIKit.Framework直接拖到xcode工程里的Frameworks分组下；）
+>> * （在Add to targets里选中你所要关联的target。）
+
+> * 3、（对于iOS工程）添加其他依赖库
+>> * 选择Link Binary With Libraries，点击“+”，添加库：
+>> * libxml2.dylib
+>> * libz.dylib
+>> * SystemConfiguration.framework
+>> * MobileCoreServices.framework
+>> * CFNetwork.framework
+>> * CoreGraphics.framework
+>> * Foundation.framework
+>> * UIKit.framework
+>> * CoreFoundation.framework
+
 > * 4、在所需文件中添加头：ASIKit/ASIKit.h
 
 ```shell
