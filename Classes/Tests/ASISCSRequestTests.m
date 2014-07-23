@@ -373,7 +373,7 @@ static NSString *bucket = @"test-009";
 	GHAssertTrue(success,@"Failed to GET the correct data from S3");	
 	
 	// Now grab the data using something other than ASIHTTPRequest to ensure other HTTP clients can parse the gzipped content
-	NSData *data = [NSURLConnection sendSynchronousRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://%@.sinastorage.com.com/gzipped-data",bucket]]] returningResponse:NULL error:NULL];
+	NSData *data = [NSURLConnection sendSynchronousRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://%@.sinastorage.cn/gzipped-data",bucket]]] returningResponse:NULL error:NULL];
 	NSString *string = [[[NSString alloc] initWithBytes:[data bytes] length:[data length] encoding:NSUTF8StringEncoding] autorelease];
 	success = [string isEqualToString:text];
 	GHAssertTrue(success,@"Failed to GET the correct data from S3");	
@@ -444,7 +444,7 @@ static NSString *bucket = @"test-009";
 	[listRequest setMarker:@"bar"];
 	[listRequest setMaxResultCount:5];
 	[listRequest buildURL];
-	NSString *expectedURL = [NSString stringWithFormat:@"http://%@.sinastorage.com/?acl&prefix=foo&marker=bar&delimiter=/&max-keys=5",bucket];
+	NSString *expectedURL = [NSString stringWithFormat:@"http://%@.sinastorage.cn/?acl&prefix=foo&marker=bar&delimiter=/&max-keys=5",bucket];
 	success = ([[[listRequest url] absoluteString] isEqualToString:expectedURL]);
 	GHAssertTrue(success,@"Generated the wrong url when requesting a subresource");
 	

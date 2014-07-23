@@ -325,7 +325,7 @@ static NSString *sharedSecretAccessKey = nil;
 
 + (NSString *)S3Host
 {
-    return @"sinastorage.com";
+    return @"sinastorage.cn";
 	//return @"s3.amazonaws.com";
 }
 
