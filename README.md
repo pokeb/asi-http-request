@@ -23,9 +23,11 @@ ASI-SCS
 > * 2、添加下载的framework到工程
 >> * 选择Link Binary With Libraries；
 >> * 点击“+”；
->> * 点击“Add Other...”，到工程目录下选择添加ASIKit.Framework。
+>> * 点击“Add Other...”，到工程目录下选择添加ASIKit.Framework；
 >> * （或者将下载好的ASIKit.Framework直接拖到xcode工程里的Frameworks分组下；）
 >> * （在Add to targets里选中你所要关联的target。）
+>> * 选择Copy Files，设置Destination为Frameworks；
+>> * 点击“+”，选择ASIKit.framework。
 
 > * 3、（对于iOS工程）添加其他依赖库
 >> * 选择Link Binary With Libraries，点击“+”，添加库：
