@@ -13,8 +13,8 @@ ASI-SCS
 
 ####相关配置：
 > * 1、下载ASIKit.Framework（你可以手动下载，链接如下；也可以执行步骤(1)—(4)，写脚本由程序自动下载）
->> * Mac OS X：http://sdk.sinastorage.com/ASIKit.framework.zip
->> * iOS：http://sdk.sinastorage.com/ASIKit-iOS.framework.zip
+>> * Mac OS X：http://sdk.sinastorage.cn/ASIKit.framework.zip
+>> * iOS：http://sdk.sinastorage.cn/ASIKit-iOS.framework.zip
 >> * (1)、打开工程，单击XCode侧边栏中的project行，并选择右侧的Build Phase；
 >> * (2)、选择项目的Target，在顶部菜单栏选择Editor > Add Build Phase > Add Run Script Build Phase；
 >> * (3)、设置Run Script（Mac OS X 与 iOS不同）如下；
@@ -50,7 +50,7 @@ if [ ! -e $SRCROOT/ASIKit.framework ]; then
 	mkdir $SRCROOT/ASIKit
 	cd $SRCROOT/ASIKit
 	echo "Downloading ASIKit framework"
-	curl -s -O http://sdk.sinastorage.com/ASIKit.framework.zip
+	curl -s -O http://sdk.sinastorage.cn/ASIKit.framework.zip
 	echo "Unzipping ASIKit"
 	unzip ASIKit.framework.zip
 	mv ASIKit.framework $SRCROOT
@@ -68,7 +68,7 @@ fi
     mkdir $SRCROOT/ASIKit
     cd $SRCROOT/ASIKit
     echo "Downloading ASIKit-iOS framework"
-    curl -s -O http://sdk.sinastorage.com/ASIKit-iOS.framework.zip
+    curl -s -O http://sdk.sinastorage.cn/ASIKit-iOS.framework.zip
     echo "Unzipping ASIKit-iOS"
     unzip ASIKit-iOS.framework.zip
     mv ASIKit.framework $SRCROOT
@@ -126,7 +126,7 @@ if ([request error]) {
 ####Object操作
 #####列取object
 ```objective-c
-/*示例为列取http://my-bucket.sinastorage.com/images/jpegs中最多50个object*/
+/*示例为列取http://my-bucket.sinastorage.cn/images/jpegs中最多50个object*/
 
 ASIS3BucketRequest *listRequest = [ASIS3BucketRequest requestWithBucket:@"my-bucket"];
 [listRequest setPrefix:@"images/jpegs"];
@@ -140,7 +140,7 @@ if (![listRequest error]) {
 
 #####获取object信息
 ```objective-c
-/*示例为获取http://my-bucket.sinastorage.com/path/to/the/object的object信息*/
+/*示例为获取http://my-bucket.sinastorage.cn/path/to/the/object的object信息*/
 
 NSString *bucket = @"my-bucket";
 NSString *path = @"path/to/the/object";
