@@ -471,10 +471,25 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 			}
 
 		// Parse the content of <source src=""> tags (HTML 5 audio + video)
-		// We explictly disable the download of files with .webm, .ogv and .ogg extensions, since it's highly likely they won't be useful to us
-		} else if ([[parentName lowercaseString] isEqualToString:@"source"] || [[parentName lowercaseString] isEqualToString:@"audio"]) {
+		// We explictly disable the download of files with extensions .webm,.ogv,.ogg,.mp4,.avi,.mpg,.mpeg and .mkv extensions, since it's highly likely they won't be useful to us
+		} else if ([[parentName lowercaseString] isEqualToString:@"source"] || [[parentName lowercaseString] isEqualToString:@"audio"] || [[parentName lowercaseString] isEqualToString:@"video"]) {
+
 			NSString *fileExtension = [[value pathExtension] lowercaseString];
-			if (![fileExtension isEqualToString:@"ogg"] && ![fileExtension isEqualToString:@"ogv"] && ![fileExtension isEqualToString:@"webm"]) {
+
+			static NSSet *exludedExtensions = nil;
+			static dispatch_once_t onceToken;
+			dispatch_once(&onceToken, ^{
+				exludedExtensions = [[NSSet setWithArray:@[ @"ogg"
+															, @"ogv"
+															, @"webm"
+															, @"mp4"
+															, @"avi"
+															, @"mpg"
+															, @"mpeg"
+															, @"mkv" ]] retain];
+			});
+			
+			if ( ![exludedExtensions containsObject:fileExtension] ) {
 				[self addURLToFetch:value];
 			}
 
@@ -495,6 +510,9 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 {
 	// Get rid of any surrounding whitespace
 	newURL = [newURL stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+	// percent escape characters
+	newURL = [newURL stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+
 	// Don't attempt to fetch data URIs
 	if ([newURL length] > 4) {
 		if (![[[newURL substringToIndex:5] lowercaseString] isEqualToString:@"data:"]) {
@@ -676,6 +694,11 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 
 - (NSString *)contentForExternalURL:(NSString *)theURL
 {
+	// Get rid of any surrounding whitespace
+	theURL = [theURL stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+	// percent escape characters
+	theURL = [theURL stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+
 	if ([self urlReplacementMode] == ASIReplaceExternalResourcesWithLocalURLs) {
 		NSString *resourcePath = [[resourceList objectForKey:theURL] objectForKey:@"DataPath"];
 		return [self relativePathTo:resourcePath fromPath:[self downloadDestinationPath]];
