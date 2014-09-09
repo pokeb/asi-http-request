@@ -12,3 +12,5 @@ profile
 External/GHUnit/*
 .svn
 Products
+xcuserdata/
+project.xcworkspace/
