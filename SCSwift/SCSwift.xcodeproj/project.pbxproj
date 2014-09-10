@@ -6,6 +6,20 @@
 	objectVersion = 46;
 	objects = {
 
+/* Begin PBXAggregateTarget section */
+		AD95CB2819C0842E007B0E3D /* SCSwift-iOS */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = AD95CB2919C0842E007B0E3D /* Build configuration list for PBXAggregateTarget "SCSwift-iOS" */;
+			buildPhases = (
+				AD95CB2C19C08437007B0E3D /* ShellScript */,
+			);
+			dependencies = (
+			);
+			name = "SCSwift-iOS";
+			productName = "SCSwift-iOS";
+		};
+/* End PBXAggregateTarget section */
+
 /* Begin PBXBuildFile section */
 		AD2705CD19BEF3CE00CF1A64 /* ASIAuthenticationDialog.h in Headers */ = {isa = PBXBuildFile; fileRef = AD27057919BEF3CE00CF1A64 /* ASIAuthenticationDialog.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		AD2705CE19BEF3CE00CF1A64 /* ASIAuthenticationDialog.m in Sources */ = {isa = PBXBuildFile; fileRef = AD27057A19BEF3CE00CF1A64 /* ASIAuthenticationDialog.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
@@ -380,6 +394,9 @@
 				LastUpgradeCheck = 0600;
 				ORGANIZATIONNAME = Littlebox222;
 				TargetAttributes = {
+					AD95CB2819C0842E007B0E3D = {
+						CreatedOnToolsVersion = 6.0;
+					};
 					ADA0EC3019B993640027793D = {
 						CreatedOnToolsVersion = 6.0;
 					};
@@ -398,6 +415,7 @@
 			projectRoot = "";
 			targets = (
 				ADA0EC3019B993640027793D /* SCSwift */,
+				AD95CB2819C0842E007B0E3D /* SCSwift-iOS */,
 			);
 		};
 /* End PBXProject section */
@@ -412,6 +430,22 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		AD95CB2C19C08437007B0E3D /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\nUNIVERSAL_OUTPUTFOLDER=${SRCROOT}/Products/${CONFIGURATION}-universal\n\n\nxcodebuild -project ${PROJECT_NAME}.xcodeproj -sdk iphonesimulator -target ${PROJECT_NAME} -configuration ${CONFIGURATION} clean build CONFIGURATION_BUILD_DIR=${BUILD_DIR}/${CONFIGURATION}-iphonesimulator | echo\n\nxcodebuild -project ${PROJECT_NAME}.xcodeproj -sdk iphoneos -target ${PROJECT_NAME} -configuration ${CONFIGURATION} clean build CONFIGURATION_BUILD_DIR=${BUILD_DIR}/${CONFIGURATION}-iphoneos | echo\n\n\n\n\n# make sure the output directory exists\nmkdir -p \"${UNIVERSAL_OUTPUTFOLDER}\"\n\n# Step 2. Copy the framework structure to the universal folder\ncp -R \"${BUILD_DIR}/${CONFIGURATION}-iphoneos/${PROJECT_NAME}.framework\" \"${UNIVERSAL_OUTPUTFOLDER}/\"\ncp -R \"${BUILD_DIR}/${CONFIGURATION}-iphonesimulator/${PROJECT_NAME}.framework\" \"${UNIVERSAL_OUTPUTFOLDER}/\"\n\n# Step 3. Create universal binary file using lipo and place the combined executable in the copied framework directory\nlipo -create -output \"${UNIVERSAL_OUTPUTFOLDER}/${PROJECT_NAME}.framework/${PROJECT_NAME}\" \"${BUILD_DIR}/${CONFIGURATION}-iphonesimulator/${PROJECT_NAME}.framework/${PROJECT_NAME}\" \"${BUILD_DIR}/${CONFIGURATION}-iphoneos/${PROJECT_NAME}.framework/${PROJECT_NAME}\"\n\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		ADA0EC2C19B993640027793D /* Sources */ = {
@@ -448,6 +482,20 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
+		AD95CB2A19C0842E007B0E3D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		AD95CB2B19C0842E007B0E3D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 		ADA0EC4219B993650027793D /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -563,7 +611,7 @@
 					"$(SDK_DIR)/usr/include/libxml2",
 				);
 				INFOPLIST_FILE = SCSwift/Info.plist;
-				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				INSTALL_PATH = "@executable_path/../Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -602,7 +650,7 @@
 					"$(SDK_DIR)/usr/include/libxml2",
 				);
 				INFOPLIST_FILE = SCSwift/Info.plist;
-				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				INSTALL_PATH = "@executable_path/../Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				MTL_ENABLE_DEBUG_INFO = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -614,6 +662,14 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		AD95CB2919C0842E007B0E3D /* Build configuration list for PBXAggregateTarget "SCSwift-iOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AD95CB2A19C0842E007B0E3D /* Debug */,
+				AD95CB2B19C0842E007B0E3D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
 		ADA0EC2B19B993640027793D /* Build configuration list for PBXProject "SCSwift" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
