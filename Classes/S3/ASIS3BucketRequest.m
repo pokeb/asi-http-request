@@ -80,6 +80,27 @@
 	return request;
 }
 
++ (id)GETACLRequestWithBucket:(NSString *)theBucket
+{
+    ASIS3BucketRequest *getACLRequest = [self requestWithBucket:theBucket subResource:@"acl"];
+    [getACLRequest setFormatterJson:YES];
+    [getACLRequest setRequestMethod:@"GET"];
+    return getACLRequest;
+}
+
++ (id)PUTACLRequestWithBucket:(NSString *)theBucket aclDict:(NSDictionary *)theAclDict;
+{
+    ASIS3BucketRequest *putACLRequest = [self requestWithBucket:theBucket subResource:@"acl"];
+    [putACLRequest setFormatterJson:YES];
+    [putACLRequest setRequestMethod:@"PUT"];
+    
+    NSError *error;
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:theAclDict options:kNilOptions error:&error];
+    
+    [putACLRequest setPostBody:(NSMutableData *)jsonData];
+    return putACLRequest;
+}
+
 - (void)dealloc
 {
 	[currentObject release];
@@ -122,6 +143,9 @@
 	if ([self maxResultCount] > 0) {
 		[queryParts addObject:[NSString stringWithFormat:@"max-keys=%i",[self maxResultCount]]];
 	}
+    if ([self formatterJson]) {
+        [queryParts addObject:[NSString stringWithFormat:@"formatter=json"]];
+    }
 	if ([queryParts count]) {
 		NSString* template = @"%@?%@";
 		if ([[self subResource] length] > 0) {

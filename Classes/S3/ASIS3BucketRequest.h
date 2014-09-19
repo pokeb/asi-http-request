@@ -60,6 +60,9 @@
 // Use for deleting buckets - they must be empty for this to succeed
 + (id)DELETERequestWithBucket:(NSString *)bucket;
 
++ (id)GETACLRequestWithBucket:(NSString *)bucket;
++ (id)PUTACLRequestWithBucket:(NSString *)bucket aclDict:(NSDictionary *)aclDict;
+
 - (id)requestForNextChunk;
 
 @property (retain, nonatomic) NSString *bucket;
@@ -72,4 +75,5 @@
 @property (retain, readonly) NSMutableArray *objects;
 @property (retain, readonly) NSMutableArray *commonPrefixes;
 @property (assign, readonly) BOOL isTruncated;
+@property (assign) BOOL formatterJson;
 @end

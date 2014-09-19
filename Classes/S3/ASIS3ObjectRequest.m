@@ -79,6 +79,25 @@ NSString *const ASIS3StorageClassReducedRedundancy = @"REDUCED_REDUNDANCY";
 	return newRequest;
 }
 
++ (id)GETACLRequestWithBucket:(NSString *)bucket key:(NSString *)key {
+    
+    ASIS3ObjectRequest *getACLRequest = [self requestWithBucket:bucket key:key subResource:@"acl"];
+    [getACLRequest setRequestMethod:@"GET"];
+    return getACLRequest;
+}
+
++ (id)PUTACLRequestWithBucket:(NSString *)bucket key:(NSString *)key aclDict:(NSDictionary *)aclDict {
+    
+    ASIS3ObjectRequest *putACLRequest = [self requestWithBucket:bucket key:key subResource:@"acl"];
+    [putACLRequest setRequestMethod:@"PUT"];
+    
+    NSError *error;
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:aclDict options:kNilOptions error:&error];
+    
+    [putACLRequest setPostBody:(NSMutableData *)jsonData];
+    return putACLRequest;
+}
+
 - (id)copyWithZone:(NSZone *)zone
 {
 	ASIS3ObjectRequest *newRequest = [super copyWithZone:zone];
@@ -106,11 +125,11 @@ NSString *const ASIS3StorageClassReducedRedundancy = @"REDUCED_REDUNDANCY";
 
 - (void)buildURL
 {
-	if ([self subResource]) {
-		[self setURL:[NSURL URLWithString:[NSString stringWithFormat:@"%@://%@.%@%@?%@",[self requestScheme],[self bucket],[[self class] S3Host],[ASIS3Request stringByURLEncodingForS3Path:[self key]],[self subResource]]]];
-	} else {
-		[self setURL:[NSURL URLWithString:[NSString stringWithFormat:@"%@://%@.%@%@",[self requestScheme],[self bucket],[[self class] S3Host],[ASIS3Request stringByURLEncodingForS3Path:[self key]]]]];
-	}
+    if ([self subResource]) {
+        [self setURL:[NSURL URLWithString:[NSString stringWithFormat:@"%@://%@.%@%@?%@&formatter=json",[self requestScheme],[self bucket],[[self class] S3Host],[ASIS3Request stringByURLEncodingForS3Path:[self key]],[self subResource]]]];
+    } else {
+        [self setURL:[NSURL URLWithString:[NSString stringWithFormat:@"%@://%@.%@%@?formatter=json",[self requestScheme],[self bucket],[[self class] S3Host],[ASIS3Request stringByURLEncodingForS3Path:[self key]]]]];
+    }
 }
 
 - (NSString *)mimeType
