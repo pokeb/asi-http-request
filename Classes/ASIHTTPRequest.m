@@ -1219,6 +1219,7 @@ static NSOperationQueue *sharedQueue = nil;
                                       [NSNumber numberWithBool:YES], kCFStreamSSLAllowsAnyRoot,
                                       [NSNumber numberWithBool:NO],  kCFStreamSSLValidatesCertificateChain,
                                       kCFNull,kCFStreamSSLPeerName,
+                                      @"kCFStreamSocketSecurityLevelTLSv1_0SSLv3", kCFStreamSSLLevel,
                                       nil];
             
             CFReadStreamSetProperty((CFReadStreamRef)[self readStream], 
