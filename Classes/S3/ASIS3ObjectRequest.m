@@ -98,6 +98,47 @@ NSString *const ASIS3StorageClassReducedRedundancy = @"REDUCED_REDUNDANCY";
     return putACLRequest;
 }
 
++ (NSURL *)GETPresignedURLWithBucket:(NSString *)theBucket
+                                 key:(NSString *)theKey
+                             expires:(NSDate *)expires
+                                  ip:(NSString *)ip
+                              useCDN:(BOOL)useCDN
+                       useCustomHost:(BOOL)useCustomHost
+                         bucketFront:(BOOL)bucketFront
+{
+    ASIS3ObjectRequest *objectRequest = [ASIS3ObjectRequest requestWithBucket:theBucket key:theKey];
+    
+    if (useCustomHost) {
+        [objectRequest setBucket:[ASIS3ObjectRequest sharedCustomHost]];
+    }
+    
+    int timestamp = [expires timeIntervalSince1970];
+    NSString *dateString = [NSString stringWithFormat:@"%d",timestamp];
+    
+    [objectRequest setDateString:dateString];
+    [objectRequest buildRequestHeaders];
+    
+    NSString *str = [[objectRequest requestHeaders] objectForKey:@"Authorization"];
+    NSString *kid = [NSString stringWithFormat:@"sina,%@", [str substringWithRange:NSMakeRange(5, 20)]];
+    NSString *ssig = [[ASIS3Request stringByURLEncodingForS3Path:[str substringWithRange:NSMakeRange(26, 10)]] substringFromIndex:1];
+    NSString *host = useCDN ? [NSString stringWithFormat:@"cdn.%@", (useCustomHost ? [ASIS3ObjectRequest sharedCustomHost] : [ASIS3ObjectRequest S3Host])] :
+                                                                     (useCustomHost ? [ASIS3ObjectRequest sharedCustomHost] : [ASIS3ObjectRequest S3Host]);
+    
+    NSString *formatter = nil;
+    if (useCustomHost) {
+        formatter = [NSString stringWithFormat:@"%@://%@%@", [objectRequest requestScheme], host, [ASIS3Request stringByURLEncodingForS3Path:theKey]];
+    }else {
+        formatter = bucketFront ? [NSString stringWithFormat:@"%@://%@.%@%@", [objectRequest requestScheme], theBucket, host, [ASIS3Request stringByURLEncodingForS3Path:theKey]]
+                                : [NSString stringWithFormat:@"%@://%@/%@%@", [objectRequest requestScheme], host, theBucket, [ASIS3Request stringByURLEncodingForS3Path:theKey]];
+    }
+    NSString *urlString = (ip==nil) ? [NSString stringWithFormat:@"%@?KID=%@&Expires=%@&ssig=%@",formatter,kid,dateString,ssig]
+                                    : [NSString stringWithFormat:@"%@?ip=%@&KID=%@&Expires=%@&ssig=%@",formatter,ip,kid,dateString,ssig];
+    
+    NSURL *presignedUrl = [NSURL URLWithString:urlString];
+    
+    return presignedUrl;
+}
+
 - (id)copyWithZone:(NSZone *)zone
 {
 	ASIS3ObjectRequest *newRequest = [super copyWithZone:zone];

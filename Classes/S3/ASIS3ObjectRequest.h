@@ -73,6 +73,14 @@ extern NSString *const ASIS3StorageClassReducedRedundancy;
 + (id)GETACLRequestWithBucket:(NSString *)bucket key:(NSString *)key;
 + (id)PUTACLRequestWithBucket:(NSString *)bucket key:(NSString *)key aclDict:(NSDictionary *)aclDict;
 
++ (NSURL *)GETPresignedURLWithBucket:(NSString *)theBucket
+                                 key:(NSString *)theKey
+                             expires:(NSDate *)expires
+                                  ip:(NSString *)ip
+                              useCDN:(BOOL)useCDN
+                       useCustomHost:(BOOL)useCustomHost
+                         bucketFront:(BOOL)bucketFront;
+
 @property (retain, nonatomic) NSString *bucket;
 @property (retain, nonatomic) NSString *key;
 @property (retain, nonatomic) NSString *sourceBucket;
