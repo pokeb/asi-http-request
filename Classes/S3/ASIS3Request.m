@@ -75,6 +75,78 @@ static NSString *sharedSecretAccessKey = nil;
 	return headers;
 }
 
++ (NSURL *)authenticatedURLWithBucket:(NSString *)bucket
+                                  key:(NSString *)key
+                              expires:(NSDate *)expires
+                                 host:(NSString *)host
+                           hostBucket:(BOOL)hostBucket
+                                https:(BOOL)https
+                                   ip:(NSString *)ip
+                           httpMethod:(NSString *)httpMethod
+                          contentType:(NSString *)contentType
+                             urlStyle:(ASIS3UrlStyle)urlStyle
+                          subResource:(NSString *)subResource
+{
+    NSString *kid = [NSString stringWithFormat:@"sina,%@", sharedAccessKey];
+    
+    int timestamp = [expires timeIntervalSince1970];
+    NSString *expiresTimeStamp = [NSString stringWithFormat:@"%d",timestamp];
+    
+    /*
+     StringToSign = HTTP-Verb + "\n" +
+                    Content-MD5 + "\n" +
+                    Content-Type + "\n" +
+                    Date + "\n" +
+                    CanonicalizedAmzHeaders +
+                    CanonicalizedResource;
+     */
+    
+    //TODO:各种头
+    NSString *canonicalizedAmzHeaders = @"";
+    
+    
+    NSString *canonicalizedResource = nil;
+    if (subResource && [subResource length] > 0) {
+        canonicalizedResource = [NSString stringWithFormat:@"/%@%@?%@%@",bucket,[ASIS3Request stringByURLEncodingForS3Path:key],subResource,ip?[NSString stringWithFormat:@"&ip=%@",ip]:@""];
+    }else {
+        canonicalizedResource = [NSString stringWithFormat:@"/%@%@%@",bucket,[ASIS3Request stringByURLEncodingForS3Path:key],ip?[NSString stringWithFormat:@"?ip=%@",ip]:@""];
+    }
+    
+    NSString *stringToSign = [NSString stringWithFormat:@"%@\n\n%@\n%@\n%@%@", httpMethod,contentType?contentType:@"",expiresTimeStamp,canonicalizedAmzHeaders,canonicalizedResource];
+    
+    NSLog(@"%@", stringToSign);
+    
+    NSString *ssig = [[ASIHTTPRequest base64forData:[ASIS3Request HMACSHA1withKey:sharedSecretAccessKey forString:stringToSign]] substringWithRange:NSMakeRange(5, 10)];
+    ssig = [[ASIS3Request stringByURLEncodingForS3Path:ssig] substringFromIndex:1];
+    
+    NSString *httpString = https ? @"https" : @"http";
+    NSString *hostString = hostBucket ? bucket : host;
+    
+    
+    NSString *baseUrl = nil;
+    if (hostBucket) {
+        baseUrl = [NSString stringWithFormat:@"%@%@", hostString, [ASIS3Request stringByURLEncodingForS3Path:key]];
+    }else {
+        if (urlStyle == vhostStyle) {
+            baseUrl = [NSString stringWithFormat:@"%@.%@%@", bucket, hostString, [ASIS3Request stringByURLEncodingForS3Path:key]];
+        }else {
+            baseUrl = [NSString stringWithFormat:@"%@/%@%@", hostString, bucket, [ASIS3Request stringByURLEncodingForS3Path:key]];
+        }
+    }
+    
+    
+    NSString *urlString = nil;
+    if (ip && [ip length] > 0) {
+        urlString = [NSString stringWithFormat:@"%@://%@?ip=%@&KID=%@&Expires=%@&ssig=%@",httpString,baseUrl,ip,kid,expiresTimeStamp,ssig];
+    }else {
+        urlString = [NSString stringWithFormat:@"%@://%@?KID=%@&Expires=%@&ssig=%@",httpString,baseUrl,kid,expiresTimeStamp,ssig];
+    }
+    
+    NSURL *authenticatedURL = [NSURL URLWithString:urlString];
+    
+    return authenticatedURL;
+}
+
 - (void)main
 {
 	if (![self url]) {

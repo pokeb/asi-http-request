@@ -34,7 +34,10 @@ typedef enum _ASIS3ErrorType {
     ASIS3ResponseErrorType = 2
 } ASIS3ErrorType;
 
-
+typedef enum _ASIS3UrlStyle {
+    vhostStyle = 1,
+    pathStyle = 2
+} ASIS3UrlStyle;
 
 @interface ASIS3Request : ASIHTTPRequest <NSCopying, NSXMLParserDelegate> {
 	
@@ -99,6 +102,18 @@ typedef enum _ASIS3ErrorType {
 
 // This is called automatically before the request starts to build the request URL (if one has not been manually set already)
 - (void)buildURL;
+
++ (NSURL *)authenticatedURLWithBucket:(NSString *)bucket
+                                  key:(NSString *)key
+                              expires:(NSDate *)expires
+                                 host:(NSString *)host
+                           hostBucket:(BOOL)hostBucket
+                                https:(BOOL)https
+                                   ip:(NSString *)ip
+                           httpMethod:(NSString *)httpMethod
+                          contentType:(NSString *)contentType
+                             urlStyle:(ASIS3UrlStyle)urlStyle
+                          subResource:(NSString *)subResource;
 
 @property (retain) NSString *dateString;
 @property (retain) NSString *accessKey;
