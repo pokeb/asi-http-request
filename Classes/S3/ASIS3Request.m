@@ -21,7 +21,6 @@ NSString *const ASIS3RequestSchemeHTTPS = @"https";
 
 static NSString *sharedAccessKey = nil;
 static NSString *sharedSecretAccessKey = nil;
-static NSString *sharedCustomHost = nil;
 
 // Private stuff
 @interface ASIS3Request ()
@@ -56,7 +55,7 @@ static NSString *sharedCustomHost = nil;
 
 - (void)setDate:(NSDate *)date
 {
-	[self setDateString:[[ASIS3Request S3RequestDateFormatter] stringFromDate:date]];
+	[self setDateString:[[ASIS3Request S3RequestDateFormatter] stringFromDate:date]];	
 }
 
 - (ASIHTTPRequest *)HEADRequest
@@ -127,7 +126,6 @@ static NSString *sharedCustomHost = nil;
 	
 	// Jump through hoops while eating hot food
 	NSString *stringToSign = [self stringToSignForHeaders:canonicalizedAmzHeaders resource:canonicalizedResource];
-    
 	NSString *signature = [[ASIHTTPRequest base64forData:[ASIS3Request HMACSHA1withKey:[self secretAccessKey] forString:stringToSign]] substringWithRange:NSMakeRange(5, 10)];
 	NSString *authorizationString = [NSString stringWithFormat:@"SINA %@:%@",[self accessKey],signature];
 	[self addRequestHeader:@"Authorization" value:authorizationString];
@@ -259,16 +257,6 @@ static NSString *sharedCustomHost = nil;
 	sharedSecretAccessKey = [newAccessKey retain];
 }
 
-+ (NSString *)sharedCustomHost
-{
-    return sharedCustomHost;
-}
-
-+ (void)setSharedCustomHost:(NSString *)newCustomHost
-{
-    [sharedCustomHost release];
-    sharedCustomHost = [newCustomHost retain];
-}
 
 #pragma mark helpers
 
@@ -337,10 +325,8 @@ static NSString *sharedCustomHost = nil;
 
 + (NSString *)S3Host
 {
-    //return @"sinastorage.cn";
+    return @"sinastorage.cn";
 	//return @"s3.amazonaws.com";
-    
-    return @"sinacloud.net";
 }
 
 - (void)buildURL

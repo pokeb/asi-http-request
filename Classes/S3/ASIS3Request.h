@@ -80,8 +80,6 @@ typedef enum _ASIS3ErrorType {
 + (void)setSharedAccessKey:(NSString *)newAccessKey;
 + (NSString *)sharedSecretAccessKey;
 + (void)setSharedSecretAccessKey:(NSString *)newAccessKey;
-+ (NSString *)sharedCustomHost;
-+ (void)setSharedCustomHost:(NSString *)newCustomHost;
 
 # pragma mark helpers
 	
