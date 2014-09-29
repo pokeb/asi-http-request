@@ -90,6 +90,7 @@
 	[delimiter release];
 	[subResource release];
 	[bucket release];
+    [nextMarker release];
 	[super dealloc];
 }
 
