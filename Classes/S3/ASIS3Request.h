@@ -96,6 +96,7 @@ typedef enum _ASIS3UrlStyle {
 // URL-encodes an S3 key so it can be used in a url
 // You shouldn't normally need to use this yourself
 + (NSString *)stringByURLEncodingForS3Path:(NSString *)key;
++ (NSString *)urlEncodeForString:(NSString *)string;
 
 // Returns a string for the hostname used for S3 requests. You shouldn't ever need to change this.
 + (NSString *)S3Host;
@@ -110,11 +111,8 @@ typedef enum _ASIS3UrlStyle {
                            hostBucket:(BOOL)hostBucket
                                 https:(BOOL)https
                                    ip:(NSString *)ip
-                           httpMethod:(NSString *)httpMethod
-                          contentType:(NSString *)contentType
                              urlStyle:(ASIS3UrlStyle)urlStyle
-                          subResource:(NSString *)subResource
-              canonicalizedAmzHeaders:(NSDictionary *)canonicalizedAmzHeaders;
+                          subResource:(NSString *)subResource;
 
 @property (retain) NSString *dateString;
 @property (retain) NSString *accessKey;

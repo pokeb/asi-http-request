@@ -82,112 +82,35 @@ static NSString *sharedSecretAccessKey = nil;
                            hostBucket:(BOOL)hostBucket
                                 https:(BOOL)https
                                    ip:(NSString *)ip
-                           httpMethod:(NSString *)httpMethod
-                          contentType:(NSString *)contentType
                              urlStyle:(ASIS3UrlStyle)urlStyle
                           subResource:(NSString *)subResource
-              canonicalizedAmzHeaders:(NSDictionary *)canonicalizedAmzHeaders
 {
-    NSString *_bucket = @"";
-    NSString *_key = @"";
-    if (!bucket) {
-        _key = @"";
-    }else {
-        _bucket = bucket;
-        _key = [ASIS3Request stringByURLEncodingForS3Path:key];
-    }
+    key = bucket ? [ASIS3Request stringByURLEncodingForS3Path:key]:@"";
+    host = hostBucket ? bucket :
+                        (urlStyle == ASIS3UrlVhostStyle ? [NSString stringWithFormat:@"%@%@",bucket?[NSString stringWithFormat:@"%@.",bucket]:@"",host] :
+                                                          [NSString stringWithFormat:@"%@%@",host,bucket?[NSString stringWithFormat:@"/%@",bucket]:@""]);
+    bucket = bucket ? bucket : @"";
     
-    // ip=ip&KID=sina,MyAccessKey&ssig=ssig_value&Expires=expires
-    NSString *_ip = ip;
-    NSString *_kid = [NSString stringWithFormat:@"sina,%@", sharedAccessKey ? sharedAccessKey : @""];
-    NSString *_expires = expires ? [NSString stringWithFormat:@"%.0f",[expires timeIntervalSince1970]] : [NSString stringWithFormat:@"%.0f",[[NSDate date] timeIntervalSince1970]];
+    NSString *kid = [ASIS3Request urlEncodeForString:[NSString stringWithFormat:@"sina,%@", sharedAccessKey ? sharedAccessKey : @""]];
+    NSString *expiresString = expires ? [NSString stringWithFormat:@"%.0f",[expires timeIntervalSince1970]] :
+                                        [NSString stringWithFormat:@"%.0f",[[NSDate date] timeIntervalSince1970]];
     
-    NSString *_ssig = @"";
-    /*
-     StringToSign = HTTP-Verb + "\n" +
-                    Content-MD5 + "\n" +
-                    Content-Type + "\n" +
-                    Date + "\n" +
-                    CanonicalizedAmzHeaders +
-                    CanonicalizedResource;
-     */
-    NSString *_verb = httpMethod ? httpMethod : @"GET";
-    NSString *_contentMd5 = @"";
-    NSString *_contentType = contentType ? contentType : @"";
-    NSString *_date = _expires;
+    subResource = subResource ? [NSString stringWithFormat:@"%@%@",subResource,ip?[NSString stringWithFormat:@"&ip=%@",ip]:@""] :
+                                (ip ? [NSString stringWithFormat:@"ip=%@",ip]:nil);
     
-    NSString *_canonicalizedAmzHeaders = @"";
-    {
-        if (canonicalizedAmzHeaders != nil) {
-            for (NSString *header in [canonicalizedAmzHeaders keysSortedByValueUsingSelector:@selector(compare:)]) {
-                _canonicalizedAmzHeaders = [NSString stringWithFormat:@"%@%@:%@\n",_canonicalizedAmzHeaders,[header lowercaseString],[canonicalizedAmzHeaders objectForKey:header]];
-            }
-        }
-    }
-
-    NSString *_canonicalizedResource = @"";
-    {
-        if (subResource && [subResource length] > 0) {
-            _canonicalizedResource = [NSString stringWithFormat:@"/%@%@?%@",_bucket,_key,subResource];
-        }else {
-            _canonicalizedResource = [NSString stringWithFormat:@"/%@%@",_bucket,_key];
-        }
-        
-        if (_ip && [_canonicalizedResource rangeOfString:@"?"].location == NSNotFound) {
-            _canonicalizedResource = [NSString stringWithFormat:@"%@?%@", _canonicalizedResource,_ip];
-        }else if (_ip && [_canonicalizedResource rangeOfString:@"?"].location != NSNotFound) {
-            _canonicalizedResource = [NSString stringWithFormat:@"%@&%@", _canonicalizedResource,_ip];
-        }
-    }
-    
-    NSString *stringToSign = [NSString stringWithFormat:@"%@\n%@\n%@\n%@\n%@%@", _verb,_contentMd5,_contentType,_date,_canonicalizedAmzHeaders,_canonicalizedResource];
+    NSString *stringToSign = [NSString stringWithFormat:@"GET\n\n\n%@\n/%@%@%@",expiresString, bucket,key,subResource?[NSString stringWithFormat:@"?%@",subResource]:@""];
     NSLog(@"%@", stringToSign);
-    _ssig = [[ASIHTTPRequest base64forData:[ASIS3Request HMACSHA1withKey:sharedSecretAccessKey forString:stringToSign]] substringWithRange:NSMakeRange(5, 10)];
-    _ssig = [[ASIS3Request stringByURLEncodingForS3Path:_ssig] substringFromIndex:1];
     
+    NSString *ssig = [[ASIHTTPRequest base64forData:[ASIS3Request HMACSHA1withKey:sharedSecretAccessKey forString:stringToSign]] substringWithRange:NSMakeRange(5, 10)];
+    ssig = [ASIS3Request urlEncodeForString:ssig];
     
-    
-    
-    NSString *_https = https ? @"https" : @"http";
-    NSString *_baseUrl = @"";
-    
-    if (bucket == nil) {
-        
-        _baseUrl = [NSString stringWithFormat:@"%@://%@", _https, host];
-        
-    }else {
-        
-        if (hostBucket) {
-            
-            _baseUrl = [NSString stringWithFormat:@"%@://%@", _https, bucket];
-            
-        }else {
-            
-            if (urlStyle == ASIS3UrlVhostStyle) {
-                _baseUrl = [NSString stringWithFormat:@"%@://%@.%@", _https, bucket, host];
-            }else {
-                _baseUrl = [NSString stringWithFormat:@"%@://%@/%@", _https, host, bucket];
-            }
-        }
-    }
-    
-    NSString *urlString = nil;
-    
-    
-    if (subResource && [subResource length] > 0) {
-        
-        if (ip && [ip length]>0) {
-            urlString = [NSString stringWithFormat:@"%@%@?%@&ip=%@&KID=%@&Expires=%@&ssig=%@",_baseUrl,_key,subResource,_ip,_kid,_expires,_ssig];
-        }else {
-            urlString = [NSString stringWithFormat:@"%@%@?%@&KID=%@&Expires=%@&ssig=%@",_baseUrl,_key,subResource,_kid,_expires,_ssig];
-        }
-    }else {
-        if (ip && [ip length]>0) {
-            urlString = [NSString stringWithFormat:@"%@%@?ip=%@&KID=%@&Expires=%@&ssig=%@",_baseUrl,_key,_ip,_kid,_expires,_ssig];
-        }else {
-            urlString = [NSString stringWithFormat:@"%@%@?KID=%@&Expires=%@&ssig=%@",_baseUrl,_key,_kid,_expires,_ssig];
-        }
-    }
+    NSString *urlString = [NSString stringWithFormat:@"%@://%@%@?%@KID=%@&Expires=%@&ssig=%@",https?@"https":@"http",
+                                                                                            host,
+                                                                                            key,
+                                                                                            subResource?[NSString stringWithFormat:@"%@&",subResource]:@"",
+                                                                                            kid,
+                                                                                            expiresString,
+                                                                                            ssig];
     
     NSURL *authenticatedURL = [NSURL URLWithString:urlString];
     
@@ -389,6 +312,15 @@ static NSString *sharedSecretAccessKey = nil;
 		path = [@"/" stringByAppendingString:path];
 	}
 	return path;
+}
+
++ (NSString *)urlEncodeForString:(NSString *)string
+{
+    NSString *newString = [NSMakeCollectable(CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, (CFStringRef)string, NULL, CFSTR(":/?#[]@!$ &'()*+,;=\"<>%{}|\\^~`"), CFStringConvertNSStringEncodingToEncoding(NSUTF8StringEncoding))) autorelease];
+    if (newString) {
+        return newString;
+    }
+    return @"";
 }
 
 // Thanks to Tom Andersen for pointing out the threading issues and providing this code!
