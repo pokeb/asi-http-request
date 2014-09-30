@@ -118,7 +118,7 @@ static NSString *sharedSecretAccessKey = nil;
     
     NSString *ssig = [[ASIHTTPRequest base64forData:[ASIS3Request HMACSHA1withKey:sharedSecretAccessKey forString:stringToSign]] substringWithRange:NSMakeRange(5, 10)];
     ssig = [[ASIS3Request stringByURLEncodingForS3Path:ssig] substringFromIndex:1];
-    
+
     NSString *httpString = https ? @"https" : @"http";
     NSString *hostString = hostBucket ? bucket : host;
     
@@ -127,7 +127,7 @@ static NSString *sharedSecretAccessKey = nil;
     if (hostBucket) {
         baseUrl = [NSString stringWithFormat:@"%@%@", hostString, [ASIS3Request stringByURLEncodingForS3Path:key]];
     }else {
-        if (urlStyle == vhostStyle) {
+        if (urlStyle == ASIS3UrlVhostStyle) {
             baseUrl = [NSString stringWithFormat:@"%@.%@%@", bucket, hostString, [ASIS3Request stringByURLEncodingForS3Path:key]];
         }else {
             baseUrl = [NSString stringWithFormat:@"%@/%@%@", hostString, bucket, [ASIS3Request stringByURLEncodingForS3Path:key]];

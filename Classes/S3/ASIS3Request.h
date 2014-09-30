@@ -35,8 +35,8 @@ typedef enum _ASIS3ErrorType {
 } ASIS3ErrorType;
 
 typedef enum _ASIS3UrlStyle {
-    vhostStyle = 1,
-    pathStyle = 2
+    ASIS3UrlVhostStyle = 1,
+    ASIS3UrlPathStyle = 2
 } ASIS3UrlStyle;
 
 @interface ASIS3Request : ASIHTTPRequest <NSCopying, NSXMLParserDelegate> {
