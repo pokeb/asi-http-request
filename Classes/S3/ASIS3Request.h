@@ -113,7 +113,8 @@ typedef enum _ASIS3UrlStyle {
                            httpMethod:(NSString *)httpMethod
                           contentType:(NSString *)contentType
                              urlStyle:(ASIS3UrlStyle)urlStyle
-                          subResource:(NSString *)subResource;
+                          subResource:(NSString *)subResource
+              canonicalizedAmzHeaders:(NSDictionary *)canonicalizedAmzHeaders;
 
 @property (retain) NSString *dateString;
 @property (retain) NSString *accessKey;
