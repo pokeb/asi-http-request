@@ -86,9 +86,10 @@ static NSString *sharedSecretAccessKey = nil;
                           subResource:(NSString *)subResource
 {
     key = bucket ? [ASIS3Request stringByURLEncodingForS3Path:key]:@"";
-    host = hostBucket ? bucket :
-                        (urlStyle == ASIS3UrlVhostStyle ? [NSString stringWithFormat:@"%@%@",bucket?[NSString stringWithFormat:@"%@.",bucket]:@"",host] :
-                                                          [NSString stringWithFormat:@"%@%@",host,bucket?[NSString stringWithFormat:@"/%@",bucket]:@""]);
+    host = host ? host : @"sinacloud.net";
+    NSString *baseStr = hostBucket ? bucket :
+                                    (urlStyle == ASIS3UrlVhostStyle ? [NSString stringWithFormat:@"%@%@",bucket?[NSString stringWithFormat:@"%@.",bucket]:@"",host] :
+                                                                      [NSString stringWithFormat:@"%@%@",host,bucket?[NSString stringWithFormat:@"/%@",bucket]:@""]);
     bucket = bucket ? bucket : @"";
     
     NSString *kid = [ASIS3Request urlEncodeForString:[NSString stringWithFormat:@"sina,%@", sharedAccessKey ? sharedAccessKey : @""]];
@@ -105,7 +106,7 @@ static NSString *sharedSecretAccessKey = nil;
     ssig = [ASIS3Request urlEncodeForString:ssig];
     
     NSString *urlString = [NSString stringWithFormat:@"%@://%@%@?%@KID=%@&Expires=%@&ssig=%@",https?@"https":@"http",
-                                                                                            host,
+                                                                                            baseStr,
                                                                                             key,
                                                                                             subResource?[NSString stringWithFormat:@"%@&",subResource]:@"",
                                                                                             kid,
