@@ -85,26 +85,27 @@ static NSString *sharedSecretAccessKey = nil;
                              urlStyle:(ASIS3UrlStyle)urlStyle
                           subResource:(NSString *)subResource
 {
+    NSUInteger lifeTime = 600;
+    
     NSString *domain = host ? host : [ASIS3Request S3Host];
-    NSString *uri = [NSString stringWithFormat:@"%@%@", bucket ? [NSString stringWithFormat:@"/%@",bucket] : @"", [ASIS3Request stringByURLEncodingForS3Path:key]];
+    NSString *path = [NSString stringWithFormat:@"%@%@", bucket ? [NSString stringWithFormat:@"/%@",bucket] : @"", [ASIS3Request stringByURLEncodingForS3Path:key]];
     
     if (bucket && urlStyle == ASIS3UrlVhostStyle) {
         domain = [NSString stringWithFormat:@"%@.%@", bucket, domain];
-        uri = [ASIS3Request stringByURLEncodingForS3Path:key];
+        path = [ASIS3Request stringByURLEncodingForS3Path:key];
     }
     
     if (bucket && hostBucket) {
         domain = bucket;
-        uri = [ASIS3Request stringByURLEncodingForS3Path:key];
+        path = [ASIS3Request stringByURLEncodingForS3Path:key];
     }
     
     
     NSString *kid = [ASIHTTPRequest encodeURL:[NSString stringWithFormat:@"sina,%@", sharedAccessKey ? sharedAccessKey : @""]];
     NSString *expiresString = expires ? [NSString stringWithFormat:@"%.0f",[expires timeIntervalSince1970]] :
-                                        [NSString stringWithFormat:@"%.0f",[[[NSDate date] dateByAddingTimeInterval:600] timeIntervalSince1970]];
+                                        [NSString stringWithFormat:@"%.0f",[[[NSDate date] dateByAddingTimeInterval:lifeTime] timeIntervalSince1970]];
     
-    subResource = subResource ? [NSString stringWithFormat:@"%@%@",subResource,ip?[NSString stringWithFormat:@"&ip=%@",ip]:@""] :
-                                (ip ? [NSString stringWithFormat:@"ip=%@",ip]:nil);
+    subResource = subResource ? [subResource stringByAppendingString:ip?[NSString stringWithFormat:@"&ip=%@",ip]:@""] : (ip ? [NSString stringWithFormat:@"ip=%@",ip]:nil);
     
     NSString *stringToSign = [NSString stringWithFormat:@"GET\n\n\n%@\n%@%@%@",expiresString,
                                                                                 bucket?[NSString stringWithFormat:@"/%@",bucket]:@"",
@@ -115,11 +116,14 @@ static NSString *sharedSecretAccessKey = nil;
     NSString *ssig = [[ASIHTTPRequest base64forData:[ASIS3Request HMACSHA1withKey:sharedSecretAccessKey forString:stringToSign]] substringWithRange:NSMakeRange(5, 10)];
     ssig = [ASIHTTPRequest encodeURL:ssig];
     
-    uri = [NSString stringWithFormat:@"%@?%@KID=%@&Expires=%@&ssig=%@",uri,subResource?[NSString stringWithFormat:@"%@&",subResource]:@"",kid,expiresString,ssig];
+    NSString *uri = [path stringByAppendingString:[NSString stringWithFormat:@"?%@KID=%@&Expires=%@&ssig=%@",subResource?[subResource stringByAppendingString:@"&"]:@"",
+                                                                                                            kid,
+                                                                                                            expiresString,
+                                                                                                            ssig]];
+    
     NSString *urlString = [NSString stringWithFormat:@"%@://%@%@",https?@"https":@"http",domain,uri];
     
     NSURL *authenticatedURL = [NSURL URLWithString:urlString];
-    
     return authenticatedURL;
 }
 
