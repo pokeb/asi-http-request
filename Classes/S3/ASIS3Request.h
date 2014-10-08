@@ -34,7 +34,10 @@ typedef enum _ASIS3ErrorType {
     ASIS3ResponseErrorType = 2
 } ASIS3ErrorType;
 
-
+typedef enum _ASIS3UrlStyle {
+    ASIS3UrlVhostStyle = 1,
+    ASIS3UrlPathStyle = 2
+} ASIS3UrlStyle;
 
 @interface ASIS3Request : ASIHTTPRequest <NSCopying, NSXMLParserDelegate> {
 	
@@ -93,12 +96,23 @@ typedef enum _ASIS3ErrorType {
 // URL-encodes an S3 key so it can be used in a url
 // You shouldn't normally need to use this yourself
 + (NSString *)stringByURLEncodingForS3Path:(NSString *)key;
++ (NSString *)urlEncodeForString:(NSString *)string;
 
 // Returns a string for the hostname used for S3 requests. You shouldn't ever need to change this.
 + (NSString *)S3Host;
 
 // This is called automatically before the request starts to build the request URL (if one has not been manually set already)
 - (void)buildURL;
+
++ (NSURL *)authenticatedURLWithBucket:(NSString *)bucket
+                                  key:(NSString *)key
+                              expires:(NSDate *)expires
+                                 host:(NSString *)host
+                           hostBucket:(BOOL)hostBucket
+                                https:(BOOL)https
+                                   ip:(NSString *)ip
+                             urlStyle:(ASIS3UrlStyle)urlStyle
+                          subResource:(NSString *)subResource;
 
 @property (retain) NSString *dateString;
 @property (retain) NSString *accessKey;
