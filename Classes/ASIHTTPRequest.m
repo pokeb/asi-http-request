@@ -4935,6 +4935,15 @@ static NSOperationQueue *sharedQueue = nil;
 	}
 }
 
++ (NSString*)encodeURL:(NSString *)string
+{
+    NSString *newString = [NSMakeCollectable(CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, (CFStringRef)string, NULL, CFSTR(":/?#[]@!$ &'()*+,;=\"<>%{}|\\^~`"), CFStringConvertNSStringEncodingToEncoding(NSUTF8StringEncoding))) autorelease];
+    if (newString) {
+        return newString;
+    }
+    return @"";
+}
+
 #pragma mark -
 #pragma mark blocks
 #if NS_BLOCKS_AVAILABLE
