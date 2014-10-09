@@ -239,6 +239,7 @@ static const NSUInteger kDomainSection = 1;
 	sharedDialog = nil;
 	[self performSelector:@selector(presentNextDialog) withObject:nil afterDelay:0];
 	[self release];
+    [super viewDidDisappear:animated];
 }
 
 - (void)dismiss
