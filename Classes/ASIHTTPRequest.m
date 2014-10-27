@@ -298,6 +298,7 @@ static NSOperationQueue *sharedQueue = nil;
 	[self setUseSessionPersistence:YES];
 	[self setUseCookiePersistence:YES];
 	[self setValidatesSecureCertificate:YES];
+    [self setOnlyUseTLS1:NO];
 	[self setRequestCookies:[[[NSMutableArray alloc] init] autorelease]];
 	[self setDidStartSelector:@selector(requestStarted:)];
 	[self setDidReceiveResponseHeadersSelector:@selector(request:didReceiveResponseHeaders:)];
@@ -1210,23 +1211,6 @@ static NSOperationQueue *sharedQueue = nil;
 
     if([[[[self url] scheme] lowercaseString] isEqualToString:@"https"]) {       
        
-        // Tell CFNetwork not to validate SSL certificates
-        if (![self validatesSecureCertificate]) {
-            // see: http://iphonedevelopment.blogspot.com/2010/05/nsstream-tcp-and-ssl.html
-            
-            NSDictionary *sslProperties = [[NSDictionary alloc] initWithObjectsAndKeys:
-                                      [NSNumber numberWithBool:YES], kCFStreamSSLAllowsExpiredCertificates,
-                                      [NSNumber numberWithBool:YES], kCFStreamSSLAllowsAnyRoot,
-                                      [NSNumber numberWithBool:NO],  kCFStreamSSLValidatesCertificateChain,
-                                      kCFNull,kCFStreamSSLPeerName,
-                                      nil];
-            
-            CFReadStreamSetProperty((CFReadStreamRef)[self readStream], 
-                                    kCFStreamPropertySSLSettings, 
-                                    (CFTypeRef)sslProperties);
-            [sslProperties release];
-        } 
-        
         // Tell CFNetwork to use a client certificate
         if (clientCertificateIdentity) {
             NSMutableDictionary *sslProperties = [NSMutableDictionary dictionaryWithCapacity:1];
@@ -1243,7 +1227,37 @@ static NSOperationQueue *sharedQueue = nil;
             
             [sslProperties setObject:certificates forKey:(NSString *)kCFStreamSSLCertificates];
             
+            if ([self onlyUseTLS1]) {
+                [sslProperties setObject:(id)kCFStreamSocketSecurityLevelTLSv1 forKey:(id)kCFStreamSSLLevel];
+            }
+            
             CFReadStreamSetProperty((CFReadStreamRef)[self readStream], kCFStreamPropertySSLSettings, sslProperties);
+            
+        } else {
+            
+            NSMutableDictionary *sslProperties = [NSMutableDictionary dictionary];
+            
+            if ([self onlyUseTLS1]) {
+                [sslProperties setObject: (id)kCFStreamSocketSecurityLevelTLSv1 forKey:(id)kCFStreamSSLLevel];
+            }
+            
+            // Tell CFNetwork not to validate SSL certificates
+            if (![self validatesSecureCertificate]) {
+                // see: http://iphonedevelopment.blogspot.com/2010/05/nsstream-tcp-and-ssl.html
+                
+                [sslProperties setObject:[NSNumber numberWithBool:YES] forKey:(id)kCFStreamSSLAllowsExpiredCertificates];
+                [sslProperties setObject:[NSNumber numberWithBool:YES] forKey:(id)kCFStreamSSLAllowsAnyRoot];
+                [sslProperties setObject:[NSNumber numberWithBool:NO] forKey:(id)kCFStreamSSLValidatesCertificateChain];
+                [sslProperties setObject:(id)kCFNull forKey:(id)kCFStreamSSLPeerName];
+                
+            }
+            
+            if ([sslProperties count] > 0) {
+                CFReadStreamSetProperty((CFReadStreamRef)[self readStream],
+                                        kCFStreamPropertySSLSettings,
+                                        (CFTypeRef)sslProperties);
+            }
+            
         }
         
     }
@@ -1642,6 +1656,7 @@ static NSOperationQueue *sharedQueue = nil;
 	[headRequest setTimeOutSeconds:[self timeOutSeconds]];
 	[headRequest setUseHTTPVersionOne:[self useHTTPVersionOne]];
 	[headRequest setValidatesSecureCertificate:[self validatesSecureCertificate]];
+    [headRequest setOnlyUseTLS1:[self onlyUseTLS1]];
     [headRequest setClientCertificateIdentity:clientCertificateIdentity];
 	[headRequest setClientCertificates:[[clientCertificates copy] autorelease]];
 	[headRequest setPACurl:[self PACurl]];
@@ -4094,6 +4109,7 @@ static NSOperationQueue *sharedQueue = nil;
 	[newRequest setUseHTTPVersionOne:[self useHTTPVersionOne]];
 	[newRequest setShouldRedirect:[self shouldRedirect]];
 	[newRequest setValidatesSecureCertificate:[self validatesSecureCertificate]];
+    [newRequest setOnlyUseTLS1:[self onlyUseTLS1]];
     [newRequest setClientCertificateIdentity:clientCertificateIdentity];
 	[newRequest setClientCertificates:[[clientCertificates copy] autorelease]];
 	[newRequest setPACurl:[self PACurl]];
@@ -5085,6 +5101,7 @@ static NSOperationQueue *sharedQueue = nil;
 @synthesize updatedProgress;
 @synthesize shouldRedirect;
 @synthesize validatesSecureCertificate;
+@synthesize onlyUseTLS1;
 @synthesize needsRedirect;
 @synthesize redirectCount;
 @synthesize shouldCompressRequestBody;

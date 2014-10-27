@@ -366,6 +366,9 @@ typedef void (^ASIDataBlock)(NSData *data);
 	// When NO, requests will not check the secure certificate is valid (use for self-signed certificates during development, DO NOT USE IN PRODUCTION) Default is YES
 	BOOL validatesSecureCertificate;
     
+    // When YES, the kCFStreamSSLLevel will set to kCFStreamSocketSecurityLevelTLSv1 in kCFStreamPropertySSLSettings, mainly to avoid the SSL3.0 vulnerability Default is NO
+    BOOL onlyUseTLS1;
+    
     // If not nil and the URL scheme is https, CFNetwork configured to supply a client certificate
     SecIdentityRef clientCertificateIdentity;
 	NSArray *clientCertificates;
@@ -969,6 +972,7 @@ typedef void (^ASIDataBlock)(NSData *data);
 @property (atomic, assign, readonly) unsigned long long partialDownloadSize;
 @property (atomic, assign) BOOL shouldRedirect;
 @property (atomic, assign) BOOL validatesSecureCertificate;
+@property (atomic, assign) BOOL onlyUseTLS1;
 @property (atomic, assign) BOOL shouldCompressRequestBody;
 @property (atomic, retain) NSURL *PACurl;
 @property (atomic, retain) NSString *authenticationScheme;
