@@ -1245,8 +1245,6 @@ static NSOperationQueue *sharedQueue = nil;
             if (![self validatesSecureCertificate]) {
                 // see: http://iphonedevelopment.blogspot.com/2010/05/nsstream-tcp-and-ssl.html
                 
-                [sslProperties setObject:[NSNumber numberWithBool:YES] forKey:(id)kCFStreamSSLAllowsExpiredCertificates];
-                [sslProperties setObject:[NSNumber numberWithBool:YES] forKey:(id)kCFStreamSSLAllowsAnyRoot];
                 [sslProperties setObject:[NSNumber numberWithBool:NO] forKey:(id)kCFStreamSSLValidatesCertificateChain];
                 [sslProperties setObject:(id)kCFNull forKey:(id)kCFStreamSSLPeerName];
                 
