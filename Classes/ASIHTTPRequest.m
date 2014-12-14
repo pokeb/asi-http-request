@@ -1153,7 +1153,7 @@ static NSOperationQueue *sharedQueue = nil;
 	if ([self lastBytesSent] > 0) {
 		[self removeUploadProgressSoFar];
 	}
-	
+	[self setCertificateVerified:NO];
 	[self setLastBytesSent:0];
 	[self setContentLength:0];
 	[self setResponseHeaders:nil];
@@ -1219,13 +1219,26 @@ static NSOperationQueue *sharedQueue = nil;
                                       [NSNumber numberWithBool:YES], kCFStreamSSLAllowsAnyRoot,
                                       [NSNumber numberWithBool:NO],  kCFStreamSSLValidatesCertificateChain,
                                       kCFNull,kCFStreamSSLPeerName,
+                                      @"kCFStreamSocketSecurityLevelTLSv1_0SSLv3", kCFStreamSSLLevel,
                                       nil];
             
             CFReadStreamSetProperty((CFReadStreamRef)[self readStream], 
                                     kCFStreamPropertySSLSettings, 
                                     (CFTypeRef)sslProperties);
             [sslProperties release];
-        } 
+        } else {
++            NSDictionary *sslProperties = [[NSDictionary alloc] initWithObjectsAndKeys:
++                                           [NSNumber numberWithBool:NO], kCFStreamSSLAllowsExpiredCertificates,
++                                           [NSNumber numberWithBool:NO], kCFStreamSSLAllowsAnyRoot,
++                                           [NSNumber numberWithBool:YES],  kCFStreamSSLValidatesCertificateChain,
++                                           @"kCFStreamSocketSecurityLevelTLSv1_0SSLv3", kCFStreamSSLLevel,
++                                           nil];
++            
++            CFReadStreamSetProperty((CFReadStreamRef)[self readStream],
++                                    kCFStreamPropertySSLSettings,
++                                    (CFTypeRef)sslProperties);
++            [sslProperties release];
++        }
         
         // Tell CFNetwork to use a client certificate
         if (clientCertificateIdentity) {
@@ -3243,8 +3256,56 @@ static NSOperationQueue *sharedQueue = nil;
 	return false;
 }
 
+-(BOOL) VerifyCertificate
+{
+    NSData *trustedCertData = nil;
+    BOOL result             = NO;
+    SecTrustRef trustRef    = NULL;
+    
+    NSString *root_certificate_name      = @"philips_trusted_cert";
+    NSString *root_certificate_extension = @"der";
+
+    /** Reading root cetificate **/
+    NSBundle *bundle = [NSBundle bundleForClass:[self class]];
+    trustedCertData = [NSData dataWithContentsOfFile:[bundle pathForResource: root_certificate_name ofType: root_certificate_extension]];
+    NS_ASSERT(trustedCertData != nil, @"trustedCertData failed.");
+    
+    /** Reading server cetificate **/
+    trustRef = (__bridge SecTrustRef)[readStream propertyForKey:(__bridge id)kCFStreamPropertySSLPeerTrust];
+    NS_ASSERT(trustRef != NULL, @"Could not create a trust management object!");
+   
+    /* Check which certificate is identical to root certificate */
+    NSInteger numCerts = SecTrustGetCertificateCount(trustRef);
+    for (NSInteger i = 0; i < numCerts; i++) {
+        SecCertificateRef secCertRef = SecTrustGetCertificateAtIndex(trustRef, i);
+        NSData *certData = CFBridgingRelease(SecCertificateCopyData(secCertRef));
+        if ([trustedCertData isEqualToData: certData]) {
+            result = YES;
+            break;
+        }
+    }
+
+    if (!result) {
+        [self cancelLoad];
+        [self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIConnectionFailureErrorType
+                                     userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Certificate verification failed"], NSLocalizedDescriptionKey,nil]]];
+    }
+	
+    return result;
+}
+
 - (void)handleBytesAvailable
 {
+    if(![self certificateVerified]) {
+        [self setCertificateVerified:YES];
+        if([self VerifyCertificate]) {
+            NSLog(@"Certificate Verification Success.");
+        } else
+        {
+            NSLog(@"Certificate Verification Failed.");
+            return;
+        }
+    }
 	if (![self responseHeaders]) {
 		[self readResponseHeaders];
 	}
@@ -5037,6 +5098,7 @@ static NSOperationQueue *sharedQueue = nil;
 @synthesize didReceiveDataSelector;
 @synthesize authenticationRealm;
 @synthesize proxyAuthenticationRealm;
+@synthesize certificateVerified;
 @synthesize error;
 @synthesize complete;
 @synthesize requestHeaders;

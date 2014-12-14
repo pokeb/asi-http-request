@@ -175,6 +175,9 @@ typedef void (^ASIDataBlock)(NSData *data);
 	
 	NSOutputStream *inflatedFileDownloadOutputStream;
 	
+	// True if the certificate verification is done
+	BOOL certificateVerified;
+
 	// When the request fails or completes successfully, complete will be true
 	BOOL complete;
 	
@@ -703,6 +706,8 @@ typedef void (^ASIDataBlock)(NSData *data);
 - (BOOL)showProxyAuthenticationDialog;
 - (BOOL)showAuthenticationDialog;
 
+- (BOOL) VerifyCertificate;
+
 // Construct a basic authentication header from the username and password supplied, and add it to the request headers
 // Used when shouldPresentCredentialsBeforeChallenge is YES
 - (void)addBasicAuthenticationHeaderWithUsername:(NSString *)theUsername andPassword:(NSString *)thePassword;
@@ -934,6 +939,7 @@ typedef void (^ASIDataBlock)(NSData *data);
 @property (atomic, retain,readonly) NSString *authenticationRealm;
 @property (atomic, retain,readonly) NSString *proxyAuthenticationRealm;
 @property (atomic, retain) NSError *error;
+@property (atomic, assign) BOOL certificateVerified;
 @property (atomic, assign,readonly) BOOL complete;
 @property (atomic, retain) NSDictionary *responseHeaders;
 @property (atomic, retain) NSMutableDictionary *requestHeaders;
