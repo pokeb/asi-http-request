@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B17A07941A84C25800537003 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = B17A07931A84C25800537003 /* Default-568h@2x.png */; };
+		B17A07951A84C32000537003 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = B17A07931A84C25800537003 /* Default-568h@2x.png */; };
 		B50C1823121C26DB0055FCAB /* ClientCertificateTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B50C1822121C26DB0055FCAB /* ClientCertificateTests.m */; };
 		B50C182C121C26FA0055FCAB /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B50C182B121C26FA0055FCAB /* Security.framework */; };
 		B50C1848121C27510055FCAB /* client.p12 in Resources */ = {isa = PBXBuildFile; fileRef = B50C1847121C27510055FCAB /* client.p12 */; };
@@ -143,6 +145,7 @@
 
 /* Begin PBXFileReference section */
 		1D6058910D05DD3D006BFB54 /* ASIHTTPRequest iPhone.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "ASIHTTPRequest iPhone.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		B17A07931A84C25800537003 /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Default-568h@2x.png"; path = "iPhone Sample/Resources/Default-568h@2x.png"; sourceTree = "<group>"; };
 		B50C1821121C26DB0055FCAB /* ClientCertificateTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ClientCertificateTests.h; sourceTree = "<group>"; };
 		B50C1822121C26DB0055FCAB /* ClientCertificateTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ClientCertificateTests.m; sourceTree = "<group>"; };
 		B50C182B121C26FA0055FCAB /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
@@ -405,6 +408,7 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				B17A07931A84C25800537003 /* Default-568h@2x.png */,
 				B52325AC11CA05A8006C6E5A /* info.png */,
 				B558B58911C7F637009B4627 /* iPhoneInfo.plist */,
 				B558B58B11C7F63E009B4627 /* iPadInfo.plist */,
@@ -647,6 +651,7 @@
 				B55B60740F765A990064029C /* iphone-icon.png in Resources */,
 				B576D76611C7F4D90059B815 /* iPhoneMainWindow.xib in Resources */,
 				B523254311CA01F1006C6E5A /* Sample.xib in Resources */,
+				B17A07941A84C25800537003 /* Default-568h@2x.png in Resources */,
 				B50F661A1297FA45003887B1 /* strict.xcconfig in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -655,6 +660,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B17A07951A84C32000537003 /* Default-568h@2x.png in Resources */,
 				B56529A3101C8EDA000499CF /* iphone-tests-icon.png in Resources */,
 				B50C1848121C27510055FCAB /* client.p12 in Resources */,
 				B50F661B1297FA45003887B1 /* strict.xcconfig in Resources */,
@@ -837,10 +843,10 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "iPhone Sample/iPhone_Prefix.pch";
-				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_VERSION = "";
 				HEADER_SEARCH_PATHS = "${SDK_DIR}/usr/include/libxml2";
 				INFOPLIST_FILE = "iPhone Sample/iPhoneInfo.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 3.1.3;
+				IPHONEOS_DEPLOYMENT_TARGET = 5.1.1;
 				PRODUCT_NAME = "ASIHTTPRequest iPhone";
 				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
 				TARGETED_DEVICE_FAMILY = 1;
@@ -857,10 +863,10 @@
 				COPY_PHASE_STRIP = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "iPhone Sample/iPhone_Prefix.pch";
-				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_VERSION = "";
 				HEADER_SEARCH_PATHS = "${SDK_DIR}/usr/include/libxml2";
 				INFOPLIST_FILE = "iPhone Sample/iPhoneInfo.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 3.1.3;
+				IPHONEOS_DEPLOYMENT_TARGET = 5.1.1;
 				PRODUCT_NAME = "ASIHTTPRequest iPhone";
 				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
 				TARGETED_DEVICE_FAMILY = 1;
@@ -884,10 +890,10 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "iPhone Sample/iPhone_Prefix.pch";
 				GCC_PREPROCESSOR_DEFINITIONS = "";
-				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_VERSION = "";
 				HEADER_SEARCH_PATHS = "${SDK_DIR}/usr/include/libxml2";
 				INFOPLIST_FILE = "iPhone Sample/Tests-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 3.2.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 5.1.1;
 				LIBRARY_SEARCH_PATHS = "";
 				OTHER_LDFLAGS = (
 					"-ObjC",
@@ -915,11 +921,11 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "iPhone Sample/iPhone_Prefix.pch";
 				GCC_PREPROCESSOR_DEFINITIONS = "";
-				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_VERSION = "";
 				HEADER_SEARCH_PATHS = "${SDK_DIR}/usr/include/libxml2";
 				INFOPLIST_FILE = "iPhone Sample/Tests-Info.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
-				IPHONEOS_DEPLOYMENT_TARGET = 3.2.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 5.1.1;
 				LIBRARY_SEARCH_PATHS = "";
 				OTHER_LDFLAGS = (
 					"-ObjC",
@@ -943,10 +949,10 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "iPhone Sample/iPhone_Prefix.pch";
-				GCC_VERSION = com.apple.compilers.llvmgcc42;
+				GCC_VERSION = "";
 				HEADER_SEARCH_PATHS = "${SDK_DIR}/usr/include/libxml2";
 				INFOPLIST_FILE = "iPhone Sample/iPadInfo.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 3.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 5.1.1;
 				PRODUCT_NAME = "ASIHTTPRequest iPad";
 				TARGETED_DEVICE_FAMILY = 2;
 			};
@@ -961,10 +967,10 @@
 				COPY_PHASE_STRIP = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "iPhone Sample/iPhone_Prefix.pch";
-				GCC_VERSION = com.apple.compilers.llvmgcc42;
+				GCC_VERSION = "";
 				HEADER_SEARCH_PATHS = "${SDK_DIR}/usr/include/libxml2";
 				INFOPLIST_FILE = "iPhone Sample/iPadInfo.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 3.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 5.1.1;
 				PRODUCT_NAME = "ASIHTTPRequest iPad";
 				TARGETED_DEVICE_FAMILY = 2;
 			};
@@ -978,6 +984,7 @@
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 5.1.1;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 			};
@@ -991,6 +998,7 @@
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 5.1.1;
 				SDKROOT = iphoneos;
 			};
 			name = Release;

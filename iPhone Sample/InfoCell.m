@@ -33,8 +33,8 @@
 - (void)layoutSubviews
 {
 	[super layoutSubviews];
-	int tablePadding = 40;
-	int tableWidth = [[self superview] frame].size.width;
+	CGFloat tablePadding = 40;
+	CGFloat tableWidth = [[self superview] frame].size.width;
 	if (tableWidth > 480) { // iPad
 		tablePadding = 110;
 		[[self textLabel] setFrame:CGRectMake(70,10,tableWidth-tablePadding-70,[[self class] neededHeightForDescription:[[self textLabel] text] withTableWidth:tableWidth])];	
@@ -46,8 +46,8 @@
 
 + (NSUInteger)neededHeightForDescription:(NSString *)description withTableWidth:(NSUInteger)tableWidth
 {
-	int tablePadding = 40;
-	int offset = 0;
+	CGFloat tablePadding = 40;
+	CGFloat offset = 0;
 	int textSize = 13;
 	if (tableWidth > 480) { // iPad
 		tablePadding = 110;

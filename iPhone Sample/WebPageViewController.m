@@ -118,9 +118,9 @@
 
 - (void)request:(ASIHTTPRequest *)theRequest didReceiveBytes:(long long)newLength
 {
-	NSInteger requestNumber = [[self requestsInProgress] indexOfObject:theRequest];
+	NSUInteger requestNumber = [[self requestsInProgress] indexOfObject:theRequest];
 	if (requestNumber != NSNotFound) {
-		RequestProgressCell *cell = (RequestProgressCell *)[[self tableView] cellForRowAtIndexPath:[NSIndexPath indexPathForRow:requestNumber inSection:2]];
+		RequestProgressCell *cell = (RequestProgressCell *)[[self tableView] cellForRowAtIndexPath:[NSIndexPath indexPathForRow:(NSInteger)requestNumber inSection:2]];
 		if ([theRequest contentLength]+[theRequest partialDownloadSize] > 0) {
 			float progressAmount = (float)(([theRequest totalBytesRead]*1.0)/(([theRequest contentLength]+[theRequest partialDownloadSize])*1.0));
 			[[cell progressView] setProgress:progressAmount];
@@ -214,7 +214,7 @@ static NSString *intro = @"ASIWebPageRequest lets you download complete webpages
 		if (!cell) {
 			cell = [RequestProgressCell cell];
 		}
-		ASIHTTPRequest *theRequest = [[self requestsInProgress] objectAtIndex:[indexPath row]];
+		ASIHTTPRequest *theRequest = [[self requestsInProgress] objectAtIndex:(NSUInteger)[indexPath row]];
 		if ([theRequest didUseCachedResponse]) {
 			[[cell textLabel] setText:[NSString stringWithFormat:@"Cached: %@",[[theRequest url] absoluteString]]];
 			[[cell accessoryView] setHidden:YES];
@@ -285,7 +285,7 @@ static NSString *intro = @"ASIWebPageRequest lets you download complete webpages
 	if (section == 1) {
 		return 2;
 	} else if (section == 2) {
-		return [requestsInProgress count];
+		return (NSInteger)[requestsInProgress count];
 	}
 	return 1;
 }
