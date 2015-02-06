@@ -139,8 +139,8 @@ static NSString *intro = @"Demonstrates a fetching 3 items at once, using an ASI
 
 - (UITableViewCell *)tableView:(UITableView *)theTableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-	int tablePadding = 40;
-	int tableWidth = [tableView frame].size.width;
+	CGFloat tablePadding = 40;
+	CGFloat tableWidth = [tableView frame].size.width;
 	if (tableWidth > 480) { // iPad
 		tablePadding = 110;
 	}
@@ -264,8 +264,8 @@ static NSString *intro = @"Demonstrates a fetching 3 items at once, using an ASI
 	if ([indexPath section] == 0) {
 		return [InfoCell neededHeightForDescription:intro withTableWidth:[tableView frame].size.width]+20;
 	} else if ([indexPath section] == 2) {
-		int tablePadding = 40;
-		int tableWidth = [tableView frame].size.width;
+		CGFloat tablePadding = 40;
+		CGFloat tableWidth = [tableView frame].size.width;
 		if (tableWidth > 480) { // iPad
 			tablePadding = 110;
 		}
