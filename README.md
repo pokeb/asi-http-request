@@ -3,7 +3,7 @@ ASI-SCS
 
 本SDK为ASIHTTPRequest的一个分支，熟悉ASI的同学可以轻松上手，不熟悉的也没关系，相信看完文档您一定能够运用自如，并且能够对ASI有一个初步的了解。
 
-> * SCS API 的详细内容请查阅：http://open.sinastorage.com/?c=doc&a=api
+> * SCS API 的详细内容请查阅：http://open.sinastorage.com/doc/api
 > * ASIHTTPRequest的详细内容请查阅：http://allseeing-i.com/ASIHTTPRequest/How-to-use
 
 ### SDK环境要求 
