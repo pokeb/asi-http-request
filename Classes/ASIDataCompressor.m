@@ -8,11 +8,14 @@
 
 #import "ASIDataCompressor.h"
 #import "ASIHTTPRequest.h"
+#import <zlib.h>
 
 #define DATA_CHUNK_SIZE 262144 // Deal with gzipped data in 256KB chunks
 #define COMPRESSION_AMOUNT Z_DEFAULT_COMPRESSION
 
-@interface ASIDataCompressor ()
+@interface ASIDataCompressor () {
+    z_stream zStream;
+}
 + (NSError *)deflateErrorWithCode:(int)code;
 @end
 
@@ -66,7 +69,7 @@
 	return nil;
 }
 
-- (NSData *)compressBytes:(Bytef *)bytes length:(NSUInteger)length error:(NSError **)err shouldFinish:(BOOL)shouldFinish
+- (NSData *)compressBytes:(Byte *)bytes length:(NSUInteger)length error:(NSError **)err shouldFinish:(BOOL)shouldFinish
 {
 	if (length == 0) return nil;
 	

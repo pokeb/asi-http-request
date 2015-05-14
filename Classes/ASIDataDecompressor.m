@@ -8,10 +8,13 @@
 
 #import "ASIDataDecompressor.h"
 #import "ASIHTTPRequest.h"
+#import <zlib.h>
 
 #define DATA_CHUNK_SIZE 262144 // Deal with gzipped data in 256KB chunks
 
-@interface ASIDataDecompressor ()
+@interface ASIDataDecompressor () {
+    z_stream zStream;
+}
 + (NSError *)inflateErrorWithCode:(int)code;
 @end;
 
@@ -65,7 +68,7 @@
 	return nil;
 }
 
-- (NSData *)uncompressBytes:(Bytef *)bytes length:(NSUInteger)length error:(NSError **)err
+- (NSData *)uncompressBytes:(Byte *)bytes length:(NSUInteger)length error:(NSError **)err
 {
 	if (length == 0) return nil;
 	

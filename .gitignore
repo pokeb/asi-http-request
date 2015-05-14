@@ -11,3 +11,6 @@ profile
 *.mode1v3
 External/GHUnit/*
 .svn
+Products
+xcuserdata/
+project.xcworkspace/

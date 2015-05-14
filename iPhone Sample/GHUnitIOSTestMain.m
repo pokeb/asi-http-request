@@ -36,7 +36,8 @@
 
 // Default exception handler
 void exceptionHandler(NSException *exception) { 
-  NSLog(@"%@\n%@", [exception reason], GHUStackTraceFromException(exception));
+    //NSLog(@"%@\n%@", [exception reason], GHUStackTraceFromException(exception));
+    NSLog(@"%@\n%@", [exception reason], [GHTesting descriptionForException:exception]);
 }
 
 int main(int argc, char *argv[]) {
@@ -75,7 +76,7 @@ int main(int argc, char *argv[]) {
   if (getenv("GHUNIT_CLI")) {
     retVal = [GHTestRunner run];
   } else {
-    retVal = UIApplicationMain(argc, argv, nil, @"GHUnitIPhoneAppDelegate");
+    retVal = UIApplicationMain(argc, argv, nil, @"GHUnitIOSAppDelegate");
   }
   [pool release];
   return retVal;

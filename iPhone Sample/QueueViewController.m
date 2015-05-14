@@ -226,8 +226,8 @@ static NSString *intro = @"Demonstrates a fetching 3 items at once, using an ASI
 			[cell addSubview:imageLabel3];
 			
 		}
-		NSUInteger imageWidth = (tableWidth-tablePadding-20)/3;
-		NSUInteger imageHeight = imageWidth*0.66f;
+		CGFloat imageWidth = (tableWidth-tablePadding-20)/3;
+		CGFloat imageHeight = imageWidth*0.66f;
 		
 		
 		[imageView1 setFrame:CGRectMake(tablePadding/2,10,imageWidth,imageHeight)];
@@ -269,8 +269,8 @@ static NSString *intro = @"Demonstrates a fetching 3 items at once, using an ASI
 		if (tableWidth > 480) { // iPad
 			tablePadding = 110;
 		}
-		NSUInteger imageWidth = (tableWidth-tablePadding-20)/3;
-		NSUInteger imageHeight = imageWidth*0.66f;
+		CGFloat imageWidth = (tableWidth-tablePadding-20)/3;
+		CGFloat imageHeight = imageWidth*0.66f;
 		return imageHeight+50;
 	} else {
 		return 42;

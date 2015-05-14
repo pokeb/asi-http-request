@@ -116,7 +116,7 @@ static NSString *intro = @"Demonstrates fetching a web page synchronously, the H
 		if (!cell) {
 			cell = [DetailCell cell];
 		}
-		NSString *key = [[[request responseHeaders] allKeys] objectAtIndex:[indexPath row]];
+		NSString *key = [[[request responseHeaders] allKeys] objectAtIndex:(NSUInteger)[indexPath row]];
 		[[cell textLabel] setText:key];
 		[[cell detailTextLabel] setText:[[request responseHeaders] objectForKey:key]];
 	}
@@ -127,7 +127,7 @@ static NSString *intro = @"Demonstrates fetching a web page synchronously, the H
 - (NSInteger)tableView:(UITableView *)theTableView numberOfRowsInSection:(NSInteger)section
 {
 	if (section == 3) {
-		return [[request responseHeaders] count];
+		return (NSInteger)[[request responseHeaders] count];
 	} else {
 		return 1;
 	}

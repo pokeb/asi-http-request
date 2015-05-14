@@ -34,7 +34,10 @@ typedef enum _ASIS3ErrorType {
     ASIS3ResponseErrorType = 2
 } ASIS3ErrorType;
 
-
+typedef enum _ASIS3UrlStyle {
+    ASIS3UrlVhostStyle = 1,
+    ASIS3UrlPathStyle = 2
+} ASIS3UrlStyle;
 
 @interface ASIS3Request : ASIHTTPRequest <NSCopying, NSXMLParserDelegate> {
 	
@@ -71,6 +74,7 @@ typedef enum _ASIS3ErrorType {
 
 // Parses the response to work out if S3 returned an error	
 - (void)parseResponseXML;
+- (void)parseResponseJson;
 
 #pragma mark shared access keys
 
@@ -98,6 +102,16 @@ typedef enum _ASIS3ErrorType {
 
 // This is called automatically before the request starts to build the request URL (if one has not been manually set already)
 - (void)buildURL;
+
++ (NSURL *)authenticatedURLWithBucket:(NSString *)bucket
+                                  key:(NSString *)key
+                              expires:(NSDate *)expires
+                                 host:(NSString *)host
+                           hostBucket:(BOOL)hostBucket
+                                https:(BOOL)https
+                                   ip:(NSString *)ip
+                             urlStyle:(ASIS3UrlStyle)urlStyle
+                          subResource:(NSString *)subResource;
 
 @property (retain) NSString *dateString;
 @property (retain) NSString *accessKey;

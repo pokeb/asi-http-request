@@ -30,11 +30,12 @@
 
 - (NSString *)description
 {
-	return [NSString stringWithFormat:@"Name: %@ creationDate: %@ ownerID: %@ ownerName: %@",[self name],[self creationDate],[self ownerID],[self ownerName]];
+	return [NSString stringWithFormat:@"Name: %@ creationDate: %@ ownerID: %@ ownerName: %@ consumedBytes: %llu",[self name],[self creationDate],[self ownerID],[self ownerName],[self consumedBytes]];
 }
 
 @synthesize name;
 @synthesize creationDate;
 @synthesize ownerID;
 @synthesize ownerName;
+@synthesize consumedBytes;
 @end

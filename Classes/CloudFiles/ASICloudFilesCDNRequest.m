@@ -81,7 +81,7 @@
 	NSString *query = @"?format=xml";
 	
 	if (limit > 0) {
-		query = [query stringByAppendingString:[NSString stringWithFormat:@"&limit=%i", limit]];
+		query = [query stringByAppendingString:[NSString stringWithFormat:@"&limit=%lu", (unsigned long)limit]];
 	}
 	
 	if (marker) {
@@ -89,7 +89,7 @@
 	}
 	
 	if (limit > 0) {
-		query = [query stringByAppendingString:[NSString stringWithFormat:@"&limit=%i", limit]];
+		query = [query stringByAppendingString:[NSString stringWithFormat:@"&limit=%lu", (unsigned long)limit]];
 	}
 	
 	ASICloudFilesCDNRequest *request = [ASICloudFilesCDNRequest cdnRequestWithMethod:@"GET" query:query];
@@ -128,7 +128,7 @@
 
 + (id)putRequestWithContainer:(NSString *)containerName ttl:(NSUInteger)ttl {
 	ASICloudFilesCDNRequest *request = [ASICloudFilesCDNRequest cdnRequestWithMethod:@"PUT" containerName:containerName];	
-	[request addRequestHeader:@"X-Ttl" value:[NSString stringWithFormat:@"%i", ttl]];
+	[request addRequestHeader:@"X-Ttl" value:[NSString stringWithFormat:@"%lu", (unsigned long)ttl]];
 	return request;
 }
 
@@ -148,7 +148,7 @@
 + (id)postRequestWithContainer:(NSString *)containerName cdnEnabled:(BOOL)cdnEnabled ttl:(NSUInteger)ttl {
 	ASICloudFilesCDNRequest *request = [ASICloudFilesCDNRequest cdnRequestWithMethod:@"POST" containerName:containerName];
 	if (ttl > 0) {
-		[request addRequestHeader:@"X-Ttl" value:[NSString stringWithFormat:@"%i", ttl]];
+		[request addRequestHeader:@"X-Ttl" value:[NSString stringWithFormat:@"%lu", (unsigned long)ttl]];
 	}
 	[request addRequestHeader:@"X-CDN-Enabled" value:cdnEnabled ? @"True" : @"False"];
 	return request;

@@ -881,6 +881,7 @@ typedef void (^ASIDataBlock)(NSData *data);
 // Returns a date from a string in RFC1123 format
 + (NSDate *)dateFromRFC1123String:(NSString *)string;
 
++ (NSString*)encodeURL:(NSString *)string;
 
 // Used for detecting multitasking support at runtime (for backgrounding requests)
 #if TARGET_OS_IPHONE

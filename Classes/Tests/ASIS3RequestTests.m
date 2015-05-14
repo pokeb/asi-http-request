@@ -416,7 +416,7 @@ static NSString *bucket = @"";
 	GHAssertTrue(success,@"You need to supply your S3 access details to run the list test (see the top of ASIS3RequestTests.m)");
 	
 	// Firstly, create and upload 5 files
-	int i;
+	short i;
 	for (i=0; i<5; i++) {
 		NSString *text = [NSString stringWithFormat:@"This is the content of file #%hi",i];
 		NSString *filePath = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:[NSString stringWithFormat:@"%hi.txt",i]];
@@ -638,10 +638,10 @@ static NSString *bucket = @"";
 	[[self networkQueue] setShowAccurateProgress:YES];
 	[[self networkQueue] setMaxConcurrentOperationCount:1];
 	
-	int i;	
+	short i;
 	for (i=0; i<5; i++) {
 		
-		NSString *key = [NSString stringWithFormat:@"stuff/file%hi.txt",i+1];
+		NSString *key = [NSString stringWithFormat:@"stuff/file%hi.txt", (short)(i+1)];
 		
 		ASIS3ObjectRequest *s3Request = [ASIS3ObjectRequest PUTRequestForData:data withBucket:bucket key:key];
 		[s3Request setSecretAccessKey:secretAccessKey];
@@ -667,12 +667,12 @@ static NSString *bucket = @"";
 	
 	for (i=0; i<5; i++) {
 		
-		NSString *key = [NSString stringWithFormat:@"stuff/file%hi.txt",i+1];
+		NSString *key = [NSString stringWithFormat:@"stuff/file%hi.txt", (short)(i+1)];
 		
 		ASIS3ObjectRequest *s3Request = [ASIS3ObjectRequest requestWithBucket:bucket key:key];
 		[s3Request setSecretAccessKey:secretAccessKey];
 		[s3Request setAccessKey:accessKey];
-		NSString *downloadPath = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:[NSString stringWithFormat:@"%hi.jpg",i+1]];
+		NSString *downloadPath = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:[NSString stringWithFormat:@"%hi.jpg", (short)(i+1)]];
 		[s3Request setDownloadDestinationPath:downloadPath];
 		[[self networkQueue] addOperation:s3Request];
 	}
@@ -693,7 +693,7 @@ static NSString *bucket = @"";
 
 	for (i=0; i<5; i++) {
 		
-		NSString *key = [NSString stringWithFormat:@"stuff/file%hi.txt",i+1];
+		NSString *key = [NSString stringWithFormat:@"stuff/file%hi.txt", (short)(i+1)];
 		
 		ASIS3ObjectRequest *s3Request = [ASIS3ObjectRequest DELETERequestWithBucket:bucket key:key];
 		[s3Request setSecretAccessKey:secretAccessKey];

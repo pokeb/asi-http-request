@@ -11,11 +11,9 @@
 // Most of the zlib stuff is based on the sample code by Mark Adler available at http://zlib.net
 
 #import <Foundation/Foundation.h>
-#import <zlib.h>
 
 @interface ASIDataCompressor : NSObject {
 	BOOL streamReady;
-	z_stream zStream;
 }
 
 // Convenience constructor will call setupStream for you
@@ -23,7 +21,7 @@
 
 // Compress the passed chunk of data
 // Passing YES for shouldFinish will finalize the deflated data - you must pass YES when you are on the last chunk of data
-- (NSData *)compressBytes:(Bytef *)bytes length:(NSUInteger)length error:(NSError **)err shouldFinish:(BOOL)shouldFinish;
+- (NSData *)compressBytes:(Byte *)bytes length:(NSUInteger)length error:(NSError **)err shouldFinish:(BOOL)shouldFinish;
 
 // Convenience method - pass it some data, and you'll get deflated data back
 + (NSData *)compressData:(NSData*)uncompressedData error:(NSError **)err;

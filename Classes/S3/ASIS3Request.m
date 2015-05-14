@@ -35,6 +35,7 @@ static NSString *sharedSecretAccessKey = nil;
 	// After a bit of experimentation/guesswork, this number seems to reduce the chance of a 'RequestTimeout' error
 	[self setPersistentConnectionTimeoutSeconds:20];
 	[self setRequestScheme:ASIS3RequestSchemeHTTP];
+    [self setValidatesSecureCertificate:NO];
 	return self;
 }
 
@@ -72,6 +73,58 @@ static NSString *sharedSecretAccessKey = nil;
 		[headers setObject:[self accessPolicy] forKey:@"x-amz-acl"];
 	}
 	return headers;
+}
+
++ (NSURL *)authenticatedURLWithBucket:(NSString *)bucket
+                                  key:(NSString *)key
+                              expires:(NSDate *)expires
+                                 host:(NSString *)host
+                           hostBucket:(BOOL)hostBucket
+                                https:(BOOL)https
+                                   ip:(NSString *)ip
+                             urlStyle:(ASIS3UrlStyle)urlStyle
+                          subResource:(NSString *)subResource
+{
+    NSUInteger lifeTime = 600;
+    
+    NSString *domain = host ? host : [ASIS3Request S3Host];
+    NSString *path = [NSString stringWithFormat:@"%@%@", bucket ? [NSString stringWithFormat:@"/%@",bucket] : @"", [ASIS3Request stringByURLEncodingForS3Path:key]];
+    
+    if (bucket && urlStyle == ASIS3UrlVhostStyle) {
+        domain = [NSString stringWithFormat:@"%@.%@", bucket, domain];
+        path = [ASIS3Request stringByURLEncodingForS3Path:key];
+    }
+    
+    if (bucket && hostBucket) {
+        domain = bucket;
+        path = [ASIS3Request stringByURLEncodingForS3Path:key];
+    }
+    
+    
+    NSString *kid = [ASIHTTPRequest encodeURL:[NSString stringWithFormat:@"sina,%@", sharedAccessKey ? sharedAccessKey : @""]];
+    NSString *expiresString = expires ? [NSString stringWithFormat:@"%.0f",[expires timeIntervalSince1970]] :
+                                        [NSString stringWithFormat:@"%.0f",[[[NSDate date] dateByAddingTimeInterval:lifeTime] timeIntervalSince1970]];
+    
+    subResource = subResource ? [subResource stringByAppendingString:ip?[NSString stringWithFormat:@"&ip=%@",ip]:@""] : (ip ? [NSString stringWithFormat:@"ip=%@",ip]:nil);
+    
+    NSString *stringToSign = [NSString stringWithFormat:@"GET\n\n\n%@\n%@%@%@",expiresString,
+                                                                                bucket?[NSString stringWithFormat:@"/%@",bucket]:@"",
+                                                                                [ASIS3Request stringByURLEncodingForS3Path:key],
+                                                                                subResource?[NSString stringWithFormat:@"?%@",subResource]:@""];
+    //NSLog(@"%@", stringToSign);
+    
+    NSString *ssig = [[ASIHTTPRequest base64forData:[ASIS3Request HMACSHA1withKey:sharedSecretAccessKey forString:stringToSign]] substringWithRange:NSMakeRange(5, 10)];
+    ssig = [ASIHTTPRequest encodeURL:ssig];
+    
+    NSString *uri = [path stringByAppendingString:[NSString stringWithFormat:@"?%@KID=%@&Expires=%@&ssig=%@",subResource?[subResource stringByAppendingString:@"&"]:@"",
+                                                                                                            kid,
+                                                                                                            expiresString,
+                                                                                                            ssig]];
+    
+    NSString *urlString = [NSString stringWithFormat:@"%@://%@%@",https?@"https":@"http",domain,uri];
+    
+    NSURL *authenticatedURL = [NSURL URLWithString:urlString];
+    return authenticatedURL;
 }
 
 - (void)main
@@ -125,8 +178,8 @@ static NSString *sharedSecretAccessKey = nil;
 	
 	// Jump through hoops while eating hot food
 	NSString *stringToSign = [self stringToSignForHeaders:canonicalizedAmzHeaders resource:canonicalizedResource];
-	NSString *signature = [ASIHTTPRequest base64forData:[ASIS3Request HMACSHA1withKey:[self secretAccessKey] forString:stringToSign]];
-	NSString *authorizationString = [NSString stringWithFormat:@"AWS %@:%@",[self accessKey],signature];
+	NSString *signature = [[ASIHTTPRequest base64forData:[ASIS3Request HMACSHA1withKey:[self secretAccessKey] forString:stringToSign]] substringWithRange:NSMakeRange(5, 10)];
+	NSString *authorizationString = [NSString stringWithFormat:@"SINA %@:%@",[self accessKey],signature];
 	[self addRequestHeader:@"Authorization" value:authorizationString];
 	
 	
@@ -135,14 +188,43 @@ static NSString *sharedSecretAccessKey = nil;
 - (void)requestFinished
 {
 	if ([[[self responseHeaders] objectForKey:@"Content-Type"] isEqualToString:@"application/xml"]) {
+        
 		[self parseResponseXML];
-	}
+        
+	} else if ([[[self responseHeaders] objectForKey:@"Content-Type"] isEqualToString:@"application/json"]) {
+        
+        [self parseResponseJson];
+    }
 	if (![self error]) {
 		[super requestFinished];
 	}
 }
 
-#pragma mark Error XML parsing
+#pragma mark Error XML/Json parsing
+
+- (void)parseResponseJson {
+    
+    /*
+     
+     {"Message": "The provided token has expired.()", "Code": "ExpiredToken", "Resource": "\/", "RequestId": "05b43801-1405-0916-1056-782bcb67e2e3"}
+     
+     */
+    
+    NSError *jsonParseError = nil;
+    NSDictionary *jsonObject = [NSJSONSerialization JSONObjectWithData:[self responseData] options:kNilOptions error:&jsonParseError];
+    
+    if (jsonParseError == nil && jsonObject && [jsonObject isKindOfClass:[NSDictionary class]]) {
+        
+        if ([jsonObject objectForKey:@"Message"]) {
+            
+            [self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIS3ResponseErrorType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[jsonObject objectForKey:@"Message"], NSLocalizedDescriptionKey, nil]]];
+        }
+        
+    } else {
+        
+        [self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:ASIS3ResponseParsingFailedType userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Parsing the resposnse failed", NSLocalizedDescriptionKey, jsonParseError, NSUnderlyingErrorKey, nil]]];
+    }
+}
 
 - (void)parseResponseXML
 {
@@ -295,7 +377,8 @@ static NSString *sharedSecretAccessKey = nil;
 
 + (NSString *)S3Host
 {
-	return @"s3.amazonaws.com";
+    return @"sinastorage.cn";
+	//return @"s3.amazonaws.com";
 }
 
 - (void)buildURL

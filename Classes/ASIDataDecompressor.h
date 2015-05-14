@@ -11,18 +11,16 @@
 // Most of the zlib stuff is based on the sample code by Mark Adler available at http://zlib.net
 
 #import <Foundation/Foundation.h>
-#import <zlib.h>
 
 @interface ASIDataDecompressor : NSObject {
 	BOOL streamReady;
-	z_stream zStream;
 }
 
 // Convenience constructor will call setupStream for you
 + (id)decompressor;
 
 // Uncompress the passed chunk of data
-- (NSData *)uncompressBytes:(Bytef *)bytes length:(NSUInteger)length error:(NSError **)err;
+- (NSData *)uncompressBytes:(Byte *)bytes length:(NSUInteger)length error:(NSError **)err;
 
 // Convenience method - pass it some deflated data, and you'll get inflated data back
 + (NSData *)uncompressData:(NSData*)compressedData error:(NSError **)err;

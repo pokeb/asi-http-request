@@ -35,11 +35,11 @@
 
 // Default exception handler
 void exceptionHandler(NSException *exception) {	
-	NSLog(@"%@\n%@", [exception reason], GHUStackTraceFromException(exception));
+	NSLog(@"%@\n%@", [exception reason], [GHTesting descriptionForException:exception]);
 }
 
 int main(int argc, char *argv[]) {
-
+    
 	/*!
 	 For debugging:
 	 Go into the "Get Info" contextual menu of your (test) executable (inside the "Executables" group in the left panel of XCode). 
