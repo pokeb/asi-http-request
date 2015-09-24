@@ -1248,6 +1248,10 @@ static NSOperationQueue *sharedQueue = nil;
                 [sslProperties setObject:[NSNumber numberWithBool:NO] forKey:(id)kCFStreamSSLValidatesCertificateChain];
                 [sslProperties setObject:(id)kCFNull forKey:(id)kCFStreamSSLPeerName];
                 
+            } else {
+                
+                [sslProperties setObject:(id)kCFBooleanTrue forKey:(id)kCFStreamSSLValidatesCertificateChain];
+                
             }
             
             if ([sslProperties count] > 0) {
