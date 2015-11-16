@@ -3,7 +3,7 @@ This fixes occasional crash when you cancel an ASIHTTPRequest.
 
 The crash can be reproduced when you cancel a request that satisfies:  
 
-  1. currently waiting in queue, not been started yet
+  1. currently waiting in queue, not been started yet  
   2. there is valid cached data for this request in downloadCache  
 
 The fix is similar to jogu@887fcad. That's, avoid calling markAsFinished unless we're in progress.
