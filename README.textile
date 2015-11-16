@@ -6,4 +6,4 @@ The crash can be reproduced when you cancel a request that satisfies:
 * currently waiting in queue, not been started yet 
 * there is valid cached data for this request in downloadCache  
 
-The fix is similar to jogu@887fcad. That's, avoid calling markAsFinished unless we're in progress.
+The fix is similar to [jogu@887fcad](https://github.com/jogu/asi-http-request/commit/887fcad0f77e9717f003273612804a9b9012a140). That's, avoid calling markAsFinished unless we're in progress.
