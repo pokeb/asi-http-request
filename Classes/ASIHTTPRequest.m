@@ -2098,14 +2098,20 @@ static NSOperationQueue *sharedQueue = nil;
 		return;
 	}
 	
-	// If we have cached data, use it and ignore the error when using ASIFallbackToCacheIfLoadFailsCachePolicy
-	if ([self downloadCache] && ([self cachePolicy] & ASIFallbackToCacheIfLoadFailsCachePolicy)) {
-		if ([[self downloadCache] canUseCachedDataForRequest:self]) {
-			[self useDataFromCache];
-			return;
-		}
-	}
-	
+    
+    //Use possible cached data ONLY when  the request is not manually cancelled.
+    //`useDataFromCache` will mark the request as finished. If we are not in progress, we can't notify the queue we've finished(doing so can cause a crash later on).
+    // It's similar to  https://github.com/jogu/asi-http-request/commit/887fcad0f77e9717f003273612804a9b9012a140
+    if(theError != ASIRequestCancelledError){
+       	// If we have cached data, use it and ignore the error when using ASIFallbackToCacheIfLoadFailsCachePolicy
+        if ([self downloadCache] && ([self cachePolicy] & ASIFallbackToCacheIfLoadFailsCachePolicy)) {
+            if ([[self downloadCache] canUseCachedDataForRequest:self]) {
+                [self useDataFromCache];
+                return;
+            }
+        }
+    }
+
 	
 	[self setError:theError];
 	
