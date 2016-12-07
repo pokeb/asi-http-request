@@ -210,6 +210,12 @@
 		if ([self queueDidFinishSelector]) {
 			[[self delegate] performSelector:[self queueDidFinishSelector] withObject:self];
 		}
+  #if NS_BLOCKS_AVAILABLE
+    if(queueDidFinishBlock){
+      queueDidFinishBlock();
+    }
+  #endif
+
 	}
 }
 
@@ -223,6 +229,12 @@
 		if ([self queueDidFinishSelector]) {
 			[[self delegate] performSelector:[self queueDidFinishSelector] withObject:self];
 		}
+    #if NS_BLOCKS_AVAILABLE
+      if(queueDidFinishBlock){
+        queueDidFinishBlock();
+      }
+    #endif
+
 	}
 	if ([self shouldCancelAllRequestsOnFailure] && [self requestsCount] > 0) {
 		[self cancelAllOperations];
@@ -301,6 +313,16 @@
 	}
 	return [super respondsToSelector:selector];
 }
+
+#pragma mark blocks
+#if NS_BLOCKS_AVAILABLE
+- (void)setQueueDidFinishBlock:(ASIBasicBlock)aQueueDidFinishBlock
+{
+	[queueDidFinishBlock release];
+	queueDidFinishBlock = [aQueueDidFinishBlock copy];
+}
+#endif
+
 
 #pragma mark NSCopying
 
