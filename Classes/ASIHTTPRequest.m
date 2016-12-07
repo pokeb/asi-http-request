@@ -1220,6 +1220,7 @@ static NSOperationQueue *sharedQueue = nil;
                                       [NSNumber numberWithBool:NO],  kCFStreamSSLValidatesCertificateChain,
                                       kCFNull,kCFStreamSSLPeerName,
                                       nil];
+            [sslProperties autorelease];            
             
             CFReadStreamSetProperty((CFReadStreamRef)[self readStream], 
                                     kCFStreamPropertySSLSettings, 
