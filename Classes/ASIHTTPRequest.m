@@ -24,7 +24,7 @@
 #import "ASIDataCompressor.h"
 
 // Automatically set on build
-NSString *ASIHTTPRequestVersion = @"v1.8.1-61 2011-09-19";
+NSString *ASIHTTPRequestVersion = @"v1.8.1-72 2011-11-30";
 
 static NSString *defaultUserAgent = nil;
 
@@ -140,6 +140,7 @@ static NSOperationQueue *sharedQueue = nil;
 // Private stuff
 @interface ASIHTTPRequest ()
 
+- (void)requestRedirected;
 - (void)cancelLoad;
 
 - (void)destroyReadStream;
@@ -1469,6 +1470,7 @@ static NSOperationQueue *sharedQueue = nil;
 	} else {
 		// Go all the way back to the beginning and build the request again, so that we can apply any new cookies
 		[self main];
+		[self performSelectorOnMainThread:@selector(requestRedirected) withObject:nil waitUntilDone:[NSThread isMainThread]];
 	}
 }
 
@@ -2316,8 +2318,6 @@ static NSOperationQueue *sharedQueue = nil;
 	if (responseCode != 301 && responseCode != 302 && responseCode != 303 && responseCode != 307) {
 		return NO;
 	}
-
-	[self performSelectorOnMainThread:@selector(requestRedirected) withObject:nil waitUntilDone:[NSThread isMainThread]];
 
 	// By default, we redirect 301 and 302 response codes as GET requests
 	// According to RFC 2616 this is wrong, but this is what most browsers do, so it's probably what you're expecting to happen
