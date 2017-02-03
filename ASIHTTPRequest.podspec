@@ -1,10 +1,10 @@
 Pod::Spec.new do |s|
   s.name     = 'ASIHTTPRequest'
-  s.version  = '1.8.zipmark'
+  s.version  = '1.8.2'
   s.summary  = 'Easy to use CFNetwork wrapper for HTTP requests, Objective-C, Mac OS X and iPhone'
   s.homepage = 'http://allseeing-i.com/ASIHTTPRequest'
   s.author   = { 'Ben Copsey' => 'ben@allseeing-i.com' }
-  s.source   = { :git => 'https://github.com/pokeb/asi-http-request.git', :commit => '4282568eec0b487a98e312ce49b523350ffa4a6b' }
+  s.source   = { :git => 'https://github.com/redbug26/asi-http-request.git' }
 
   s.description = %{
     ASIHTTPRequest is an easy to use wrapper around the CFNetwork API that
