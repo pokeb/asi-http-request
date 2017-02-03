@@ -25,5 +25,5 @@ Pod::Spec.new do |s|
                                     '-framework MobileCoreServices ' \
                                     '-l z.1' }
 
-  s.dependency 'Reachability', '~> 2.0', '>= 2.0.4'
+  s.dependency 'Reachability'
 end
