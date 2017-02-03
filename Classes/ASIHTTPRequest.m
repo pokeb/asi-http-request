@@ -2540,8 +2540,9 @@ static NSOperationQueue *sharedQueue = nil;
 	NSMutableDictionary *newCredentials = [[[NSMutableDictionary alloc] init] autorelease];
 
 	// First, let's look at the url to see if the username and password were included
-	NSString *user = [[self url] user];
-	NSString *pass = [[self url] password];
+ 	NSURLComponents *components = [NSURLComponents componentsWithURL:self.url resolvingAgainstBaseURL:NO];
+    	NSString *user = components.user;
+    	NSString *pass = components.password;
 
 	if (user && pass) {
 
