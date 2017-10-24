@@ -1215,17 +1215,30 @@ static NSOperationQueue *sharedQueue = nil;
             // see: http://iphonedevelopment.blogspot.com/2010/05/nsstream-tcp-and-ssl.html
             
             NSDictionary *sslProperties = [[NSDictionary alloc] initWithObjectsAndKeys:
-                                      [NSNumber numberWithBool:YES], kCFStreamSSLAllowsExpiredCertificates,
-                                      [NSNumber numberWithBool:YES], kCFStreamSSLAllowsAnyRoot,
-                                      [NSNumber numberWithBool:NO],  kCFStreamSSLValidatesCertificateChain,
-                                      kCFNull,kCFStreamSSLPeerName,
-                                      nil];
+                                       [NSNumber numberWithBool:YES], kCFStreamSSLAllowsExpiredCertificates,
+                                           [NSNumber numberWithBool:YES], kCFStreamSSLAllowsAnyRoot,
+                                           [NSNumber numberWithBool:NO],  kCFStreamSSLValidatesCertificateChain,
+                                           kCFNull,kCFStreamSSLPeerName,
+                                           @"kCFStreamSocketSecurityLevelTLSv1_0SSLv3", kCFStreamSSLLevel,
+                                           nil];
             
-            CFReadStreamSetProperty((CFReadStreamRef)[self readStream], 
-                                    kCFStreamPropertySSLSettings, 
+            CFReadStreamSetProperty((CFReadStreamRef)[self readStream],
+                                    kCFStreamPropertySSLSettings,
                                     (CFTypeRef)sslProperties);
             [sslProperties release];
-        } 
+        } else {
+            NSDictionary *sslProperties = [[NSDictionary alloc] initWithObjectsAndKeys:
+                                           [NSNumber numberWithBool:NO], kCFStreamSSLAllowsExpiredCertificates,
+                                           [NSNumber numberWithBool:NO], kCFStreamSSLAllowsAnyRoot,
+                                           [NSNumber numberWithBool:YES],  kCFStreamSSLValidatesCertificateChain,
+                                           @"kCFStreamSocketSecurityLevelTLSv1_0SSLv3", kCFStreamSSLLevel,
+                                           nil];
+            
+            CFReadStreamSetProperty((CFReadStreamRef)[self readStream],
+                                    kCFStreamPropertySSLSettings,
+                                    (CFTypeRef)sslProperties);
+            [sslProperties release];
+        }
         
         // Tell CFNetwork to use a client certificate
         if (clientCertificateIdentity) {
@@ -4045,6 +4058,27 @@ static NSOperationQueue *sharedQueue = nil;
 		}
 	}	
 	[connectionsLock unlock];
+}
+
++ (void)clearPersistentConnections
+{
+    [connectionsLock lock];
+    NSUInteger i;
+    for (i=0; i<[persistentConnectionsPool count]; i++) {
+        NSDictionary *existingConnection = [persistentConnectionsPool objectAtIndex:i];
+        if (![existingConnection objectForKey:@"request"]) {
+#if DEBUG_PERSISTENT_CONNECTIONS
+            ASI_DEBUG_LOG(@"[CONNECTION] Closing connection #%i manualy",[[existingConnection objectForKey:@"id"] intValue]);
+#endif
+            NSInputStream *stream = [existingConnection objectForKey:@"stream"];
+            if (stream) {
+                [stream close];
+            }
+            [persistentConnectionsPool removeObject:existingConnection];
+            i--;
+        }
+    }
+    [connectionsLock unlock];
 }
 
 #pragma mark NSCopying
