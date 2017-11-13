@@ -270,9 +270,9 @@ static const NSUInteger kDomainSection = 1;
 	if (UIInterfaceOrientationIsPortrait((UIInterfaceOrientation)[[UIDevice currentDevice] orientation])) {
 		// Setup the title
 		if ([self type] == ASIProxyAuthenticationType) {
-			[navItem setPrompt:@"Login to this secure proxy server."];
+			[navItem setPrompt:NSLocalizedString(@"Login to this secure proxy server.", nil)];
 		} else {
-			[navItem setPrompt:@"Login to this secure server."];
+			[navItem setPrompt:NSLocalizedString(@"Login to this secure server.", nil)];
 		}
 	} else {
 		[navItem setPrompt:nil];
@@ -311,7 +311,7 @@ static const NSUInteger kDomainSection = 1;
 	}
 
 	[navItem setLeftBarButtonItem:[[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self action:@selector(cancelAuthenticationFromDialog:)] autorelease]];
-	[navItem setRightBarButtonItem:[[[UIBarButtonItem alloc] initWithTitle:@"Login" style:UIBarButtonItemStyleDone target:self action:@selector(loginWithCredentialsFromDialog:)] autorelease]];
+	[navItem setRightBarButtonItem:[[[UIBarButtonItem alloc] initWithTitle:NSLocalizedString(@"Login", nil) style:UIBarButtonItemStyleDone target:self action:@selector(loginWithCredentialsFromDialog:)] autorelease]];
 
 	// We show the login form in a table view, similar to Safari's authentication dialog
 	[bar sizeToFit];
@@ -475,12 +475,12 @@ static const NSUInteger kDomainSection = 1;
 	NSInteger r = [indexPath row];
 
 	if (s == kUsernameSection && r == kUsernameRow) {
-		[textField setPlaceholder:@"User"];
+		[textField setPlaceholder:NSLocalizedString(@"User", nil)];
 	} else if (s == kPasswordSection && r == kPasswordRow) {
-		[textField setPlaceholder:@"Password"];
+		[textField setPlaceholder:NSLocalizedString(@"Password", nil)];
 		[textField setSecureTextEntry:YES];
 	} else if (s == kDomainSection && r == kDomainRow) {
-		[textField setPlaceholder:@"Domain"];
+		[textField setPlaceholder:NSLocalizedString(@"Domain", nil)];
 	}
 	[cell.contentView addSubview:textField];
 
