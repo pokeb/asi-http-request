@@ -65,9 +65,6 @@ static NSLock *readLock = nil;
 {
     [stream release];
     [super dealloc];
-	if (rv > 0)
-		[ASIHTTPRequest incrementBandwidthUsedInLastSecond:(NSUInteger)rv];
-	return rv;
 }
 
 #pragma mark - NSStream subclass methods
@@ -147,7 +144,7 @@ static NSLock *readLock = nil;
 	[readLock unlock];
 	NSInteger rv = [stream read:buffer maxLength:toRead];
 	if (rv > 0)
-		[ASIHTTPRequest incrementBandwidthUsedInLastSecond:rv];
+		[ASIHTTPRequest incrementBandwidthUsedInLastSecond:(NSUInteger)rv];
 	return rv;
 }
 
