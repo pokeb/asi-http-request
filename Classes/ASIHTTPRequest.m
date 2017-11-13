@@ -4657,7 +4657,7 @@ static NSOperationQueue *sharedQueue = nil;
 	
 	// We'll split our bandwidth allowance into 4 (which is the default for an ASINetworkQueue's max concurrent operations count) to give all running requests a fighting chance of reading data this cycle
 	long long toRead = maxBandwidthPerSecond/4;
-	if (maxBandwidthPerSecond > 0 && ((long long)bandwidthUsedInLastSecond + toRead > maxBandwidthPerSecond)) {
+	if (maxBandwidthPerSecond > 0 && ((long long)bandwidthUsedInLastSecond + toRead > (long long)maxBandwidthPerSecond)) {
 		toRead = (long long)maxBandwidthPerSecond-(long long)bandwidthUsedInLastSecond;
 		if (toRead < 0) {
 			toRead = 0;
