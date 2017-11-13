@@ -12,7 +12,7 @@
 
 - (void)applicationDidFinishLaunching:(UIApplication *)application
 {
-	[window addSubview:[splitViewController view]];
+    window.rootViewController = splitViewController;
 	[window makeKeyAndVisible];
 }
 

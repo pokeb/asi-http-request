@@ -184,7 +184,7 @@ static NSString *intro = @"Demonstrates a fetching 3 items at once, using an ASI
 			} else {
 				[imageLabel1 setText:@"Img size: 15KB"];
 			}
-			[imageLabel1 setTextAlignment:UITextAlignmentCenter];
+			[imageLabel1 setTextAlignment:NSTextAlignmentCenter];
 			[imageLabel1 setFont:[UIFont systemFontOfSize:11]];
 			[imageLabel1 setBackgroundColor:[UIColor clearColor]];
 			[cell addSubview:imageLabel1];
@@ -202,7 +202,7 @@ static NSString *intro = @"Demonstrates a fetching 3 items at once, using an ASI
 			} else {
 				[imageLabel2 setText:@"Img size: 176KB"];
 			}
-			[imageLabel2 setTextAlignment:UITextAlignmentCenter];
+			[imageLabel2 setTextAlignment:NSTextAlignmentCenter];
 			[imageLabel2 setFont:[UIFont systemFontOfSize:11]];
 			[imageLabel2 setBackgroundColor:[UIColor clearColor]];
 			[cell addSubview:imageLabel2];
@@ -220,7 +220,7 @@ static NSString *intro = @"Demonstrates a fetching 3 items at once, using an ASI
 			} else {
 				[imageLabel3 setText:@"Img size: 1.4MB"];
 			}
-			[imageLabel3 setTextAlignment:UITextAlignmentCenter];
+			[imageLabel3 setTextAlignment:NSTextAlignmentCenter];
 			[imageLabel3 setFont:[UIFont systemFontOfSize:11]];
 			[imageLabel3 setBackgroundColor:[UIColor clearColor]];
 			[cell addSubview:imageLabel3];

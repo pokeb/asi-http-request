@@ -36,7 +36,7 @@
 
 // Default exception handler
 void exceptionHandler(NSException *exception) { 
-  NSLog(@"%@\n%@", [exception reason], GHUStackTraceFromException(exception));
+//  NSLog(@"%@\n%@", [exception reason], GHUStackTraceFromException(exception));
 }
 
 int main(int argc, char *argv[]) {

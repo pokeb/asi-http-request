@@ -14,7 +14,7 @@
 + (id)cell
 {
 	ToggleCell *cell = [[[ToggleCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier:@"ToggleCell"] autorelease];
-	[[cell textLabel] setTextAlignment:UITextAlignmentLeft];
+	[[cell textLabel] setTextAlignment:NSTextAlignmentLeft];
 	[cell setToggle:[[[UISwitch alloc] initWithFrame:CGRectMake(0,0,20,20)] autorelease]];
 	[cell setAccessoryView:[cell toggle]];
 	return cell;

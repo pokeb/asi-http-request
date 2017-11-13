@@ -13,7 +13,7 @@
 - (void)applicationDidFinishLaunching:(UIApplication *)application
 {
 	[[tabBarController view] setFrame:CGRectMake(0, 0, 320, 480)];
-	[window addSubview:[tabBarController view]];
+    window.rootViewController = tabBarController;
 }
 
 - (void)dealloc

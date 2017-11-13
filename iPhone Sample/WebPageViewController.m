@@ -118,7 +118,7 @@
 
 - (void)request:(ASIHTTPRequest *)theRequest didReceiveBytes:(long long)newLength
 {
-	NSInteger requestNumber = [[self requestsInProgress] indexOfObject:theRequest];
+	NSInteger requestNumber = (NSInteger)[[self requestsInProgress] indexOfObject:theRequest];
 	if (requestNumber != NSNotFound) {
 		RequestProgressCell *cell = (RequestProgressCell *)[[self tableView] cellForRowAtIndexPath:[NSIndexPath indexPathForRow:requestNumber inSection:2]];
 		if ([theRequest contentLength]+[theRequest partialDownloadSize] > 0) {

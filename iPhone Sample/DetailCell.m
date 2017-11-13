@@ -14,7 +14,7 @@
 + (id)cell
 {
 	DetailCell *cell = [[[DetailCell alloc] initWithStyle:UITableViewCellStyleValue2 reuseIdentifier:@"HeaderCell"] autorelease];
-	[[cell detailTextLabel] setTextAlignment:UITextAlignmentLeft];
+	[[cell detailTextLabel] setTextAlignment:NSTextAlignmentLeft];
 	[[cell detailTextLabel] setFont:[UIFont systemFontOfSize:14]];
 	return cell;
 }
