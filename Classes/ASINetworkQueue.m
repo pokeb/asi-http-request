@@ -12,7 +12,7 @@
 // Private stuff
 @interface ASINetworkQueue ()
 	- (void)resetProgressDelegate:(id *)progressDelegate;
-	@property (assign) int requestsCount;
+	@property (assign, atomic) int requestsCount;
 @end
 
 @implementation ASINetworkQueue

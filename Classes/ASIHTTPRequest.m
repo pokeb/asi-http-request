@@ -201,12 +201,12 @@ static NSOperationQueue *sharedQueue = nil;
 
 
 
-@property (assign) BOOL complete;
-@property (retain) NSArray *responseCookies;
-@property (assign) int responseStatusCode;
+@property (assign, atomic) BOOL complete;
+@property (retain, atomic) NSArray *responseCookies;
+@property (assign, atomic) int responseStatusCode;
 @property (retain, nonatomic) NSDate *lastActivityTime;
 
-@property (assign) unsigned long long partialDownloadSize;
+@property (assign, atomic) unsigned long long partialDownloadSize;
 @property (assign, nonatomic) unsigned long long uploadBufferSize;
 @property (retain, nonatomic) NSOutputStream *postBodyWriteStream;
 @property (retain, nonatomic) NSInputStream *postBodyReadStream;
@@ -215,29 +215,29 @@ static NSOperationQueue *sharedQueue = nil;
 @property (atomic, retain) NSRecursiveLock *cancelledLock;
 @property (retain, nonatomic) NSOutputStream *fileDownloadOutputStream;
 @property (retain, nonatomic) NSOutputStream *inflatedFileDownloadOutputStream;
-@property (assign) int authenticationRetryCount;
-@property (assign) int proxyAuthenticationRetryCount;
+@property (assign, atomic) int authenticationRetryCount;
+@property (assign, atomic) int proxyAuthenticationRetryCount;
 @property (assign, nonatomic) BOOL updatedProgress;
 @property (assign, nonatomic) BOOL needsRedirect;
 @property (assign, nonatomic) int redirectCount;
 @property (retain, nonatomic) NSData *compressedPostBody;
 @property (retain, nonatomic) NSString *compressedPostBodyFilePath;
-@property (retain) NSString *authenticationRealm;
-@property (retain) NSString *proxyAuthenticationRealm;
-@property (retain) NSString *responseStatusMessage;
-@property (assign) BOOL inProgress;
-@property (assign) int retryCount;
+@property (retain, atomic) NSString *authenticationRealm;
+@property (retain, atomic) NSString *proxyAuthenticationRealm;
+@property (retain, atomic) NSString *responseStatusMessage;
+@property (assign, atomic) BOOL inProgress;
+@property (assign, atomic) int retryCount;
 @property (atomic, assign) BOOL willRetryRequest;
-@property (assign) BOOL connectionCanBeReused;
+@property (assign, atomic) BOOL connectionCanBeReused;
 @property (retain, nonatomic) NSMutableDictionary *connectionInfo;
 @property (retain, nonatomic) NSInputStream *readStream;
-@property (assign) ASIAuthenticationState authenticationNeeded;
+@property (assign, atomic) ASIAuthenticationState authenticationNeeded;
 @property (assign, nonatomic) BOOL readStreamIsScheduled;
 @property (assign, nonatomic) BOOL downloadComplete;
-@property (retain) NSNumber *requestID;
+@property (retain, atomic) NSNumber *requestID;
 @property (assign, nonatomic) NSString *runLoopMode;
 @property (retain, nonatomic) NSTimer *statusTimer;
-@property (assign) BOOL didUseCachedResponse;
+@property (assign, atomic) BOOL didUseCachedResponse;
 @property (retain, nonatomic) NSURL *redirectURL;
 
 @property (assign, nonatomic) BOOL isPACFileRequest;
