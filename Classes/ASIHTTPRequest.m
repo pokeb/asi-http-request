@@ -1215,17 +1215,30 @@ static NSOperationQueue *sharedQueue = nil;
             // see: http://iphonedevelopment.blogspot.com/2010/05/nsstream-tcp-and-ssl.html
             
             NSDictionary *sslProperties = [[NSDictionary alloc] initWithObjectsAndKeys:
-                                      [NSNumber numberWithBool:YES], kCFStreamSSLAllowsExpiredCertificates,
-                                      [NSNumber numberWithBool:YES], kCFStreamSSLAllowsAnyRoot,
-                                      [NSNumber numberWithBool:NO],  kCFStreamSSLValidatesCertificateChain,
-                                      kCFNull,kCFStreamSSLPeerName,
-                                      nil];
+                                           [NSNumber numberWithBool:YES], kCFStreamSSLAllowsExpiredCertificates,
+                                           [NSNumber numberWithBool:YES], kCFStreamSSLAllowsAnyRoot,
+                                           [NSNumber numberWithBool:NO],  kCFStreamSSLValidatesCertificateChain,
+                                           kCFNull,kCFStreamSSLPeerName,
+                                           @"kCFStreamSocketSecurityLevelTLSv1_0SSLv3", kCFStreamSSLLevel,
+                                           nil];
             
-            CFReadStreamSetProperty((CFReadStreamRef)[self readStream], 
-                                    kCFStreamPropertySSLSettings, 
+            CFReadStreamSetProperty((CFReadStreamRef)[self readStream],
+                                    kCFStreamPropertySSLSettings,
                                     (CFTypeRef)sslProperties);
             [sslProperties release];
-        } 
+        } else {
+            NSDictionary *sslProperties = [[NSDictionary alloc] initWithObjectsAndKeys:
+                                           [NSNumber numberWithBool:NO], kCFStreamSSLAllowsExpiredCertificates,
+                                           [NSNumber numberWithBool:NO], kCFStreamSSLAllowsAnyRoot,
+                                           [NSNumber numberWithBool:YES],  kCFStreamSSLValidatesCertificateChain,
+                                           @"kCFStreamSocketSecurityLevelTLSv1_0SSLv3", kCFStreamSSLLevel,
+                                           nil];
+            
+            CFReadStreamSetProperty((CFReadStreamRef)[self readStream],
+                                    kCFStreamPropertySSLSettings,
+                                    (CFTypeRef)sslProperties);
+            [sslProperties release];
+        }
         
         // Tell CFNetwork to use a client certificate
         if (clientCertificateIdentity) {
@@ -4873,7 +4886,7 @@ static NSOperationQueue *sharedQueue = nil;
 	if (maxAge) {
 		NSDate *date = [NSDate date];
 		if ([date respondsToSelector:@selector(dateByAddingTimeInterval:)]) {
-			return [date dateByAddingTimeInterval:maxAge];
+		return [[NSDate date] dateByAddingTimeInterval:maxAge];
 		} else {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
