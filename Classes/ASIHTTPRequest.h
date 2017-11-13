@@ -746,6 +746,8 @@ typedef void (^ASIDataBlock)(NSData *data);
 // Called automatically when a request is started to clean up any persistent connections that have expired
 + (void)expirePersistentConnections;
 
++ (void)clearPersistentConnections;
+
 #pragma mark default time out
 
 + (NSTimeInterval)defaultTimeOutSeconds;
