@@ -17,7 +17,14 @@ Pod::Spec.new do |s|
     REST-based services (GET / POST / PUT / DELETE). The included
     ASIFormDataRequest subclass makes it easy to submit POST data and files
     using multipart/form-data.
+
+    Please note that ASIHTTPRequest is not recommended for newer projects
+    since it's not actively maintained anymore.
+
+    For more info visit: http://allseeing-i.com/%5Brequest_release%5D
   }
+
+  s.requires_arc = false
 
   s.subspec 'Core' do |core|
     core.source_files = 'Classes/*.{h,m}'
