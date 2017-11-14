@@ -132,7 +132,7 @@ static const NSUInteger kDomainSection = 1;
 - (void)orientationChanged:(NSNotification *)notification
 {
 	[self showTitle];
-	
+#ifndef TARGET_IS_EXTENSION
 	UIDeviceOrientation o = (UIDeviceOrientation)[[UIApplication sharedApplication] statusBarOrientation];
 	CGFloat angle = 0;
 	switch (o) {
@@ -171,6 +171,7 @@ static const NSUInteger kDomainSection = 1;
 	// Fix the view origin
 	self.view.frame = (CGRect){ { f.origin.x, f.origin.y },self.view.frame.size};
     [UIView commitAnimations];
+#endif
 }
 		 
 #pragma mark utilities
@@ -181,10 +182,12 @@ static const NSUInteger kDomainSection = 1;
 		presentingController = [[ASIAutorotatingViewController alloc] initWithNibName:nil bundle:nil];
 
 		// Attach to the window, but don't interfere.
+#ifndef TARGET_IS_EXTENSION
 		UIWindow *window = [[[UIApplication sharedApplication] windows] objectAtIndex:0];
 		[window addSubview:[presentingController view]];
 		[[presentingController view] setFrame:CGRectZero];
 		[[presentingController view] setUserInteractionEnabled:NO];
+#endif
 	}
 
 	return presentingController;
