@@ -64,7 +64,7 @@
 	NSString *queryString = @"?format=xml";
 	
 	if (limit > 0) {
-		queryString = [queryString stringByAppendingString:[NSString stringWithFormat:@"&limit=%i", limit]];
+		queryString = [queryString stringByAppendingString:[NSString stringWithFormat:@"&limit=%i", (int)limit]];
 	}
 	
 	if (marker != nil) {
