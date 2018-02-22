@@ -12,63 +12,8 @@
 
 @interface ASINetworkQueue : NSOperationQueue <ASIProgressDelegate, ASIHTTPRequestDelegate, NSCopying> {
 	
-	// Delegate will get didFail + didFinish messages (if set)
-	id delegate;
-
-	// Will be called when a request starts with the request as the argument
-	SEL requestDidStartSelector;
-	
-	// Will be called when a request receives response headers
-	// Should take the form request:didRecieveResponseHeaders:, where the first argument is the request, and the second the headers dictionary
-	SEL requestDidReceiveResponseHeadersSelector;
-	
-	// Will be called when a request is about to redirect
-	// Should take the form request:willRedirectToURL:, where the first argument is the request, and the second the new url
-	SEL requestWillRedirectSelector;
-
-	// Will be called when a request completes with the request as the argument
-	SEL requestDidFinishSelector;
-	
-	// Will be called when a request fails with the request as the argument
-	SEL requestDidFailSelector;
-	
-	// Will be called when the queue finishes with the queue as the argument
-	SEL queueDidFinishSelector;
-	
-	// Upload progress indicator, probably an NSProgressIndicator or UIProgressView
-	id uploadProgressDelegate;
-	
-	// Total amount uploaded so far for all requests in this queue
-	unsigned long long bytesUploadedSoFar;
-	
-	// Total amount to be uploaded for all requests in this queue - requests add to this figure as they work out how much data they have to transmit
-	unsigned long long totalBytesToUpload;
-
-	// Download progress indicator, probably an NSProgressIndicator or UIProgressView
-	id downloadProgressDelegate;
-	
-	// Total amount downloaded so far for all requests in this queue
-	unsigned long long bytesDownloadedSoFar;
-	
-	// Total amount to be downloaded for all requests in this queue - requests add to this figure as they receive Content-Length headers
-	unsigned long long totalBytesToDownload;
-	
-	// When YES, the queue will cancel all requests when a request fails. Default is YES
-	BOOL shouldCancelAllRequestsOnFailure;
-	
 	//Number of real requests (excludes HEAD requests created to manage showAccurateProgress)
-	int requestsCount;
-	
-	// When NO, this request will only update the progress indicator when it completes
-	// When YES, this request will update the progress indicator according to how much data it has received so far
-	// When YES, the queue will first perform HEAD requests for all GET requests in the queue, so it can calculate the total download size before it starts
-	// NO means better performance, because it skips this step for GET requests, and it won't waste time updating the progress indicator until a request completes 
-	// Set to YES if the size of a requests in the queue varies greatly for much more accurate results
-	// Default for requests in the queue is NO
-	BOOL showAccurateProgress;
-
-	// Storage container for additional queue information.
-	NSDictionary *userInfo;
+	int _requestsCount;
 	
 }
 
@@ -85,24 +30,62 @@
 // This method will start the queue
 - (void)go;
 
-@property (assign, nonatomic, setter=setUploadProgressDelegate:) id uploadProgressDelegate;
-@property (assign, nonatomic, setter=setDownloadProgressDelegate:) id downloadProgressDelegate;
+// Upload progress indicator, probably an NSProgressIndicator or UIProgressView
+@property (weak, nonatomic, setter=setUploadProgressDelegate:) id uploadProgressDelegate;
 
+// Download progress indicator, probably an NSProgressIndicator or UIProgressView
+@property (weak, nonatomic, setter=setDownloadProgressDelegate:) id downloadProgressDelegate;
+
+// Will be called when a request starts with the request as the argument
 @property (assign, atomic) SEL requestDidStartSelector;
+
+// Will be called when a request receives response headers
+// Should take the form request:didRecieveResponseHeaders:, where the first argument is the request, and the second the headers dictionary
 @property (assign, atomic) SEL requestDidReceiveResponseHeadersSelector;
+
+// Will be called when a request is about to redirect
+// Should take the form request:willRedirectToURL:, where the first argument is the request, and the second the new url
 @property (assign, atomic) SEL requestWillRedirectSelector;
+
+// Will be called when a request completes with the request as the argument
 @property (assign, atomic) SEL requestDidFinishSelector;
+
+// Will be called when a request fails with the request as the argument
 @property (assign, atomic) SEL requestDidFailSelector;
+
+// Will be called when the queue finishes with the queue as the argument
 @property (assign, atomic) SEL queueDidFinishSelector;
+
+// When YES, the queue will cancel all requests when a request fails. Default is YES
 @property (assign, atomic) BOOL shouldCancelAllRequestsOnFailure;
-@property (assign, atomic) id delegate;
+
+// Delegate will get didFail + didFinish messages (if set)
+@property (weak, atomic) id delegate;
+
+// When NO, this request will only update the progress indicator when it completes
+// When YES, this request will update the progress indicator according to how much data it has received so far
+// When YES, the queue will first perform HEAD requests for all GET requests in the queue, so it can calculate the total download size before it starts
+// NO means better performance, because it skips this step for GET requests, and it won't waste time updating the progress indicator until a request completes
+// Set to YES if the size of a requests in the queue varies greatly for much more accurate results
+// Default for requests in the queue is NO
 @property (assign, atomic) BOOL showAccurateProgress;
+
+//Number of real requests (excludes HEAD requests created to manage showAccurateProgress)
 @property (assign, atomic, readonly) int requestsCount;
+
+// Storage container for additional queue information.
 @property (retain, atomic) NSDictionary *userInfo;
 
+// Total amount uploaded so far for all requests in this queue
 @property (assign, atomic) unsigned long long bytesUploadedSoFar;
+
+// Total amount to be uploaded for all requests in this queue - requests add to this figure as they work out how much data they have to transmit
 @property (assign, atomic) unsigned long long totalBytesToUpload;
+
+// Total amount downloaded so far for all requests in this queue
 @property (assign, atomic) unsigned long long bytesDownloadedSoFar;
+
+// Total amount to be downloaded for all requests in this queue - requests add to this figure as they receive Content-Length headers
 @property (assign, atomic) unsigned long long totalBytesToDownload;
 
 @end

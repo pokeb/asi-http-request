@@ -16,9 +16,9 @@
 
 @interface ASIInputStream : NSInputStream<NSStreamDelegate>
 
-+ (id)inputStreamWithFileAtPath:(NSString *)path request:(ASIHTTPRequest *)request;
-+ (id)inputStreamWithData:(NSData *)data request:(ASIHTTPRequest *)request;
++ (instancetype)inputStreamWithFileAtPath:(NSString *)path request:(ASIHTTPRequest *)request;
++ (instancetype)inputStreamWithData:(NSData *)data request:(ASIHTTPRequest *)request;
 - (id)initWithInputStream:(NSInputStream *)stream;
 
-@property (assign, nonatomic) ASIHTTPRequest *request;
+@property (weak, nonatomic) ASIHTTPRequest *request;
 @end

@@ -13,7 +13,7 @@
 
 + (id)cell
 {
-	InfoCell *cell = [[[InfoCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"InfoCell"] autorelease];
+	InfoCell *cell = [[InfoCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"InfoCell"];
 	if ([[UIScreen mainScreen] bounds].size.width > 480) { // iPad
 		[[cell textLabel] setFont:[UIFont systemFontOfSize:14]];
 	} else {
@@ -23,7 +23,7 @@
 	[[cell textLabel] setNumberOfLines:0];
 	
 	if ([[UIScreen mainScreen] bounds].size.width > 480) { // iPad
-		UIImageView *imageView = [[[UIImageView alloc] initWithFrame:CGRectMake(10,10,48,48)] autorelease];
+		UIImageView *imageView = [[UIImageView alloc] initWithFrame:CGRectMake(10,10,48,48)];
 		[imageView setImage:[UIImage imageNamed:@"info.png"]];
 		[[cell contentView] addSubview:imageView];
 	}

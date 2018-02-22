@@ -48,8 +48,6 @@ Most of the code below here relates to the table view, and isn't that interestin
 - (void)dealloc
 {
 	[request cancel];
-	[request release];
-	[super dealloc];
 }
 
 
@@ -76,8 +74,8 @@ static NSString *intro = @"Demonstrates fetching a web page synchronously, the H
 	} else if ([indexPath section] == 1) {
 		cell = [tableView dequeueReusableCellWithIdentifier:@"URLCell"];
 		if (!cell) {
-			cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"URLCell"] autorelease];
-			urlField = [[[UITextField alloc] initWithFrame:CGRectZero] autorelease];
+			cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"URLCell"];
+			urlField = [[UITextField alloc] initWithFrame:CGRectZero];
 			[[cell contentView] addSubview:urlField];	
 			goButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
 			[goButton setTitle:@"Go!" forState:UIControlStateNormal];
@@ -97,8 +95,8 @@ static NSString *intro = @"Demonstrates fetching a web page synchronously, the H
 	} else if ([indexPath section] == 2) {
 		cell = [tableView dequeueReusableCellWithIdentifier:@"ResponseCell"];
 		if (!cell) {
-			cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"ResponseCell"] autorelease];
-			responseField = [[[UITextView alloc] initWithFrame:CGRectZero] autorelease];
+			cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"ResponseCell"];
+			responseField = [[UITextView alloc] initWithFrame:CGRectZero];
 			[responseField setBackgroundColor:[UIColor clearColor]];
 			[[cell contentView] addSubview:responseField];
 		}

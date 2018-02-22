@@ -15,13 +15,12 @@ static NSLock *readLock = nil;
 
 @implementation ASIInputStream
 {
-    NSInputStream *stream;
+    NSInputStream *_stream;
     id<NSStreamDelegate> delegate;
     
     CFReadStreamClientCallBack copiedCallback;
     CFStreamClientContext copiedContext;
     CFOptionFlags requestedEvents;
-    ASIHTTPRequest *request;
 }
 
 + (void)initialize
@@ -31,16 +30,16 @@ static NSLock *readLock = nil;
 	}
 }
 
-+ (id)inputStreamWithFileAtPath:(NSString *)path request:(ASIHTTPRequest *)theRequest
++ (instancetype)inputStreamWithFileAtPath:(NSString *)path request:(ASIHTTPRequest *)theRequest
 {
-	ASIInputStream *theStream = [[[ASIInputStream alloc] initWithInputStream:[NSInputStream inputStreamWithFileAtPath:path]] autorelease];
+	ASIInputStream *theStream = [[ASIInputStream alloc] initWithInputStream:[NSInputStream inputStreamWithFileAtPath:path]];
 	[theStream setRequest:theRequest];
 	return theStream;
 }
 
-+ (id)inputStreamWithData:(NSData *)data request:(ASIHTTPRequest *)theRequest
++ (instancetype)inputStreamWithData:(NSData *)data request:(ASIHTTPRequest *)theRequest
 {
-    ASIInputStream *theStream = [[[ASIInputStream alloc] initWithInputStream:[NSInputStream inputStreamWithData:data]] autorelease];
+    ASIInputStream *theStream = [[ASIInputStream alloc] initWithInputStream:[NSInputStream inputStreamWithData:data]];
 	[theStream setRequest:theRequest];
 	return theStream;
 }
@@ -52,8 +51,8 @@ static NSLock *readLock = nil;
     self = [super init];
     if (self) {
         // Initialization code here.
-        stream = [aStream retain];
-        [stream setDelegate:self];
+        _stream = aStream;
+        [_stream setDelegate:self];
         
         [self setDelegate:self];
     }
@@ -61,22 +60,21 @@ static NSLock *readLock = nil;
     return self;
 }
 
-- (void)dealloc
-{
-    [stream release];
-    [super dealloc];
-}
-
 #pragma mark - NSStream subclass methods
 
+/*
+ * Implement NSInputStream mandatory methods to make sure they are implemented
+ * (necessary for MacRuby for example) and avoid the overhead of method
+ * forwarding for these common methods.
+ */
 - (void)open
 {
-    [stream open];
+    [_stream open];
 }
 
 - (void)close
 {
-    [stream close];
+    [_stream close];
 }
 
 - (id <NSStreamDelegate> )delegate
@@ -96,32 +94,32 @@ static NSLock *readLock = nil;
 
 - (void)scheduleInRunLoop:(NSRunLoop *)aRunLoop forMode:(NSString *)mode
 {
-    [stream scheduleInRunLoop:aRunLoop forMode:mode];
+    [_stream scheduleInRunLoop:aRunLoop forMode:mode];
 }
 
 - (void)removeFromRunLoop:(NSRunLoop *)aRunLoop forMode:(NSString *)mode
 {
-    [stream removeFromRunLoop:aRunLoop forMode:mode];
+    [_stream removeFromRunLoop:aRunLoop forMode:mode];
 }
 
 - (id)propertyForKey:(NSString *)key
 {
-    return [stream propertyForKey:key];
+    return [_stream propertyForKey:key];
 }
 
 - (BOOL)setProperty:(id)property forKey:(NSString *)key
 {
-    return [stream setProperty:property forKey:key];
+    return [_stream setProperty:property forKey:key];
 }
 
 - (NSStreamStatus)streamStatus
 {
-    return [stream streamStatus];
+    return [_stream streamStatus];
 }
 
 - (NSError *)streamError
 {
-    return [stream streamError];
+    return [_stream streamError];
 }
 
 #pragma mark - NSInputStream subclass methods
@@ -139,10 +137,10 @@ static NSLock *readLock = nil;
 		} else if (toRead == 0) {
 			toRead = 1;
 		}
-		[request performThrottling];
+		[_request performThrottling];
 	}
 	[readLock unlock];
-	NSInteger rv = [stream read:buffer maxLength:toRead];
+	NSInteger rv = [_stream read:buffer maxLength:toRead];
 	if (rv > 0)
 		[ASIHTTPRequest incrementBandwidthUsedInLastSecond:(NSUInteger)rv];
 	return rv;
@@ -159,7 +157,7 @@ static NSLock *readLock = nil;
 
 - (BOOL)hasBytesAvailable
 {
-    return [stream hasBytesAvailable];
+    return [_stream hasBytesAvailable];
 }
 
 #pragma mark - Undocumented CFReadStream bridged methods
@@ -187,7 +185,7 @@ static NSLock *readLock = nil;
 
 - (void)scheduleInCFRunLoop:(CFRunLoopRef)aRunLoop forMode:(CFStringRef)aMode
 {
-    CFReadStreamScheduleWithRunLoop((CFReadStreamRef)stream, aRunLoop, aMode);
+    CFReadStreamScheduleWithRunLoop((CFReadStreamRef)_stream, aRunLoop, aMode);
 }
 
 - (BOOL)setCFClientFlags:(CFOptionFlags)inFlags callback:(CFReadStreamClientCallBack)inCallback context:(CFStreamClientContext *)inContext
@@ -216,19 +214,19 @@ static NSLock *readLock = nil;
 
 - (void)unscheduleFromCFRunLoop:(CFRunLoopRef)aRunLoop forMode:(CFStringRef)aMode
 {
-    CFReadStreamUnscheduleFromRunLoop((CFReadStreamRef)stream, aRunLoop, aMode);
+    CFReadStreamUnscheduleFromRunLoop((CFReadStreamRef)_stream, aRunLoop, aMode);
 }
 
 #pragma mark - NSStreamDelegate methods
 
 - (void)stream:(NSStream *)aStream handleEvent:(NSStreamEvent)eventCode
 {
-    assert(aStream == stream);
+    assert(aStream ==_stream);
     
     switch (eventCode) {
         case NSStreamEventOpenCompleted:
             if (requestedEvents & kCFStreamEventOpenCompleted) {
-                copiedCallback((CFReadStreamRef)self,
+                copiedCallback((__bridge CFReadStreamRef)self,
                                kCFStreamEventOpenCompleted,
                                copiedContext.info);
             }
@@ -236,7 +234,7 @@ static NSLock *readLock = nil;
             
         case NSStreamEventHasBytesAvailable:
             if (requestedEvents & kCFStreamEventHasBytesAvailable) {
-                copiedCallback((CFReadStreamRef)self,
+                copiedCallback((__bridge CFReadStreamRef)self,
                                kCFStreamEventHasBytesAvailable,
                                copiedContext.info);
             }
@@ -244,7 +242,7 @@ static NSLock *readLock = nil;
             
         case NSStreamEventErrorOccurred:
             if (requestedEvents & kCFStreamEventErrorOccurred) {
-                copiedCallback((CFReadStreamRef)self,
+                copiedCallback((__bridge CFReadStreamRef)self,
                                kCFStreamEventErrorOccurred,
                                copiedContext.info);
             }
@@ -252,7 +250,7 @@ static NSLock *readLock = nil;
             
         case NSStreamEventEndEncountered:
             if (requestedEvents & kCFStreamEventEndEncountered) {
-                copiedCallback((CFReadStreamRef)self,
+                copiedCallback((__bridge CFReadStreamRef)self,
                                kCFStreamEventEndEncountered,
                                copiedContext.info);
             }
@@ -272,13 +270,12 @@ static NSLock *readLock = nil;
 
 - (NSMethodSignature *)methodSignatureForSelector:(SEL)aSelector
 {
-	return [stream methodSignatureForSelector:aSelector];
+	return [_stream methodSignatureForSelector:aSelector];
 }
 	 
 - (void)forwardInvocation:(NSInvocation *)anInvocation
 {
-	[anInvocation invokeWithTarget:stream];
+	[anInvocation invokeWithTarget:_stream];
 }
 
-@synthesize request;
 @end

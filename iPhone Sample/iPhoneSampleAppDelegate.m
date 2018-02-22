@@ -16,12 +16,6 @@
     window.rootViewController = tabBarController;
 }
 
-- (void)dealloc
-{
-    [window release];
-    [super dealloc];
-}
-
 @synthesize window;
 
 @end

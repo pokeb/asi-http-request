@@ -16,10 +16,6 @@
 	// Defaults to ASIAskServerIfModifiedWhenStaleCachePolicy
 	ASICachePolicy defaultCachePolicy;
 	
-	// The directory in which cached data will be stored
-	// Defaults to a directory called 'ASIHTTPRequestCache' in the temporary directory
-	NSString *storagePath;
-	
 	// Mediates access to the cache
 	NSRecursiveLock *accessLock;
 	
@@ -40,6 +36,9 @@
 + (NSArray *)fileExtensionsToHandleAsHTML;
 
 @property (assign, nonatomic) ASICachePolicy defaultCachePolicy;
+
+// The directory in which cached data will be stored
+// Defaults to a directory called 'ASIHTTPRequestCache' in the temporary directory
 @property (retain, nonatomic) NSString *storagePath;
 @property (atomic, retain) NSRecursiveLock *accessLock;
 @property (atomic, assign) BOOL shouldRespectCacheControlHeaders;
