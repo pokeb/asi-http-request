@@ -257,13 +257,13 @@ static NSString *apiKey = @"";
 	ASICloudFilesObject *object = [ASICloudFilesObject object];
 	object.name = @"infotestfile.txt";
 	object.metadata = metadata;
-	
+	[metadata release];
+  
 	ASICloudFilesObjectRequest *request = [ASICloudFilesObjectRequest postObjectRequestWithContainer:@"ASICloudFilesTest" object:object];
 	[request startSynchronous];
 	
 	GHAssertTrue([request responseStatusCode] == 202, @"Failed to post object metadata");
 	
-	[metadata release];
 	
 }
 
