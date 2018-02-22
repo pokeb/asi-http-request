@@ -24,9 +24,9 @@ Pod::Spec.new do |s|
     For more info visit: http://allseeing-i.com/%5Brequest_release%5D
   }
 
-  s.requires_arc = false
+  s.requires_arc = true
   s.ios.deployment_target = '8.0'
-  s.osx.deployment_target = '10.6'
+  # s.osx.deployment_target = '10.6'
 
   s.subspec 'Core' do |core|
     core.source_files = 'Classes/*.{h,m}'
@@ -40,6 +40,7 @@ Pod::Spec.new do |s|
   end
 
   s.subspec 'ASIWebPageRequest' do |ws|
+    ws.requires_arc = false
     ws.source_files = 'Classes/ASIWebPageRequest/*.{h,m}'
     ws.libraries      = 'xml2.2'
     ws.xcconfig     = { 'HEADER_SEARCH_PATHS' => '"$(SDKROOT)/usr/include/libxml2"' }
@@ -47,11 +48,13 @@ Pod::Spec.new do |s|
   end
 
   s.subspec 'CloudFiles' do |cfs|
+    cfs.requires_arc = false
     cfs.source_files = 'Classes/CloudFiles/*.{h,m}','Classes/S3/ASINSXMLParserCompat.h'
     cfs.dependency 'ASIHTTPRequest/Core'
   end
 
   s.subspec 'S3' do |s3s|
+    s3s.requires_arc = false
     s3s.source_files = 'Classes/S3/*.{h,m}'
     s3s.dependency 'ASIHTTPRequest/Core'
   end
