@@ -36,7 +36,7 @@
 	[request setDidFinishSelector:@selector(uploadFinished:)];
 	
 	//Create a 256KB file
-	NSData *data = [[[NSMutableData alloc] initWithLength:256*1024] autorelease];
+	NSData *data = [[NSMutableData alloc] initWithLength:256*1024];
 	NSString *path = [[NSHomeDirectory() stringByAppendingPathComponent:@"Documents"] stringByAppendingPathComponent:@"file"];
 	[data writeToFile:path atomically:NO];
 	
@@ -70,7 +70,7 @@
         [[UIApplication sharedApplication] cancelAllLocalNotifications];
 
     // Create a new notification
-    UILocalNotification *notification = [[[UILocalNotification alloc] init] autorelease];
+    UILocalNotification *notification = [[UILocalNotification alloc] init];
     if (notification) {
 		[notification setFireDate:[NSDate date]];
 		[notification setTimeZone:[NSTimeZone defaultTimeZone]];
@@ -87,10 +87,6 @@
 	[request setDelegate:nil];
 	[request setUploadProgressDelegate:nil];
 	[request cancel];
-	[request release];
-	[progressIndicator release];
-	[resultView release];
-    [super dealloc];
 }
 
 /*
@@ -117,7 +113,7 @@ static NSString *intro = @"Demonstrates POSTing content to a URL, showing upload
 			tablePadding = 110;
 		}
 		
-		UIView *view = [[[UIView alloc] initWithFrame:CGRectMake(0,0,tableWidth-(tablePadding/2),30)] autorelease];
+		UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0,0,tableWidth-(tablePadding/2),30)];
 		UIButton *goButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
 		[goButton setTitle:@"Go!" forState:UIControlStateNormal];
 		[goButton sizeToFit];
@@ -156,7 +152,7 @@ static NSString *intro = @"Demonstrates POSTing content to a URL, showing upload
 	} else {
 		cell = [tableView dequeueReusableCellWithIdentifier:@"Response"];
 		if (!cell) {
-			cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"Response"] autorelease];
+			cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"Response"];
 			[[cell contentView] addSubview:resultView];
 		}	
 		[resultView setFrame:CGRectMake(5,5,tableWidth-tablePadding,60)];

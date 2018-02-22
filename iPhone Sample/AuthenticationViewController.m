@@ -51,7 +51,7 @@
 
 - (void)authenticationNeededForRequest:(ASIHTTPRequest *)theRequest
 {
-	UIAlertView *alertView = [[[UIAlertView alloc] initWithTitle:@"Please Login" message:[request authenticationRealm] delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"OK",nil] autorelease];
+	UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Please Login" message:[request authenticationRealm] delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"OK",nil];
 	// These are undocumented, use at your own risk!
 	// A better general approach would be to subclass UIAlertView, or just use ASIHTTPRequest's built-in dialog
 	[alertView addTextFieldWithValue:@"" label:@"Username"];
@@ -62,7 +62,7 @@
 
 - (void)proxyAuthenticationNeededForRequest:(ASIHTTPRequest *)theRequest
 {
-	UIAlertView *alertView = [[[UIAlertView alloc] initWithTitle:@"Please Login to proxy" message:[request authenticationRealm] delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"OK",nil] autorelease];
+	UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Please Login to proxy" message:[request authenticationRealm] delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"OK",nil];
 	[alertView addTextFieldWithValue:@"" label:@"Username"];
 	[alertView addTextFieldWithValue:@"" label:@"Password"];
 	[alertView show];
@@ -107,9 +107,6 @@
 - (void)dealloc
 {
 	[request cancel];
-	[request release];
-	[responseField release];
-    [super dealloc];
 }
 
 /*
@@ -137,7 +134,7 @@ static NSString *intro = @"Demonstrates fetching content from an area that requi
 			tablePadding = 110;
 		}
 		
-		UIView *view = [[[UIView alloc] initWithFrame:CGRectMake(0,0,tableWidth-(tablePadding/2),30)] autorelease];
+		UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0,0,tableWidth-(tablePadding/2),30)];
 		UIButton *goButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
 		[goButton setTitle:@"Go!" forState:UIControlStateNormal];
 		[goButton sizeToFit];
@@ -187,7 +184,7 @@ static NSString *intro = @"Demonstrates fetching content from an area that requi
 		
 		cell = [tableView dequeueReusableCellWithIdentifier:@"Response"];
 		if (!cell) {
-			cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"Response"] autorelease];
+			cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"Response"];
 			
 
 			[[cell contentView] addSubview:responseField];

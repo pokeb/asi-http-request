@@ -44,13 +44,13 @@
     [request setUserInfo:[NSDictionary dictionaryWithObject:@"request1" forKey:@"name"]];
 	[networkQueue addOperation:request];
 	
-	request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/images/medium-image.jpg"]] autorelease];
+	request = [[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/images/medium-image.jpg"]];
 	[request setDownloadDestinationPath:[[NSHomeDirectory() stringByAppendingPathComponent:@"Documents"] stringByAppendingPathComponent:@"2.png"]];
 	[request setDownloadProgressDelegate:imageProgressIndicator2];
     [request setUserInfo:[NSDictionary dictionaryWithObject:@"request2" forKey:@"name"]];
 	[networkQueue addOperation:request];
 	
-	request = [[[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/images/large-image.jpg"]] autorelease];
+	request = [[ASIHTTPRequest alloc] initWithURL:[NSURL URLWithString:@"http://allseeing-i.com/ASIHTTPRequest/tests/images/large-image.jpg"]];
 	[request setDownloadDestinationPath:[[NSHomeDirectory() stringByAppendingPathComponent:@"Documents"] stringByAppendingPathComponent:@"3.png"]];
 	[request setDownloadProgressDelegate:imageProgressIndicator3];
     [request setUserInfo:[NSDictionary dictionaryWithObject:@"request3" forKey:@"name"]];
@@ -80,7 +80,7 @@
 {
 	if (!failed) {
 		if ([[request error] domain] != NetworkRequestErrorDomain || [[request error] code] != ASIRequestCancelledErrorType) {
-			UIAlertView *alertView = [[[UIAlertView alloc] initWithTitle:@"Download failed" message:@"Failed to download images" delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil] autorelease];
+			UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Download failed" message:@"Failed to download images" delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
 			[alertView show];
 		}
 		failed = YES;
@@ -88,10 +88,7 @@
 }
 
 - (void)dealloc {
-	[progressIndicator release];
 	[networkQueue reset];
-	[networkQueue release];
-    [super dealloc];
 }
 
 
@@ -116,7 +113,7 @@ static NSString *intro = @"Demonstrates a fetching 3 items at once, using an ASI
 			tablePadding = 110;
 		}
 		
-		UIView *view = [[[UIView alloc] initWithFrame:CGRectMake(0,0,tableWidth-(tablePadding/2),30)] autorelease];
+		UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0,0,tableWidth-(tablePadding/2),30)];
 		UIButton *goButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
 		[goButton setTitle:@"Go!" forState:UIControlStateNormal];
 		[goButton sizeToFit];
@@ -169,16 +166,16 @@ static NSString *intro = @"Demonstrates a fetching 3 items at once, using an ASI
 		
 		if (!cell) {
 			
-			cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"ImagesCell"] autorelease];
+			cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"ImagesCell"];
 
-			imageView1 = [[[UIImageView alloc] initWithFrame:CGRectZero] autorelease];
+			imageView1 = [[UIImageView alloc] initWithFrame:CGRectZero];
 			[imageView1 setBackgroundColor:[UIColor grayColor]];
 			[cell addSubview:imageView1];
 			
-			imageProgressIndicator1 = [[[UIProgressView alloc] initWithFrame:CGRectZero] autorelease];
+			imageProgressIndicator1 = [[UIProgressView alloc] initWithFrame:CGRectZero];
 			[cell addSubview:imageProgressIndicator1];
 			
-			imageLabel1 = [[[UILabel alloc] initWithFrame:CGRectZero] autorelease];
+			imageLabel1 = [[UILabel alloc] initWithFrame:CGRectZero];
 			if (tableWidth > 480) {
 				[imageLabel1 setText:@"This image is 15KB in size"];
 			} else {
@@ -189,14 +186,14 @@ static NSString *intro = @"Demonstrates a fetching 3 items at once, using an ASI
 			[imageLabel1 setBackgroundColor:[UIColor clearColor]];
 			[cell addSubview:imageLabel1];
 			
-			imageView2 = [[[UIImageView alloc] initWithFrame:CGRectZero] autorelease];
+			imageView2 = [[UIImageView alloc] initWithFrame:CGRectZero];
 			[imageView2 setBackgroundColor:[UIColor grayColor]];
 			[cell addSubview:imageView2];
 			
-			imageProgressIndicator2 = [[[UIProgressView alloc] initWithFrame:CGRectZero] autorelease];
+			imageProgressIndicator2 = [[UIProgressView alloc] initWithFrame:CGRectZero];
 			[cell addSubview:imageProgressIndicator2];
 			
-			imageLabel2 = [[[UILabel alloc] initWithFrame:CGRectZero] autorelease];
+			imageLabel2 = [[UILabel alloc] initWithFrame:CGRectZero];
 			if (tableWidth > 480) {
 				[imageLabel2 setText:@"This image is 176KB in size"];
 			} else {
@@ -207,14 +204,14 @@ static NSString *intro = @"Demonstrates a fetching 3 items at once, using an ASI
 			[imageLabel2 setBackgroundColor:[UIColor clearColor]];
 			[cell addSubview:imageLabel2];
 			
-			imageView3 = [[[UIImageView alloc] initWithFrame:CGRectZero] autorelease];
+			imageView3 = [[UIImageView alloc] initWithFrame:CGRectZero];
 			[imageView3 setBackgroundColor:[UIColor grayColor]];
 			[cell addSubview:imageView3];
 			
-			imageProgressIndicator3 = [[[UIProgressView alloc] initWithFrame:CGRectZero] autorelease];
+			imageProgressIndicator3 = [[UIProgressView alloc] initWithFrame:CGRectZero];
 			[cell addSubview:imageProgressIndicator3];
 			
-			imageLabel3 = [[[UILabel alloc] initWithFrame:CGRectZero] autorelease];
+			imageLabel3 = [[UILabel alloc] initWithFrame:CGRectZero];
 			if (tableWidth > 480) {
 				[imageLabel3 setText:@"This image is 1.4MB in size"];
 			} else {

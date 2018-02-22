@@ -8,11 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-@interface RootViewController : UITableViewController <UISplitViewControllerDelegate> {
-	UISplitViewController *splitViewController;
-    UIPopoverController *popoverController;    
-    UIBarButtonItem *rootPopoverButtonItem;
-}
+@interface RootViewController : UITableViewController <UISplitViewControllerDelegate>
 @property (nonatomic, assign) IBOutlet UISplitViewController *splitViewController;
 @property (nonatomic, retain) UIPopoverController *popoverController;
 @property (nonatomic, retain) UIBarButtonItem *rootPopoverButtonItem;

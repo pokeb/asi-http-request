@@ -9,9 +9,8 @@
 #import <Foundation/Foundation.h>
 
 
-@interface ToggleCell : UITableViewCell {
-	UISwitch *toggle;
-}
+@interface ToggleCell : UITableViewCell
+
 + (id)cell;
 
 @property (assign, nonatomic) UISwitch *toggle;

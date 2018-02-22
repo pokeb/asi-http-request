@@ -142,13 +142,7 @@
 	[request setDelegate:nil];
 	[request setDownloadProgressDelegate:nil];
 	[request cancel];
-	[request release];
 	[webView setDelegate:nil];
-	[webView release];
-	[responseField release];
-	[urlField release];
-	[requestsInProgress release];
-	[super dealloc];
 }
 
 - (void)viewDidLoad
@@ -191,7 +185,7 @@ static NSString *intro = @"ASIWebPageRequest lets you download complete webpages
 		if ([indexPath row] == 0) {
 			cell = [tableView dequeueReusableCellWithIdentifier:@"WebPageCell"];
 			if (!cell) {
-				cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"WebPageCell"] autorelease];
+				cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"WebPageCell"];
 				[[cell contentView] addSubview:webView];
 			}
 			[webView setFrame:CGRectMake(10,10,tableWidth-tablePadding,280)];
@@ -231,7 +225,7 @@ static NSString *intro = @"ASIWebPageRequest lets you download complete webpages
 		
 		cell = [tableView dequeueReusableCellWithIdentifier:@"Response"];
 		if (!cell) {
-			cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"Response"] autorelease];
+			cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"Response"];
 			[[cell contentView] addSubview:responseField];
 			
 		}	
@@ -252,7 +246,7 @@ static NSString *intro = @"ASIWebPageRequest lets you download complete webpages
 			tablePadding = 110;
 		}
 		
-		UIView *view = [[[UIView alloc] initWithFrame:CGRectMake(0,0,tableWidth-(tablePadding/2),30)] autorelease];
+		UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0,0,tableWidth-(tablePadding/2),30)];
 
 		UIButton *clearCacheButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
 		[clearCacheButton setTitle:@"Clear Cache" forState:UIControlStateNormal];

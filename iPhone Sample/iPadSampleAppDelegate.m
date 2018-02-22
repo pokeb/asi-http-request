@@ -16,13 +16,6 @@
 	[window makeKeyAndVisible];
 }
 
-- (void)dealloc {
-    [splitViewController release];
-    [window release];
-    [super dealloc];
-}
-
-
 @synthesize window;
 @synthesize splitViewController;
 @end

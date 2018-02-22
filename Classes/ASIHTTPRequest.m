@@ -218,12 +218,10 @@ static NSOperationQueue *sharedQueue = nil;
 @property (assign) BOOL complete;
 
 // Will be populated with cookies
-@property (retain) NSArray *responseCookies;
-@property (assign) int responseStatusCode;
-
-// Used for recording when something last happened during the request, we will compare this value with the current date to time out requests when appropriate
 @property (retain, atomic) NSArray *responseCookies;
 @property (assign, atomic) int responseStatusCode;
+
+// Used for recording when something last happened during the request, we will compare this value with the current date to time out requests when appropriate
 @property (retain, nonatomic) NSDate *lastActivityTime;
 
 @property (assign, atomic) unsigned long long partialDownloadSize;
@@ -3972,11 +3970,11 @@ static NSOperationQueue *sharedQueue = nil;
 		// CFNetworkCopyProxiesForURL initialise some state within CFNetwork 
 		// that is required by CFNetworkCopyProxiesForAutoConfigurationScript.
 #if TARGET_OS_IPHONE
-        NSDictionary *proxySettings = [NSMakeCollectable(CFNetworkCopySystemProxySettings()) autorelease];
+        NSDictionary *proxySettings = (__bridge_transfer NSDictionary *)(CFNetworkCopySystemProxySettings());
 #else
         NSDictionary *proxySettings = [NSMakeCollectable(SCDynamicStoreCopyProxies(NULL)) autorelease];
 #endif
-		CFRelease(CFNetworkCopyProxiesForURL((__bridge CFURLRef)[self url], (CFDictionaryRef)proxySettings));
+		CFRelease(CFNetworkCopyProxiesForURL((__bridge CFURLRef)[self url], (__bridge CFDictionaryRef)proxySettings));
 
 		// Obtain the list of proxies by running the autoconfiguration script
 		CFErrorRef err = NULL;

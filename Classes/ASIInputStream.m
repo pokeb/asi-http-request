@@ -15,13 +15,12 @@ static NSLock *readLock = nil;
 
 @implementation ASIInputStream
 {
-    NSInputStream *stream;
+    NSInputStream *_stream;
     id<NSStreamDelegate> delegate;
     
     CFReadStreamClientCallBack copiedCallback;
     CFStreamClientContext copiedContext;
     CFOptionFlags requestedEvents;
-    ASIHTTPRequest *request;
 }
 
 + (void)initialize
@@ -52,8 +51,8 @@ static NSLock *readLock = nil;
     self = [super init];
     if (self) {
         // Initialization code here.
-        stream = [aStream retain];
-        [stream setDelegate:self];
+        _stream = aStream;
+        [_stream setDelegate:self];
         
         [self setDelegate:self];
     }
@@ -158,7 +157,7 @@ static NSLock *readLock = nil;
 
 - (BOOL)hasBytesAvailable
 {
-    return [stream hasBytesAvailable];
+    return [_stream hasBytesAvailable];
 }
 
 #pragma mark - Undocumented CFReadStream bridged methods
@@ -186,7 +185,7 @@ static NSLock *readLock = nil;
 
 - (void)scheduleInCFRunLoop:(CFRunLoopRef)aRunLoop forMode:(CFStringRef)aMode
 {
-    CFReadStreamScheduleWithRunLoop((CFReadStreamRef)stream, aRunLoop, aMode);
+    CFReadStreamScheduleWithRunLoop((CFReadStreamRef)_stream, aRunLoop, aMode);
 }
 
 - (BOOL)setCFClientFlags:(CFOptionFlags)inFlags callback:(CFReadStreamClientCallBack)inCallback context:(CFStreamClientContext *)inContext
@@ -215,19 +214,19 @@ static NSLock *readLock = nil;
 
 - (void)unscheduleFromCFRunLoop:(CFRunLoopRef)aRunLoop forMode:(CFStringRef)aMode
 {
-    CFReadStreamUnscheduleFromRunLoop((CFReadStreamRef)stream, aRunLoop, aMode);
+    CFReadStreamUnscheduleFromRunLoop((CFReadStreamRef)_stream, aRunLoop, aMode);
 }
 
 #pragma mark - NSStreamDelegate methods
 
 - (void)stream:(NSStream *)aStream handleEvent:(NSStreamEvent)eventCode
 {
-    assert(aStream == stream);
+    assert(aStream ==_stream);
     
     switch (eventCode) {
         case NSStreamEventOpenCompleted:
             if (requestedEvents & kCFStreamEventOpenCompleted) {
-                copiedCallback((CFReadStreamRef)self,
+                copiedCallback((__bridge CFReadStreamRef)self,
                                kCFStreamEventOpenCompleted,
                                copiedContext.info);
             }
@@ -235,7 +234,7 @@ static NSLock *readLock = nil;
             
         case NSStreamEventHasBytesAvailable:
             if (requestedEvents & kCFStreamEventHasBytesAvailable) {
-                copiedCallback((CFReadStreamRef)self,
+                copiedCallback((__bridge CFReadStreamRef)self,
                                kCFStreamEventHasBytesAvailable,
                                copiedContext.info);
             }
@@ -243,7 +242,7 @@ static NSLock *readLock = nil;
             
         case NSStreamEventErrorOccurred:
             if (requestedEvents & kCFStreamEventErrorOccurred) {
-                copiedCallback((CFReadStreamRef)self,
+                copiedCallback((__bridge CFReadStreamRef)self,
                                kCFStreamEventErrorOccurred,
                                copiedContext.info);
             }
@@ -251,7 +250,7 @@ static NSLock *readLock = nil;
             
         case NSStreamEventEndEncountered:
             if (requestedEvents & kCFStreamEventEndEncountered) {
-                copiedCallback((CFReadStreamRef)self,
+                copiedCallback((__bridge CFReadStreamRef)self,
                                kCFStreamEventEndEncountered,
                                copiedContext.info);
             }
