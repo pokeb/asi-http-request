@@ -1346,7 +1346,7 @@ static NSOperationQueue *sharedQueue = nil;
 		}
 		
 		// If we are retrying this request, it will already have a requestID
-		if (![self requestID]) {
+		if ([self requestID] == nil) {
 			nextRequestID++;
 			[self setRequestID:[NSNumber numberWithUnsignedInt:nextRequestID]];
 		}
