@@ -27,6 +27,6 @@ It provides:
 * Get notifications about changes in your request state via delegation or [NEW] blocks (Mac OS X 10.6, iOS 4 and above)
 * Comes with a broad range of unit tests
 
-ASIHTTPRequest is compatible with Mac OS 10.6 or later, and iOS 6.0 or later.
+ASIHTTPRequest is compatible with Mac OS 10.6 or later, and iOS 8.0 or later.
 
 Documentation is available "here":http://allseeing-i.com/ASIHTTPRequest.
