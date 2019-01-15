@@ -1719,7 +1719,7 @@ static NSOperationQueue *sharedQueue = nil;
 	#if NS_BLOCKS_AVAILABLE
     if (bytesReceivedBlock) {
 		unsigned long long totalSize = [self contentLength] + [self partialDownloadSize];
-		[self performBlockOnMainThread:^{ if (bytesReceivedBlock) { bytesReceivedBlock(value, totalSize); }}];
+        [self performBlockOnMainThread:^{ if (self->bytesReceivedBlock) { self->bytesReceivedBlock(value, totalSize); }}];
     }
 	#endif
 	[self setLastBytesRead:bytesReadSoFar];
@@ -1763,7 +1763,7 @@ static NSOperationQueue *sharedQueue = nil;
 	#if NS_BLOCKS_AVAILABLE
     if(bytesSentBlock){
 		unsigned long long totalSize = [self postLength];
-		[self performBlockOnMainThread:^{ if (bytesSentBlock) { bytesSentBlock(value, totalSize); }}];
+        [self performBlockOnMainThread:^{ if (self->bytesSentBlock) { self->bytesSentBlock(value, totalSize); }}];
 	}
 	#endif
 }
@@ -1776,7 +1776,7 @@ static NSOperationQueue *sharedQueue = nil;
 
 	#if NS_BLOCKS_AVAILABLE
     if(downloadSizeIncrementedBlock){
-		[self performBlockOnMainThread:^{ if (downloadSizeIncrementedBlock) { downloadSizeIncrementedBlock(length); }}];
+        [self performBlockOnMainThread:^{ if (self->downloadSizeIncrementedBlock) { self->downloadSizeIncrementedBlock(length); }}];
     }
 	#endif
 }
@@ -1788,7 +1788,7 @@ static NSOperationQueue *sharedQueue = nil;
 
 	#if NS_BLOCKS_AVAILABLE
     if(uploadSizeIncrementedBlock) {
-		[self performBlockOnMainThread:^{ if (uploadSizeIncrementedBlock) { uploadSizeIncrementedBlock(length); }}];
+        [self performBlockOnMainThread:^{ if (self->uploadSizeIncrementedBlock) { self->uploadSizeIncrementedBlock(length); }}];
     }
 	#endif
 }
@@ -1804,7 +1804,7 @@ static NSOperationQueue *sharedQueue = nil;
 	#if NS_BLOCKS_AVAILABLE
     if(bytesSentBlock){
 		unsigned long long totalSize = [self postLength];
-		[self performBlockOnMainThread:^{  if (bytesSentBlock) { bytesSentBlock((unsigned long long)progressToRemove, totalSize); }}];
+        [self performBlockOnMainThread:^{  if (self->bytesSentBlock) { self->bytesSentBlock((unsigned long long)progressToRemove, totalSize); }}];
 	}
 	#endif
 }
