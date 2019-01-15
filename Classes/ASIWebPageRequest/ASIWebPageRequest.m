@@ -58,7 +58,10 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 
 - (void)dealloc
 {
+    self.parentRequest = nil;
+    self.resourceList = nil;
 	[externalResourceQueue cancelAllOperations];
+    [super dealloc];
 }
 
 // This is a bit of a hack

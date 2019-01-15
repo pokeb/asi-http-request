@@ -39,7 +39,7 @@
 
 - (BOOL)cdnEnabled {
     NSNumber *enabled = [[self responseHeaders] objectForKey:@"X-CDN-Enabled"];
-    if (!enabled) {
+    if (enabled == nil) {
         enabled = [[self responseHeaders] objectForKey:@"X-Cdn-Enabled"];
     }
 	return [enabled boolValue];
@@ -63,7 +63,7 @@
 
 - (NSUInteger)cdnTTL {
     NSNumber *ttl = [[self responseHeaders] objectForKey:@"X-TTL"];
-    if (!ttl) {
+    if (ttl == nil) {
         ttl = [[self responseHeaders] objectForKey:@"X-Ttl"];
     }
     return [ttl intValue];
