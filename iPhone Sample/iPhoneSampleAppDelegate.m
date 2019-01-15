@@ -13,13 +13,7 @@
 - (void)applicationDidFinishLaunching:(UIApplication *)application
 {
 	[[tabBarController view] setFrame:CGRectMake(0, 0, 320, 480)];
-	[window addSubview:[tabBarController view]];
-}
-
-- (void)dealloc
-{
-    [window release];
-    [super dealloc];
+    window.rootViewController = tabBarController;
 }
 
 @synthesize window;

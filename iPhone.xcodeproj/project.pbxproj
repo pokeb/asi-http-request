@@ -7,32 +7,32 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		944E25951FB9F12900D68549 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 944E25941FB9F12900D68549 /* Default-568h@2x.png */; };
+		944E25961FB9F13300D68549 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 944E25941FB9F12900D68549 /* Default-568h@2x.png */; };
+		94CD355C1FB9F96300418203 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 94CD355B1FB9F96300418203 /* QuartzCore.framework */; };
 		B50C1823121C26DB0055FCAB /* ClientCertificateTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B50C1822121C26DB0055FCAB /* ClientCertificateTests.m */; };
 		B50C182C121C26FA0055FCAB /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B50C182B121C26FA0055FCAB /* Security.framework */; };
 		B50C1848121C27510055FCAB /* client.p12 in Resources */ = {isa = PBXBuildFile; fileRef = B50C1847121C27510055FCAB /* client.p12 */; };
-		B50D532C126C87ED0022EA6F /* BlocksTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B50D532B126C87ED0022EA6F /* BlocksTests.m */; };
-		B50F66191297FA45003887B1 /* strict.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = B50F66181297FA45003887B1 /* strict.xcconfig */; };
-		B50F661A1297FA45003887B1 /* strict.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = B50F66181297FA45003887B1 /* strict.xcconfig */; };
-		B50F661B1297FA45003887B1 /* strict.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = B50F66181297FA45003887B1 /* strict.xcconfig */; };
-		B51791A31024C3E800583567 /* AuthenticationViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B51791A21024C3E800583567 /* AuthenticationViewController.m */; };
-		B51A1A9B11DDF85100ED75CF /* ASIDownloadCacheTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B51A1A7A11DDF7BF00ED75CF /* ASIDownloadCacheTests.m */; };
+		B50D532C126C87ED0022EA6F /* BlocksTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B50D532B126C87ED0022EA6F /* BlocksTests.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		B51791A31024C3E800583567 /* AuthenticationViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B51791A21024C3E800583567 /* AuthenticationViewController.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		B51A1A9B11DDF85100ED75CF /* ASIDownloadCacheTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B51A1A7A11DDF7BF00ED75CF /* ASIDownloadCacheTests.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		B522DACE1030B2AB009A2D22 /* ASIInputStream.m in Sources */ = {isa = PBXBuildFile; fileRef = B522DACD1030B2AB009A2D22 /* ASIInputStream.m */; };
 		B522DACF1030B2AB009A2D22 /* ASIInputStream.m in Sources */ = {isa = PBXBuildFile; fileRef = B522DACD1030B2AB009A2D22 /* ASIInputStream.m */; };
 		B523254211CA01F1006C6E5A /* Sample.xib in Resources */ = {isa = PBXBuildFile; fileRef = B523254111CA01F1006C6E5A /* Sample.xib */; };
 		B523254311CA01F1006C6E5A /* Sample.xib in Resources */ = {isa = PBXBuildFile; fileRef = B523254111CA01F1006C6E5A /* Sample.xib */; };
 		B52325AD11CA05A8006C6E5A /* info.png in Resources */ = {isa = PBXBuildFile; fileRef = B52325AC11CA05A8006C6E5A /* info.png */; };
-		B5254FF91025F9BF00CF7BC4 /* ProxyTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B5254FF71025F9BF00CF7BC4 /* ProxyTests.m */; };
-		B52D4A2F10DA4ED5008E8365 /* PerformanceTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B52D4A2E10DA4ED5008E8365 /* PerformanceTests.m */; };
+		B5254FF91025F9BF00CF7BC4 /* ProxyTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B5254FF71025F9BF00CF7BC4 /* ProxyTests.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		B52D4A2F10DA4ED5008E8365 /* PerformanceTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B52D4A2E10DA4ED5008E8365 /* PerformanceTests.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		B53E6D951257B45800C1E79A /* ASIDataDecompressor.m in Sources */ = {isa = PBXBuildFile; fileRef = B53E6D911257B45800C1E79A /* ASIDataDecompressor.m */; };
 		B53E6D961257B45800C1E79A /* ASIDataCompressor.m in Sources */ = {isa = PBXBuildFile; fileRef = B53E6D931257B45800C1E79A /* ASIDataCompressor.m */; };
 		B53E6D971257B45800C1E79A /* ASIDataDecompressor.m in Sources */ = {isa = PBXBuildFile; fileRef = B53E6D911257B45800C1E79A /* ASIDataDecompressor.m */; };
 		B53E6D981257B45800C1E79A /* ASIDataCompressor.m in Sources */ = {isa = PBXBuildFile; fileRef = B53E6D931257B45800C1E79A /* ASIDataCompressor.m */; };
 		B53E6D991257B45800C1E79A /* ASIDataDecompressor.m in Sources */ = {isa = PBXBuildFile; fileRef = B53E6D911257B45800C1E79A /* ASIDataDecompressor.m */; };
 		B53E6D9A1257B45800C1E79A /* ASIDataCompressor.m in Sources */ = {isa = PBXBuildFile; fileRef = B53E6D931257B45800C1E79A /* ASIDataCompressor.m */; };
-		B540400B115114BA00D8BE63 /* ASIS3Bucket.m in Sources */ = {isa = PBXBuildFile; fileRef = B5404000115114BA00D8BE63 /* ASIS3Bucket.m */; };
-		B540400C115114BA00D8BE63 /* ASIS3BucketRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5404002115114BA00D8BE63 /* ASIS3BucketRequest.m */; };
-		B540400D115114BA00D8BE63 /* ASIS3ObjectRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5404004115114BA00D8BE63 /* ASIS3ObjectRequest.m */; };
-		B540400E115114BA00D8BE63 /* ASIS3ServiceRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5404006115114BA00D8BE63 /* ASIS3ServiceRequest.m */; };
+		B540400B115114BA00D8BE63 /* ASIS3Bucket.m in Sources */ = {isa = PBXBuildFile; fileRef = B5404000115114BA00D8BE63 /* ASIS3Bucket.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		B540400C115114BA00D8BE63 /* ASIS3BucketRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5404002115114BA00D8BE63 /* ASIS3BucketRequest.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		B540400D115114BA00D8BE63 /* ASIS3ObjectRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5404004115114BA00D8BE63 /* ASIS3ObjectRequest.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		B540400E115114BA00D8BE63 /* ASIS3ServiceRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5404006115114BA00D8BE63 /* ASIS3ServiceRequest.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		B55252B411D22E2200F9B170 /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = B55252B311D22E2200F9B170 /* Reachability.m */; };
 		B55252B511D22E2200F9B170 /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = B55252B311D22E2200F9B170 /* Reachability.m */; };
 		B55252B611D22E2200F9B170 /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = B55252B311D22E2200F9B170 /* Reachability.m */; };
@@ -40,19 +40,19 @@
 		B55B604D0F765A320064029C /* ASIFormDataRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B60460F765A320064029C /* ASIFormDataRequest.m */; };
 		B55B604E0F765A320064029C /* ASIHTTPRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B60480F765A320064029C /* ASIHTTPRequest.m */; };
 		B55B604F0F765A320064029C /* ASINetworkQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B604A0F765A320064029C /* ASINetworkQueue.m */; };
-		B55B60620F765A750064029C /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B60600F765A750064029C /* main.m */; };
-		B55B606F0F765A930064029C /* QueueViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B60670F765A930064029C /* QueueViewController.m */; };
-		B55B60700F765A930064029C /* SynchronousViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B606A0F765A930064029C /* SynchronousViewController.m */; };
-		B55B60710F765A930064029C /* iPhoneSampleAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B606B0F765A930064029C /* iPhoneSampleAppDelegate.m */; };
-		B55B60720F765A930064029C /* UploadViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B606C0F765A930064029C /* UploadViewController.m */; };
+		B55B60620F765A750064029C /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B60600F765A750064029C /* main.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		B55B606F0F765A930064029C /* QueueViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B60670F765A930064029C /* QueueViewController.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		B55B60700F765A930064029C /* SynchronousViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B606A0F765A930064029C /* SynchronousViewController.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		B55B60710F765A930064029C /* iPhoneSampleAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B606B0F765A930064029C /* iPhoneSampleAppDelegate.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		B55B60720F765A930064029C /* UploadViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B606C0F765A930064029C /* UploadViewController.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		B55B60740F765A990064029C /* iphone-icon.png in Resources */ = {isa = PBXBuildFile; fileRef = B55B60730F765A990064029C /* iphone-icon.png */; };
 		B55B60CF0F765BBA0064029C /* ASIFormDataRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B60460F765A320064029C /* ASIFormDataRequest.m */; };
 		B55B60D00F765BBD0064029C /* ASIHTTPRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B60480F765A320064029C /* ASIHTTPRequest.m */; };
 		B55B60D10F765BC00064029C /* ASINetworkQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B604A0F765A320064029C /* ASINetworkQueue.m */; };
-		B55B60D30F765BC90064029C /* ASIFormDataRequestTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B60530F765A3C0064029C /* ASIFormDataRequestTests.m */; };
-		B55B60D40F765BCD0064029C /* ASIHTTPRequestTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B60550F765A3C0064029C /* ASIHTTPRequestTests.m */; };
-		B55B60D50F765BD00064029C /* ASINetworkQueueTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B60570F765A3C0064029C /* ASINetworkQueueTests.m */; };
-		B5652920101C8BD7000499CF /* ASITestCase.m in Sources */ = {isa = PBXBuildFile; fileRef = B565291F101C8BD7000499CF /* ASITestCase.m */; };
+		B55B60D30F765BC90064029C /* ASIFormDataRequestTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B60530F765A3C0064029C /* ASIFormDataRequestTests.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		B55B60D40F765BCD0064029C /* ASIHTTPRequestTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B60550F765A3C0064029C /* ASIHTTPRequestTests.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		B55B60D50F765BD00064029C /* ASINetworkQueueTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B55B60570F765A3C0064029C /* ASINetworkQueueTests.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		B5652920101C8BD7000499CF /* ASITestCase.m in Sources */ = {isa = PBXBuildFile; fileRef = B565291F101C8BD7000499CF /* ASITestCase.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		B56529A3101C8EDA000499CF /* iphone-tests-icon.png in Resources */ = {isa = PBXBuildFile; fileRef = B56529A2101C8EDA000499CF /* iphone-tests-icon.png */; };
 		B576D4C111C7CC970059B815 /* CFNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D4C011C7CC970059B815 /* CFNetwork.framework */; };
 		B576D4C411C7CC9C0059B815 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D4C311C7CC9C0059B815 /* UIKit.framework */; };
@@ -74,39 +74,39 @@
 		B576D71611C7F34D0059B815 /* ASIAuthenticationDialog.m in Sources */ = {isa = PBXBuildFile; fileRef = B59A87C1103EC6F200300252 /* ASIAuthenticationDialog.m */; };
 		B576D71D11C7F34D0059B815 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B576D52C11C7CEFA0059B815 /* Foundation.framework */; };
 		B576D76611C7F4D90059B815 /* iPhoneMainWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = B576D76511C7F4D90059B815 /* iPhoneMainWindow.xib */; };
-		B57AF5921258B3F1002A1F0C /* WebPageViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B57AF5911258B3F1002A1F0C /* WebPageViewController.m */; };
+		B57AF5921258B3F1002A1F0C /* WebPageViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B57AF5911258B3F1002A1F0C /* WebPageViewController.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		B57AF5931258B3F1002A1F0C /* WebPageViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B57AF5911258B3F1002A1F0C /* WebPageViewController.m */; };
-		B57AF5961258B401002A1F0C /* RequestProgressCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B57AF5951258B401002A1F0C /* RequestProgressCell.m */; };
+		B57AF5961258B401002A1F0C /* RequestProgressCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B57AF5951258B401002A1F0C /* RequestProgressCell.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		B57AF5971258B401002A1F0C /* RequestProgressCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B57AF5951258B401002A1F0C /* RequestProgressCell.m */; };
 		B57D0F4812AA7D3600E5F992 /* ASIWebPageRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B57D0F4712AA7D3600E5F992 /* ASIWebPageRequest.m */; };
 		B57D0F4912AA7D3600E5F992 /* ASIWebPageRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B57D0F4712AA7D3600E5F992 /* ASIWebPageRequest.m */; };
 		B57D0F4A12AA7D3600E5F992 /* ASIWebPageRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B57D0F4712AA7D3600E5F992 /* ASIWebPageRequest.m */; };
 		B581DDCA12FDFEEE003BA9D0 /* GHUnitIOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B581DDC912FDFEEE003BA9D0 /* GHUnitIOS.framework */; };
-		B5873FD610FF28CA001E145F /* ASIS3BucketObject.m in Sources */ = {isa = PBXBuildFile; fileRef = B5873FC210FF28CA001E145F /* ASIS3BucketObject.m */; };
-		B5873FD810FF28CA001E145F /* ASIS3Request.m in Sources */ = {isa = PBXBuildFile; fileRef = B5873FC610FF28CA001E145F /* ASIS3Request.m */; };
-		B5873FD910FF28CA001E145F /* ASICloudFilesCDNRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5873FC910FF28CA001E145F /* ASICloudFilesCDNRequest.m */; };
-		B5873FDA10FF28CA001E145F /* ASICloudFilesContainer.m in Sources */ = {isa = PBXBuildFile; fileRef = B5873FCB10FF28CA001E145F /* ASICloudFilesContainer.m */; };
-		B5873FDB10FF28CA001E145F /* ASICloudFilesContainerRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5873FCD10FF28CA001E145F /* ASICloudFilesContainerRequest.m */; };
-		B5873FDC10FF28CA001E145F /* ASICloudFilesContainerXMLParserDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = B5873FCF10FF28CA001E145F /* ASICloudFilesContainerXMLParserDelegate.m */; };
-		B5873FDD10FF28CA001E145F /* ASICloudFilesObject.m in Sources */ = {isa = PBXBuildFile; fileRef = B5873FD110FF28CA001E145F /* ASICloudFilesObject.m */; };
-		B5873FDE10FF28CA001E145F /* ASICloudFilesObjectRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5873FD310FF28CA001E145F /* ASICloudFilesObjectRequest.m */; };
-		B5873FDF10FF28CA001E145F /* ASICloudFilesRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5873FD510FF28CA001E145F /* ASICloudFilesRequest.m */; };
-		B5873FF510FF2904001E145F /* ASICloudFilesRequestTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B5873FF310FF2904001E145F /* ASICloudFilesRequestTests.m */; };
+		B5873FD610FF28CA001E145F /* ASIS3BucketObject.m in Sources */ = {isa = PBXBuildFile; fileRef = B5873FC210FF28CA001E145F /* ASIS3BucketObject.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		B5873FD810FF28CA001E145F /* ASIS3Request.m in Sources */ = {isa = PBXBuildFile; fileRef = B5873FC610FF28CA001E145F /* ASIS3Request.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		B5873FD910FF28CA001E145F /* ASICloudFilesCDNRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5873FC910FF28CA001E145F /* ASICloudFilesCDNRequest.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		B5873FDA10FF28CA001E145F /* ASICloudFilesContainer.m in Sources */ = {isa = PBXBuildFile; fileRef = B5873FCB10FF28CA001E145F /* ASICloudFilesContainer.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		B5873FDB10FF28CA001E145F /* ASICloudFilesContainerRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5873FCD10FF28CA001E145F /* ASICloudFilesContainerRequest.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		B5873FDC10FF28CA001E145F /* ASICloudFilesContainerXMLParserDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = B5873FCF10FF28CA001E145F /* ASICloudFilesContainerXMLParserDelegate.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		B5873FDD10FF28CA001E145F /* ASICloudFilesObject.m in Sources */ = {isa = PBXBuildFile; fileRef = B5873FD110FF28CA001E145F /* ASICloudFilesObject.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		B5873FDE10FF28CA001E145F /* ASICloudFilesObjectRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5873FD310FF28CA001E145F /* ASICloudFilesObjectRequest.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		B5873FDF10FF28CA001E145F /* ASICloudFilesRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = B5873FD510FF28CA001E145F /* ASICloudFilesRequest.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		B5873FF510FF2904001E145F /* ASICloudFilesRequestTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B5873FF310FF2904001E145F /* ASICloudFilesRequestTests.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		B59A87C2103EC6F200300252 /* ASIAuthenticationDialog.m in Sources */ = {isa = PBXBuildFile; fileRef = B59A87C1103EC6F200300252 /* ASIAuthenticationDialog.m */; };
 		B59A87C3103EC6F200300252 /* ASIAuthenticationDialog.m in Sources */ = {isa = PBXBuildFile; fileRef = B59A87C1103EC6F200300252 /* ASIAuthenticationDialog.m */; };
 		B5BD2AFA11CA541100D7C426 /* iPadSampleAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = B5BD2AF911CA541100D7C426 /* iPadSampleAppDelegate.m */; };
 		B5BD2B0111CA542000D7C426 /* DetailCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B5BD2AFC11CA542000D7C426 /* DetailCell.m */; };
 		B5BD2B0211CA542000D7C426 /* InfoCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B5BD2AFE11CA542000D7C426 /* InfoCell.m */; };
 		B5BD2B0311CA542000D7C426 /* ToggleCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B5BD2B0011CA542000D7C426 /* ToggleCell.m */; };
-		B5BD2B0411CA542000D7C426 /* DetailCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B5BD2AFC11CA542000D7C426 /* DetailCell.m */; };
-		B5BD2B0511CA542000D7C426 /* InfoCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B5BD2AFE11CA542000D7C426 /* InfoCell.m */; };
-		B5BD2B0611CA542000D7C426 /* ToggleCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B5BD2B0011CA542000D7C426 /* ToggleCell.m */; };
+		B5BD2B0411CA542000D7C426 /* DetailCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B5BD2AFC11CA542000D7C426 /* DetailCell.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		B5BD2B0511CA542000D7C426 /* InfoCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B5BD2AFE11CA542000D7C426 /* InfoCell.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		B5BD2B0611CA542000D7C426 /* ToggleCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B5BD2B0011CA542000D7C426 /* ToggleCell.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		B5BD2B0B11CA542700D7C426 /* RootViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B5BD2B0811CA542700D7C426 /* RootViewController.m */; };
 		B5BD2B0C11CA542700D7C426 /* SampleViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B5BD2B0A11CA542700D7C426 /* SampleViewController.m */; };
-		B5BD2B0E11CA542700D7C426 /* SampleViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B5BD2B0A11CA542700D7C426 /* SampleViewController.m */; };
-		B5BF64EF12FDFC7100CBC324 /* GHUnitIOSTestMain.m in Sources */ = {isa = PBXBuildFile; fileRef = B5BF64EE12FDFC7100CBC324 /* GHUnitIOSTestMain.m */; };
-		B5C6663E100A82D7004F3C96 /* ASIS3RequestTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B5C6663D100A82D7004F3C96 /* ASIS3RequestTests.m */; };
-		B5EA45AA109B56D800E920CB /* StressTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B5EA45A9109B56D800E920CB /* StressTests.m */; };
+		B5BD2B0E11CA542700D7C426 /* SampleViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B5BD2B0A11CA542700D7C426 /* SampleViewController.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		B5BF64EF12FDFC7100CBC324 /* GHUnitIOSTestMain.m in Sources */ = {isa = PBXBuildFile; fileRef = B5BF64EE12FDFC7100CBC324 /* GHUnitIOSTestMain.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		B5C6663E100A82D7004F3C96 /* ASIS3RequestTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B5C6663D100A82D7004F3C96 /* ASIS3RequestTests.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		B5EA45AA109B56D800E920CB /* StressTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B5EA45A9109B56D800E920CB /* StressTests.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		B5FE752711DBBA6400F898C8 /* ASIDownloadCache.m in Sources */ = {isa = PBXBuildFile; fileRef = B5FE752511DBBA6400F898C8 /* ASIDownloadCache.m */; };
 		B5FE752811DBBA6400F898C8 /* ASIDownloadCache.m in Sources */ = {isa = PBXBuildFile; fileRef = B5FE752511DBBA6400F898C8 /* ASIDownloadCache.m */; };
 		B5FE752911DBBA6400F898C8 /* ASIDownloadCache.m in Sources */ = {isa = PBXBuildFile; fileRef = B5FE752511DBBA6400F898C8 /* ASIDownloadCache.m */; };
@@ -143,6 +143,8 @@
 
 /* Begin PBXFileReference section */
 		1D6058910D05DD3D006BFB54 /* ASIHTTPRequest iPhone.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "ASIHTTPRequest iPhone.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		944E25941FB9F12900D68549 /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
+		94CD355B1FB9F96300418203 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		B50C1821121C26DB0055FCAB /* ClientCertificateTests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ClientCertificateTests.h; sourceTree = "<group>"; };
 		B50C1822121C26DB0055FCAB /* ClientCertificateTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ClientCertificateTests.m; sourceTree = "<group>"; };
 		B50C182B121C26FA0055FCAB /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
@@ -291,6 +293,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				94CD355C1FB9F96300418203 /* QuartzCore.framework in Frameworks */,
 				B576D4C111C7CC970059B815 /* CFNetwork.framework in Frameworks */,
 				B576D4D111C7CCBC0059B815 /* CoreGraphics.framework in Frameworks */,
 				DADCEB8C12D5046A00958557 /* Foundation.framework in Frameworks */,
@@ -366,6 +369,7 @@
 		29B97314FDCFA39411CA2CEA /* iPhone */ = {
 			isa = PBXGroup;
 			children = (
+				944E25941FB9F12900D68549 /* Default-568h@2x.png */,
 				B5D1454E1029E20D004379B8 /* External */,
 				080E96DDFE201D6D7F000001 /* Classes */,
 				29B97315FDCFA39411CA2CEA /* Other Sources */,
@@ -422,6 +426,7 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				94CD355B1FB9F96300418203 /* QuartzCore.framework */,
 				B581DDC912FDFEEE003BA9D0 /* GHUnitIOS.framework */,
 				B576D4C011C7CC970059B815 /* CFNetwork.framework */,
 				B576D4D011C7CCBC0059B815 /* CoreGraphics.framework */,
@@ -616,7 +621,12 @@
 		29B97313FDCFA39411CA2CEA /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0410;
+				LastUpgradeCheck = 0910;
+				TargetAttributes = {
+					1D6058900D05DD3D006BFB54 = {
+						ProvisioningStyle = Automatic;
+					};
+				};
 			};
 			buildConfigurationList = C01FCF4E08A954540054247B /* Build configuration list for PBXProject "iPhone" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -645,9 +655,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				B55B60740F765A990064029C /* iphone-icon.png in Resources */,
+				944E25961FB9F13300D68549 /* Default-568h@2x.png in Resources */,
 				B576D76611C7F4D90059B815 /* iPhoneMainWindow.xib in Resources */,
 				B523254311CA01F1006C6E5A /* Sample.xib in Resources */,
-				B50F661A1297FA45003887B1 /* strict.xcconfig in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -657,7 +667,7 @@
 			files = (
 				B56529A3101C8EDA000499CF /* iphone-tests-icon.png in Resources */,
 				B50C1848121C27510055FCAB /* client.p12 in Resources */,
-				B50F661B1297FA45003887B1 /* strict.xcconfig in Resources */,
+				944E25951FB9F12900D68549 /* Default-568h@2x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -669,7 +679,6 @@
 				B558B5EB11C7F9C8009B4627 /* iPadMainWindow.xib in Resources */,
 				B523254211CA01F1006C6E5A /* Sample.xib in Resources */,
 				B52325AD11CA05A8006C6E5A /* info.png in Resources */,
-				B50F66191297FA45003887B1 /* strict.xcconfig in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -828,10 +837,12 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				CLANG_WARN_IMPLICIT_SIGN_CONVERSION = YES;
-				CLANG_WARN_OBJC_IMPLICIT_ATOMIC_PROPERTIES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CODE_SIGN_IDENTITY = "";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
+				DEVELOPMENT_TEAM = "";
 				GCC_C_LANGUAGE_STANDARD = "compiler-default";
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -840,9 +851,12 @@
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				HEADER_SEARCH_PATHS = "${SDK_DIR}/usr/include/libxml2";
 				INFOPLIST_FILE = "iPhone Sample/iPhoneInfo.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 3.1.3;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.allseeinginteractive.asihttprequest.iphone.sample;
 				PRODUCT_NAME = "ASIHTTPRequest iPhone";
-				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
+				PROVISIONING_PROFILE = "";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "1EF820DC-2714-4C87-9291-080265963509";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
@@ -851,18 +865,22 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				CLANG_WARN_IMPLICIT_SIGN_CONVERSION = YES;
-				CLANG_WARN_OBJC_IMPLICIT_ATOMIC_PROPERTIES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CODE_SIGN_IDENTITY = "";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = YES;
+				DEVELOPMENT_TEAM = "";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "iPhone Sample/iPhone_Prefix.pch";
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				HEADER_SEARCH_PATHS = "${SDK_DIR}/usr/include/libxml2";
 				INFOPLIST_FILE = "iPhone Sample/iPhoneInfo.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 3.1.3;
+				PRODUCT_BUNDLE_IDENTIFIER = com.allseeinginteractive.asihttprequest.iphone.sample;
 				PRODUCT_NAME = "ASIHTTPRequest iPhone";
-				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
+				PROVISIONING_PROFILE = "";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "1EF820DC-2714-4C87-9291-080265963509";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
@@ -872,6 +890,8 @@
 			baseConfigurationReference = B50F66181297FA45003887B1 /* strict.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -884,17 +904,20 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "iPhone Sample/iPhone_Prefix.pch";
 				GCC_PREPROCESSOR_DEFINITIONS = "";
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				HEADER_SEARCH_PATHS = "${SDK_DIR}/usr/include/libxml2";
 				INFOPLIST_FILE = "iPhone Sample/Tests-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 3.2.2;
 				LIBRARY_SEARCH_PATHS = "";
+				ONLY_ACTIVE_ARCH = NO;
 				OTHER_LDFLAGS = (
 					"-ObjC",
 					"-all_load",
 				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.allseeinginteractive.asihttprequest.tests;
 				PRODUCT_NAME = Tests;
 				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
+				VALID_ARCHS = armv7;
 				WARNING_CFLAGS = "";
 			};
 			name = Debug;
@@ -904,6 +927,7 @@
 			baseConfigurationReference = B50F66181297FA45003887B1 /* strict.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_OBJC_ARC = YES;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
@@ -915,19 +939,21 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "iPhone Sample/iPhone_Prefix.pch";
 				GCC_PREPROCESSOR_DEFINITIONS = "";
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				HEADER_SEARCH_PATHS = "${SDK_DIR}/usr/include/libxml2";
 				INFOPLIST_FILE = "iPhone Sample/Tests-Info.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
-				IPHONEOS_DEPLOYMENT_TARGET = 3.2.2;
 				LIBRARY_SEARCH_PATHS = "";
 				OTHER_LDFLAGS = (
 					"-ObjC",
 					"-all_load",
 				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.allseeinginteractive.asihttprequest.tests;
 				PRODUCT_NAME = Tests;
 				PROVISIONING_PROFILE = "";
 				SKIP_INSTALL = YES;
+				VALID_ARCHS = armv7;
 			};
 			name = Release;
 		};
@@ -936,17 +962,17 @@
 			baseConfigurationReference = B50F66181297FA45003887B1 /* strict.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_UNIVERSAL_IPHONE_OS)";
 				COPY_PHASE_STRIP = NO;
 				GCC_C_LANGUAGE_STANDARD = "compiler-default";
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "iPhone Sample/iPhone_Prefix.pch";
-				GCC_VERSION = com.apple.compilers.llvmgcc42;
+				GCC_TREAT_WARNINGS_AS_ERRORS = NO;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				HEADER_SEARCH_PATHS = "${SDK_DIR}/usr/include/libxml2";
 				INFOPLIST_FILE = "iPhone Sample/iPadInfo.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 3.2;
+				PRODUCT_BUNDLE_IDENTIFIER = com.allseeinginteractive.asihttprequest.ipad.sample;
 				PRODUCT_NAME = "ASIHTTPRequest iPad";
 				TARGETED_DEVICE_FAMILY = 2;
 			};
@@ -957,14 +983,14 @@
 			baseConfigurationReference = B50F66181297FA45003887B1 /* strict.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_UNIVERSAL_IPHONE_OS)";
 				COPY_PHASE_STRIP = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "iPhone Sample/iPhone_Prefix.pch";
-				GCC_VERSION = com.apple.compilers.llvmgcc42;
+				GCC_TREAT_WARNINGS_AS_ERRORS = NO;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				HEADER_SEARCH_PATHS = "${SDK_DIR}/usr/include/libxml2";
 				INFOPLIST_FILE = "iPhone Sample/iPadInfo.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 3.2;
+				PRODUCT_BUNDLE_IDENTIFIER = com.allseeinginteractive.asihttprequest.ipad.sample;
 				PRODUCT_NAME = "ASIHTTPRequest iPad";
 				TARGETED_DEVICE_FAMILY = 2;
 			};
@@ -973,11 +999,35 @@
 		C01FCF4F08A954540054247B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = c99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 			};
@@ -986,11 +1036,34 @@
 		C01FCF5008A954540054247B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = c99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				SDKROOT = iphoneos;
 			};
 			name = Release;

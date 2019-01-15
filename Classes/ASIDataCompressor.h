@@ -14,12 +14,11 @@
 #import <zlib.h>
 
 @interface ASIDataCompressor : NSObject {
-	BOOL streamReady;
-	z_stream zStream;
+  z_stream zStream;
 }
 
 // Convenience constructor will call setupStream for you
-+ (id)compressor;
++ (instancetype)compressor;
 
 // Compress the passed chunk of data
 // Passing YES for shouldFinish will finalize the deflated data - you must pass YES when you are on the last chunk of data

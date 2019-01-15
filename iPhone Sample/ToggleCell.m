@@ -13,12 +13,11 @@
 
 + (id)cell
 {
-	ToggleCell *cell = [[[ToggleCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier:@"ToggleCell"] autorelease];
-	[[cell textLabel] setTextAlignment:UITextAlignmentLeft];
-	[cell setToggle:[[[UISwitch alloc] initWithFrame:CGRectMake(0,0,20,20)] autorelease]];
+	ToggleCell *cell = [[ToggleCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier:@"ToggleCell"];
+	[[cell textLabel] setTextAlignment:NSTextAlignmentLeft];
+	[cell setToggle:[[UISwitch alloc] initWithFrame:CGRectMake(0,0,20,20)]];
 	[cell setAccessoryView:[cell toggle]];
 	return cell;
 }
 
-@synthesize toggle;
 @end

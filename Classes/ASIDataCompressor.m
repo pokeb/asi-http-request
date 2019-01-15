@@ -18,24 +18,23 @@
 
 @implementation ASIDataCompressor
 
-+ (id)compressor
++ (instancetype)compressor
 {
-	ASIDataCompressor *compressor = [[[self alloc] init] autorelease];
+  ASIDataCompressor *compressor = [[self alloc] init];
 	[compressor setupStream];
 	return compressor;
 }
 
 - (void)dealloc
 {
-	if (streamReady) {
+  if (_streamReady) {
 		[self closeStream];
 	}
-	[super dealloc];
 }
 
 - (NSError *)setupStream
 {
-	if (streamReady) {
+  if (_streamReady) {
 		return nil;
 	}
 	// Setup the inflate stream
@@ -48,17 +47,17 @@
 	if (status != Z_OK) {
 		return [[self class] deflateErrorWithCode:status];
 	}
-	streamReady = YES;
+  _streamReady = YES;
 	return nil;
 }
 
 - (NSError *)closeStream
 {
-	if (!streamReady) {
+  if (!_streamReady) {
 		return nil;
 	}
 	// Close the deflate stream
-	streamReady = NO;
+  _streamReady = NO;
 	int status = deflateEnd(&zStream);
 	if (status != Z_OK) {
 		return [[self class] deflateErrorWithCode:status];
@@ -98,7 +97,7 @@
 			if (err) {
 				*err = [[self class] deflateErrorWithCode:status];
 			}
-			return NO;
+			return nil;
 		}
 	}
 
@@ -125,7 +124,7 @@
 
 + (BOOL)compressDataFromFile:(NSString *)sourcePath toFile:(NSString *)destinationPath error:(NSError **)err
 {
-	NSFileManager *fileManager = [[[NSFileManager alloc] init] autorelease];
+  NSFileManager *fileManager = [[NSFileManager alloc] init];
 
 	// Create an empty file at the destination path
 	if (![fileManager createFileAtPath:destinationPath contents:[NSData data] attributes:nil]) {
@@ -215,5 +214,4 @@
 	return [NSError errorWithDomain:NetworkRequestErrorDomain code:ASICompressionError userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Compression of data failed with code %d",code],NSLocalizedDescriptionKey,nil]];
 }
 
-@synthesize streamReady;
 @end

@@ -39,7 +39,7 @@
 
 - (BOOL)cdnEnabled {
     NSNumber *enabled = [[self responseHeaders] objectForKey:@"X-CDN-Enabled"];
-    if (!enabled) {
+    if (enabled == nil) {
         enabled = [[self responseHeaders] objectForKey:@"X-Cdn-Enabled"];
     }
 	return [enabled boolValue];
@@ -63,7 +63,7 @@
 
 - (NSUInteger)cdnTTL {
     NSNumber *ttl = [[self responseHeaders] objectForKey:@"X-TTL"];
-    if (!ttl) {
+    if (ttl == nil) {
         ttl = [[self responseHeaders] objectForKey:@"X-Ttl"];
     }
     return [ttl intValue];
@@ -81,7 +81,7 @@
 	NSString *query = @"?format=xml";
 	
 	if (limit > 0) {
-		query = [query stringByAppendingString:[NSString stringWithFormat:@"&limit=%i", limit]];
+		query = [query stringByAppendingString:[NSString stringWithFormat:@"&limit=%i", (int)limit]];
 	}
 	
 	if (marker) {
@@ -89,7 +89,7 @@
 	}
 	
 	if (limit > 0) {
-		query = [query stringByAppendingString:[NSString stringWithFormat:@"&limit=%i", limit]];
+		query = [query stringByAppendingString:[NSString stringWithFormat:@"&limit=%i", (int)limit]];
 	}
 	
 	ASICloudFilesCDNRequest *request = [ASICloudFilesCDNRequest cdnRequestWithMethod:@"GET" query:query];
@@ -128,7 +128,7 @@
 
 + (id)putRequestWithContainer:(NSString *)containerName ttl:(NSUInteger)ttl {
 	ASICloudFilesCDNRequest *request = [ASICloudFilesCDNRequest cdnRequestWithMethod:@"PUT" containerName:containerName];	
-	[request addRequestHeader:@"X-Ttl" value:[NSString stringWithFormat:@"%i", ttl]];
+	[request addRequestHeader:@"X-Ttl" value:[NSString stringWithFormat:@"%i", (int)ttl]];
 	return request;
 }
 
@@ -148,7 +148,7 @@
 + (id)postRequestWithContainer:(NSString *)containerName cdnEnabled:(BOOL)cdnEnabled ttl:(NSUInteger)ttl {
 	ASICloudFilesCDNRequest *request = [ASICloudFilesCDNRequest cdnRequestWithMethod:@"POST" containerName:containerName];
 	if (ttl > 0) {
-		[request addRequestHeader:@"X-Ttl" value:[NSString stringWithFormat:@"%i", ttl]];
+		[request addRequestHeader:@"X-Ttl" value:[NSString stringWithFormat:@"%i", (int)ttl]];
 	}
 	[request addRequestHeader:@"X-CDN-Enabled" value:cdnEnabled ? @"True" : @"False"];
 	return request;

@@ -30,7 +30,7 @@
 {
 	UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"MyCell"];
 	if (!cell) {
-		cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"MyCell"] autorelease];
+		cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"MyCell"];
 	}
 	switch ([indexPath row]) {
 		case 0:
@@ -62,19 +62,19 @@
 	UIViewController *viewController = nil;
 	switch ([indexPath row]) {
 		case 0:
-			viewController = [[[SynchronousViewController alloc] initWithNibName:@"Sample" bundle:nil] autorelease];
+			viewController = [[SynchronousViewController alloc] initWithNibName:@"Sample" bundle:nil];
 			break;
 		case 1:
-			viewController = [[[QueueViewController alloc] initWithNibName:@"Sample" bundle:nil] autorelease];
+			viewController = [[QueueViewController alloc] initWithNibName:@"Sample" bundle:nil];
 			break;
 		case 2:
-			viewController = [[[AuthenticationViewController alloc] initWithNibName:@"Sample" bundle:nil] autorelease];
+			viewController = [[AuthenticationViewController alloc] initWithNibName:@"Sample" bundle:nil];
 			break;
 		case 3:
-			viewController = [[[UploadViewController alloc] initWithNibName:@"Sample" bundle:nil] autorelease];
+			viewController = [[UploadViewController alloc] initWithNibName:@"Sample" bundle:nil];
 			break;
 		case 4:
-			viewController = [[[WebPageViewController alloc] initWithNibName:@"Sample" bundle:nil] autorelease];
+			viewController = [[WebPageViewController alloc] initWithNibName:@"Sample" bundle:nil];
 			break;
 	}	
 	[splitViewController setViewControllers:[NSArray arrayWithObjects:[self navigationController],viewController,nil]];
@@ -113,13 +113,6 @@
     if (pc != nil) {
         [pc dismissPopoverAnimated:YES];
     }
-}
-
-- (void)dealloc
-{
-    [popoverController release];
-    [rootPopoverButtonItem release];
-    [super dealloc];
 }
 
 @synthesize splitViewController;

@@ -12,16 +12,9 @@
 
 - (void)applicationDidFinishLaunching:(UIApplication *)application
 {
-	[window addSubview:[splitViewController view]];
+    window.rootViewController = splitViewController;
 	[window makeKeyAndVisible];
 }
-
-- (void)dealloc {
-    [splitViewController release];
-    [window release];
-    [super dealloc];
-}
-
 
 @synthesize window;
 @synthesize splitViewController;

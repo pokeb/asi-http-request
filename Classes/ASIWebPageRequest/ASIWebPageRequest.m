@@ -58,11 +58,10 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 
 - (void)dealloc
 {
+    self.parentRequest = nil;
+    self.resourceList = nil;
 	[externalResourceQueue cancelAllOperations];
-	[externalResourceQueue release];
-	[resourceList release];
-	[parentRequest release];
-	[super dealloc];
+    [super dealloc];
 }
 
 // This is a bit of a hack
@@ -79,7 +78,7 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 // Again, we call the super implementation in finishedFetchingExternalResources:, or here if this download was not an HTML or CSS file
 - (void)requestFinished
 {
-	complete = NO;
+	_complete = NO;
 	if ([self mainRequest] || [self didUseCachedResponse]) {
 		[super requestFinished];
 		[super markAsFinished];
@@ -322,7 +321,7 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 			if ([self downloadDestinationPath]) {
 				parsedResponse = [NSMutableString stringWithContentsOfFile:[self downloadDestinationPath] encoding:[self responseEncoding] error:&err];
 			} else {
-				parsedResponse = [[[self responseString] mutableCopy] autorelease];
+				parsedResponse = [[self responseString] mutableCopy];
 			}
 			if (err) {
 				[self failWithError:[NSError errorWithDomain:NetworkRequestErrorDomain code:101 userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Error: unable to read response CSS from disk",NSLocalizedDescriptionKey,nil]]];
@@ -360,7 +359,7 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 				if ([self downloadDestinationPath]) {
 
 					// Truncate the file first
-					[[[[NSFileManager alloc] init] autorelease] createFileAtPath:[self downloadDestinationPath] contents:nil attributes:nil];
+					[[[NSFileManager alloc] init] createFileAtPath:[self downloadDestinationPath] contents:nil attributes:nil];
 
 					saveContext = xmlSaveToFd([[NSFileHandle fileHandleForWritingAtPath:[self downloadDestinationPath]] fileDescriptor],NULL,2); // 2 == XML_SAVE_NO_DECL, this isn't declared on Mac OS 10.5
 					xmlSaveDoc(saveContext, doc);
@@ -380,14 +379,14 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 					saveContext = xmlSaveToBuffer(buffer,NULL,2); // 2 == XML_SAVE_NO_DECL, this isn't declared on Mac OS 10.5
 					xmlSaveDoc(saveContext, doc);
 					xmlSaveClose(saveContext);
-					[self setRawResponseData:[[[NSMutableData alloc] initWithBytes:buffer->content length:buffer->use] autorelease]];
+					[self setRawResponseData:[[NSMutableData alloc] initWithBytes:buffer->content length:buffer->use]];
 					xmlBufferFree(buffer);
 	#endif
 				}
 
 				// Strip the content encoding if the original response was gzipped
 				if ([self isResponseCompressed]) {
-					NSMutableDictionary *headers = [[[self responseHeaders] mutableCopy] autorelease];
+					NSMutableDictionary *headers = [[self responseHeaders] mutableCopy];
 					[headers removeObjectForKey:@"Content-Encoding"];
 					[self setResponseHeaders:headers];
 				}
@@ -404,10 +403,10 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 		}
 	}
 	if (![self parentRequest]) {
-		[[self class] updateProgressIndicator:&downloadProgressDelegate withProgress:contentLength ofTotal:contentLength];
+		[[self class] updateProgressIndicator:[self downloadProgressDelegate] withProgress:[self contentLength] ofTotal:[self contentLength]];
 	}
 
-	NSMutableDictionary *newHeaders = [[[self responseHeaders] mutableCopy] autorelease];
+	NSMutableDictionary *newHeaders = [[self responseHeaders] mutableCopy];
 	[newHeaders removeObjectForKey:@"Content-Encoding"];
 	[self setResponseHeaders:newHeaders];
 
@@ -584,11 +583,11 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 	}
 	//Ok, now check for selectors we want to pass on to the delegate
 	if (selector == @selector(requestStarted:) || selector == @selector(request:didReceiveResponseHeaders:) || selector == @selector(request:willRedirectToURL:) || selector == @selector(requestFinished:) || selector == @selector(requestFailed:) || selector == @selector(request:didReceiveData:) || selector == @selector(authenticationNeededForRequest:) || selector == @selector(proxyAuthenticationNeededForRequest:)) {
-		return [delegate respondsToSelector:selector];
+		return [[self delegate] respondsToSelector:selector];
 	} else if (selector == @selector(request:didReceiveBytes:) || selector == @selector(request:incrementDownloadSizeBy:)) {
-		return [downloadProgressDelegate respondsToSelector:selector];
+		return [[self downloadProgressDelegate] respondsToSelector:selector];
 	} else if (selector == @selector(request:didSendBytes:)  || selector == @selector(request:incrementUploadSizeBy:)) {
-		return [uploadProgressDelegate respondsToSelector:selector];
+		return [[self uploadProgressDelegate] respondsToSelector:selector];
 	}
 	return [super respondsToSelector:selector];
 }
@@ -599,11 +598,11 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 		return [[self parentRequest] methodSignatureForSelector:selector];
 	}
 	if (selector == @selector(requestStarted:) || selector == @selector(request:didReceiveResponseHeaders:) || selector == @selector(request:willRedirectToURL:) || selector == @selector(requestFinished:) || selector == @selector(requestFailed:) || selector == @selector(request:didReceiveData:) || selector == @selector(authenticationNeededForRequest:) || selector == @selector(proxyAuthenticationNeededForRequest:)) {
-		return [(id)delegate methodSignatureForSelector:selector];
+		return [[(id)self delegate] methodSignatureForSelector:selector];
 	} else if (selector == @selector(request:didReceiveBytes:) || selector == @selector(request:incrementDownloadSizeBy:)) {
-		return [(id)downloadProgressDelegate methodSignatureForSelector:selector];
+		return [[(id)self downloadProgressDelegate] methodSignatureForSelector:selector];
 	} else if (selector == @selector(request:didSendBytes:)  || selector == @selector(request:incrementUploadSizeBy:)) {
-		return [(id)uploadProgressDelegate methodSignatureForSelector:selector];
+		return [(id)[self uploadProgressDelegate] methodSignatureForSelector:selector];
 	}
 	return nil;
 }
@@ -615,11 +614,11 @@ static NSMutableArray *requestsUsingXMLParser = nil;
 	}
 	SEL selector = [anInvocation selector];
 	if (selector == @selector(requestStarted:) || selector == @selector(request:didReceiveResponseHeaders:) || selector == @selector(request:willRedirectToURL:) || selector == @selector(requestFinished:) || selector == @selector(requestFailed:) || selector == @selector(request:didReceiveData:) || selector == @selector(authenticationNeededForRequest:) || selector == @selector(proxyAuthenticationNeededForRequest:)) {
-		[anInvocation invokeWithTarget:delegate];
+		[anInvocation invokeWithTarget:[self delegate]];
 	} else if (selector == @selector(request:didReceiveBytes:) || selector == @selector(request:incrementDownloadSizeBy:)) {
-		[anInvocation invokeWithTarget:downloadProgressDelegate];
+		[anInvocation invokeWithTarget:[self downloadProgressDelegate]];
 	} else if (selector == @selector(request:didSendBytes:)  || selector == @selector(request:incrementUploadSizeBy:)) {
-		[anInvocation invokeWithTarget:uploadProgressDelegate];
+		[anInvocation invokeWithTarget:[self uploadProgressDelegate]];
 	}
 }
 

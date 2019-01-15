@@ -13,19 +13,13 @@
 
 + (id)cell
 {
-	RequestProgressCell *cell = [[[RequestProgressCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier:@"RequestProgressCell"] autorelease];
-	[[cell textLabel] setTextAlignment:UITextAlignmentLeft];
+	RequestProgressCell *cell = [[RequestProgressCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier:@"RequestProgressCell"];
+	[[cell textLabel] setTextAlignment:NSTextAlignmentLeft];
 	[[cell textLabel] setFont:[UIFont systemFontOfSize:12]];
-	[[cell textLabel] setLineBreakMode:UILineBreakModeMiddleTruncation];
-	[cell setProgressView:[[[UIProgressView alloc] initWithFrame:CGRectMake(0,0,100,20)] autorelease]];
+	[[cell textLabel] setLineBreakMode:NSLineBreakByTruncatingMiddle];
+	[cell setProgressView:[[UIProgressView alloc] initWithFrame:CGRectMake(0,0,100,20)]];
 	[cell setAccessoryView:[cell progressView]];
 	return cell;
-}
-
-- (void)dealloc
-{
-	[progressView release];
-	[super dealloc];
 }
 
 - (void)layoutSubviews

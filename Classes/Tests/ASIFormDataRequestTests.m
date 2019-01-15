@@ -70,7 +70,7 @@
 	[request setFile:path forKey:@"file"];
 	[request startSynchronous];
 
-	BOOL success = ([[request responseString] isEqualToString:[NSString stringWithFormat:@"post_var: %@\r\npost_var2: %@\r\npost_var3: %@\r\nfile_name: %@\r\nfile_size: %hu\r\ncontent_type: %@",@"foo",d,v,@"bigfile",size,@"application/octet-stream"]]);
+	BOOL success = ([[request responseString] isEqualToString:[NSString stringWithFormat:@"post_var: %@\r\npost_var2: %@\r\npost_var3: %@\r\nfile_name: %@\r\nfile_size: %u\r\ncontent_type: %@",@"foo",d,v,@"bigfile",size,@"application/octet-stream"]]);
 	GHAssertTrue(success,@"Failed to upload the correct data (using local file)");	
 	
 	//Try the same with the raw data
@@ -81,7 +81,7 @@
 	[request setData:data forKey:@"file"];
 	[request startSynchronous];
 
-	success = ([[request responseString] isEqualToString:[NSString stringWithFormat:@"post_var: %@\r\npost_var2: %@\r\npost_var3: %@\r\nfile_name: %@\r\nfile_size: %hu\r\ncontent_type: %@",@"foo",d,v,@"file",size,@"application/octet-stream"]]);
+	success = ([[request responseString] isEqualToString:[NSString stringWithFormat:@"post_var: %@\r\npost_var2: %@\r\npost_var3: %@\r\nfile_name: %@\r\nfile_size: %u\r\ncontent_type: %@",@"foo",d,v,@"file",size,@"application/octet-stream"]]);
 	GHAssertTrue(success,@"Failed to upload the correct data (using NSData)");	
 
 	//Post with custom content-type and file name
@@ -92,7 +92,7 @@
 	[request setFile:path withFileName:@"myfile" andContentType:@"text/plain" forKey:@"file"];
 	[request startSynchronous];
 	
-	success = ([[request responseString] isEqualToString:[NSString stringWithFormat:@"post_var: %@\r\npost_var2: %@\r\npost_var3: %@\r\nfile_name: %@\r\nfile_size: %hu\r\ncontent_type: %@",@"foo",d,v,@"myfile",size,@"text/plain"]]);
+	success = ([[request responseString] isEqualToString:[NSString stringWithFormat:@"post_var: %@\r\npost_var2: %@\r\npost_var3: %@\r\nfile_name: %@\r\nfile_size: %u\r\ncontent_type: %@",@"foo",d,v,@"myfile",size,@"text/plain"]]);
 	GHAssertTrue(success,@"Failed to send the correct content-type / file name");	
 	
 	//Post raw data with custom content-type and file name
@@ -103,7 +103,7 @@
 	[request setData:data withFileName:@"myfile" andContentType:@"text/plain" forKey:@"file"];
 	[request startSynchronous];
 	
-	success = ([[request responseString] isEqualToString:[NSString stringWithFormat:@"post_var: %@\r\npost_var2: %@\r\npost_var3: %@\r\nfile_name: %@\r\nfile_size: %hu\r\ncontent_type: %@",@"foo",d,v,@"myfile",size,@"text/plain"]]);
+	success = ([[request responseString] isEqualToString:[NSString stringWithFormat:@"post_var: %@\r\npost_var2: %@\r\npost_var3: %@\r\nfile_name: %@\r\nfile_size: %u\r\ncontent_type: %@",@"foo",d,v,@"myfile",size,@"text/plain"]]);
 	GHAssertTrue(success,@"Failed to send the correct content-type / file name");	
 	
 }

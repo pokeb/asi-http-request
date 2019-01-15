@@ -418,10 +418,10 @@ static NSString *bucket = @"";
 	// Firstly, create and upload 5 files
 	int i;
 	for (i=0; i<5; i++) {
-		NSString *text = [NSString stringWithFormat:@"This is the content of file #%hi",i];
-		NSString *filePath = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:[NSString stringWithFormat:@"%hi.txt",i]];
+		NSString *text = [NSString stringWithFormat:@"This is the content of file #%i",i];
+		NSString *filePath = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:[NSString stringWithFormat:@"%i.txt",i]];
 		[[text dataUsingEncoding:NSUTF8StringEncoding] writeToFile:filePath atomically:NO];
-		NSString *key = [NSString stringWithFormat:@"test-file/%hi",i];
+		NSString *key = [NSString stringWithFormat:@"test-file/%i",i];
 		ASIS3ObjectRequest *request = [ASIS3ObjectRequest PUTRequestForFile:filePath withBucket:bucket key:key];
 		[request setSecretAccessKey:secretAccessKey];
 		[request setAccessKey:accessKey];
@@ -502,7 +502,7 @@ static NSString *bucket = @"";
 	i=0;
 	// For each one, we'll just upload the same content again
 	for (ASIS3BucketObject *object in [listRequest objects]) {
-		NSString *oldFilePath = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:[NSString stringWithFormat:@"%hi.txt",i]];;
+		NSString *oldFilePath = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:[NSString stringWithFormat:@"%i.txt",i]];;
 		ASIS3Request *request = [object PUTRequestWithFile:oldFilePath];
 		[request setAccessKey:accessKey];
 		[request setSecretAccessKey:secretAccessKey];
@@ -641,7 +641,7 @@ static NSString *bucket = @"";
 	int i;	
 	for (i=0; i<5; i++) {
 		
-		NSString *key = [NSString stringWithFormat:@"stuff/file%hi.txt",i+1];
+		NSString *key = [NSString stringWithFormat:@"stuff/file%i.txt",i+1];
 		
 		ASIS3ObjectRequest *s3Request = [ASIS3ObjectRequest PUTRequestForData:data withBucket:bucket key:key];
 		[s3Request setSecretAccessKey:secretAccessKey];
@@ -667,12 +667,12 @@ static NSString *bucket = @"";
 	
 	for (i=0; i<5; i++) {
 		
-		NSString *key = [NSString stringWithFormat:@"stuff/file%hi.txt",i+1];
+		NSString *key = [NSString stringWithFormat:@"stuff/file%i.txt",i+1];
 		
 		ASIS3ObjectRequest *s3Request = [ASIS3ObjectRequest requestWithBucket:bucket key:key];
 		[s3Request setSecretAccessKey:secretAccessKey];
 		[s3Request setAccessKey:accessKey];
-		NSString *downloadPath = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:[NSString stringWithFormat:@"%hi.jpg",i+1]];
+		NSString *downloadPath = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:[NSString stringWithFormat:@"%i.jpg",i+1]];
 		[s3Request setDownloadDestinationPath:downloadPath];
 		[[self networkQueue] addOperation:s3Request];
 	}
@@ -693,7 +693,7 @@ static NSString *bucket = @"";
 
 	for (i=0; i<5; i++) {
 		
-		NSString *key = [NSString stringWithFormat:@"stuff/file%hi.txt",i+1];
+		NSString *key = [NSString stringWithFormat:@"stuff/file%i.txt",i+1];
 		
 		ASIS3ObjectRequest *s3Request = [ASIS3ObjectRequest DELETERequestWithBucket:bucket key:key];
 		[s3Request setSecretAccessKey:secretAccessKey];

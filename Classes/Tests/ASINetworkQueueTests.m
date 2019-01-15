@@ -347,7 +347,7 @@ IMPORTANT
 	int i;
 	for (i=0; i<3; i++) {
 		NSData *data = [[[NSMutableData alloc] initWithLength:fileSizes[i]*1024] autorelease];
-		NSString *path = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:[NSString stringWithFormat:@"file%hi",i]];
+		NSString *path = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:[NSString stringWithFormat:@"file%i",i]];
 		[data writeToFile:path atomically:NO];
 		ASIFormDataRequest *request = [[[ASIFormDataRequest alloc] initWithURL:url] autorelease];
 		[request setFile:path forKey:@"file"];
@@ -376,7 +376,7 @@ IMPORTANT
 	
 	for (i=0; i<3; i++) {
 		NSData *data = [[[NSMutableData alloc] initWithLength:fileSizes[i]*1024] autorelease];
-		NSString *path = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:[NSString stringWithFormat:@"file%hi",i]];
+		NSString *path = [[self filePathForTemporaryTestFiles] stringByAppendingPathComponent:[NSString stringWithFormat:@"file%i",i]];
 		[data writeToFile:path atomically:NO];
 		ASIFormDataRequest *request = [[[ASIFormDataRequest alloc] initWithURL:url] autorelease];
 		[request setFile:path forKey:@"file"];

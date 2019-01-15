@@ -14,13 +14,11 @@
 // Subclassing NSInputStream seems to be tricky, and may involve overriding undocumented methods, so we'll cheat instead.
 // It is used by ASIHTTPRequest whenever we have a request body, and handles measuring and throttling the bandwidth used for uploading
 
-@interface ASIInputStream : NSObject {
-	NSInputStream *stream;
-	ASIHTTPRequest *request;
-}
-+ (id)inputStreamWithFileAtPath:(NSString *)path request:(ASIHTTPRequest *)request;
-+ (id)inputStreamWithData:(NSData *)data request:(ASIHTTPRequest *)request;
+@interface ASIInputStream : NSInputStream<NSStreamDelegate>
 
-@property (retain, nonatomic) NSInputStream *stream;
-@property (assign, nonatomic) ASIHTTPRequest *request;
++ (instancetype)inputStreamWithFileAtPath:(NSString *)path request:(ASIHTTPRequest *)request;
++ (instancetype)inputStreamWithData:(NSData *)data request:(ASIHTTPRequest *)request;
+- (id)initWithInputStream:(NSInputStream *)stream;
+
+@property (weak, nonatomic) ASIHTTPRequest *request;
 @end
